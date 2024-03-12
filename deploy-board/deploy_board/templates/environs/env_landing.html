@@ -389,52 +389,52 @@ $('#privateBldUploadBtnId button').click(function () {
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     <form id="updateModeFormId">
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="simple"
-                        {% if report.showMode == "simple" %}
-                        checked
-                        {% endif %}
-                        > Simple
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="compact"
-                        {% if report.showMode == "compact" %}
-                        checked
-                        {% endif %}
-                        > Compact
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="complete"
-                        {% if report.showMode == "complete" %}
-                        checked
-                        {% endif %}
-                        > Complete
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="containerStatus"
-                        {% if report.showMode == "containerStatus" %}
-                        checked
-                        {% endif %}
-                        > Container Status
-                        </label></div>
-                    </li>
-                    <li role="presentation" class="divider"></li>
-                    <li>
-                        <div class="checkbox"><label>&nbsp;
-                        <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
-                        {% if report.sortByStatus == "true" %}
-                        checked
-                        {% endif %}
-                        > Sort by status
-                        </label></div>
-                    </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="simple"
+                            {% if report.showMode == "simple" %}
+                            checked
+                            {% endif %}
+                            > Simple
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="compact"
+                            {% if report.showMode == "compact" %}
+                            checked
+                            {% endif %}
+                            > Compact
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="complete"
+                            {% if report.showMode == "complete" %}
+                            checked
+                            {% endif %}
+                            > Complete
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="containerStatus"
+                            {% if report.showMode == "containerStatus" %}
+                            checked
+                            {% endif %}
+                            > Container Status
+                            </label></div>
+                        </li>
+                        <li role="presentation" class="divider"></li>
+                        <li>
+                            <div class="checkbox"><label>&nbsp;
+                            <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
+                            {% if report.sortByStatus == "true" %}
+                            checked
+                            {% endif %}
+                            > Sort by status
+                            </label></div>
+                        </li>
                     </form>
                 </ul>
                 </div>
@@ -457,24 +457,17 @@ $('#privateBldUploadBtnId button').click(function () {
                                         > All
                                     </label></div>
                                 </li>
-                                <li>
-                                    <div class="radio"><label>&nbsp;
-                                        <input type="radio" name="account" value="{{ primaryAccount }}"
-                                               {% if report.account == primaryAccount %}
-                                               checked
-                                               {% endif %}
-                                        > {{ primaryAccount }}
-                                    </label></div>
-                                </li>
-                                <li>
-                                    <div class="radio"><label>&nbsp;
-                                        <input type="radio" name="account" value="{{ subAccount }}"
-                                               {% if report.account == subAccount %}
-                                               checked
-                                               {% endif %}
-                                        > {{ subAccount }}
-                                    </label></div>
-                                </li>
+                                {% for account in accounts %}
+                                    <li>
+                                        <div class="radio"><label>&nbsp;
+                                            <input type="radio" name="account" value="{{ account.ownerId }}"
+                                                   {% if report.account == account.ownerId %}
+                                                   checked
+                                                   {% endif %}
+                                            > {{ account.ownerId }}
+                                        </label></div>
+                                    </li>
+                                {% endfor %}
                                 <li>
                                     <div class="radio"><label>&nbsp;
                                         <input type="radio" name="account" value="others"

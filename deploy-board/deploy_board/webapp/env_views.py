@@ -37,7 +37,8 @@ import json
 import requests
 from collections import Counter
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper, \
+    accounts_helper
 from .templatetags import utils
 from .helpers.exceptions import TeletraanException
 import math
@@ -233,6 +234,12 @@ def update_deploy_progress(request, name, stage):
                 else:
                     report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
 
+    accounts = []
+    cluster = clusters_helper.get_cluster(request, env.get('clusterName'))
+    if cluster is not None:
+        add_account_from_cluster(request, cluster, accounts)
+    add_legacy_accounts(accounts)
+
     context = {
         "report": report,
         "env": env,
@@ -240,6 +247,7 @@ def update_deploy_progress(request, name, stage):
         "pinterest": IS_PINTEREST,
         "primaryAccount": AWS_PRIMARY_ACCOUNT,
         "subAccount": AWS_SUB_ACCOUNT,
+        "accounts": accounts,
     }
 
     html = render_to_string('deploys/deploy_progress.tmpl', context)
@@ -252,6 +260,39 @@ def update_deploy_progress(request, name, stage):
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
+
+def add_legacy_accounts(accounts):
+    skip_primary_account = False
+    skip_sub_account = False
+    for account in accounts:
+        if account["ownerId"] == AWS_PRIMARY_ACCOUNT:
+            skip_primary_account = True
+        elif account["ownerId"] == AWS_SUB_ACCOUNT:
+            skip_sub_account = True
+
+    if not skip_primary_account:
+        accounts.append({
+            "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account / Primary account",
+            "ownerId": AWS_PRIMARY_ACCOUNT,
+        })
+    if not skip_sub_account:
+        accounts.append({
+            "name": f"{AWS_SUB_ACCOUNT} / Sub AWS account / Legacy sub account",
+            "ownerId": AWS_SUB_ACCOUNT,
+        })
+
+
+def add_account_from_cluster(request, cluster, accounts):
+    account_id = cluster.get("accountId")
+    if account_id is not None:
+        account = accounts_helper.get_by_cell_and_id(
+            request, cluster["cellName"], account_id)
+        if account is not None:
+            accounts.append({
+                "ownerId": account["data"]["ownerId"],
+                "name": f'{account["data"]["ownerId"]} / {account["name"]} / {account["description"]}'
+            })
 
 
 def update_service_add_ons(request, name, stage):
@@ -413,13 +454,14 @@ class EnvLandingView(View):
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
                 messages.add_message(request, messages.ERROR, detail)
-
+        accounts = []
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
             placements = None
             remaining_capacity = None
             if capacity_info['cluster']:
+                add_account_from_cluster(request, basic_cluster_info, accounts)
                 placements = placements_helper.get_simplified_by_ids(
                         request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
@@ -427,7 +469,7 @@ class EnvLandingView(View):
                 host_type_blessed_status = host_type['blessed_status']
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
-
+        add_legacy_accounts(accounts)
         last_cluster_refresh_status = _getLastClusterRefreshStatus(request, env)
         latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
 
@@ -471,6 +513,7 @@ class EnvLandingView(View):
                 "hasCluster": bool(capacity_info.get("cluster")),
                 "primaryAccount": AWS_PRIMARY_ACCOUNT,
                 "subAccount": AWS_SUB_ACCOUNT,
+                "accounts": accounts,
             })
             showMode = 'complete'
             account = 'all'
@@ -557,6 +600,7 @@ class EnvLandingView(View):
                 "hasCluster": bool(capacity_info.get("cluster")),
                 "primaryAccount": AWS_PRIMARY_ACCOUNT,
                 "subAccount": AWS_SUB_ACCOUNT,
+                "accounts": accounts,
             }
             response = render(request, 'environs/env_landing.html', context)
 
@@ -591,7 +635,7 @@ def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, la
                 return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing hosts.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
 
         return None
-    
+
     except:
         # in case of any exception, return None instead of showing the error on landing page
         return None
