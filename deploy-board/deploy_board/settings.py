@@ -100,10 +100,12 @@ PUPPET_HIERA_PATHS = os.getenv("PUPPET_HIERA_PATHS")
 
 LOG_DIR = os.getenv("LOG_DIR")
 LOG_LEVEL = os.getenv("LOG_LEVEL")
+DEBUG_MODE = os.getenv("DEBUG_MODE")
 
 # Change to your domain or hosts
+DEBUG = DEBUG_MODE == 'ON'
+
 if LOG_LEVEL == 'DEBUG':
-    DEBUG = True
     TEMPLATE_DEBUG = True
     ALLOWED_HOSTS = ['*']
 else:
