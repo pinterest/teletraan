@@ -10,9 +10,6 @@ on:
   pull_request:
     branches:
     - master
-    paths:
-    - 'deploy-service/**'
-    - '.github/workflows/maven.yml'
 
 jobs:
   build:
