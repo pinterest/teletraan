@@ -207,7 +207,7 @@ def get_info_from_facter(keys) -> Optional[dict]:
         # increment stats - facter calls
         create_sc_increment('deployd.stats.internal.facter_calls_sum', 1)
         log.info(f"Fetching {keys} keys from facter")
-        cmd = ['facter', '-jp']
+        cmd = ['AWS_EC2_METADATA_V1_DISABLED=true', 'facter', '-jp']
         cmd.extend(keys)
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         # timing stats - facter run time
