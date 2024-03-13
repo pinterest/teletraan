@@ -13,7 +13,7 @@ class StructuredMessage(logging.Formatter):
 
     @staticmethod
     def to_str(obj):
-        return '{}'.format(obj)
+        return "{}".format(obj)
 
     def format(self, record):
         """
@@ -31,6 +31,26 @@ class StructuredMessage(logging.Formatter):
         for attr in attrs:
             if hasattr(record, attr):
                 logs[attr] = self.to_str(getattr(record, attr))
-        logs['message'] = self.to_str(record.getMessage())
+        logs["message"] = self.to_str(record.getMessage())
         dumps = json.dumps(logs)
         return dumps
+
+
+class RequestJsonFormatter(logging.Formatter):
+    def format(self, record):
+        """
+        param: record: class 'logging.LogRecord'
+        return: json as str
+        """
+        if hasattr(record, 'request') and record.request is not None:
+            request = record.request
+            user = request.teletraan_user_id
+            log_message = {
+                "user": user.name,
+                "time": super().formatTime(record),
+                "method": request.method,
+                "path": request.path,
+            }
+            return json.dumps(log_message)
+
+        return super().format(record)

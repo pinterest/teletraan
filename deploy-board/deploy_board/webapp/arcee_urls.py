@@ -68,6 +68,7 @@ urlpatterns = [
     url(r'^groups/search/(?P<group_name>[a-zA-Z0-9\-_]+)/$', group_view.search_groups),
     url(r'^groups/search/$', group_view.group_landing),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/host-az-dist/$', group_view.get_host_az_dist),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/host-ami-dist/$', group_view.get_host_ami_dist),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/$', group_view.GroupDetailView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/config/$', group_view.GroupConfigView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/envs/', group_view.get_envs),

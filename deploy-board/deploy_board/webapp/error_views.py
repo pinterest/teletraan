@@ -25,9 +25,15 @@ logger = logging.getLogger(__name__)
 
 # TODO so we are using this as the catch ALL, and report error, as the last resort
 # this is fine, except the exception stack trace is not particularly user-friendly
-# We should not depends on this too much, but in the code handle as much exceptino
+# We should not depends on this too much, but in the code handle as much exception
 # as we can and generate user friendly message there.
-class ExceptionHandlerMiddleware(object):
+class ExceptionHandlerMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
     def process_exception(self, request, exception):
         logger.exception('Exception thrown when handling request ' + str(request))
 

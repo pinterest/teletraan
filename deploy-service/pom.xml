@@ -38,7 +38,7 @@
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-bom</artifactId>
-                <version>2022.0.9</version>
+                <version>2023.0.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -215,6 +215,28 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <!-- If you are outside Pinterest, exclude this profile -->
+            <!-- i.e. mvn clean package -P-pinterest-dependenies -->
+            <id>pinterest-dependenies</id>
+            <activation>
+              <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                  <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-tcnative-boringssl-static</artifactId>
+                    <version>2.0.65.Final</version>
+                  </dependency>
+                  <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-buffer</artifactId>
+                    <version>4.1.107.Final</version>
+                  </dependency>
+                </dependencies>
+              </dependencyManagement>
         </profile>
     </profiles>
 </project>
