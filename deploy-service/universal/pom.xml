@@ -193,7 +193,7 @@
                 <argument>--maven_version</argument>
                 <argument>${project.version}</argument>
                 <argument>--maven_pom</argument>
-                <argument>${project.file.path}</argument>
+                <argument>${project.build.directory}/${project.build.finalName}.pom</argument>
                 <argument>--maven_jar</argument>
                 <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
                 <argument>--maven_jar_src</argument>
