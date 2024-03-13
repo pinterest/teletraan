@@ -141,9 +141,6 @@
         <plugin>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>3.1.1</version>
-          <configuration>
-            <skip>true</skip>
-          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-project-info-reports-plugin</artifactId>
@@ -161,47 +158,6 @@
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <!-- This is Pinterest deployment specific. -->
-        <!-- For non-Pinterest deployments, remove this block and use the maven-deploy-plugin
-        instead. -->
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.0.0</version>
-        <executions>
-          <execution>
-            <id>artifactory-push-deploy</id>
-            <phase>deploy</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>artifactory-push</executable>
-              <arguments>
-                <argument>maven</argument>
-                <argument>--env</argument>
-                <argument>prod</argument>
-                <argument>--maven_type</argument>
-                <argument>${deployment.type}</argument>
-                <argument>--maven_group_id</argument>
-                <argument>${project.groupId}</argument>
-                <argument>--maven_artifact_id</argument>
-                <argument>${project.artifactId}</argument>
-                <argument>--maven_version</argument>
-                <argument>${project.version}</argument>
-                <argument>--maven_pom</argument>
-                <argument>${project.file.path}</argument>
-                <argument>--maven_jar</argument>
-                <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
-                <argument>--maven_jar_src</argument>
-                <argument>${project.build.directory}/${project.build.finalName}-sources.jar</argument>
-                <argument>--to_repo</argument>
-                <argument>maven-private-prod-sox-local</argument>
-              </arguments>
-            </configuration>
           </execution>
         </executions>
       </plugin>
