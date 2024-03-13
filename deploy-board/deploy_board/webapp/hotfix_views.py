@@ -114,7 +114,8 @@ class HotfixesView(View):
         index = int(request.GET.get('page_index', '1'))
         size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         hotfixes = hotfixs_helper.get_all(request, name, index, size)
-        urlPattern = systems_helper.get_url_pattern(request, "")
+        build = builds_helper.get_build(request, deploy['buildId'])
+        urlPattern = systems_helper.get_url_pattern(request, build.get('type'))
         for hotfix in hotfixes:
             commits = []
             _create_commits(commits, urlPattern['template'], hotfix)
