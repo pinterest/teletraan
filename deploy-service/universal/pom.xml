@@ -199,7 +199,7 @@
                 <argument>--maven_jar_src</argument>
                 <argument>${project.build.directory}/${project.build.finalName}-sources.jar</argument>
                 <argument>--to_repo</argument>
-                <argument>maven-private-prod-sox-local</argument>
+                <argument>test-maven</argument>
               </arguments>
             </configuration>
           </execution>
