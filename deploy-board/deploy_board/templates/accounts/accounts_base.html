@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block navbar-items %}
-<li class="active"><a href="/accounts">Accounts</a></li>
+<li class="active"><a href="/clouds/accounts">Accounts</a></li>
 <li><a href="/envs">Environments</a></li>
 <li><a href="/builds">Builds</a></li>
 {% endblock %}
@@ -12,7 +12,7 @@
         <h4 class="panel-title pull-left">Accounts</h4>
     </div>
 	<div class="row">
-        <a id="publishBuildBtnId" type="button" href="/accounts"
+        <a id="publishBuildBtnId" type="button" href="/clouds/accounts"
                 class="deployToolTip btn btn-default btn-block"
             data-toggle="tooltip" title="List all accounts">
             <span class="glyphicon glyphicon-th-list"></span> All Accounts
