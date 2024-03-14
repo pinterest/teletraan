@@ -220,7 +220,7 @@ urlpatterns = [
     url(r'^commits/get_more_commits/$', build_views.get_more_commits),
 
     # Accounts related
-    url(r'^accounts/$', accounts_views.AccountsView.as_view()),
+    url(r'^clouds/accounts/$', accounts_views.AccountsView.as_view()),
 
     # metrics
     url(r'^get_site_health_metrics/$', util_views.get_site_health_metrics),
