@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from .helpers import builds_helper, deploys_helper, environs_helper, tags_helper
+from .helpers import builds_helper, deploys_helper, environs_helper, tags_helper, clusters_helper, accounts_helper
 
 
 DEFAULT_PAGE_SIZE = 30
@@ -144,13 +144,22 @@ class DeployView(View):
         deploy = deploys_helper.get(request, deploy_id)
         build = builds_helper.get_build(request, deploy['buildId'])
         env = None
+        accountInfo = None
         if deploy.get('envId'):
             env = environs_helper.get(request, deploy['envId'])
+            if env.get("clusterName") is not None:
+                cluster = clusters_helper.get_cluster(request, env["clusterName"])
+                provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
+                if not id:
+                    accountInfo = accounts_helper.get_default_account(request, cell, provider=provider)
+                else:
+                    accountInfo = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
         return render(request, 'deploys/deploy_details.html', {
             "deploy": deploy,
             "build": build,
             "csrf_token": get_token(request),
             "env": env,
+            "account_info": accountInfo
         })
 
 

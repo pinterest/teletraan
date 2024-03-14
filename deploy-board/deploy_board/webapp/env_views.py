@@ -1329,11 +1329,19 @@ def get_deploy(request, name, stage, deploy_id):
     deploy = deploys_helper.get(request, deploy_id)
     build = builds_helper.get_build(request, deploy['buildId'])
     env = environs_helper.get_env_by_stage(request, name, stage)
+    if env.get("clusterName") is not None:
+        cluster = clusters_helper.get_cluster(request, env["clusterName"])
+        provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
+        if not id:
+            accountInfo = accounts_helper.get_default_account(request, cell, provider=provider)
+        else:
+            accountInfo = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
     return render(request, 'environs/env_deploy_details.html', {
         "deploy": deploy,
         "csrf_token": get_token(request),
         "build": build,
         "env": env,
+        "account_info": accountInfo
     })
 
 

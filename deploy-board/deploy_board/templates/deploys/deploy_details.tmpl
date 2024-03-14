@@ -83,6 +83,12 @@
             {% include "builds/build_details.tmpl" %}
         </td>
     </tr>
+    <tr>
+        <td>Account</td>
+        <td>
+            <a href="/clouds/accounts/{{ account_info.cloudProvider }}/{{ account_info.cell }}/{{ account_info.id }}">{{ account_info.id }}</a>
+        </td>
+    </tr>
 </table>
 <script>
     $.fn.editable.defaults.mode = 'popup';
