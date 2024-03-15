@@ -18,6 +18,7 @@ package com.pinterest.teletraan;
 import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
+import com.pinterest.teletraan.universal.security.PrincipalNameInjector;
 
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -106,6 +107,8 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         // Jackson Json parsing exceptions
         environment.jersey().register(new JsonProcessingExceptionMapper(true));
         environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
+
+        environment.jersey().register(PrincipalNameInjector.class);
 
         // Swagger API docs generation related
         environment.jersey().register(ApiListingResource.class);
