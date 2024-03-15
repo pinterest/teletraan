@@ -23,7 +23,6 @@ import time
 from collections import OrderedDict
 from functools import cmp_to_key
 
-
 # Constants used to distinguish the action to generate the host report
 TOTAL_ALIVE_HOST_REPORT = "TOTAL_ALIVE_HOST_REPORT"
 UNKNOWN_HOST_REPORT = "UNKNOWN_HOST_REPORT"
