@@ -10,6 +10,7 @@
         <th>State</th>
         <th>Success Rate</th>
         <th>Build</th>
+        <th>Account</th>
         <th>Operator</th>
     </tr>
     {% for deploy_summary in deploy_summaries %}
@@ -40,6 +41,7 @@
                 {{ deploy_summary.build|branchAndCommit }}
             </a>
         </td>
+        <td><a href="/clouds/accounts/{{ deploy_summary.account.provider }}/{{ deploy_summary.account.cell }}/{{ deploy_summary.account.id }}">{{ deploy_summary.account.id }}</a></td>
         <td>{{ deploy_summary.deploy.operator }}</td>
     </tr>
     {% endfor%}

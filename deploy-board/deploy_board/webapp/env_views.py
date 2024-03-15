@@ -793,17 +793,31 @@ def _gen_deploy_query_filter(request, from_date, from_time, to_date, to_time, si
 
 def _gen_deploy_summary(request, deploys, for_env=None):
     deploy_summaries = []
+    accounts = {}
     for deploy in deploys:
         if for_env:
             env = for_env
         else:
             env = environs_helper.get(request, deploy['envId'])
         build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
+        account = None
+        if env.get("clusterName") is not None:
+            cluster = clusters_helper.get_cluster(request, env["clusterName"])
+            provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId")
+            account_key = (provider, cell, id)
+            if account_key in accounts:
+                account = accounts[account_key]
+            else:
+                account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
+                if account is None:
+                    account = accounts_helper.get_default_account(request, cell, provider)
+                accounts[account_key] = account
         summary = {}
         summary['deploy'] = deploy
         summary['env'] = env
         summary['build'] = build_with_tag['build']
         summary['buildTag'] = build_with_tag['tag']
+        summary['account'] = account
         deploy_summaries.append(summary)
     return deploy_summaries
 
