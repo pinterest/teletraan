@@ -14,6 +14,7 @@ from __future__ import absolute_import
 # limitations under the License.
 
 from deployd.common.caller import Caller
+from deployd.common.helper import Helper
 from deployd.common.status_code import Status
 from deployd.common.config import Config
 from deployd.download.download_helper import DownloadHelper, DOWNLOAD_VALIDATE_METRICS
@@ -55,6 +56,9 @@ class HTTPDownloadHelper(DownloadHelper):
         status_code = self._download_files(local_full_fn)
         if status_code != Status.SUCCEEDED:
             log.error('Failed to download the tar ball for {}'.format(local_full_fn))
+            build_name = Helper.get_build_name(local_full_fn.rsplit('/', 1)[-1])
+            tags = {'type': 'http', 'build_name': build_name }
+            create_sc_increment('deployd.stats.download.failed', tags=tags)
             return status_code
 
         try:
