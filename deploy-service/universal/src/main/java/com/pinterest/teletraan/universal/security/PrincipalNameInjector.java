@@ -23,8 +23,8 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 
 /**
- * A filter that injects principal name to responses.
- * This info will later be picked up by the request logger.
+ * A filter that injects principal name to responses. This info will later be picked up by the
+ * request logger.
  */
 @Priority(Priorities.USER)
 public class PrincipalNameInjector implements ContainerResponseFilter {
