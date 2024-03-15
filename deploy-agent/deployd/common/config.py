@@ -282,6 +282,9 @@ class Config(object):
     def get_facter_az_key(self) -> Optional[str]:
         return self.get_var('availability_zone_key', None)
 
+    def get_facter_secondary_az_key(self) -> Optional[str]:
+        return self.get_var('secondary_availability_zone_key', 'ec2_metadata.placement.availability-zone')
+
     def get_facter_ec2_tags_key(self) -> Optional[str]:
         return self.get_var('ec2_tags_key', None)
 

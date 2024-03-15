@@ -38,7 +38,7 @@
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-bom</artifactId>
-                <version>2022.0.9</version>
+                <version>2023.0.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -189,6 +189,19 @@
         </plugins>
     </build>
 
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <name>maven-releases</name>
+            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-prod-sox-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>maven-snapshots</name>
+            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-prod-sox-local</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <profiles>
         <profile>
             <id>coverage</id>
@@ -215,6 +228,28 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <!-- If you are outside Pinterest, exclude this profile -->
+            <!-- i.e. mvn clean package -P-pinterest-dependenies -->
+            <id>pinterest-dependenies</id>
+            <activation>
+              <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                  <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-tcnative-boringssl-static</artifactId>
+                    <version>2.0.65.Final</version>
+                  </dependency>
+                  <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-buffer</artifactId>
+                    <version>4.1.107.Final</version>
+                  </dependency>
+                </dependencies>
+              </dependencyManagement>
         </profile>
     </profiles>
 </project>

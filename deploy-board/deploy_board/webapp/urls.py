@@ -15,6 +15,7 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
 from . import alarm_views
+from . import accounts_views
 from . import capacity_views
 from . import config_map_views
 from . import env_config_views
@@ -217,6 +218,9 @@ urlpatterns = [
     url(r'^commits/compare_commits/$', build_views.compare_commits),
     url(r'^commits/compare_commits_datatables/$', build_views.compare_commits_datatables),
     url(r'^commits/get_more_commits/$', build_views.get_more_commits),
+
+    # Accounts related
+    url(r'^clouds/accounts/$', accounts_views.AccountsView.as_view()),
 
     # metrics
     url(r'^get_site_health_metrics/$', util_views.get_site_health_metrics),

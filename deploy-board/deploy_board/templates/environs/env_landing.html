@@ -309,10 +309,12 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 
 {% if cluster_refresh_suggestion_for_golden_ami %}
-    <div class="alert alert-warning alert-dismissible">
+    <div class="alert alert-info alert-dismissible">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong>Warning!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
-        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for more details.
+        <strong>Info!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
+        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for image update history.
+        Click <a href="/groups/{{ env.envName }}-{{ env.stageName }}/host-ami-dist/" target="_blank">here</a> to see AMI(s) used by hosts.
+        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> to replace the cluster.
     </div>
 {% endif %}
 
@@ -387,104 +389,98 @@ $('#privateBldUploadBtnId button').click(function () {
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     <form id="updateModeFormId">
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="simple"
-                        {% if report.showMode == "simple" %}
-                        checked
-                        {% endif %}
-                        > Simple
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="compact"
-                        {% if report.showMode == "compact" %}
-                        checked
-                        {% endif %}
-                        > Compact
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="complete"
-                        {% if report.showMode == "complete" %}
-                        checked
-                        {% endif %}
-                        > Complete
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="containerStatus"
-                        {% if report.showMode == "containerStatus" %}
-                        checked
-                        {% endif %}
-                        > Container Status
-                        </label></div>
-                    </li>
-                    <li role="presentation" class="divider"></li>
-                    <li>
-                        <div class="checkbox"><label>&nbsp;
-                        <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
-                        {% if report.sortByStatus == "true" %}
-                        checked
-                        {% endif %}
-                        > Sort by status
-                        </label></div>
-                    </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="simple"
+                            {% if report.showMode == "simple" %}
+                            checked
+                            {% endif %}
+                            > Simple
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="compact"
+                            {% if report.showMode == "compact" %}
+                            checked
+                            {% endif %}
+                            > Compact
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="complete"
+                            {% if report.showMode == "complete" %}
+                            checked
+                            {% endif %}
+                            > Complete
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="containerStatus"
+                            {% if report.showMode == "containerStatus" %}
+                            checked
+                            {% endif %}
+                            > Container Status
+                            </label></div>
+                        </li>
+                        <li role="presentation" class="divider"></li>
+                        <li>
+                            <div class="checkbox"><label>&nbsp;
+                            <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
+                            {% if report.sortByStatus == "true" %}
+                            checked
+                            {% endif %}
+                            > Sort by status
+                            </label></div>
+                        </li>
                     </form>
                 </ul>
                 </div>
 
                 <div class="btn-group">
-                    <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
-                            title="Change how the hosts are displayed based on Account"
-                            data-toggle="dropdown" type="button">
-                        Account <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                        <form id="accountFormId">
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="all"
-                            {% if report.account == "all" %}
-                            checked
-                            {% endif %}
-                            > All
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="{{ primaryAccount }}"
-                            {% if report.account == primaryAccount %}
-                            checked
-                            {% endif %}
-                            > {{ primaryAccount }}
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="{{ subAccount }}"
-                            {% if report.account == subAccount %}
-                            checked
-                            {% endif %}
-                            > {{ subAccount }}
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="others"
-                            {% if report.account == "others" %}
-                            checked
-                            {% endif %}
-                            > Others
-                            </label></div>
-                        </li>
-                        </form>
-                    </ul>
+                    <div class="dropdown">
+                        <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                                title="Change how the hosts are displayed based on Account"
+                                data-toggle="dropdown" type="button">
+                            Account <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                            <form id="accountFormId">
+                                <li>
+                                    <div class="radio"><label>&nbsp;
+                                        <input type="radio" name="account" value="all"
+                                               {% if report.account == "all" %}
+                                        checked
+                                        {% endif %}
+                                        > All
+                                    </label></div>
+                                </li>
+                                {% for account in accounts %}
+                                    <li>
+                                        <div class="radio"><label>&nbsp;
+                                            <input type="radio" name="account" value="{{ account.ownerId }}"
+                                                   {% if report.account == account.ownerId %}
+                                                   checked
+                                                   {% endif %}
+                                            > {{ account.ownerId }}
+                                        </label></div>
+                                    </li>
+                                {% endfor %}
+                                <li>
+                                    <div class="radio"><label>&nbsp;
+                                        <input type="radio" name="account" value="others"
+                                               {% if report.account == "others" %}
+                                        checked
+                                        {% endif %}
+                                        > Others
+                                    </label></div>
+                                </li>
+                            </form>
+                        </ul>
                     </div>
-
+                </div>
             </div>
         </div>
 
