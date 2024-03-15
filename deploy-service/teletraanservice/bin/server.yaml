@@ -13,10 +13,16 @@ server:
   requestLog:
     appenders:
       - type: file
-        threshold: ALL
-        archive: false
+        archive: true
+        archivedLogFilenamePattern: /tmp/teletraan/access-%d.log
+        archivedFileCount: 5
         currentLogFilename: /tmp/teletraan/access.log
-        timeZone: UTC
+        layout:
+          type: access-json
+          requestAttributes: [name]
+          customFieldNames:
+            requestAttributes: principal
+          includes: [timestamp, remoteAddress, protocol, method, requestUri, statusCode]
   registerDefaultExceptionMappers: false
 
 #
@@ -39,7 +45,6 @@ logging:
       threshold: ALL
       timeZone: UTC
       target: stdout
-
 
 #
 # Mysql connection config. By default, we use the real mysql as the backend.
