@@ -76,7 +76,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -246,7 +246,7 @@
                   <dependency>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-buffer</artifactId>
-                    <version>4.1.107.Final</version>
+                    <version>4.1.106.Final</version>
                   </dependency>
                 </dependencies>
               </dependencyManagement>
