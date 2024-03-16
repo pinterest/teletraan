@@ -1,8 +1,7 @@
 package com.pinterest.teletraan.worker;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -25,6 +24,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
+import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -125,7 +125,7 @@ public class AutoPromoteBuildTest {
         PromoteBean promoteBean = new PromoteBean();
         AutoPromoter promoter = new AutoPromoter(context);
         //Has builds. Have previous deploy
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(Interval.class), anyInt()))
             .thenReturn(Arrays.asList(t9AMBuildBean));
         PromoteResult
             result =
@@ -150,7 +150,7 @@ public class AutoPromoteBuildTest {
         when(tagDAO.getLatestByTargetIdAndType(buildName, TagTargetType.BUILD,
             BuildTagsManagerImpl.MAXCHECKTAGS))
             .thenReturn(new ArrayList<TagBean>(Arrays.asList(tagBean)));
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(), anyInt()))
             .thenReturn(Arrays.asList(t9AMBuildBean));
         PromoteResult
             result =
@@ -160,8 +160,9 @@ public class AutoPromoteBuildTest {
         promoter.promoteBuild(environBean, null, 1, promoteBean);
         // bad build, safe promote never gets called
         verify(promoterSpy, never())
-            .safePromote(anyObject(), anyString(), anyString(), anyObject(), anyObject());
+            .safePromote(any(), any(), any(), any(), any());
     }
+
 
     @Test
     public void testOneBadBuildOneGoodBuildPromote() throws Exception {
@@ -197,7 +198,7 @@ public class AutoPromoteBuildTest {
             BuildTagsManagerImpl.MAXCHECKTAGS))
             .thenReturn(new ArrayList<TagBean>(Arrays.asList(tagBean)));
 
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(), anyInt()))
             .thenReturn(Arrays.asList(build1, build2));
         // build1 is bad
         when(buildTagsManager.getEffectiveTagsWithBuilds(Arrays.asList(build1)))
@@ -244,7 +245,7 @@ public class AutoPromoteBuildTest {
         previousDeploy.setBuild_id(t8AMBuildBean.getBuild_id());
 
         when(buildDAO.getById(t8AMBuildBean.getBuild_id())).thenReturn(t8AMBuildBean);
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(Interval.class), anyInt()))
             .thenReturn(Arrays.asList(t9AMBuildBean));
         PromoteResult
             result =
@@ -281,7 +282,7 @@ public class AutoPromoteBuildTest {
         DateTimeUtils.setCurrentMillisProvider(timeProvider);
         timeProvider.setClock(t10AM.getMillis());
 
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(), anyInt()))
             .thenReturn(Arrays.asList(t9AMBuildBean));
         PromoteResult
             result =
@@ -305,7 +306,7 @@ public class AutoPromoteBuildTest {
         DateTimeUtils.setCurrentMillisProvider(timeProvider);
         timeProvider.setClock(t10AM.getMillis());
 
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(), anyInt()))
             .thenReturn(Arrays.asList(build));
         PromoteResult
             result =
@@ -368,7 +369,7 @@ public class AutoPromoteBuildTest {
         timeProvider.setClock(t10AM.getMillis());
 
         when(buildDAO.getById(t8AMBuildBean.getBuild_id())).thenReturn(t8AMBuildBean);
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(), anyInt()))
             .thenReturn(Arrays.asList(t9AMBuildBean));
         PromoteResult
             result =
@@ -422,7 +423,7 @@ public class AutoPromoteBuildTest {
                 .withBufferTimeMinutes(bufferTimeMinutes);
         AutoPromoter promoterSpy = Mockito.spy(promoter);
 
-        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        when(buildDAO.getAcceptedBuilds(any(), any(), any(), anyInt()))
                 .thenReturn(Arrays.asList(t9AMBuildBean));
 
         DateTimeUtils.setCurrentMillisProvider(timeProvider);
@@ -456,7 +457,7 @@ public class AutoPromoteBuildTest {
 
         promoter.promoteBuild(environBean, null, 1, t10AMPromoteBean);
         verify(promoterSpy, never())
-                .safePromote(anyObject(), anyString(), anyString(), anyObject(), anyObject());
+                .safePromote(any(), any(), any(), any(), any());
 
         // Set time to tomorrow 10AM, next buffer time window
         timeProvider.setClock(t9AM.plusDays(1).plusHours(1).getMillis());
