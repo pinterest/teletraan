@@ -29,7 +29,7 @@ def get_all(request, index, size):
 
 
 def get_by_provider_and_cell_name(request, provider, cell_name):
-    account_id = request.get("accountId")
+    account_id = request.GET.get("accountId", None)
     query = f"?accountId={account_id}" if account_id is not None else ""
     if cell_name:
         return rodimus_client.get(
