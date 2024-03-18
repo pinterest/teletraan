@@ -41,7 +41,13 @@
                 {{ deploy_summary.build|branchAndCommit }}
             </a>
         </td>
-        <td><a href="/clouds/accounts/{{ deploy_summary.account.provider }}/{{ deploy_summary.account.cell }}/{{ deploy_summary.account.id }}">{{ deploy_summary.account.id }}</a></td>
+        <td>
+            {% if deploy_summary.account %}
+            <a href="/clouds/accounts/{{ deploy_summary.account.cloudProvider }}/{{ deploy_summary.account.cell }}/{{ deploy_summary.account.id }}">
+                {{ deploy_summary.account.data.ownerId }} / {{ deploy_summary.account.name }}
+            </a>
+            {% endif %}
+        </td>
         <td>{{ deploy_summary.deploy.operator }}</td>
     </tr>
     {% endfor%}
