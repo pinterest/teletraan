@@ -215,6 +215,10 @@
               <artifactId>*</artifactId>
             </exclusion>
             <exclusion>
+              <groupId>log4j</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+            <exclusion>
               <groupId>com.amazonaws</groupId>
               <artifactId>*</artifactId>
             </exclusion>
@@ -235,6 +239,10 @@
               <artifactId>psc-internal-shaded</artifactId>
             </exclusion>
           </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
         </dependency>
       </dependencies>
     </profile>
