@@ -33,6 +33,7 @@ from . import docs_views
 from . import cluster_view
 from . import schedule_views
 from . import host_tags_views
+from . import accounts_views
 
 urlpatterns = [
     # deploy related
@@ -221,6 +222,7 @@ urlpatterns = [
 
     # Accounts related
     url(r'^clouds/accounts/$', accounts_views.AccountsView.as_view()),
+    url(r'^clouds/accounts/(?P<provider>[a-zA-Z0-9\-]+)/(?P<cell>[a-zA-Z0-9\-]+)/(?P<id>[a-zA-Z0-9\-]+)/', accounts_views.AccountDetailsView.as_view()),
 
     # metrics
     url(r'^get_site_health_metrics/$', util_views.get_site_health_metrics),

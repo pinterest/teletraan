@@ -238,7 +238,7 @@ def update_deploy_progress(request, name, stage):
     cluster = clusters_helper.get_cluster(request, env.get('clusterName'))
     if cluster is not None:
         add_account_from_cluster(request, cluster, accounts)
-    add_legacy_accounts(accounts)
+    add_legacy_accounts(accounts, report)
 
     context = {
         "report": report,
@@ -262,25 +262,43 @@ def update_deploy_progress(request, name, stage):
     return response
 
 
-def add_legacy_accounts(accounts):
-    skip_primary_account = False
-    skip_sub_account = False
+def add_legacy_accounts(accounts, report):
+    accounts_from_report = get_accounts(report)
     for account in accounts:
-        if account["ownerId"] == AWS_PRIMARY_ACCOUNT:
-            skip_primary_account = True
-        elif account["ownerId"] == AWS_SUB_ACCOUNT:
-            skip_sub_account = True
+        if account["ownerId"] in accounts_from_report:
+            accounts_from_report.remove(account["ownerId"])
 
-    if not skip_primary_account:
-        accounts.append({
-            "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account / Primary account",
+    for account in accounts_from_report:
+        accounts.append(create_legacy_ui_account(account))
+
+
+def get_accounts(report):
+    accounts = set()
+    for agentStat in report.agentStats:
+        if "accountId" in agentStat.agent and is_valid_account_id(agentStat.agent["accountId"]):
+            accounts.add(agentStat.agent["accountId"])
+    return accounts
+
+
+def create_legacy_ui_account(account_id):
+    if account_id == AWS_PRIMARY_ACCOUNT:
+        return {
+            "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account",
             "ownerId": AWS_PRIMARY_ACCOUNT,
-        })
-    if not skip_sub_account:
-        accounts.append({
-            "name": f"{AWS_SUB_ACCOUNT} / Sub AWS account / Legacy sub account",
+        }
+    if account_id == AWS_SUB_ACCOUNT:
+        return {
+            "name": f"{AWS_SUB_ACCOUNT} / Moka account",
             "ownerId": AWS_SUB_ACCOUNT,
-        })
+        }
+    return {
+        "name": f"{account_id} / Sub AWS account",
+        "ownerId": account_id,
+    }
+
+
+def is_valid_account_id(account_id):
+    return account_id is not None and account_id != "" and account_id != "null"
 
 
 def add_account_from_cluster(request, cluster, accounts):
@@ -291,7 +309,7 @@ def add_account_from_cluster(request, cluster, accounts):
         if account is not None:
             accounts.append({
                 "ownerId": account["data"]["ownerId"],
-                "name": f'{account["data"]["ownerId"]} / {account["name"]} / {account["description"]}'
+                "name": f'{account["data"]["ownerId"]} / {account["name"]}'
             })
 
 
@@ -469,7 +487,6 @@ class EnvLandingView(View):
                 host_type_blessed_status = host_type['blessed_status']
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
-        add_legacy_accounts(accounts)
         last_cluster_refresh_status = _getLastClusterRefreshStatus(request, env)
         latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
 
@@ -568,6 +585,8 @@ class EnvLandingView(View):
                             report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
+
+            add_legacy_accounts(accounts, report)
 
             context = {
                 "envs": envs,

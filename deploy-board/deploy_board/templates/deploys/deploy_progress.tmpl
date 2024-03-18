@@ -279,22 +279,6 @@
 </div>
 {% endwith %}
 
-<div class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left"><i class="fa fa-fw fa-user"></i> Accounts</h4>
-    </div>
-    <div class="panel-body">
-        <div class="row">
-            {% for account in accounts %}
-                <a href="#" class="deployToolTip btn btn-xs btn-default host-btn">
-                    <small>{{ account.name }}</small>
-                    <i class="fa fa-fw fa-user"></i>
-                </a>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
 <script>
     $(function () {
         $('.deployToolTip').tooltip({container: "#toolTipContent", delay: { show: 400, hide: 10 }});
