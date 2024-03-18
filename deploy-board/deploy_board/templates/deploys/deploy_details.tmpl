@@ -86,7 +86,11 @@
     <tr>
         <td>Account</td>
         <td>
-            <a href="/clouds/accounts/{{ account_info.cloudProvider }}/{{ account_info.cell }}/{{ account_info.id }}">{{ account_info.id }}</a>
+            {% if account_info %}
+            <a href="/clouds/accounts/{{ account_info.cloudProvider }}/{{ account_info.cell }}/{{ account_info.id }}">
+                {{ account_info.data.ownerId }} / {{ account_info.name }}
+            </a>
+            {% endif %}
         </td>
     </tr>
 </table>
