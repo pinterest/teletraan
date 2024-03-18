@@ -578,14 +578,16 @@ def get_base_image_info_by_name(request, name, cell):
     return baseimages_helper.get_by_name(request, name, cell)
 
 
-def create_ui_account(account):
+def create_ui_account(account, cells):
     if account is None:
         return None
+    ui_cells = list(map(lambda cell: {'name': cell}, cells))
     return {
         'id': account['id'],
         'name': account['name'],
         'description': account['description'],
         'ownerId': account['data']['ownerId'],
+        'cells': ui_cells
     }
 
 
@@ -593,9 +595,19 @@ def create_ui_accounts(accounts):
     if accounts is None:
         return None
 
-    deduplicated_accounts = {account['id']: account for account in accounts}.values()
-    sorted_accounts = sorted(deduplicated_accounts, key=lambda account: account['name'])
-    return list(map(create_ui_account, sorted_accounts))
+    id_to_account_with_cells = {}
+    for account in accounts:
+        account_with_cells = id_to_account_with_cells.get(account['id'])
+        if account_with_cells is None:
+            account_with_cells = {'account': account, 'cells': []}
+            id_to_account_with_cells[account['id']] = account_with_cells
+        account_with_cells['cells'].append(account['cell'])
+
+    res = []
+    for account_with_cell in id_to_account_with_cells.values():
+        res.append(create_ui_account(account_with_cell['account'], account_with_cell['cells']))
+
+    return sorted(res, key=lambda r: r['name'])
 
 
 def get_default_account(accounts):
