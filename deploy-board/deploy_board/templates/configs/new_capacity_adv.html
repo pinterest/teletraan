@@ -330,10 +330,14 @@ var capacitySetting = new Vue({
                 }
             });
 
+
+            const securityZonesUrl =
+                `${location.protocol}//${location.host}/clouds/securityzones/${provider}/${cell}` +
+                `?accountId=${this.currentAccountId}`
             // grab all security zone for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
+                url: securityZonesUrl,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
