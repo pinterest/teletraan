@@ -74,11 +74,6 @@
         </dependency>
         <!-- The following two dependencies needed only for embedded mysql, remove them there is standalone mysql -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-mxj</artifactId>
-            <version>5.0.12</version>
-        </dependency>
-        <dependency>
             <groupId>com.ibatis</groupId>
             <artifactId>ibatis2-common</artifactId>
             <version>2.1.7.597</version>

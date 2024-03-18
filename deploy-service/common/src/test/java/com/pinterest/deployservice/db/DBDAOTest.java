@@ -15,12 +15,6 @@
  */
 package com.pinterest.deployservice.db;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.AcceptanceType;
 import com.pinterest.deployservice.bean.AgentBean;
@@ -58,6 +52,7 @@ import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.common.DBUtils;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.BuildDAO;
@@ -75,10 +70,6 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
-
-
-import com.ibatis.common.jdbc.ScriptRunner;
-import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.joda.time.Interval;
@@ -86,9 +77,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,13 +86,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 
 public class DBDAOTest {
-
-    private final static String DEFAULT_BASE_DIR = "/tmp/deploy-unit-test";
-    private final static String DEFAULT_DB_NAME = "deploy";
-    private final static int DEFAULT_PORT = 3303;
-
     private static BuildDAO buildDAO;
     private static AgentDAO agentDAO;
     private static AgentErrorDAO agentErrorDAO;
@@ -125,20 +114,9 @@ public class DBDAOTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        try {
-            // making sure we do not have anything running
-            ServerLauncherSocketFactory.shutdown(new File(DEFAULT_BASE_DIR), null);
-        } catch (Exception e) {
-            // ignore
-        }
-        BasicDataSource DATASOURCE = DatabaseUtil.createMXJDataSource(DEFAULT_DB_NAME,
-            DEFAULT_BASE_DIR, DEFAULT_PORT);
+        BasicDataSource DATASOURCE = DBUtils.setupDataSource();
         Connection conn = DATASOURCE.getConnection();
-        ScriptRunner runner = new ScriptRunner(conn, false, true);
-        runner.runScript(new BufferedReader(new InputStreamReader(
-            DBDAOTest.class.getResourceAsStream("/sql/cleanup.sql"))));
-        runner.runScript(new BufferedReader(new InputStreamReader(
-            DBDAOTest.class.getResourceAsStream("/sql/deploy.sql"))));
+        conn.prepareStatement("SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));").execute();
         buildDAO = new DBBuildDAOImpl(DATASOURCE);
         agentDAO = new DBAgentDAOImpl(DATASOURCE);
         agentErrorDAO = new DBAgentErrorDAOImpl(DATASOURCE);
@@ -160,7 +138,7 @@ public class DBDAOTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        ServerLauncherSocketFactory.shutdown(new File(DEFAULT_BASE_DIR), null);
+        DBUtils.tearDownDataSource();
     }
 
     @Test

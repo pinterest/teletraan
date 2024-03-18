@@ -50,6 +50,16 @@ public class DatabaseUtil {
         MAX_WAIT_TIME_FOR_CONN_IN_MS);
   }
 
+  // local mysql source, for unit test only that depends on a local mysql db (that can be launched
+  // in docker container)
+  // example of command to launch local mysql container:
+  // common/src/main/java/com/pinterest/clusterservice/common/DBUtils.java:startMysqlContainer
+  public static BasicDataSource createLocalDataSource(String dbName, int port) {
+    String url = String.format("jdbc:mysql://0.0.0.0:%d/%s?useSSL=false", port, dbName);
+    return createDataSource(
+            MYSQL_JDBC_DRIVER, url, "root", "", "0:8:8:0", MAX_WAIT_TIME_FOR_CONN_IN_MS, null);
+  }
+
   public static BasicDataSource createMysqlDataSource(String host, int port,
                                                       String user, String passwd, String poolSize,
                                                       Map<String, String> connectionProperties) {

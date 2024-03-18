@@ -15,53 +15,14 @@
  */
 package com.pinterest.teletraan.config;
 
-import com.pinterest.deployservice.db.DatabaseUtil;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.ibatis.common.jdbc.ScriptRunner;
-import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
-
+import com.pinterest.deployservice.common.DBUtils;
 import org.apache.commons.dbcp.BasicDataSource;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.sql.Connection;
 
 @JsonTypeName("embedded")
 public class EmbeddedDataSourceFactory implements DataSourceFactory {
 
-    private final static String DEFAULT_BASE_DIR = "/tmp/teletraan/db";
-    private final static String DEFAULT_DB_NAME = "deploy";
-    private final static int DEFAULT_PORT = 3305;
-
-    @JsonProperty
-    private String workDir = DEFAULT_BASE_DIR;
-
-    public String getWorkDir() {
-        return workDir;
-    }
-
-    public void setWorkDir(String workDir) {
-        this.workDir = workDir;
-    }
-
     public BasicDataSource build() throws Exception {
-        try {
-            // making sure we do not have anything running
-            ServerLauncherSocketFactory.shutdown(new File(workDir), null);
-        } catch (Exception e) {
-            // ignore
-        }
-
-        BasicDataSource
-            DATASOURCE =
-            DatabaseUtil.createMXJDataSource(DEFAULT_DB_NAME, workDir, DEFAULT_PORT);
-        Connection conn = DATASOURCE.getConnection();
-        ScriptRunner runner = new ScriptRunner(conn, false, false);
-        runner.runScript(new BufferedReader(new InputStreamReader(
-            DatabaseUtil.class.getResourceAsStream("/sql/deploy.sql"))));
-        return DATASOURCE;
+        return DBUtils.setupDataSource();
     }
 }
