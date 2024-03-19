@@ -154,7 +154,7 @@ var capacitySetting = new Vue({
         currentProvider: info.defaultProvider,
         currentAccountId: info.defaultAccountId,
         currentAccountOwnerId: getAccountOwnerId(info.defaultAccountId),
-        currentCell: info.defaultCell,
+        currentCell: getDefaultCell(info.defaultAccountId),
         currentArch: info.defaultArch,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
@@ -166,7 +166,6 @@ var capacitySetting = new Vue({
                     isDisabled: item.retired || item.blessed_status === "DECOMMISSIONING"
                 }
             }),
-        cellValue: info.defaultCell,
         archValue: info.defaultArch,
         imageNameValue: info.defaultBaseImage,
         imageNames: mapImageNameToOptions(info.baseImageNames),
@@ -187,14 +186,7 @@ var capacitySetting = new Vue({
                     value: o, text: o
                 }
             }),
-        cells: info.cells.map(
-            function (item) {
-                return {
-                    value: item.name,
-                    text: item.name,
-                    isSelected: item.name == info.defaultCell
-                }
-            }),
+        cells: getUiCells(info.defaultAccountId),
         arches: info.arches.map(
             function (item) {
                 return {
@@ -311,10 +303,10 @@ var capacitySetting = new Vue({
         accountChange: function (value) {
             this.currentAccountId = value;
             this.currentAccountOwnerId = getAccountOwnerId(value);
+            this.cells = getUiCells(value);
+            this.cellChange(getDefaultCell(value));
         },
         cellChange: function(value) {
-            capacitySetting.currentCell = value;
-            capacitySetting.cellValue = value;
             capacitySetting.currentCell = value;
             // grab all the image names for this cell
             var scope = this;
@@ -330,8 +322,8 @@ var capacitySetting = new Vue({
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
-                    capacitySetting.imageNames = mapImageNameToOptions(data);
-                    scope.imageNameChange(data[0]);
+                    capacitySetting.imageNames = data ? mapImageNameToOptions(data) : [];
+                    scope.imageNameChange(data && data.length > 0 ? data[0] : null);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
@@ -348,15 +340,15 @@ var capacitySetting = new Vue({
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
-                    capacitySetting.securityZones = data.map(
+                    capacitySetting.securityZones = data ? data.map(
                         function (item) {
                             return {
                                 value: item.abstract_name,
                                 text: item.abstract_name,
                                 isSelected: item.id === data[0].id
                             }
-                        });
-                    capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
+                        }) : [];
+                    capacitySetting.selectedSecurityZoneValue = data && data.length > 0 ? data[0].abstract_name : null;
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
@@ -372,9 +364,9 @@ var capacitySetting = new Vue({
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
-                    var placements = getDefaultPlacement({'placements': data});
+                    var placements = data ? getDefaultPlacement({'placements': data}) : null;
 
-                    capacitySetting.placements = placements.getFullList(false, null);
+                    capacitySetting.placements = placements ? placements.getFullList(false, null) : null;
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
@@ -441,6 +433,13 @@ var capacitySetting = new Vue({
         imageNameChange: function (value) {
             var cell = capacitySetting.currentCell;
             capacitySetting.imageNameValue = value;
+            if (!value) {
+                capacitySetting.baseImages = [];
+                capacitySetting.baseImageValue = null;
+                capacitySetting.pinImage = null;
+                capacitySetting.pinImageEnabled = false;
+                return;
+            }
             //Grab all images for this image name
             $.ajax({
                 type: 'GET',
@@ -667,10 +666,45 @@ var capacitySetting = new Vue({
     }
 });
 
-function getAccountOwnerId(accountId) {
+
+function getUiCells(accountId) {
+    const account = getAccount(accountId);
+    if (account && account.cells) {
+        return account.cells
+            .map(uiCell);
+    }
+    return info.cells
+        .map(uiCell);
+}
+
+function getDefaultCell(accountId) {
+    const account = getAccount(accountId);
+
+    if (account && account.cells) {
+        if (!account.cells.some(cell => cell.name === info.defaultCell)) {
+            return account.cells[0].name;
+        }
+    }
+    return info.defaultCell;
+}
+
+function uiCell(item) {
+    return {
+        value: item.name,
+        text: item.name,
+        isSelected: item.name === info.defaultCell
+    };
+}
+
+function getAccount(accountId) {
     return info.accounts != null ?
-        info.accounts.find(function (o) { return o.id === accountId }).ownerId
+        info.accounts.find(function (o) { return o.id === accountId })
         : null;
+}
+
+function getAccountOwnerId(accountId) {
+    const account = getAccount(accountId);
+    return account ? account.ownerId : null;
 }
 
 $(document).ready(function () {
