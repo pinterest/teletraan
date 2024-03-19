@@ -83,6 +83,7 @@
             {% include "builds/build_details.tmpl" %}
         </td>
     </tr>
+    {% if deploy_accounts %}
     <tr>
         <td>Account</td>
         <td>
@@ -99,6 +100,7 @@
             {% endfor %}
         </td>
     </tr>
+    {% endif %}
 </table>
 <script>
     $.fn.editable.defaults.mode = 'popup';
