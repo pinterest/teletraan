@@ -28,7 +28,6 @@ from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_R
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
-from django.conf import settings
 from . import agent_report
 from . import service_add_ons
 from . import common
@@ -806,18 +805,28 @@ def _gen_deploy_summary(request, deploys, for_env=None):
             provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId")
             account_key = (provider, cell, id)
             if account_key in accounts:
-                account = accounts[account_key]
+                accounts = accounts[account_key]
             else:
                 account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
                 if account is None:
                     account = accounts_helper.get_default_account(request, cell, provider)
                 accounts[account_key] = account
+        deploy_accounts = []
+        if account is None:
+            # terraform deploy, get information from deploy report
+            progress = deploys_helper.update_progress(request, env["envName"], env["stageName"])
+            report = agent_report.gen_report(request, env, progress, deploy=deploy, build_info=build_with_tag)
+            deploy_accounts = [create_legacy_ui_account(account) for account in get_accounts(report)]
+            deploy_accounts = [{"legacy_name": account["name"]} for account in deploy_accounts]
+        else:
+            deploy_accounts = [account]
+            
         summary = {}
         summary['deploy'] = deploy
         summary['env'] = env
         summary['build'] = build_with_tag['build']
         summary['buildTag'] = build_with_tag['tag']
-        summary['account'] = account
+        summary['deploy_accounts'] = deploy_accounts
         deploy_summaries.append(summary)
     return deploy_summaries
 
