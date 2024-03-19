@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.pinterest.teletraan</groupId>
     <artifactId>teletraan</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Deploy related modules</description>
     <inceptionYear>2014</inceptionYear>

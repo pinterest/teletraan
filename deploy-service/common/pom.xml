@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.pinterest.teletraan</groupId>
         <artifactId>teletraan</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.2-SNAPSHOT</version>
     </parent>
 
     <properties>
