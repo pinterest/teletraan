@@ -23,7 +23,7 @@ import com.pinterest.teletraan.security.Authorizer;
 public class EnvStagesTest {
     private EnvStages envStages;
     private EnvironDAO environDAO;
-    
+
     @Before
     public void setup() throws Exception {
         environDAO = mock(EnvironDAO.class);
@@ -44,7 +44,7 @@ public class EnvStagesTest {
         Principal mockPrincipal = mock(Principal.class);
         Mockito.when(mockSC.getUserPrincipal()).thenReturn(mockPrincipal);
         envStages.update(mockSC, "test-env", "test-stage", envBean);
-        verify(environDAO).update(Mockito.anyString(), Mockito.anyString(), argument.capture());
+        verify(environDAO).update(Mockito.any(), Mockito.any(), argument.capture());
         assertEquals(true, argument.getValue().getAllow_private_build());
     }
 }
