@@ -50,7 +50,7 @@
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
-                    <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages"
+                    <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages" v-bind:account-owner-id="currentAccountOwnerId"
                         :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :pin-image-enabled="pinImageEnabled"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
@@ -153,6 +153,7 @@ var capacitySetting = new Vue({
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
         currentAccountId: info.defaultAccountId,
+        currentAccountOwnerId: getAccountOwnerId(info.defaultAccountId),
         currentCell: info.defaultCell,
         currentArch: info.defaultArch,
         hostTypeHelpData:[],
@@ -308,7 +309,8 @@ var capacitySetting = new Vue({
             }
         },
         accountChange: function (value) {
-            capacitySetting.currentAccountId = value;
+            this.currentAccountId = value;
+            this.currentAccountOwnerId = getAccountOwnerId(value);
         },
         cellChange: function(value) {
             capacitySetting.currentCell = value;
@@ -648,7 +650,7 @@ var capacitySetting = new Vue({
         },
         updateStatefulStatus: function(value) {
             this.selectedStatefulStatus = value
-        }
+        },
     },
     watch: {
         placements: function(){
@@ -663,8 +665,13 @@ var capacitySetting = new Vue({
             localStorage.setItem("accessRole", accessRoleObj.value);
         }
     }
-})
+});
 
+function getAccountOwnerId(accountId) {
+    return info.accounts != null ?
+        info.accounts.find(function (o) { return o.id === accountId }).ownerId
+        : null;
+}
 
 $(document).ready(function () {
     $('.single-select-search').chosen({
