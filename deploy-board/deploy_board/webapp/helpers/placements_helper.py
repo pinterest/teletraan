@@ -29,9 +29,15 @@ def get_all(request, index, size):
 
 
 def get_by_provider_and_cell_name(request, provider, cell_name):
+    account_id = request.GET.get("accountId", None)
+    query = f"?accountId={account_id}" if account_id is not None else ""
     if cell_name:
-        return rodimus_client.get("/placements/cell/%s" % cell_name, request.teletraan_user_id.token)
-    return rodimus_client.get("/placements/provider/%s" % provider, request.teletraan_user_id.token)
+        return rodimus_client.get(
+            f"/placements/cell/{cell_name}{query}",
+            request.teletraan_user_id.token)
+    return rodimus_client.get(
+        f"/placements/provider/{provider}{query}",
+        request.teletraan_user_id.token)
 
 
 def get_by_id(request, placement_id):

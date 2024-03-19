@@ -358,10 +358,14 @@ var capacitySetting = new Vue({
                     globalNotificationBanner.error = data
                 }
             });
+
+            const placementsUrl =
+                `${location.protocol}//${location.host}/clouds/placements/${provider}/${cell}` +
+                `?accountId=${this.currentAccountId}`
             // grab all placement for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
+                url: placementsUrl,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
