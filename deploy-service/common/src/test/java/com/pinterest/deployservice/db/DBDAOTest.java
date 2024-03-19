@@ -52,7 +52,6 @@ import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
-import com.pinterest.deployservice.common.DBUtils;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.BuildDAO;
@@ -75,7 +74,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.joda.time.Interval;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.testcontainers.containers.MySQLContainer;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -112,11 +113,19 @@ public class DBDAOTest {
     private static ScheduleDAO scheduleDAO;
     private static UtilDAO utilDAO;
 
+    @ClassRule
+    public static final MySQLContainer mysql = new MySQLContainer().withDatabaseName("deploy");
+
+
     @BeforeClass
     public static void setUpClass() throws Exception {
-        BasicDataSource DATASOURCE = DBUtils.setupDataSource();
-        Connection conn = DATASOURCE.getConnection();
-        conn.prepareStatement("SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));").execute();
+        BasicDataSource DATASOURCE = new BasicDataSource();
+        DATASOURCE.setDriverClassName("com.mysql.jdbc.Driver");
+        DATASOURCE.setUrl(mysql.getJdbcUrl());
+        DATASOURCE.setUsername(mysql.getUsername());
+        DATASOURCE.setPassword(mysql.getPassword());
+        DBUtils.runMigrations(DATASOURCE);
+
         buildDAO = new DBBuildDAOImpl(DATASOURCE);
         agentDAO = new DBAgentDAOImpl(DATASOURCE);
         agentErrorDAO = new DBAgentErrorDAOImpl(DATASOURCE);
@@ -134,11 +143,6 @@ public class DBDAOTest {
         tagDAO = new DBTagDAOImpl(DATASOURCE);
         scheduleDAO = new DBScheduleDAOImpl(DATASOURCE);
         utilDAO = new DBUtilDAOImpl(DATASOURCE);
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        DBUtils.tearDownDataSource();
     }
 
     @Test
