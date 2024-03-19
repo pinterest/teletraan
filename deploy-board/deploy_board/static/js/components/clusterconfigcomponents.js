@@ -83,24 +83,21 @@ Vue.component('baseimage-select', {
             warningText: '',
         }
     },
-    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled'],
+    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled', 'accountOwnerId'],
     methods: {
         helpClick: function () {
             this.$emit('help-clicked')
         },
-        tryShowWarning: function (baseImageId, pinImage) {
+        tryShowWarning: function (baseImageId, pinImage, accountOwnerId) {
             if (!pinImage) {
                 this.showWarning = false;
             } else {
-                const ONE_DAY = 1000 * 60 * 60 * 24;
-                let baseImage = this.baseImages.find(i => i.value == baseImageId);
-                let age = Math.round((Date.now() - new Date(baseImage.publishDate)) / ONE_DAY);
-                if (age > 180) {
-                    this.warningText = `The base image configured is over 180 days old (${age} days). Please consider update or opt-in Auto Update (Unpin image).`;
-                    this.showWarning = true;
-                } else {
-                    this.showWarning = false;
-                }
+                const baseImage = this.baseImages.find(i => i.value === baseImageId);
+                const warnings = this.createWarningMessages(baseImage, accountOwnerId);
+                this.showWarning = warnings.length > 0;
+                this.warningText = '\n' + warnings.map(
+                    (item, index) => `${index + 1}. ${item}`
+                ).join('\n');
             }
         },
         pinImageClick: function (pin) {
@@ -110,12 +107,44 @@ Vue.component('baseimage-select', {
             } else {
                 this.showWarning = false;
             }
+        },
+
+        createWarningMessages: function(baseImage, accountOwnerId) {
+            const messages = [];
+            const oneDay = 1000 * 60 * 60 * 24;
+            const imageCreationDate = new Date(baseImage.publishDate);
+            let age = Math.round((Date.now() - imageCreationDate) / oneDay);
+            if (age > 180) {
+                messages.push(
+                    `The base image configured is over 180 days old (${age} days). ` +
+                    "Please consider update or opt-in Auto Update (Unpin image)."
+                );
+            }
+
+            const sharedImagesCreationDate = new Date("2024-03-15");
+            const primaryAccount = '998131032990';
+            if (accountOwnerId && accountOwnerId !== primaryAccount
+                && imageCreationDate < sharedImagesCreationDate) {
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                const formattedDate = sharedImagesCreationDate.toLocaleDateString('en-GB', options);
+                messages.push(
+                    "The base image has configured in primary account and may not works in " +
+                    `the sub account, please use base images after ${formattedDate} ` +
+                    "for sub accounts.");
+            }
+            return messages;
         }
     },
     watch: {
         selectedBaseImage: function (baseImageId) {
-            this.tryShowWarning(baseImageId, this.pinImage);
+            this.tryShowWarning(baseImageId, this.pinImage, this.accountOwnerId);
+        },
+        accountOwnerId: function (newAccountOwnerId) {
+            this.tryShowWarning(this.selectedBaseImage, this.pinImage, newAccountOwnerId);
         }
+    },
+    mounted() {
+        this.tryShowWarning(this.selectedBaseImage, this.pinImage, this.accountOwnerId);
     }
 });
 
@@ -196,7 +225,7 @@ Vue.component('aws-user-data', {
                 new Map()
             );
 
-            const matchingPuppetPath = hieraPaths.keys().find(line => 
+            const matchingPuppetPath = hieraPaths.keys().find(line =>
                 hieraPaths.get(line).every(variable => !!userDataObj[variable])
             );
             const variables = hieraPaths.get(matchingPuppetPath);

@@ -6,8 +6,8 @@ import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactor
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE;
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

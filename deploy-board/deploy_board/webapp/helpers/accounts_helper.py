@@ -24,3 +24,6 @@ def get_by_cell_and_id(request, cell, account_id, provider="AWS"):
                   f"provider={provider}, cell = {cell}, account_id = {account_id}, error = {e}")
         # return None for backward-compatibility
         return None
+    
+def get_default_account(request, cell, provider='AWS'):
+    return get_by_cell_and_id(request, cell, "default", provider)

@@ -32,6 +32,7 @@ from django.conf import settings
 from . import agent_report
 from . import service_add_ons
 from . import common
+from . import accounts
 import random
 import json
 import requests
@@ -263,21 +264,13 @@ def update_deploy_progress(request, name, stage):
 
 
 def add_legacy_accounts(accounts, report):
-    accounts_from_report = get_accounts(report)
+    accounts_from_report = accounts.get_accounts(report)
     for account in accounts:
         if account["ownerId"] in accounts_from_report:
             accounts_from_report.remove(account["ownerId"])
 
     for account in accounts_from_report:
         accounts.append(create_legacy_ui_account(account))
-
-
-def get_accounts(report):
-    accounts = set()
-    for agentStat in report.agentStats:
-        if "accountId" in agentStat.agent and is_valid_account_id(agentStat.agent["accountId"]):
-            accounts.add(agentStat.agent["accountId"])
-    return accounts
 
 
 def create_legacy_ui_account(account_id):
@@ -295,10 +288,6 @@ def create_legacy_ui_account(account_id):
         "name": f"{account_id} / Sub AWS account",
         "ownerId": account_id,
     }
-
-
-def is_valid_account_id(account_id):
-    return account_id is not None and account_id != "" and account_id != "null"
 
 
 def add_account_from_cluster(request, cluster, accounts):
@@ -1327,13 +1316,15 @@ def rollback(request, name, stage):
 
 def get_deploy(request, name, stage, deploy_id):
     deploy = deploys_helper.get(request, deploy_id)
-    build = builds_helper.get_build(request, deploy['buildId'])
+    build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
     env = environs_helper.get_env_by_stage(request, name, stage)
+    deploy_accounts = accounts.get_accounts_from_deploy(request, env, deploy, build_with_tag)
     return render(request, 'environs/env_deploy_details.html', {
         "deploy": deploy,
         "csrf_token": get_token(request),
-        "build": build,
+        "build": build_with_tag["build"],
         "env": env,
+        "deploy_accounts": deploy_accounts
     })
 
 
