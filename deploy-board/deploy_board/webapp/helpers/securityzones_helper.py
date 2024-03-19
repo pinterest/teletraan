@@ -28,8 +28,7 @@ def get_all(request, index, size):
     return rodimus_client.get("/security_zones", request.teletraan_user_id.token, params=params)
 
 
-def get_by_provider_and_cell_name(request, provider, cell_name):
-    account_id = request.GET.get("accountId", None)
+def get_by_provider_and_cell_name(request, account_id, provider, cell_name):
     query = f"?accountId={account_id}" if account_id is not None else ""
     if cell_name:
         return rodimus_client.get(

@@ -52,7 +52,7 @@ class EnvCapacityBasicCreateView(View):
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
@@ -140,7 +140,7 @@ class EnvCapacityAdvCreateView(View):
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
         arches = arches_helper.get_all(request)
         base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
@@ -247,9 +247,9 @@ class ClusterConfigurationView(View):
         cells = cells_helper.get_by_provider(request, current_cluster['provider'])
         arches = arches_helper.get_all(request)
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
-            request, current_cluster['provider'], current_cluster['cellName'])
+            request, current_cluster.get("accountId"), current_cluster['provider'], current_cluster['cellName'])
         placements = placements_helper.get_by_provider_and_cell_name(
-            request, current_cluster['provider'], current_cluster['cellName'])
+            request, current_cluster.get("accountId"), current_cluster['provider'], current_cluster['cellName'])
         base_images = get_base_image_info_by_name(
             request, current_image['abstract_name'], current_cluster['cellName'])
         base_images_names = baseimages_helper.get_image_names_by_arch(
@@ -504,7 +504,8 @@ def get_images_by_provider_and_cell(request, provider, cell):
 
 
 def get_placements_by_provider_and_cell(request, provider, cell):
-    data = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
+    account_id = request.GET.get("accountId", None)
+    data = placements_helper.get_by_provider_and_cell_name(request, account_id, provider, cell)
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
@@ -824,7 +825,8 @@ def get_placements_by_provider(request):
         curr_placement = params['curr_placement']
         curr_placement_arrays = curr_placement.split(',')
 
-    placements = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
+    account_id = params.get("accountId", None)
+    placements = placements_helper.get_by_provider_and_cell_name(request, account_id, provider, cell)
     contents = render_to_string("clusters/get_placement.tmpl", {
         'placements': placements,
         'curr_placement_arrays': curr_placement_arrays,

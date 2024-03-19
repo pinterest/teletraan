@@ -469,8 +469,10 @@ class EnvLandingView(View):
             remaining_capacity = None
             if capacity_info['cluster']:
                 add_account_from_cluster(request, basic_cluster_info, accounts)
+                account_id = basic_cluster_info.get("accountId")
                 placements = placements_helper.get_simplified_by_ids(
-                        request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+                        request, account_id, basic_cluster_info['placement'],
+                    basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
                 host_type = hosttypes_helper.get_by_id(request, basic_cluster_info['hostType'])
                 host_type_blessed_status = host_type['blessed_status']
