@@ -32,7 +32,7 @@ from django.conf import settings
 from . import agent_report
 from . import service_add_ons
 from . import common
-from . import accounts
+from .accounts import get_accounts, get_accounts_from_deploy
 import random
 import json
 import requests
@@ -264,7 +264,7 @@ def update_deploy_progress(request, name, stage):
 
 
 def add_legacy_accounts(accounts, report):
-    accounts_from_report = accounts.get_accounts(report)
+    accounts_from_report = get_accounts(report)
     for account in accounts:
         if account["ownerId"] in accounts_from_report:
             accounts_from_report.remove(account["ownerId"])
@@ -1318,7 +1318,7 @@ def get_deploy(request, name, stage, deploy_id):
     deploy = deploys_helper.get(request, deploy_id)
     build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
     env = environs_helper.get_env_by_stage(request, name, stage)
-    deploy_accounts = accounts.get_accounts_from_deploy(request, env, deploy, build_with_tag)
+    deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
     return render(request, 'environs/env_deploy_details.html', {
         "deploy": deploy,
         "csrf_token": get_token(request),
