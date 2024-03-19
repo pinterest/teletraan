@@ -17,7 +17,7 @@
 """
 from deploy_board.settings import SITE_METRICS_CONFIGS, TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
 from django.middleware.csrf import get_token
-from . import accounts
+from .accounts import get_accounts_from_deploy
 import json
 from django.shortcuts import render
 from django.views.generic import View
@@ -149,7 +149,7 @@ class DeployView(View):
         deploy_accounts = []
         if deploy.get('envId'):
             env = environs_helper.get(request, deploy['envId'])
-            deploy_accounts = accounts.get_accounts_from_deploy(request, env, deploy, build_with_tag)
+            deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
         return render(request, 'deploys/deploy_details.html', {
             "deploy": deploy,
             "build": build_with_tag['build'],
