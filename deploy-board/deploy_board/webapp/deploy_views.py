@@ -17,6 +17,7 @@
 """
 from deploy_board.settings import SITE_METRICS_CONFIGS, TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
 from django.middleware.csrf import get_token
+from . import agent_report, account_utils
 import json
 from django.shortcuts import render
 from django.views.generic import View
@@ -142,24 +143,19 @@ def get_duplicate_commit_deploy_message(request, name, stage, buildId):
 class DeployView(View):
     def get(self, request, deploy_id):
         deploy = deploys_helper.get(request, deploy_id)
-        build = builds_helper.get_build(request, deploy['buildId'])
+        build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
         env = None
-        accountInfo = None
+        account = None
+        deploy_accounts = []
         if deploy.get('envId'):
             env = environs_helper.get(request, deploy['envId'])
-            if env.get("clusterName") is not None:
-                cluster = clusters_helper.get_cluster(request, env["clusterName"])
-                provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
-                if not id:
-                    accountInfo = accounts_helper.get_default_account(request, cell, provider=provider)
-                else:
-                    accountInfo = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
+            deploy_accounts = account_utils.get_accounts_from_deploy(request, env, deploy, build_with_tag)
         return render(request, 'deploys/deploy_details.html', {
             "deploy": deploy,
-            "build": build,
+            "build": build_with_tag['build'],
             "csrf_token": get_token(request),
             "env": env,
-            "account_info": accountInfo
+            "deploy_accounts": deploy_accounts
         })
 
 

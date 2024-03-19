@@ -86,11 +86,17 @@
     <tr>
         <td>Account</td>
         <td>
-            {% if account_info %}
-            <a href="/clouds/accounts/{{ account_info.cloudProvider }}/{{ account_info.cell }}/{{ account_info.id }}">
-                {{ account_info.data.ownerId }} / {{ account_info.name }}
-            </a>
-            {% endif %}
+            {% for account in deploy_accounts %}
+                {% if account.legacy_name %}
+                <div class="deployToolTip btn btn-xs btn-default host-btn">
+                {{ account.legacy_name }}
+                </div>
+                {% else %}
+                <a class="deployToolTip btn btn-xs btn-default host-btn" href="/clouds/accounts/{{ account.cloudProvider }}/{{ account.cell }}/{{ account.id }}">
+                    {{ account.data.ownerId }} / {{ account.name }}
+                </a>
+                {% endif %}
+            {% endfor %}
         </td>
     </tr>
 </table>
