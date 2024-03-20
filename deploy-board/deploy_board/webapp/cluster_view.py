@@ -50,7 +50,7 @@ class EnvCapacityBasicCreateView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
             request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
@@ -138,7 +138,7 @@ class EnvCapacityAdvCreateView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
             request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
@@ -510,7 +510,8 @@ def get_placements_by_provider_and_cell(request, provider, cell):
 
 
 def get_security_zones_by_provider_and_cell(request, provider, cell):
-    data = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
+    data = securityzones_helper.get_by_provider_and_cell_name(
+        request, request.get("accountId", None), provider, cell)
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
@@ -771,7 +772,8 @@ def get_security_zones_by_provider(request):
         curr_security_zone = params['curr_security_zone']
     cell = params.get('cell', DEFAULT_CELL)
 
-    security_zones = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
+    security_zones = securityzones_helper.get_by_provider_and_cell_name(
+        request, request.get("accountId", None), provider, cell)
     contents = render_to_string("clusters/get_security_zone.tmpl", {
         'security_zones': security_zones,
         'curr_security_zone': curr_security_zone,
