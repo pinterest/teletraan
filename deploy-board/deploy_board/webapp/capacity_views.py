@@ -52,8 +52,10 @@ class EnvCapacityConfigView(View):
                 basic_cluster_info['asg_info'] = asg_cluster
                 basic_cluster_info['base_image_info'] = base_image
                 try:
+                    account_id = basic_cluster_info.get('accountId')
                     placements = placements_helper.get_simplified_by_ids(
-                        request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+                        request, account_id, basic_cluster_info['placement'],
+                        basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 except Exception as e:
                     logger.warning('Failed to get placements: {}'.format(e))
 
