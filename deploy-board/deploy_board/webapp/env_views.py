@@ -31,7 +31,7 @@ from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 from . import agent_report
 from . import service_add_ons
 from . import common
-from .accounts import get_accounts, get_accounts_from_deploy
+from .accounts import get_accounts, get_accounts_from_deploy, create_legacy_ui_account
 import random
 import json
 import requests
@@ -270,23 +270,6 @@ def add_legacy_accounts(accounts, report):
 
     for account in accounts_from_report:
         accounts.append(create_legacy_ui_account(account))
-
-
-def create_legacy_ui_account(account_id):
-    if account_id == AWS_PRIMARY_ACCOUNT:
-        return {
-            "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account",
-            "ownerId": AWS_PRIMARY_ACCOUNT,
-        }
-    if account_id == AWS_SUB_ACCOUNT:
-        return {
-            "name": f"{AWS_SUB_ACCOUNT} / Moka account",
-            "ownerId": AWS_SUB_ACCOUNT,
-        }
-    return {
-        "name": f"{account_id} / Sub AWS account",
-        "ownerId": account_id,
-    }
 
 
 def add_account_from_cluster(request, cluster, accounts):
