@@ -800,7 +800,7 @@ def _gen_deploy_summary(request, deploys, for_env=None):
             env = environs_helper.get(request, deploy['envId'])
         build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
         account = None
-        if env.get("clusterName") is not None:
+        if env and env.get("clusterName") is not None:
             cluster = clusters_helper.get_cluster(request, env["clusterName"])
             provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId")
             account_key = (provider, cell, id)
@@ -812,13 +812,13 @@ def _gen_deploy_summary(request, deploys, for_env=None):
                     account = accounts_helper.get_default_account(request, cell, provider)
                 accounts[account_key] = account
         deploy_accounts = []
-        if account is None:
+        if account is None and env and deploy and build_with_tag:
             # terraform deploy, get information from deploy report
             progress = deploys_helper.update_progress(request, env["envName"], env["stageName"])
             report = agent_report.gen_report(request, env, progress, deploy=deploy, build_info=build_with_tag)
             deploy_accounts = [create_legacy_ui_account(account) for account in get_accounts(report)]
             deploy_accounts = [{"legacy_name": account["name"]} for account in deploy_accounts]
-        else:
+        elif account:
             deploy_accounts = [account]
             
         summary = {}
