@@ -16,12 +16,13 @@
 package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.pinterest.deployservice.db.DatabaseUtil;
 import org.apache.commons.dbcp.BasicDataSource;
 
 @JsonTypeName("embedded")
 public class EmbeddedDataSourceFactory implements DataSourceFactory {
-
     public BasicDataSource build() throws Exception {
-        return new BasicDataSource();
+        return DatabaseUtil.createDataSource(
+                "org.h2.Driver", "sa", "", "jdbc:h2:mem:deploy", "0:8:8:0", 200);
     }
 }
