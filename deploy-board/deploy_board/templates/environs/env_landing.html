@@ -460,11 +460,11 @@ $('#privateBldUploadBtnId button').click(function () {
                                 {% for account in accounts %}
                                     <li>
                                         <div class="radio"><label>&nbsp;
-                                            <input type="radio" name="account" value="{{ account.ownerId }}"
-                                                   {% if report.account == account.ownerId %}
+                                            <input type="radio" name="account" value="{{ account.data.ownerId }}"
+                                                   {% if report.account == account.data.ownerId %}
                                                    checked
                                                    {% endif %}
-                                            > {{ account.ownerId }}
+                                            > {{ account.data.ownerId }}
                                         </label></div>
                                     </li>
                                 {% endfor %}

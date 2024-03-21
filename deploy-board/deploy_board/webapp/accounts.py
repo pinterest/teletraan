@@ -5,17 +5,23 @@ from . import agent_report
 def create_legacy_ui_account(account_id):
     if account_id == AWS_PRIMARY_ACCOUNT:
         return {
-            "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account",
-            "ownerId": AWS_PRIMARY_ACCOUNT,
+            "legacy_name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account",
+            "data": {
+                "ownerId": AWS_PRIMARY_ACCOUNT
+            },
         }
     if account_id == AWS_SUB_ACCOUNT:
         return {
-            "name": f"{AWS_SUB_ACCOUNT} / Moka account",
-            "ownerId": AWS_SUB_ACCOUNT,
+            "legacy_name": f"{AWS_SUB_ACCOUNT} / Moka account",
+            "data": {
+                "ownerId": AWS_SUB_ACCOUNT
+            },
         }
     return {
-        "name": f"{account_id} / Sub AWS account",
-        "ownerId": account_id,
+        "legacy_name": f"{account_id} / Sub AWS account",
+        "data": {
+            "ownerId": account_id
+        },
     }
 
 
@@ -26,6 +32,29 @@ def get_accounts(report):
             accounts.add(agentStat.agent["accountId"])
     return accounts
 
+
+
+def add_account_from_cluster(request, cluster, accounts):
+    account_id = cluster.get("accountId")
+    account = None;
+    if account_id is not None:
+        account = accounts_helper.get_by_cell_and_id(
+            request, cluster["cellName"], account_id)
+    else:
+        account = accounts_helper.get_default_account(request, cluster["cellName"])
+
+    if account is not None:
+        accounts.append(account)
+
+
+def add_legacy_accounts(accounts, report):
+    accounts_from_report = get_accounts(report)
+    for account in accounts:
+        if account["data"]["ownerId"] in accounts_from_report:
+            accounts_from_report.remove(account["data"]["ownerId"])
+
+    for account in accounts_from_report:
+        accounts.append(create_legacy_ui_account(account))
 
 
 def is_valid_account_id(account_id):
@@ -48,7 +77,6 @@ def get_accounts_from_deploy(request, env, deploy, build_with_tag):
         progress = deploys_helper.update_progress(request, env["envName"], env["stageName"])
         report = agent_report.gen_report(request, env, progress, deploy=deploy, build_info=build_with_tag)
         deploy_accounts = [create_legacy_ui_account(account) for account in get_accounts(report)]
-        deploy_accounts = [{"legacy_name": account["name"]} for account in deploy_accounts]
     elif account:
         deploy_accounts = [account]
     return deploy_accounts

@@ -31,7 +31,7 @@ from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 from . import agent_report
 from . import service_add_ons
 from . import common
-from .accounts import get_accounts, get_accounts_from_deploy, create_legacy_ui_account
+from .accounts import get_accounts, get_accounts_from_deploy, create_legacy_ui_account, add_account_from_cluster, add_legacy_accounts
 import random
 import json
 import requests
@@ -49,9 +49,6 @@ from deploy_board.webapp.agent_report import TOTAL_ALIVE_HOST_REPORT, TOTAL_HOST
 from diff_match_patch import diff_match_patch
 import traceback
 import logging
-
-if IS_PINTEREST:
-    from .helpers import autoscaling_groups_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
@@ -260,28 +257,6 @@ def update_deploy_progress(request, name, stage):
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
-
-
-def add_legacy_accounts(accounts, report):
-    accounts_from_report = get_accounts(report)
-    for account in accounts:
-        if account["ownerId"] in accounts_from_report:
-            accounts_from_report.remove(account["ownerId"])
-
-    for account in accounts_from_report:
-        accounts.append(create_legacy_ui_account(account))
-
-
-def add_account_from_cluster(request, cluster, accounts):
-    account_id = cluster.get("accountId")
-    if account_id is not None:
-        account = accounts_helper.get_by_cell_and_id(
-            request, cluster["cellName"], account_id)
-        if account is not None:
-            accounts.append({
-                "ownerId": account["data"]["ownerId"],
-                "name": f'{account["data"]["ownerId"]} / {account["name"]}'
-            })
 
 
 def update_service_add_ons(request, name, stage):
@@ -787,10 +762,10 @@ def _gen_deploy_summary(request, deploys, for_env=None):
         account = None
         if env and env.get("clusterName") is not None:
             cluster = clusters_helper.get_cluster(request, env["clusterName"])
-            provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId")
+            provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
             account_key = (provider, cell, id)
             if account_key in accounts:
-                accounts = accounts[account_key]
+                account = accounts[account_key]
             else:
                 account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
                 if account is None:
@@ -802,7 +777,6 @@ def _gen_deploy_summary(request, deploys, for_env=None):
             progress = deploys_helper.update_progress(request, env["envName"], env["stageName"])
             report = agent_report.gen_report(request, env, progress, deploy=deploy, build_info=build_with_tag)
             deploy_accounts = [create_legacy_ui_account(account) for account in get_accounts(report)]
-            deploy_accounts = [{"legacy_name": account["name"]} for account in deploy_accounts]
         elif account:
             deploy_accounts = [account]
             
