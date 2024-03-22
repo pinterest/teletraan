@@ -73,6 +73,16 @@ public class DatabaseUtil {
     }
 
     // Embedded mysql source, for unit test only
+    public static BasicDataSource createMXJDataSource(String dbName, String baseDir, int port) {
+        String
+                url =
+                String.format(
+                        "jdbc:mysql:mxj://localhost:%d/%s?server"
+                                + ".basedir=%s&createDatabaseIfNotExist=true&server.initialize-user=true",
+                        port, dbName, baseDir);
+        return createDataSource(MYSQL_JDBC_DRIVER, url, "tester", "passwd", "0:8:8:0",
+                MAX_WAIT_TIME_FOR_CONN_IN_MS);
+    }
     public static BasicDataSource createLocalDataSource(String url) {
         return createDataSource(
                 MYSQL_JDBC_DRIVER, url, "root", "", "0:8:8:0", MAX_WAIT_TIME_FOR_CONN_IN_MS, null);
