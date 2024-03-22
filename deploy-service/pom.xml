@@ -203,7 +203,7 @@
     <distributionManagement>
         <repository>
             <id>local</id>
-            <url>file://${project.basedir}/.m2/repository</url> 
+            <url>file://${maven.repo.local}</url> 
         </repository>
     </distributionManagement>
 
