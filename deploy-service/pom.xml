@@ -200,9 +200,16 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>remote-repo</id>
+            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/test-maven</url>
+        </repository>
+    </repositories>
+
     <distributionManagement>
         <repository>
-            <id>local</id>
+            <id>local-repo</id>
             <url>file://${maven.repo.local}</url> 
         </repository>
     </distributionManagement>
