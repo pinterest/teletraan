@@ -44,7 +44,7 @@
         <td>
             {% for account in deploy_summary.deploy_accounts %}
                 {% if account.legacy_name %}
-                <div class="deployToolTip btn btn-xs btn-default host-btn">
+                <div class="deployToolTip btn btn-xs btn-default host-btn disabled" style="opacity:1;">
                 {{ account.legacy_name }}
                 </div>
                 {% else %}

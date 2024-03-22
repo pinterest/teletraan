@@ -5,7 +5,7 @@ from . import agent_report
 def create_legacy_ui_account(account_id):
     if account_id == AWS_PRIMARY_ACCOUNT:
         return {
-            "legacy_name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account",
+            "legacy_name": f"{AWS_PRIMARY_ACCOUNT} / default",
             "data": {
                 "ownerId": AWS_PRIMARY_ACCOUNT
             },

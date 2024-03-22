@@ -79,7 +79,7 @@
         <td>
             {% for account in accounts %}
                 {% if account.legacy_name %}
-                <a href="#" class="deployToolTip btn btn-xs btn-default host-btn">
+                <a href="#" class="deployToolTip btn btn-xs btn-default host-btn disabled" style="opacity:1;">
                     <small>{{ account.legacy_name }}</small>
                     <i class="fa fa-fw fa-user"></i>
                 </a>
