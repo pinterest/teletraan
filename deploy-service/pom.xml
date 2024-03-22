@@ -202,15 +202,9 @@
 
     <distributionManagement>
         <repository>
-            <id>central</id>
-            <name>maven-releases</name>
-            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-prod-sox-local</url>
+            <id>local</id>
+            <url>file://${project.basedir}/.m2/repository</url> 
         </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>maven-snapshots</name>
-            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-prod-sox-local</url>
-        </snapshotRepository>
     </distributionManagement>
 
     <profiles>
