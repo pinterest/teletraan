@@ -18,9 +18,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <micrometer.version>1.11.3</micrometer.version>
+    <pinterest.commons.version>0.1-20220908.230942-22097</pinterest.commons.version>
   </properties>
 
   <dependencies>
@@ -180,4 +178,131 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>pinterest-dependenies</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <!-- Single end point to fetch all maven artifacts.  -->
+          <id>maven-virtual</id>
+          <name>maven-virtual</name>
+          <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-virtual/</url>
+        </repository>
+        <repository>
+          <id>artifactory-thirdparty-prod</id>
+          <name>artifactory-thirdparty-prod</name>
+          <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven_thirdparty-jar-bazel-prod-local</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>artifactory-legacy-prod</id>
+          <name>artifactory-legacy-prod</name>
+          <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven_legacy-jar-bazel-prod-local</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>artifactory-private-snapshots-prod</id>
+          <name>artifactory-private-snapshots-prod</name>
+          <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven_private_snapshots-jar-bazel-prod-local</url>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>2.0.65.Final</version>
+          </dependency>
+          <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+            <version>4.1.106.Final</version>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>com.pinterest.optimus.commons</groupId>
+          <artifactId>pinterest-commons</artifactId>
+          <version>${pinterest.commons.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>org.slf4j</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>log4j</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.amazonaws</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.pinterest.schemas</groupId>
+              <artifactId>schemas_jdk18</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.pinterest</groupId>
+              <artifactId>libjava_fbs</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.flatbuffers</groupId>
+              <artifactId>flatbuffers-java</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.pinterest.psc</groupId>
+              <artifactId>psc-internal-shaded</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <!-- If you are outside Pinterest, use this profile instead -->
+      <!-- i.e. mvn clean package -P-pinterest-dependenies,exclude-pinterest-only-classes -->
+      <id>exclude-pinterest-only-classes</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/BasePastisAuthorizer.java</exclude>
+              </excludes>
+              <testExcludes>
+                <testExclude>**/BasePastisAuthorizerTest.java</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
