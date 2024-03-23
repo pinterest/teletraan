@@ -235,7 +235,7 @@
                             <argument>--maven_pom</argument>
                             <argument>${source_dir}/${project.build.finalName}.pom</argument>
                             <argument>--to_repo</argument>
-                            <argument>test-maven</argument>
+                            <argument>maven-private-prod-sox-local</argument>
                         </arguments>
                         </configuration>
                     </execution>
