@@ -100,6 +100,27 @@
     {% endif %}
 {% endfor %}
 
+<style>
+    .popup-description{
+        display: none;
+    }
+      
+    [type="radio"]:checked ~ label ~ .popup-description{
+        display: block;
+    }
+
+    fieldset {
+        margin: 8px;
+        border: 1px solid silver;
+        padding: 8px;    
+        border-radius: 4px;
+    }
+    
+    legend {
+        padding: 2px;    
+    }
+</style>
+
 <!-- class="glyphicon glyphicon-question-sign" -->
 <div id="clusterReplacementPanelId"class="panel panel-default">
     <panel-heading title="Cluster Replacement" target="#clusterReplacementConfigId" initcollapse="false"></panel-heading>
@@ -185,6 +206,31 @@
             }
 
             checkpointPercentagesElement.setCustomValidity('');
+        }
+
+        function handleAvailabilitySettingRadioClick(myRadio) {
+            setDefaultValues(myRadio);
+        }
+            
+        function setDefaultValues(availabilitySetting) {
+            if (availabilitySetting.value == "terminateAndLaunch") {
+                document.getElementById("minHealthyPercentage").disabled = false;
+                document.getElementById("maxHealthyPercentage").disabled = true;
+                document.getElementById("minHealthyPercentage").value = "90";
+                document.getElementById("maxHealthyPercentage").value = "100";
+            }
+            else if (availabilitySetting.value == "launchBeforeTerminate") {
+                document.getElementById("minHealthyPercentage").disabled = true;
+                document.getElementById("maxHealthyPercentage").disabled = false;
+                document.getElementById("minHealthyPercentage").value = "100";
+                document.getElementById("maxHealthyPercentage").value = "110";
+            }
+            else {
+                document.getElementById("minHealthyPercentage").disabled = false;
+                document.getElementById("maxHealthyPercentage").disabled = false;
+                document.getElementById("minHealthyPercentage").value = "90";
+                document.getElementById("maxHealthyPercentage").value = "100";
+            }
         }
         </script>
         {% if auto_refresh_view %}
@@ -288,13 +334,54 @@
         {% else %}
         <div class="container-fluid">
             <form id="clusterReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/start_replacement/">
+                <fieldset>
                 <div>
-                    <label for="minHealthyPercentage" data-toggle="tooltip"
+                    <div>
+                        <h4>Availability Setting <em style="color:blue;">(**New**)</em></h4>
+
+                        <div>
+                            <input type="radio" id="terminateAndLaunch" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="terminateAndLaunch" checked="checked">
+                            <label for="availabilitySettingRadio">Terminate and Launch (Default)</label>
+                            <p class="popup-description">
+                                New instances are provisioned <em><b>***at the same time***</b></em> your existing instances are terminated. This is a good choice for applications that favor cost savings over availability. It's also a good choice for applications that should not launch more capacity than is currently available.
+                            </p>
+                        </div>
+
+                        <div>
+                            <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate">
+                            <label for="availabilitySettingRadio">Launch before Terminate <em>(Prioritize availability)</em></label>
+                            <p class="popup-description">
+                                A new instance must be provisioned first before an existing instance can be terminated. This is a good choice for applications that favor availability over cost savings.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <input type="radio" id="customMinMax" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="custom">
+                            <label for="availabilitySettingRadio">Custom</label>
+                            <p class="popup-description">
+                                This option lets you set up a custom minimum and maximum range for the amount of capacity that you want available when replacing instances. This can help you achieve the right balance between cost and availability.
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="minHealthyPercentage" data-toggle="tooltip"
                         title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
                         <span class="fa fa-check"></span> Minimum healthy percentage:
-                    </label>
-                    <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
+                        </label>
+                        <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
+                    </div>
 
+                    <div>
+                        <label for="maxHealthyPercentage" data-toggle="tooltip"
+                        title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
+                        <span class="fa fa-check"></span> Maximum healthy percentage:
+                        </label>
+                        <input type="number" id="maxHealthyPercentage" name="maxHealthyPercentage" min="100" max="200" value="100" disabled>
+                    </div>
+                </div>
+                </fieldset>
+
+                <div style="padding-top: 20px;">
                     <label for="checkpointPercentages" data-toggle="tooltip"
                         title="Replacement will pause when replacement progress reaches the defined checkpoint percentages before continuing. E.g with 25, 100, the replacement will pause when completion reaches 25% and 100%. Note that the replacement will stop at the last checkpoint. If the last checkpoint is not 100, then it will be a partial replacement.">
                         <span class="fa fa-bell"></span> Checkpoint percentages:
@@ -337,6 +424,9 @@
             <script>
                 const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
                 startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
+
+                var terminateAndLaunch = document.getElementById("terminateAndLaunch");
+                setDefaultValues(terminateAndLaunch);
             </script>
         </div>
         {% endif %}
