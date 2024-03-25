@@ -338,20 +338,20 @@
                 <div>
                     <div>
                         <h4>Availability Setting <em style="color:blue;">(**New**)</em></h4>
-
+                        
                         <div>
-                            <input type="radio" id="terminateAndLaunch" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="terminateAndLaunch" checked="checked">
-                            <label for="availabilitySettingRadio">Terminate and Launch (Default - Legacy)</label>
+                            <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate" checked="checked">
+                            <label for="availabilitySettingRadio">Launch before Terminate <em style="color:blue;">(New - Prioritize availability - Recommended for stateless services)</em></label>
                             <p class="popup-description">
-                                New instances are provisioned <em><b>***at the same time***</b></em> your existing instances are terminated. Use this if cluster size during replacement exceeding the current capacity may cause issue to your service. This is the legacy behavior.
+                                A new host must be provisioned first with successful deployments <em><b>***before***</b></em> an existing host can be terminated. Use this to ensure availability will not be affected during replacement, even when there is on-going deployment. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted. 
                             </p>
                         </div>
 
                         <div>
-                            <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate">
-                            <label for="availabilitySettingRadio">Launch before Terminate <em style="color:blue;">(New - Prioritize availability - Recommended for stateless services)</em></label>
+                            <input type="radio" id="terminateAndLaunch" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="terminateAndLaunch">
+                            <label for="availabilitySettingRadio">Terminate and Launch (Legacy)</label>
                             <p class="popup-description">
-                                A new instance must be provisioned first with successful deployments <em><b>***before***</b></em> an existing instance can be terminated. Use this to ensure availability will not be affected during replacement. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted. 
+                                New hosts are provisioned <em><b>***at the same time***</b></em> your existing hosts are terminated. Availability may be affected! Outage may occur if there is only 1 host! Use this if cluster size during replacement exceeding the current capacity may cause issue to your service (probably stateful). This is the legacy behavior and <b>***not***</b> recommended.
                             </p>
                         </div>
                         
@@ -428,8 +428,8 @@
                 const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
                 startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
 
-                var terminateAndLaunch = document.getElementById("terminateAndLaunch");
-                setDefaultValues(terminateAndLaunch);
+                var launchBeforeTerminate = document.getElementById("launchBeforeTerminate");
+                setDefaultValues(launchBeforeTerminate);
             </script>
         </div>
         {% endif %}
