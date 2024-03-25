@@ -50,7 +50,7 @@
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
-                    <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages"
+                    <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages" v-bind:account-owner-id="currentAccountOwnerId"
                         :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :pin-image-enabled="pinImageEnabled"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
@@ -153,7 +153,8 @@ var capacitySetting = new Vue({
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
         currentAccountId: info.defaultAccountId,
-        currentCell: info.defaultCell,
+        currentAccountOwnerId: getAccountOwnerId(info.defaultAccountId),
+        currentCell: getDefaultCell(info.defaultAccountId),
         currentArch: info.defaultArch,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
@@ -165,7 +166,6 @@ var capacitySetting = new Vue({
                     isDisabled: item.retired || item.blessed_status === "DECOMMISSIONING"
                 }
             }),
-        cellValue: info.defaultCell,
         archValue: info.defaultArch,
         imageNameValue: info.defaultBaseImage,
         imageNames: mapImageNameToOptions(info.baseImageNames),
@@ -186,14 +186,7 @@ var capacitySetting = new Vue({
                     value: o, text: o
                 }
             }),
-        cells: info.cells.map(
-            function (item) {
-                return {
-                    value: item.name,
-                    text: item.name,
-                    isSelected: item.name == info.defaultCell
-                }
-            }),
+        cells: getUiCells(info.defaultAccountId),
         arches: info.arches.map(
             function (item) {
                 return {
@@ -308,11 +301,12 @@ var capacitySetting = new Vue({
             }
         },
         accountChange: function (value) {
-            capacitySetting.currentAccountId = value;
+            this.currentAccountId = value;
+            this.currentAccountOwnerId = getAccountOwnerId(value);
+            this.cells = getUiCells(value);
+            this.cellChange(getDefaultCell(value));
         },
         cellChange: function(value) {
-            capacitySetting.currentCell = value;
-            capacitySetting.cellValue = value;
             capacitySetting.currentCell = value;
             // grab all the image names for this cell
             var scope = this;
@@ -328,51 +322,59 @@ var capacitySetting = new Vue({
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
-                    capacitySetting.imageNames = mapImageNameToOptions(data);
-                    scope.imageNameChange(data[0]);
+                    capacitySetting.imageNames = data ? mapImageNameToOptions(data) : [];
+                    scope.imageNameChange(data && data.length > 0 ? data[0] : null);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
                 }
             });
 
+
+            const securityZonesUrl =
+                `${location.protocol}//${location.host}/clouds/securityzones/${provider}/${cell}` +
+                `?accountId=${this.currentAccountId}`
             // grab all security zone for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
+                url: securityZonesUrl,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
-                    capacitySetting.securityZones = data.map(
+                    capacitySetting.securityZones = data ? data.map(
                         function (item) {
                             return {
                                 value: item.abstract_name,
                                 text: item.abstract_name,
                                 isSelected: item.id === data[0].id
                             }
-                        });
-                    capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
+                        }) : [];
+                    capacitySetting.selectedSecurityZoneValue = data && data.length > 0 ? data[0].abstract_name : null;
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
                 }
             });
+
+            const placementsUrl =
+                `${location.protocol}//${location.host}/clouds/placements/${provider}/${cell}` +
+                `?accountId=${this.currentAccountId}`
             // grab all placement for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
+                url: placementsUrl,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
-                    var placements = getDefaultPlacement({'placements': data});
+                    var placements = data ? getDefaultPlacement({'placements': data}) : null;
 
-                    capacitySetting.placements = placements.getFullList(false, null);
+                    capacitySetting.placements = placements ? placements.getFullList(false, null) : null;
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
@@ -439,6 +441,13 @@ var capacitySetting = new Vue({
         imageNameChange: function (value) {
             var cell = capacitySetting.currentCell;
             capacitySetting.imageNameValue = value;
+            if (!value) {
+                capacitySetting.baseImages = [];
+                capacitySetting.baseImageValue = null;
+                capacitySetting.pinImage = null;
+                capacitySetting.pinImageEnabled = false;
+                return;
+            }
             //Grab all images for this image name
             $.ajax({
                 type: 'GET',
@@ -648,7 +657,7 @@ var capacitySetting = new Vue({
         },
         updateStatefulStatus: function(value) {
             this.selectedStatefulStatus = value
-        }
+        },
     },
     watch: {
         placements: function(){
@@ -663,8 +672,48 @@ var capacitySetting = new Vue({
             localStorage.setItem("accessRole", accessRoleObj.value);
         }
     }
-})
+});
 
+
+function getUiCells(accountId) {
+    const account = getAccount(accountId);
+    if (account && account.cells) {
+        return account.cells
+            .map(uiCell);
+    }
+    return info.cells
+        .map(uiCell);
+}
+
+function getDefaultCell(accountId) {
+    const account = getAccount(accountId);
+
+    if (account && account.cells) {
+        if (!account.cells.some(cell => cell.name === info.defaultCell)) {
+            return account.cells[0].name;
+        }
+    }
+    return info.defaultCell;
+}
+
+function uiCell(item) {
+    return {
+        value: item.name,
+        text: item.name,
+        isSelected: item.name === info.defaultCell
+    };
+}
+
+function getAccount(accountId) {
+    return info.accounts != null ?
+        info.accounts.find(function (o) { return o.id === accountId })
+        : null;
+}
+
+function getAccountOwnerId(accountId) {
+    const account = getAccount(accountId);
+    return account ? account.ownerId : null;
+}
 
 $(document).ready(function () {
     $('.single-select-search').chosen({

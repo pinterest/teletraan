@@ -33,7 +33,6 @@ import com.pinterest.teletraan.config.DefaultChatFactory;
 import com.pinterest.teletraan.config.DefaultEmailFactory;
 import com.pinterest.teletraan.config.DefaultHostGroupFactory;
 import com.pinterest.teletraan.config.EmailFactory;
-import com.pinterest.teletraan.config.EmbeddedDataSourceFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
 import com.pinterest.teletraan.config.HostGroupFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
@@ -124,9 +123,6 @@ public class TeletraanServiceConfiguration extends Configuration {
     private List<String> accountAllowList;
 
     public DataSourceFactory getDataSourceFactory() {
-        if (dataSourceFactory == null) {
-            return new EmbeddedDataSourceFactory();
-        }
         return dataSourceFactory;
     }
 

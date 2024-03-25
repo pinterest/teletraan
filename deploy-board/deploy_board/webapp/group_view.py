@@ -341,8 +341,10 @@ def get_asg_config(request, group_name):
     try:
         basic_cluster_info = clusters_helper.get_cluster(request, group_name)
         if basic_cluster_info:
+            account_id = basic_cluster_info.get("accountId")
             placements = placements_helper.get_simplified_by_ids(
-                request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+                request, account_id, basic_cluster_info['placement'],
+                basic_cluster_info['provider'], basic_cluster_info['cellName'])
     except Exception as e:
         log.warning('Failed to get placements: {}'.format(e))
     content = render_to_string("groups/asg_config.tmpl", {
@@ -459,7 +461,7 @@ def get_policy(request, group_name):
                 policy["instanceWarmup"] = policy["instanceWarmup"] // 60
             else:
                 policy["instanceWarmup"] = 0
-    
+
     scale_up_steps = []
     scale_down_steps = []
 
@@ -470,15 +472,15 @@ def get_policy(request, group_name):
             if step["metricIntervalLowerBound"] != None and float(step["metricIntervalLowerBound"]) >= 0:
                 scale_up_steps.append({"lower_bound": float(step["metricIntervalLowerBound"]), "adjustment": step["scalingAdjustment"]})
 
-        scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound']) 
+        scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound'])
         scale_up_steps = sorted(scale_up_steps, key=lambda d: d['lower_bound'])
-        
+
         scale_down_steps_string = ", ".join([str(step['upper_bound']) for step in scale_down_steps])
         scale_up_steps_string = ", ".join([str(step['lower_bound']) for step in scale_up_steps])
 
         scale_down_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_down_steps])
         scale_up_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_up_steps])
-        
+
         step_scaling_policy["scale_down_steps_string"] = scale_down_steps_string
         step_scaling_policy["scale_up_steps_string"] = scale_up_steps_string
         step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
@@ -541,7 +543,7 @@ def update_policy(request, group_name):
                 for name in policy_names.values():
                     disable_scale_in = False
                     if name + "_disableScaleIn" in input:
-                        disable_scale_in = True 
+                        disable_scale_in = True
                     policy = build_target_scaling_policy(name, input[name+"_awsMetrics"], input[name+"_target"], input[name+"_instanceWarmup"], disable_scale_in)
                     scaling_policies["scalingPolicies"].append(policy)
             else:
@@ -579,7 +581,7 @@ def update_policy(request, group_name):
 
             if params["scalingType"] == "PercentChangeInCapacity":
                 step_scaling_policy["minAdjustmentMagnitude"] = params["minAdjustmentMagnitude"]
-            
+
             step_scaling_policy["stepAdjustments"] = []
 
             if (params['scaleUpSteps']):
@@ -629,7 +631,7 @@ def _parse_metrics_configs(request, group_name):
         if key.startswith('TELETRAAN_'):
             alarm_info = {}
             alarm_info["scalingPolicies"] = []
-            
+
             alarm_id = key[len('TELETRAAN_'):]
             action_type = params["actionType_{}".format(alarm_id)]
 
@@ -720,7 +722,7 @@ def get_alarms(request, group_name):
         "StatusCheckFailed_Instance",
         "StatusCheckFailed_System",
         "StatusCheckFailed_AttachedEBS"
-    ] 
+    ]
     content = render_to_string("groups/asg_metrics.tmpl", {
         "group_name": group_name,
         "alarms": alarms,
@@ -759,7 +761,7 @@ def add_alarms(request, group_name):
 
     policies = autoscaling_groups_helper.get_policies(request, group_name)
 
-    # Use simple scaling for custom metric 
+    # Use simple scaling for custom metric
     if "customUrlCheckbox" in params:
         policy_type = "simple-scaling"
 
@@ -1506,7 +1508,7 @@ def get_host_ami_dist(request, group_name):
 
     label_data_percentage = list(zip(labels, data, percentages))
     any_host_with_outdated_ami = False
-    
+
     if len(label_data_percentage) > 1 or (len(label_data_percentage) == 1 and label_data_percentage[0][0] != current_AMI):
         any_host_with_outdated_ami = True
 

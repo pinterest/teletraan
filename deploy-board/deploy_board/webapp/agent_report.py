@@ -132,15 +132,17 @@ def _compare_agent_status(agentStats1, agentStats2):
     return 0
 
 
-def gen_report(request, env, progress, sortByStatus="false"):
+def gen_report(request, env, progress, sortByStatus="false", deploy=None, build_info=None):
     agentStats = []
     firstTimeAgentStats = []
     deployStats = {}
     deprecatedDeployStats = []
 
     # always set the current
-    deploy = deploys_helper.get(request, env['deployId'])
-    build_info = builds_helper.get_build_and_tag(request, deploy["buildId"])
+    if deploy is None:
+        deploy = deploys_helper.get(request, env['deployId'])
+    if build_info is None:
+        build_info = builds_helper.get_build_and_tag(request, deploy["buildId"])
     stageDistMap = genStageDistMap()
     stateDistMap = genStateDistMap()
     currentDeployStat = DeployStatistics(deploy=deploy, build=build_info['build'], stageDistMap=stageDistMap,

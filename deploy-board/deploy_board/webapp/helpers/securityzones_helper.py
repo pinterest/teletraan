@@ -28,10 +28,15 @@ def get_all(request, index, size):
     return rodimus_client.get("/security_zones", request.teletraan_user_id.token, params=params)
 
 
-def get_by_provider_and_cell_name(request, provider, cell_name):
+def get_by_provider_and_cell_name(request, account_id, provider, cell_name):
+    query = f"?accountId={account_id}" if account_id is not None else ""
     if cell_name:
-        return rodimus_client.get("/security_zones/cell/%s" % cell_name, request.teletraan_user_id.token)
-    return rodimus_client.get("/security_zones/provider/%s" % provider, request.teletraan_user_id.token)
+        return rodimus_client.get(
+            f"/security_zones/cell/{cell_name}{query}",
+            request.teletraan_user_id.token)
+    return rodimus_client.get(
+        f"/security_zones/provider/{provider}{query}",
+        request.teletraan_user_id.token)
 
 
 def get_by_id(request, security_zone_id):

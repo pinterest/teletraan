@@ -1,8 +1,8 @@
 package com.pinterest.teletraan.worker;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -162,7 +162,7 @@ public class AutoPromoteDeployTest {
 
         when(deployDAO.getById("deploy1")).thenReturn(prevDeploy);
         when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
-        when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt()))
+        when(deployDAO.getAcceptedDeploys(anyString(), any(), anyInt()))
             .thenReturn(Arrays.asList(prevDeploy));
         when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList(badBuildId))))
             .thenReturn(Arrays.asList(badBuild));
@@ -184,7 +184,7 @@ public class AutoPromoteDeployTest {
             result.getResult());
         // bad build, safe promote never gets called
         verify(promoterSpy, never())
-            .safePromote(anyObject(), anyString(), anyString(), anyObject(), anyObject());
+            .safePromote(any(), anyString(), anyString(), any(), any());
     }
 
     /* Autopromote enabled. Has pred env but it has no deploys*/
@@ -231,7 +231,7 @@ public class AutoPromoteDeployTest {
         allDeployBeans.add(prevDeploy);
         when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
         when(deployDAO.getById("deploy1")).thenReturn(prevDeploy);
-        when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt())).thenAnswer(
+        when(deployDAO.getAcceptedDeploys(anyString(), any(), anyInt())).thenAnswer(
             new Answer<List<DeployBean>>() {
                 @Override
                 public List<DeployBean> answer(InvocationOnMock invocationOnMock) throws Throwable {
@@ -286,7 +286,7 @@ public class AutoPromoteDeployTest {
         when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
         when(deployDAO.getById(prevDeploy.getDeploy_id())).thenReturn(prevDeploy);
         when(deployDAO.getById(newDeploy.getDeploy_id())).thenReturn(newDeploy);
-        when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt())).thenAnswer(
+        when(deployDAO.getAcceptedDeploys(anyString(), any(), anyInt())).thenAnswer(
             new Answer<List<DeployBean>>() {
                 @Override
                 public List<DeployBean> answer(InvocationOnMock invocationOnMock) throws Throwable {
@@ -339,7 +339,7 @@ public class AutoPromoteDeployTest {
         allDeployBeans.add(newDeploy);
         when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
         when(deployDAO.getById("deploy1")).thenReturn(newDeploy);
-        when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt())).thenAnswer(
+        when(deployDAO.getAcceptedDeploys(anyString(), any(), anyInt())).thenAnswer(
             new Answer<List<DeployBean>>() {
                 @Override
                 public List<DeployBean> answer(InvocationOnMock invocationOnMock) throws Throwable {
@@ -400,7 +400,7 @@ public class AutoPromoteDeployTest {
         when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
         when(deployDAO.getById(prevDeploy.getDeploy_id())).thenReturn(prevDeploy);
         when(deployDAO.getById(newDeploy.getDeploy_id())).thenReturn(newDeploy);
-        when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt())).thenAnswer(
+        when(deployDAO.getAcceptedDeploys(anyString(), any(), anyInt())).thenAnswer(
             new Answer<List<DeployBean>>() {
                 @Override
                 public List<DeployBean> answer(InvocationOnMock invocationOnMock) throws Throwable {
@@ -481,7 +481,7 @@ public class AutoPromoteDeployTest {
         when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
         when(deployDAO.getById(prevDeploy.getDeploy_id())).thenReturn(prevDeploy);
         when(deployDAO.getById(newDeploy.getDeploy_id())).thenReturn(newDeploy);
-        when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt())).thenAnswer(
+        when(deployDAO.getAcceptedDeploys(anyString(), any(), anyInt())).thenAnswer(
             new Answer<List<DeployBean>>() {
                 @Override
                 public List<DeployBean> answer(InvocationOnMock invocationOnMock) throws Throwable {
