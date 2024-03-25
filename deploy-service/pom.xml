@@ -20,6 +20,7 @@
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
         <googleJavaFormat.version>1.7</googleJavaFormat.version>
         <spotless.version>2.30.0</spotless.version>
+        <source_dir>${maven.repo.local}/com/pinterest/teletraan/${project.artifactId}/${project.version}</source_dir>
     </properties>
 
     <modules>
@@ -95,6 +96,12 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>  
+                        <skip>true</skip>  
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
@@ -197,21 +204,44 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <!-- This is Pinterest deployment specific. -->
+                <!-- For non-Pinterest deployments, remove this block and use the maven-deploy-plugin instead. -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>  
+                <executions>
+                    <execution>
+                        <id>artifactory-push-deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>artifactory-push</executable>
+                            <arguments>
+                                <argument>maven</argument>
+                                <argument>--env</argument>
+                                <argument>prod</argument>
+                                <argument>--maven_type</argument>
+                                <argument>${deployment.type}</argument>
+                                <argument>--maven_group_id</argument>
+                                <argument>${project.groupId}</argument>
+                                <argument>--maven_artifact_id</argument>
+                                <argument>${project.artifactId}</argument>
+                                <argument>--maven_version</argument>
+                                <argument>${project.version}</argument>
+                                <argument>--maven_pom</argument>
+                                <argument>${source_dir}/${project.build.finalName}.pom</argument>
+                                <argument>--to_repo</argument>
+                                <argument>maven-private-prod-sox-local</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>central</id>
-            <name>maven-releases</name>
-            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-prod-sox-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>maven-snapshots</name>
-            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-prod-sox-local</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <profiles>
         <profile>
