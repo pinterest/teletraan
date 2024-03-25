@@ -78,6 +78,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>Max Healthy Percentage</th>
+                        <td>
+                            {% if replace_summary.rollingUpdateConfig.maxHealthyPercentage %} {{ replace_summary.rollingUpdateConfig.maxHealthyPercentage }}% {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
                         <th>Skip Matching</th>
                         <td>
                             {{ replace_summary.rollingUpdateConfig.skipMatching }}

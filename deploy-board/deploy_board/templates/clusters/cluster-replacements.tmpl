@@ -214,22 +214,22 @@
             
         function setDefaultValues(availabilitySetting) {
             if (availabilitySetting.value == "terminateAndLaunch") {
-                document.getElementById("minHealthyPercentage").disabled = false;
-                document.getElementById("maxHealthyPercentage").disabled = true;
                 document.getElementById("minHealthyPercentage").value = "90";
-                document.getElementById("maxHealthyPercentage").value = "100";
+                document.getElementById("minHealthyPercentageBlock").style.display="block";
+                document.getElementById("maxHealthyPercentage").value="";
+                document.getElementById("maxHealthyPercentageBlock").style.display="none";
             }
             else if (availabilitySetting.value == "launchBeforeTerminate") {
-                document.getElementById("minHealthyPercentage").disabled = true;
-                document.getElementById("maxHealthyPercentage").disabled = false;
-                document.getElementById("minHealthyPercentage").value = "100";
                 document.getElementById("maxHealthyPercentage").value = "110";
+                document.getElementById("maxHealthyPercentageBlock").style.display="block";
+                document.getElementById("minHealthyPercentage").value="100";
+                document.getElementById("minHealthyPercentageBlock").style.display="none";
             }
             else {
-                document.getElementById("minHealthyPercentage").disabled = false;
-                document.getElementById("maxHealthyPercentage").disabled = false;
+                document.getElementById("minHealthyPercentageBlock").style.display="block";
+                document.getElementById("maxHealthyPercentageBlock").style.display="block";
                 document.getElementById("minHealthyPercentage").value = "90";
-                document.getElementById("maxHealthyPercentage").value = "100";
+                document.getElementById("maxHealthyPercentage").value = "110";
             }
         }
         </script>
@@ -341,17 +341,17 @@
 
                         <div>
                             <input type="radio" id="terminateAndLaunch" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="terminateAndLaunch" checked="checked">
-                            <label for="availabilitySettingRadio">Terminate and Launch (Default)</label>
+                            <label for="availabilitySettingRadio">Terminate and Launch (Default - Legacy)</label>
                             <p class="popup-description">
-                                New instances are provisioned <em><b>***at the same time***</b></em> your existing instances are terminated. This is a good choice for applications that favor cost savings over availability. It's also a good choice for applications that should not launch more capacity than is currently available.
+                                New instances are provisioned <em><b>***at the same time***</b></em> your existing instances are terminated. Use this if cluster size during replacement exceeding the current capacity may cause issue to your service. This is the legacy behavior.
                             </p>
                         </div>
 
                         <div>
                             <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate">
-                            <label for="availabilitySettingRadio">Launch before Terminate <em>(Prioritize availability)</em></label>
+                            <label for="availabilitySettingRadio">Launch before Terminate <em style="color:blue;">(New - Prioritize availability - Recommended for stateless services)</em></label>
                             <p class="popup-description">
-                                A new instance must be provisioned first before an existing instance can be terminated. This is a good choice for applications that favor availability over cost savings.
+                                A new instance must be provisioned first with successful deployments <em><b>***before***</b></em> an existing instance can be terminated. Use this to ensure availability will not be affected during replacement. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted. 
                             </p>
                         </div>
                         
@@ -359,11 +359,14 @@
                             <input type="radio" id="customMinMax" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="custom">
                             <label for="availabilitySettingRadio">Custom</label>
                             <p class="popup-description">
-                                This option lets you set up a custom minimum and maximum range for the amount of capacity that you want available when replacing instances. This can help you achieve the right balance between cost and availability.
+                                This option lets you set up a custom minimum and maximum range for the amount of capacity that you want available when replacing instances.
                             </p>
                         </div>
                     </div>
-                    <div>
+
+                    <div style="padding-top: 20px;"></div>
+
+                    <div id="minHealthyPercentageBlock">
                         <label for="minHealthyPercentage" data-toggle="tooltip"
                         title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
                         <span class="fa fa-check"></span> Minimum healthy percentage:
@@ -371,12 +374,12 @@
                         <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
                     </div>
 
-                    <div>
+                    <div id="maxHealthyPercentageBlock">
                         <label for="maxHealthyPercentage" data-toggle="tooltip"
-                        title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
+                        title="The maximum percentage of the group that can be in service and healthy, or pending, to support your workload when replacing instances. The value is expressed as a percentage of the desired capacity of the Auto Scaling group. Value range is 100 to 200. Use 100 to launch/replace 1 instance at time">
                         <span class="fa fa-check"></span> Maximum healthy percentage:
                         </label>
-                        <input type="number" id="maxHealthyPercentage" name="maxHealthyPercentage" min="100" max="200" value="100" disabled>
+                        <input type="number" id="maxHealthyPercentage" name="maxHealthyPercentage" min="100" max="200">
                     </div>
                 </div>
                 </fieldset>

@@ -1188,7 +1188,6 @@ def start_cluster_replacement(request, name, stage):
     start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
 
     log.info("Starting to replace cluster {0}".format(cluster_name))
-
     try:
         clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
         messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
@@ -1253,7 +1252,8 @@ def gen_replacement_config(request):
         scaleInProtectedInstances = 'Refresh'
 
     rollingUpdateConfig = {}
-    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    rollingUpdateConfig["minHealthyPercentage"] = None if "minHealthyPercentage" not in params else params["minHealthyPercentage"]
+    rollingUpdateConfig["maxHealthyPercentage"] = None if "maxHealthyPercentage" not in params else params["maxHealthyPercentage"]
     rollingUpdateConfig["skipMatching"] = skipMatching
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
