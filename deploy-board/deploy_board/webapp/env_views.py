@@ -28,10 +28,10 @@ from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_R
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
-from django.conf import settings
 from . import agent_report
 from . import service_add_ons
 from . import common
+from .accounts import get_accounts, get_accounts_from_deploy, create_legacy_ui_account, add_account_from_cluster, add_legacy_accounts
 import random
 import json
 import requests
@@ -49,9 +49,6 @@ from deploy_board.webapp.agent_report import TOTAL_ALIVE_HOST_REPORT, TOTAL_HOST
 from diff_match_patch import diff_match_patch
 import traceback
 import logging
-
-if IS_PINTEREST:
-    from .helpers import autoscaling_groups_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
@@ -262,57 +259,6 @@ def update_deploy_progress(request, name, stage):
     return response
 
 
-def add_legacy_accounts(accounts, report):
-    accounts_from_report = get_accounts(report)
-    for account in accounts:
-        if account["ownerId"] in accounts_from_report:
-            accounts_from_report.remove(account["ownerId"])
-
-    for account in accounts_from_report:
-        accounts.append(create_legacy_ui_account(account))
-
-
-def get_accounts(report):
-    accounts = set()
-    for agentStat in report.agentStats:
-        if "accountId" in agentStat.agent and is_valid_account_id(agentStat.agent["accountId"]):
-            accounts.add(agentStat.agent["accountId"])
-    return accounts
-
-
-def create_legacy_ui_account(account_id):
-    if account_id == AWS_PRIMARY_ACCOUNT:
-        return {
-            "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account",
-            "ownerId": AWS_PRIMARY_ACCOUNT,
-        }
-    if account_id == AWS_SUB_ACCOUNT:
-        return {
-            "name": f"{AWS_SUB_ACCOUNT} / Moka account",
-            "ownerId": AWS_SUB_ACCOUNT,
-        }
-    return {
-        "name": f"{account_id} / Sub AWS account",
-        "ownerId": account_id,
-    }
-
-
-def is_valid_account_id(account_id):
-    return account_id is not None and account_id != "" and account_id != "null"
-
-
-def add_account_from_cluster(request, cluster, accounts):
-    account_id = cluster.get("accountId")
-    if account_id is not None:
-        account = accounts_helper.get_by_cell_and_id(
-            request, cluster["cellName"], account_id)
-        if account is not None:
-            accounts.append({
-                "ownerId": account["data"]["ownerId"],
-                "name": f'{account["data"]["ownerId"]} / {account["name"]}'
-            })
-
-
 def update_service_add_ons(request, name, stage):
     serviceAddOns = []
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -480,8 +426,10 @@ class EnvLandingView(View):
             remaining_capacity = None
             if capacity_info['cluster']:
                 add_account_from_cluster(request, basic_cluster_info, accounts)
+                account_id = basic_cluster_info.get("accountId")
                 placements = placements_helper.get_simplified_by_ids(
-                        request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+                        request, account_id, basic_cluster_info['placement'],
+                    basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
                 host_type = hosttypes_helper.get_by_id(request, basic_cluster_info['hostType'])
                 host_type_blessed_status = host_type['blessed_status']
@@ -804,17 +752,40 @@ def _gen_deploy_query_filter(request, from_date, from_time, to_date, to_time, si
 
 def _gen_deploy_summary(request, deploys, for_env=None):
     deploy_summaries = []
+    accounts = {}
     for deploy in deploys:
         if for_env:
             env = for_env
         else:
             env = environs_helper.get(request, deploy['envId'])
         build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
+        account = None
+        if env and env.get("clusterName") is not None:
+            cluster = clusters_helper.get_cluster(request, env["clusterName"])
+            provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
+            account_key = (provider, cell, id)
+            if account_key in accounts:
+                account = accounts[account_key]
+            else:
+                account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
+                if account is None:
+                    account = accounts_helper.get_default_account(request, cell, provider)
+                accounts[account_key] = account
+        deploy_accounts = []
+        if account is None and env and deploy and build_with_tag:
+            # terraform deploy, get information from deploy report
+            progress = deploys_helper.update_progress(request, env["envName"], env["stageName"])
+            report = agent_report.gen_report(request, env, progress, deploy=deploy, build_info=build_with_tag)
+            deploy_accounts = [create_legacy_ui_account(account) for account in get_accounts(report)]
+        elif account:
+            deploy_accounts = [account]
+            
         summary = {}
         summary['deploy'] = deploy
         summary['env'] = env
         summary['build'] = build_with_tag['build']
         summary['buildTag'] = build_with_tag['tag']
+        summary['deploy_accounts'] = deploy_accounts
         deploy_summaries.append(summary)
     return deploy_summaries
 
@@ -1327,13 +1298,15 @@ def rollback(request, name, stage):
 
 def get_deploy(request, name, stage, deploy_id):
     deploy = deploys_helper.get(request, deploy_id)
-    build = builds_helper.get_build(request, deploy['buildId'])
+    build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
     env = environs_helper.get_env_by_stage(request, name, stage)
+    deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
     return render(request, 'environs/env_deploy_details.html', {
         "deploy": deploy,
         "csrf_token": get_token(request),
-        "build": build,
+        "build": build_with_tag["build"],
         "env": env,
+        "deploy_accounts": deploy_accounts
     })
 
 

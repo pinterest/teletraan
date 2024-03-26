@@ -564,12 +564,12 @@ public class GoalAnalyst {
                     hostTagBean.setEnv_id(envId);
                     hostTagBean.setCreate_date(System.currentTimeMillis());
                     hostTagDAO.insertOrUpdate(hostTagBean);
-                    LOG.debug("Create host tags from Deployd: insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                    LOG.info("Create host tags from Deployd: insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
                 } else if (tagValue.equals(hostTagBean.getTag_value()) == false) {
                     hostTagBean.setTag_value(tagValue);
                     hostTagBean.setCreate_date(System.currentTimeMillis());
                     hostTagDAO.insertOrUpdate(hostTagBean);
-                    LOG.debug("Update host tags from Deployd: update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                    LOG.info("Update host tags from Deployd: update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
                 }      
             }         
         }

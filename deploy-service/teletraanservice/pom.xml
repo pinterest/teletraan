@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.pinterest.teletraan</groupId>
         <artifactId>teletraan</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -22,6 +22,17 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-jersey2-jaxrs</artifactId>
+            <version>1.6.9</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.validation</groupId>
+                    <artifactId>validation-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
@@ -37,17 +48,6 @@
         <dependency>
             <groupId>com.pinterest.teletraan</groupId>
             <artifactId>common</artifactId>
-            <version>0.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.pinterest.teletraan</groupId>
@@ -56,27 +56,14 @@
             <type>test-jar</type>
             <version>0.1-SNAPSHOT</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.pinterest.teletraan</groupId>
             <artifactId>universal</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
-        </dependency>
-        <!-- The following two dependencies needed only for embedded mysql, remove them there is standalone mysql -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-mxj</artifactId>
-            <version>5.0.12</version>
         </dependency>
         <dependency>
             <groupId>com.ibatis</groupId>
@@ -86,7 +73,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.10.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
