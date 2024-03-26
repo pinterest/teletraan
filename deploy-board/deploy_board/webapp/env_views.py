@@ -38,7 +38,7 @@ import requests
 from collections import Counter
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper, \
-    accounts_helper
+    accounts_helper, autoscaling_groups_helper
 from .templatetags import utils
 from .helpers.exceptions import TeletraanException
 import math
@@ -581,7 +581,8 @@ class EnvLandingView(View):
 
 def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env):
     try:
-        group_name = '{}-{}'.format(env["envName"], env["stageName"])
+        group_info = autoscaling_groups_helper.get_group_info(request, env.get('clusterName'))
+        group_name = group_info["groupName"]
         host_ami_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
                 "query": "tags.Autoscaling:{} AND state:running".format(group_name),
                 "fields": "cloud.aws.imageId"
@@ -610,8 +611,9 @@ def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, la
 
 def _getLastClusterRefreshStatus(request, env):
     try:
+        cluster_name = get_cluster_name(request, env.name, env.stage)
         replace_summaries = clusters_helper.get_cluster_replacement_status(
-            request, data={"clusterName": '{}-{}'.format(env["envName"], env["stageName"])})
+            request, data={"clusterName": '{}'.format(cluster_name)})
 
         if len(replace_summaries["clusterRollingUpdateStatuses"]) == 0:
             return None
@@ -779,7 +781,7 @@ def _gen_deploy_summary(request, deploys, for_env=None):
             deploy_accounts = [create_legacy_ui_account(account) for account in get_accounts(report)]
         elif account:
             deploy_accounts = [account]
-            
+
         summary = {}
         summary['deploy'] = deploy
         summary['env'] = env
@@ -1952,3 +1954,19 @@ def override_session(request, name, stage):
     session_num = request.GET.get('session_num')
     schedules_helper.override_session(request, name, stage, session_num)
     return HttpResponse(json.dumps(''))
+
+def get_cluster_name(request, name, stage):
+    cluster_name = '{}-{}'.format(name, stage)
+    current_cluster = clusters_helper.get_cluster(request, cluster_name)
+    if current_cluster is None:
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        cluster_name = env.get("clusterName")
+    return cluster_name
+
+def get_group_name(request, name, stage):
+    group_name = '{}-{}'.format(name, stage)
+    current_group = groups_helper.get_group(request, group_name)
+    if current_group is None:
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        group_name = env.get("groupName")
+    return group_name
