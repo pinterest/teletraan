@@ -315,7 +315,6 @@ RODIMUS_SERVICE_PROXY_HTTPS = os.getenv("RODIMUS_SERVICE_PROXY_HTTPS", None)
 RODIMUS_SERVICE_USE_BEARER = os.getenv("RODIMUS_SERVICE_USE_BEARER", "true").lower() != "false"  # default is True
 
 if IS_PINTEREST:
-
     # use knox if present
     KNOX_SESSION_ID = os.getenv("KNOX_SESSION_ID")
     if KNOX_SESSION_ID:
