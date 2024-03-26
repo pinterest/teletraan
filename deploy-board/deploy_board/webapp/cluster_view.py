@@ -205,7 +205,6 @@ class EnvCapacityAdvCreateView(View):
             # Update environment
             environs_helper.update_env_basic_config(request, name, stage,
                                                     data={"clusterName": cluster_name, "IsDocker": True})
-
             log.info("Update capacity to the environment")
             # set up env and group relationship
             environs_helper.add_env_capacity(
