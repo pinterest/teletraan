@@ -209,7 +209,7 @@
         }
 
         function handleAvailabilitySettingRadioClick(myRadio) {
-            var isAutoRefresh = "{{ auto_refresh_view }}"
+            var isAutoRefresh = "{{ auto_refresh_view }}";
             setDefaultValues(myRadio, isAutoRefresh);
         }
             
@@ -511,7 +511,7 @@
         <script>
             var availabilitySettings = document.getElementsByName("availabilitySettingRadio");
 
-            var isAutoRefresh = "{{ auto_refresh_view }}"
+            var isAutoRefresh = "{{ auto_refresh_view }}";
             for (let i = 0; i < availabilitySettings.length; i++) {
                 if (availabilitySettings[i].checked) {
                     setDefaultValues(availabilitySettings[i], isAutoRefresh);
