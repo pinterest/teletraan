@@ -925,6 +925,7 @@
                     // It's really just update cluster info config without capacity
                     //Create the default capacity. The input here aligns to the Rodimus new cluster
                     var clusterInfo = {};
+                    clusterInfo['accountId'] = currentCluster.accountId;
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
