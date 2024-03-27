@@ -302,8 +302,10 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
             elif returnValue and "unhealthy" not in returnValue:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "healthy", "service": service, "commit": commit})
-            # if no check happens for the current service, check if it is a non container with healthcheck enabled
-            return redeploy_check_without_container_status(commit, service, redeploy)
+            if returnValue:
+                return returnValue
+        # if no check happens for the current service, check if it is a non container with healthcheck enabled
+        return redeploy_check_without_container_status(commit, service, redeploy)
     except:
         log.error(f"Failed to get container health info with commit {commit}")
         return None
