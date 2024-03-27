@@ -1,11 +1,11 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,11 +15,13 @@
  */
 package com.pinterest.deployservice.db;
 
+import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.BuildDAO;
-
-import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -27,10 +29,6 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Interval;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class DBBuildDAOImpl implements BuildDAO {
 
@@ -140,7 +138,6 @@ public class DBBuildDAOImpl implements BuildDAO {
             return run
                 .query(GET_BUILDS_BY_COMMIT_7, h, scmCommit7, start, pageSize);
         }
-
     }
 
     @Override

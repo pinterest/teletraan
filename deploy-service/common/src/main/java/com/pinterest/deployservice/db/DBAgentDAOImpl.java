@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.db;
 
 
+import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
@@ -37,7 +38,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String UPDATE_AGENT_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=? AND env_id=?";
     private static final String UPDATE_AGENTS_BY_HOSTIDS =
-            "UPDATE agents SET %s WHERE host_id IN (%s) AND env_id=?";
+        "UPDATE agents SET %s WHERE host_id IN (%s) AND env_id=?";
     private static final String UPDATE_AGENT_BY_ID_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=?";
     private static final String RESET_FAILED_AGENTS =
@@ -271,12 +272,13 @@ public class DBAgentDAOImpl implements AgentDAO {
 
     @Override
     public long countFinishedAgentsByDeployWithHostTags(String envId, String deployId, String tagName, List<String> tagValues) throws Exception {
-        List<Object> params = new ArrayList<>();
-        params.addAll(Arrays.asList(envId, envId, deployId, tagName));
-        params.addAll(tagValues);
-        Long n = new QueryRunner(dataSource).query(String
-                        .format(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS,
-                                QueryUtils.genStringPlaceholderList(tagValues.size())),
+        List<Object> params = ImmutableList.builder()
+                .add(envId, envId, deployId, tagName)
+                .addAll(tagValues)
+                .build();
+        Long n = new QueryRunner(dataSource)
+                .query(String.format(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS,
+                            QueryUtils.genStringPlaceholderList(tagValues.size())),
                 SingleResultSetHandlerFactory.<Long>newObjectHandler(),
                 params.toArray());
         return n == null ? 0 : n;

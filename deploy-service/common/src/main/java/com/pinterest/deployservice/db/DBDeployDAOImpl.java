@@ -15,13 +15,13 @@
  */
 package com.pinterest.deployservice.db;
 
+import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.UpdateStatement;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.DeployDAO;
-
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.dbutils.QueryRunner;
@@ -34,10 +34,8 @@ import org.joda.time.Interval;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public class DBDeployDAOImpl implements DeployDAO {
 
@@ -203,15 +201,13 @@ public class DBDeployDAOImpl implements DeployDAO {
     public List<DeployBean> getAcceptedDeploys(String envId, Interval interval, int size)
         throws Exception {
         ResultSetHandler<List<DeployBean>> h = new BeanListHandler<>(DeployBean.class);
-        List<Object> params = new ArrayList<>();
-        params.add(envId);
-        params.addAll(StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE.stream().map(Enum::name).collect(Collectors.toList()));
-        params.add(interval.getStartMillis());
-        params.add(interval.getEndMillis());
-        params.add(size);
+        String typesClause =
+                QueryUtils.genEnumGroupClause(StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE);
+        List<Object> params = ImmutableList.builder()
+                        .add(envId, interval.getStartMillis(), interval.getEndMillis(), size)
+                        .build();
         return new QueryRunner(dataSource).query(
-                String.format(GET_ACCEPTED_DEPLOYS_TEMPLATE,
-                        QueryUtils.genStringPlaceholderList(StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE.size())),
+                String.format(GET_ACCEPTED_DEPLOYS_TEMPLATE, typesClause),
                 h,
                 params.toArray());
     }
