@@ -613,7 +613,7 @@ def _getLastClusterRefreshStatus(request, env):
     try:
         cluster_name = get_cluster_name(request, env.name, env.stage)
         replace_summaries = clusters_helper.get_cluster_replacement_status(
-            request, data={"clusterName": '{}'.format(cluster_name)})
+            request, data={"clusterName": cluster_name})
 
         if len(replace_summaries["clusterRollingUpdateStatuses"]) == 0:
             return None
