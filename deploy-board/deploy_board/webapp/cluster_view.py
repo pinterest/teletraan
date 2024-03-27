@@ -1130,7 +1130,17 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     # get default configurations for first time
     try:
         if auto_refresh_config == None:
-            auto_refresh_config = clusters_helper.get_default_cluster_auto_refresh_config(request, cluster_name)
+            auto_refresh_config["launchBeforeTerminate"] = True
+            auto_refresh_config["config"]["minHealthyPercentage"] = 100
+            auto_refresh_config["config"]["maxHealthyPercentage"] = 110
+        else:
+            if auto_refresh_config["config"]["maxHealthyPercentage"] == None:
+                auto_refresh_config["terminateAndLaunch"] = True
+            elif auto_refresh_config["config"]["minHealthyPercentage"] == 100:
+                auto_refresh_config["launchBeforeTerminate"] = True
+            else:
+                auto_refresh_config["customMinMax"] = True
+
     except IllegalArgumentException:
         note = "To use auto cluster refresh, update stage type to one of these: DEV, LATEST, CANARY, CONTROL, STAGING, PRODUCTION"
         messages.warning(request, note, "cluster-replacements")
@@ -1204,7 +1214,6 @@ def start_cluster_replacement(request, name, stage):
     start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
 
     log.info("Starting to replace cluster {0}".format(cluster_name))
-
     try:
         clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
         messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
@@ -1269,7 +1278,23 @@ def gen_replacement_config(request):
         scaleInProtectedInstances = 'Refresh'
 
     rollingUpdateConfig = {}
-    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    
+    if params["availabilitySettingRadio"] == "launchBeforeTerminate":
+        rollingUpdateConfig["minHealthyPercentage"] = 100
+        if params["maxHealthyPercentage"] == None or len(params["maxHealthyPercentage"]) == 0:
+            rollingUpdateConfig["maxHealthyPercentage"] = 110
+        else:
+            rollingUpdateConfig["maxHealthyPercentage"] = params["maxHealthyPercentage"]
+    elif params["availabilitySettingRadio"] == "terminateAndLaunch":
+        rollingUpdateConfig["maxHealthyPercentage"] = None
+        if params["minHealthyPercentage"] == None or len(params["minHealthyPercentage"]) == 0:
+            rollingUpdateConfig["minHealthyPercentage"] = 100
+        else:
+            rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    else:
+        rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+        rollingUpdateConfig["maxHealthyPercentage"] = params["maxHealthyPercentage"]
+
     rollingUpdateConfig["skipMatching"] = skipMatching
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
