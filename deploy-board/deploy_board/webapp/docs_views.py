@@ -17,27 +17,25 @@ from django.shortcuts import render
 
 import os
 
+from deploy_board.settings import TELETRAAN_SERVICE_URL, RODIMUS_SERVICE_URL
+
 
 class SwaggerUIView(View):
     def get(self, request):
-        teletraanSwaggerUrl = os.environ.get(
-            "TELETRAAN_SERVICE_URL", "http://localhost:8011"
-        )
-        rodimusSwaggerUrl = os.environ.get(
-            "RODIMUS_SERVICE_URL", "http://localhost:8012"
-        )
-        envStage = os.environ.get("ENV_STAGE", "local")
-        if envStage != "local":
-            teletraanSwaggerUrl = teletraanSwaggerUrl.replace("http://", "https://")
-            rodimusSwaggerUrl = rodimusSwaggerUrl.replace("http://", "https://")
+        teletraan_swagger_url = TELETRAAN_SERVICE_URL
+        rodimus_swagger_url = RODIMUS_SERVICE_URL
+        env_stage = os.environ.get("ENV_STAGE", "local")
+        if env_stage != "local":
+            teletraan_swagger_url = teletraan_swagger_url.replace("http://", "https://")
+            rodimus_swagger_url = rodimus_swagger_url.replace("http://", "https://")
         response = render(
             request,
             "swagger-ui/dist/index.html",
             {
                 "token": request.session.get("oauth_token"),
-                "envStage": envStage,
-                "teletraanSwaggerUrl": teletraanSwaggerUrl,
-                "rodimusSwaggerUrl": rodimusSwaggerUrl,
+                "envStage": env_stage,
+                "teletraanSwaggerUrl": teletraan_swagger_url,
+                "rodimusSwaggerUrl": rodimus_swagger_url,
             },
         )
         return response
