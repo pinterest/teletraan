@@ -422,7 +422,7 @@ public class PingHandler {
             if(deployConstraintBean.getConstraint_type() == DeployConstraintType.GROUP_BY_GROUP) {
                 // if it is GROUP_BY_GROUP deploy, needs to check pre-requisite tags when pre-requisite tag hosts are all done, then it becomes its turn
                 List<String> prerequisiteTagValues = hostTagDAO.getAllPrerequisiteTagValuesByEnvIdAndTagName(envBean.getEnv_id(), tagName, tagValue);
-                if(prerequisiteTagValues!= null && prerequisiteTagValues.size() > 0) {
+                if(prerequisiteTagValues!= null && !prerequisiteTagValues.isEmpty()) {
                     // if there is any pre-requisite tag, the hosts tagged by this pre-requisite tag should deploy first
                     long totalExistingHostsWithPrerequisiteTags = hostTagDAO.countHostsByEnvIdAndTags(envBean.getEnv_id(), tagName, prerequisiteTagValues);
                     long totalFinishedAgentsWithPrerequisiteTags = agentDAO.countFinishedAgentsByDeployWithHostTags(envBean.getEnv_id(), envBean.getDeploy_id(), tagName, prerequisiteTagValues);
