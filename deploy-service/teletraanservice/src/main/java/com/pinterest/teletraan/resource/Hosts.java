@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import io.swagger.annotations.*;
 
+import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
 import java.util.List;
 
+@PermitAll
 @Path("/v1/hosts")
 @Api(tags = "Hosts and Systems")
 @SwaggerDefinition(
@@ -45,6 +47,7 @@ import java.util.List;
 )
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+// TODO: CDP-7701 Add authorization to hosts endpoints
 public class Hosts {
     private static final Logger LOG = LoggerFactory.getLogger(Hosts.class);
     private HostDAO hostDAO;

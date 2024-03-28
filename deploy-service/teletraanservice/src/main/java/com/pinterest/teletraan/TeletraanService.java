@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
 import com.pinterest.teletraan.universal.security.PrincipalNameInjector;
-
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfoFeature;
 import io.dropwizard.Application;
+import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
@@ -28,13 +29,12 @@ import io.dropwizard.jersey.validation.JerseyViolationExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
-
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 
 public class TeletraanService extends Application<TeletraanServiceConfiguration> {
     @Override
@@ -53,11 +53,18 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
     }
 
     @Override
-    public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
+    public void run(TeletraanServiceConfiguration configuration, Environment environment)
+            throws Exception {
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
 
-        environment.jersey().register(configuration.getAuthenticationFactory().create(context));
         environment.jersey().register(context);
+        environment
+                .jersey()
+                .register(
+                        new AuthDynamicFeature(
+                                configuration.getAuthenticationFactory().create(context)));
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
+        environment.jersey().register(ResourceAuthZInfoFeature.class);
 
         environment.jersey().register(Builds.class);
         environment.jersey().register(Commits.class);
@@ -111,7 +118,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.jersey().register(PrincipalNameInjector.class);
 
         // Swagger API docs generation related
-        environment.jersey().register(ApiListingResource.class);
+        environment.jersey().register(SecureApiListingResource.class);
         environment.jersey().register(SwaggerSerializers.class);
         BeanConfig config = new BeanConfig();
         config.setTitle("Teletraan API Docs");
@@ -128,9 +135,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         filter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER, "true");
         filter.setInitParameter("allowedHeaders", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
         filter.setInitParameter("allowCredentials", "true");
-
     }
-
 
     public static void main(String[] args) throws Exception {
         new TeletraanService().run(args);

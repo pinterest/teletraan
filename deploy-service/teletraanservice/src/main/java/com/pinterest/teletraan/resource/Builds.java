@@ -28,18 +28,23 @@ import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.List;
 
+@PermitAll
 @Path("/v1/builds")
 @Api(tags = "Builds")
 @SwaggerDefinition(
@@ -57,14 +62,12 @@ public class Builds {
     private final TagDAO tagDAO;
     private final Allowlist buildAllowlist;
     private final SourceControlManagerProxy sourceControlManagerProxy;
-    private final Authorizer authorizer;
     private final BuildEventPublisher buildEventPublisher;
 
     public Builds(@Context TeletraanServiceContext context) {
         buildDAO = context.getBuildDAO();
         tagDAO = context.getTagDAO();
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
-        authorizer = context.getAuthorizer();
         buildAllowlist = context.getBuildAllowlist();
         buildEventPublisher = context.getBuildEventPublisher();
         deployDAO = context.getDeployDAO();
@@ -177,6 +180,8 @@ public class Builds {
             value = "Publish a build",
             notes = "Publish a build given a build object",
             response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
+    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD)
     public Response publish(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
@@ -209,13 +214,13 @@ public class Builds {
         buildBean.setPublisher(sc.getUserPrincipal().getName());
 
         // Check if build is approved via our allow list of URLs
-        if (!buildAllowlist.approved(buildBean.getArtifact_url())) {
+        if (!Boolean.TRUE.equals(buildAllowlist.approved(buildBean.getArtifact_url()))) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 "Artifact URL points to unapproved location.");
         }
 
         // Check if build SCM is approved via allow list of SCMs
-        if (!sourceControlManagerProxy.hasSCMType(buildBean.getScm())) {
+        if (!Boolean.TRUE.equals(sourceControlManagerProxy.hasSCMType(buildBean.getScm()))) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 String.format("Unsupported SCM type. %s not in list %s.", buildBean.getScm(), sourceControlManagerProxy.getSCMs()));
         }
@@ -245,10 +250,11 @@ public class Builds {
     @ApiOperation(
         value = "Delete a build",
         notes = "Deletes a build given a build id")
+    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD)
     public void delete(
         @Context SecurityContext sc,
         @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
-        authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.OPERATOR);
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
             throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
