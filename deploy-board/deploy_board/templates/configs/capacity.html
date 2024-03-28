@@ -30,7 +30,7 @@
             <side-button styleclass="fa fa-gears" text="Cluster Configuration" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page"></side-button>
         </div>
         <div v-if="!noCluster" class="row">
-            <side-button styleclass="fa fa-cloud" text="Autoscaling Settings" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Advanced auto scaling configuration page"></side-button>
+            <side-button styleclass="fa fa-cloud" text="Autoscaling Settings" href="/groups/{{ env.clusterName }}/config" title="Advanced auto scaling configuration page"></side-button>
         </div>
          <div v-if="showAddExistingCapacity" class="row">
             <side-button styleclass="fa fa-plus" text="Add Existing Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?addexisting" title="Add Existing Capacity"></side-button>

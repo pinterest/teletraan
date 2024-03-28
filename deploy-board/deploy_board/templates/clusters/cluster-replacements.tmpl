@@ -40,7 +40,7 @@
         </a>
     </div>
     <div class="row">
-        <a href="/groups/{{ env_name }}-{{ env_stage }}/scaling_activities/" target="_blank"
+        <a href="/groups/{{ cluster_name }}/scaling_activities/" target="_blank"
             type="button" class="btn btn-default btn-block">
             <span class="glyphicon glyphicon-list"></span> Show Replacement Activities
         </a>
@@ -143,7 +143,7 @@
                 <span style="color:red;"><b>may need to be refreshed</b></span>
                 <span class="glyphicon glyphicon-warning-sign"></span>
                 <span>(This <i>suggestion</i> is based on the last time cluster configuration was changed/updated vs. the last time cluster refresh was started and its status. It may be <i>inaccurate</i>
-                    in case where the last configuration change was <i>not</i> related to host/instance configurations. In this case, if the cluster is indeed up to date, refreshing (skip matching) it 
+                    in case where the last configuration change was <i>not</i> related to host/instance configurations. In this case, if the cluster is indeed up to date, refreshing (skip matching) it
                     will result in a no-op, and it will complete after few seconds. And the cluster will be up to date.)
                 </span>
             {% endif %}
@@ -183,7 +183,7 @@
             else {
                 checkpointPercentagesElement.setCustomValidity('');
             }
-            
+
             const checkpointPercentages = checkpointPercentagesElement.value.split(',').reduce( (acc, p) => acc.concat(+p), []);
 
             for (let i = 0; i < checkpointPercentages.length - 1; i++) {
@@ -333,13 +333,13 @@
                         <span class="fa fa-bell"></span> Checkpoint percentages:
                     </label>
                     <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" value={% if auto_refresh_config.config.checkpointPercentages %}{{ auto_refresh_config.config.checkpointPercentages|join:"," }}{% endif %}>
-                    
+
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
                         <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
                     <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value={% if auto_refresh_config.config.checkpointDelay %}{{ auto_refresh_config.config.checkpointDelay }}{% endif %}>
                 </div>
-                
+
                 <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Skip replacing instances that already use the latest launch template." >
                         Skip matching launch template
@@ -347,7 +347,7 @@
                         <div class="slider round"></div>
                     </label>
                 </div>
-                
+
                 <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
                         Replace protected instances
@@ -388,7 +388,7 @@
                             Update
                     </button>
                 </div>
-        
+
                 {% csrf_token %}
             </form>
 
@@ -403,7 +403,7 @@
                 else {
                     updateClusterAutoRefreshConfigBtnElement.disabled = false
                 }
-            </script>    
+            </script>
         </div>
         {% else %}
         <div class="container-fluid">
@@ -468,13 +468,13 @@
                         <span class="fa fa-bell"></span> Checkpoint percentages:
                     </label>
                     <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" placeholder="e.g. 25, 50, 100">
-                    
+
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
                         <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
                     <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value="3600">
                 </div>
-                
+
                 <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Skip replacing instances that already use the latest launch template." >
                         Skip matching launch template
@@ -482,7 +482,7 @@
                         <div class="slider round"></div>
                     </label>
                 </div>
-                
+
                 <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
                         Replace protected instances
@@ -500,7 +500,7 @@
                             <span class="glyphicon glyphicon-refresh"></span> Start
                     </button>
                 </div>
-                
+
                 {% csrf_token %}
             </form>
 
@@ -610,7 +610,7 @@
                 </table>
         </div>
     </div>
-</div>                       
+</div>
 {% endif %}
 
 {% endblock %}
