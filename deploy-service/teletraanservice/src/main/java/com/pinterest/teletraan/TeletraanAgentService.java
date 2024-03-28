@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@ package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.Pings;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfoFeature;
 import io.dropwizard.Application;
-import io.dropwizard.setup.Environment;
+import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 
 public class TeletraanAgentService extends Application<TeletraanServiceConfiguration> {
     @Override
@@ -40,10 +43,17 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
     }
 
     @Override
-    public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
+    public void run(TeletraanServiceConfiguration configuration, Environment environment)
+            throws Exception {
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
         environment.jersey().register(context);
-        environment.jersey().register(configuration.getAuthenticationFactory().create(context));
+        environment
+                .jersey()
+                .register(
+                        new AuthDynamicFeature(
+                                configuration.getAuthenticationFactory().create(context)));
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
+        environment.jersey().register(ResourceAuthZInfoFeature.class);
         environment.jersey().register(Pings.class);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));

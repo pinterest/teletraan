@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,22 +16,20 @@
 package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.GroupRolesBean;
-import com.pinterest.deployservice.bean.Resource;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import java.util.List;
 
 public interface GroupRolesDAO {
     void insert(GroupRolesBean bean) throws Exception;
 
-    void delete(String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception;
+    void delete(String groupName, String resourceId, AuthZResource.Type resourceType) throws Exception;
 
-    void update(GroupRolesBean bean, String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception;
+    void update(GroupRolesBean bean, String groupName, String resourceId, AuthZResource.Type resourceType)
+            throws Exception;
 
-    GroupRolesBean getByNameAndResource(String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception;
+    GroupRolesBean getByNameAndResource(String groupName, String resourceId, AuthZResource.Type resourceType)
+            throws Exception;
 
-    List<GroupRolesBean> getByResource(String resourceId,
-        Resource.Type resourceType) throws Exception;
+    List<GroupRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType) throws Exception;
 }
