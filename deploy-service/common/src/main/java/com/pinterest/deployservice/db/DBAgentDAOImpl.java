@@ -15,6 +15,8 @@
  */
 package com.pinterest.deployservice.db;
 
+
+import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
@@ -26,13 +28,17 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 
 public class DBAgentDAOImpl implements AgentDAO {
     private static final String UPDATE_AGENT_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=? AND env_id=?";
-    private static final String UPDATE_AGENTS_BY_HOSTIDS = 
-        "" + "UPDATE agents SET %s WHERE host_id IN (%s) AND env_id=?";
+    private static final String UPDATE_AGENTS_BY_HOSTIDS =
+        "UPDATE agents SET %s WHERE host_id IN (%s) AND env_id=?";
     private static final String UPDATE_AGENT_BY_ID_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=?";
     private static final String RESET_FAILED_AGENTS =
@@ -110,8 +116,10 @@ public class DBAgentDAOImpl implements AgentDAO {
     @Override
     public void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception {
         SetClause setClause = agentBean.genSetClause();
-        String hostStr = QueryUtils.genStringGroupClause(hostIds);
-        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause(), hostStr);
+        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause(), QueryUtils.genStringPlaceholderList(hostIds.size()));
+        for(String hostId : hostIds) {
+            setClause.addValue(hostId);
+        }
         setClause.addValue(envId);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
@@ -264,9 +272,15 @@ public class DBAgentDAOImpl implements AgentDAO {
 
     @Override
     public long countFinishedAgentsByDeployWithHostTags(String envId, String deployId, String tagName, List<String> tagValues) throws Exception {
-        String tagValuesStr = QueryUtils.genStringGroupClause(tagValues);
-        Long n = new QueryRunner(dataSource).query(String.format(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS, tagValuesStr),
-            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, envId, deployId, tagName);
+        List<Object> params = ImmutableList.builder()
+                .add(envId, envId, deployId, tagName)
+                .addAll(tagValues)
+                .build();
+        Long n = new QueryRunner(dataSource)
+                .query(String.format(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS,
+                            QueryUtils.genStringPlaceholderList(tagValues.size())),
+                SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                params.toArray());
         return n == null ? 0 : n;
     }
 
