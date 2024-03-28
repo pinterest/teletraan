@@ -581,8 +581,7 @@ class EnvLandingView(View):
 
 def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env):
     try:
-        group_info = autoscaling_groups_helper.get_group_info(request, env.get('clusterName'))
-        group_name = group_info["groupName"]
+        group_name = get_group_name(request, env.get('envName'), env.get('stageName'), env=env)
         host_ami_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
                 "query": "tags.Autoscaling:{} AND state:running".format(group_name),
                 "fields": "cloud.aws.imageId"
@@ -611,7 +610,7 @@ def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, la
 
 def _getLastClusterRefreshStatus(request, env):
     try:
-        cluster_name = get_cluster_name(request, env.name, env.stage)
+        cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
         replace_summaries = clusters_helper.get_cluster_replacement_status(
             request, data={"clusterName": cluster_name})
 
@@ -1955,18 +1954,20 @@ def override_session(request, name, stage):
     schedules_helper.override_session(request, name, stage, session_num)
     return HttpResponse(json.dumps(''))
 
-def get_cluster_name(request, name, stage):
+def get_cluster_name(request, name, stage, env=None):
     cluster_name = '{}-{}'.format(name, stage)
     current_cluster = clusters_helper.get_cluster(request, cluster_name)
     if current_cluster is None:
-        env = environs_helper.get_env_by_stage(request, name, stage)
+        if env is None:
+            env = environs_helper.get_env_by_stage(request, name, stage)
         cluster_name = env.get("clusterName")
     return cluster_name
 
-def get_group_name(request, name, stage):
+def get_group_name(request, name, stage, env=None):
     group_name = '{}-{}'.format(name, stage)
-    current_group = groups_helper.get_group(request, group_name)
+    current_group = autoscaling_groups_helper.get_group_info(request, group_name)
     if current_group is None:
-        env = environs_helper.get_env_by_stage(request, name, stage)
+        if env is None:
+            env = environs_helper.get_env_by_stage(request, name, stage)
         group_name = env.get("groupName")
     return group_name
