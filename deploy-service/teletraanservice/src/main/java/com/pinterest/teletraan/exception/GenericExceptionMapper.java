@@ -1,11 +1,6 @@
 package com.pinterest.teletraan.exception;
 
 
-import com.pinterest.deployservice.common.Constants;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -15,6 +10,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.pinterest.deployservice.common.Constants;
 
 // Thanks to http://stackoverflow.com/questions/19621653/how-should-i-log-uncaught-exceptions-in-my-restful-jax-rs-web-service
 @Provider
@@ -37,30 +37,27 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
         if (t.getMessage() != null) {
             sb.append("Message: ").append(t.getMessage());
         }
+        if (!Constants.CLIENT_ERROR_SHORT.equals(clientError)) {
+            sb.append(buildErrorMessage(request, t));
+        }
 
         if (t instanceof WebApplicationException) {
-            Response response = ((WebApplicationException) t).getResponse();
-
-            if (!Constants.CLIENT_ERROR_SHORT.equals(clientError)) {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                t.printStackTrace(pw);
-                sb.append("\n").append(sw.toString());
-            }
-            return Response.status(response.getStatus()).entity(sb.toString()).build();
+            return Response.status(((WebApplicationException) t).getResponse().getStatus()).entity(sb.toString())
+                    .build();
         } else {
-            if (!Constants.CLIENT_ERROR_SHORT.equals(clientError)) {
-                String errorMessage = buildErrorMessage(request);
-                sb.append(errorMessage);
-            }
             return Response.serverError().entity(sb.toString()).build();
         }
     }
 
-    private String buildErrorMessage(HttpServletRequest req) {
+    private String buildErrorMessage(HttpServletRequest req, Throwable t) {
         StringBuilder message = new StringBuilder();
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
+
         message.append("\nResource: ").append(getOriginalURL(req));
         message.append("\nMethod: ").append(req.getMethod());
+        message.append("\nStack:\n").append(sw.toString());
         return message.toString();
     }
 
