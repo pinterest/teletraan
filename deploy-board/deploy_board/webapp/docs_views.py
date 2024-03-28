@@ -17,7 +17,7 @@ from django.shortcuts import render
 
 import os
 
-from settings import TELETRAAN_SERVICE_URL, RODIMUS_SERVICE_URL,
+from settings import TELETRAAN_SERVICE_URL, RODIMUS_SERVICE_URL
 
 class SwaggerUIView(View):
     def get(self, request):
