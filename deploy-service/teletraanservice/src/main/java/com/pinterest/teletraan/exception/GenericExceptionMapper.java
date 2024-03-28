@@ -33,40 +33,27 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     @Override
     public Response toResponse(Throwable t) {
         LOG.error("Server error:", t);
-        if (t instanceof WebApplicationException) {
-            StringBuilder sb = new StringBuilder();
-            if (t.getMessage() != null) {
-                sb.append("\nMessage: ").append(t.getMessage());
-            }
+        StringBuilder sb = new StringBuilder();
+        if (t.getMessage() != null) {
+            sb.append("Message: ").append(t.getMessage());
+        }
 
-            if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
-                return Response.serverError().entity(sb.toString()).build();
-            } else {
+        if (t instanceof WebApplicationException) {
+            Response response = ((WebApplicationException) t).getResponse();
+
+            if (!Constants.CLIENT_ERROR_SHORT.equals(clientError)) {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 t.printStackTrace(pw);
                 sb.append("\n").append(sw.toString());
-                final Response response = ((WebApplicationException) t).getResponse();
-                Response.Status.Family family = response.getStatusInfo().getFamily();
-                if (family.equals(Response.Status.Family.CLIENT_ERROR)) {
-                    return Response.status(response.getStatus()).entity(sb.toString()).build();
-                } else {
-                    return Response.serverError().entity(sb.toString()).build();
-                }
             }
+            return Response.status(response.getStatus()).entity(sb.toString()).build();
         } else {
-            String errorMessage = buildErrorMessage(request);
-            StringBuilder sb = new StringBuilder();
-            if (t.getMessage() != null) {
-                sb.append("\nMessage: ").append(t.getMessage());
-            }
-
-            if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
-                return Response.serverError().entity(sb.toString()).build();
-            } else {
+            if (!Constants.CLIENT_ERROR_SHORT.equals(clientError)) {
+                String errorMessage = buildErrorMessage(request);
                 sb.append(errorMessage);
-                return Response.serverError().entity(sb.toString()).build();
             }
+            return Response.serverError().entity(sb.toString()).build();
         }
     }
 
