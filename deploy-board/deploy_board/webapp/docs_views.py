@@ -17,15 +17,12 @@ from django.shortcuts import render
 
 import os
 
+from settings import TELETRAAN_SERVICE_URL, RODIMUS_SERVICE_URL,
 
 class SwaggerUIView(View):
     def get(self, request):
-        teletraanSwaggerUrl = os.environ.get(
-            "TELETRAAN_SERVICE_URL", "http://localhost:8011"
-        )
-        rodimusSwaggerUrl = os.environ.get(
-            "RODIMUS_SERVICE_URL", "http://localhost:8012"
-        )
+        teletraanSwaggerUrl = TELETRAAN_SERVICE_URL
+        rodimusSwaggerUrl = RODIMUS_SERVICE_URL
         envStage = os.environ.get("ENV_STAGE", "local")
         if envStage != "local":
             teletraanSwaggerUrl = teletraanSwaggerUrl.replace("http://", "https://")
@@ -36,8 +33,8 @@ class SwaggerUIView(View):
             {
                 "token": request.session.get("oauth_token"),
                 "envStage": envStage,
-                "teletraanSwaggerUrl": teletraanSwaggerUrl,
-                "rodimusSwaggerUrl": rodimusSwaggerUrl,
+                "teletraanSwaggerUrl": TELETRAAN_SERVICE_URL,
+                "rodimusSwaggerUrl": RODIMUS_SERVICE_URL,
             },
         )
         return response
