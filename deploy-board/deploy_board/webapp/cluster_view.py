@@ -1130,6 +1130,7 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     # get default configurations for first time
     try:
         if auto_refresh_config == None:
+            auto_refresh_config = {}
             auto_refresh_config["launchBeforeTerminate"] = True
             auto_refresh_config["config"]["minHealthyPercentage"] = 100
             auto_refresh_config["config"]["maxHealthyPercentage"] = 110
