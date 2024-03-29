@@ -47,20 +47,19 @@ public class ScriptTokenRoleAuthorizer
             return false;
         }
 
-        if (requestedResource.getType().equals(AuthZResource.Type.ENV_STAGE)) {
+        if (requestedResource.equals(principal.getResource())
+                || AuthZResource.Type.SYSTEM.equals(principal.getResource().getType())) {
+            return true;
+        }
+
+        if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())) {
             if (requestedResource.getEnvName().equals(principal.getResource().getName())) {
                 return true;
             }
-        } else if (requestedResource.getType().equals(AuthZResource.Type.ENV)
+        } else if (AuthZResource.Type.ENV.equals(requestedResource.getType())
                 && !(TeletraanPrincipalRole.ADMIN.getRole().equals(principal.getRole())
-                        || principal.getResource().getType().equals(AuthZResource.Type.SYSTEM))) {
+                        || AuthZResource.Type.SYSTEM.equals(principal.getResource().getType()))) {
             return false;
-        }
-
-        if (requestedResource.equals(principal.getResource())
-                || principal.getResource().getType().equals(AuthZResource.Type.SYSTEM)) {
-            LOG.debug("Authorized");
-            return true;
         }
 
         LOG.info("Requested resource does not match principal resource");

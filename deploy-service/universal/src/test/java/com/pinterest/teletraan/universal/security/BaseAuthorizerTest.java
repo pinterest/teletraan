@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,6 +91,17 @@ class BaseAuthorizerTest {
 
         when(extractor.extractResource(any(), any())).thenThrow(new ExtractionException(null));
         assertFalse(sut.authorize(principal, TEST_ROLE, context));
+    }
+
+    @Test
+    void testAuthorize_systemResource() throws ExtractionException {
+        ResourceAuthZInfo authZInfo = mock(ResourceAuthZInfo.class);
+
+        when(authZInfo.type()).thenReturn(AuthZResource.Type.SYSTEM);
+        when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(authZInfo);
+
+        assertTrue(sut.authorize(principal, TEST_ROLE, context));
+        verify(extractorFactory, never()).create(authZInfo);
     }
 
     class TestAuthorizer extends BaseAuthorizer<TeletraanPrincipal> {

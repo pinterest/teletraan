@@ -39,6 +39,8 @@ public class ScriptTokenRoleAuthorizerTest {
     private TokenRolesBean envOperator;
     private TokenRolesBean envReader;
 
+    private TokenRolesBean pinger;
+
     private AuthZResource env1;
     private AuthZResource envX;
     private AuthZResource env1Stage;
@@ -79,6 +81,11 @@ public class ScriptTokenRoleAuthorizerTest {
         envReader.setResource_id("envX");
         envReader.setResource_type(AuthZResource.Type.ENV);
         envReader.setRole(TeletraanPrincipalRole.READER);
+
+        pinger = new TokenRolesBean();
+        pinger.setResource_id(AuthZResource.ALL);
+        pinger.setResource_type(AuthZResource.Type.SYSTEM);
+        pinger.setRole(TeletraanPrincipalRole.PINGER);
 
         env1 = new AuthZResource("env1", AuthZResource.Type.ENV);
         envX = new AuthZResource("envX", AuthZResource.Type.ENV);
@@ -202,5 +209,10 @@ public class ScriptTokenRoleAuthorizerTest {
 
         checkNegative(envReader, envXStage, TeletraanPrincipalRole.OPERATOR);
         checkNegative(envReader, envXStage, TeletraanPrincipalRole.ADMIN);
+    }
+
+    @Test
+    public void testPingerCanPing() throws Exception {
+        checkPositive(pinger, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRole.PINGER);
     }
 }

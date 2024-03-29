@@ -62,20 +62,24 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Au
 
         ResourceAuthZInfo safeAuthZInfo = (ResourceAuthZInfo) authZInfo;
 
-        AuthZResource requestedResource;
-        try {
-            requestedResource =
-                    extractorFactory
-                            .create(safeAuthZInfo)
-                            .extractResource(context, safeAuthZInfo.beanClass());
-        } catch (ExtractionException ex) {
-            log.warn(
-                    "Failed to extract resource. Did you forget to annotate the resource with @ResourceAuthZInfo?",
-                    ex);
-            return false;
-        }
+        if (AuthZResource.Type.SYSTEM.equals(safeAuthZInfo.type())) {
+            return authorize(principal, role, AuthZResource.SYSTEM_RESOURCE, context);
+        } else {
+            AuthZResource requestedResource;
+            try {
+                requestedResource =
+                        extractorFactory
+                                .create(safeAuthZInfo)
+                                .extractResource(context, safeAuthZInfo.beanClass());
+            } catch (ExtractionException ex) {
+                log.warn(
+                        "Failed to extract resource. Did you forget to annotate the resource with @ResourceAuthZInfo?",
+                        ex);
+                return false;
+            }
 
-        return authorize(principal, role, requestedResource, context);
+            return authorize(principal, role, requestedResource, context);
+        }
     }
 
     public abstract boolean authorize(

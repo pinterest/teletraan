@@ -49,7 +49,7 @@ public class DeployCandidates {
         notes = "Returns a list of build bean",
         response = DeployCandidatesResponse.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.PINGER)
-    @ResourceAuthZInfo(type = AuthZResource.Type.GROUP)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public DeployCandidatesResponse getDeployCandidates(@Context SecurityContext sc,
                 @Context HttpHeaders headers,
                 @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
