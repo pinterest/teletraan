@@ -47,11 +47,6 @@ public class ScriptTokenRoleAuthorizer
             return false;
         }
 
-        if (requestedResource.equals(principal.getResource())
-                || AuthZResource.Type.SYSTEM.equals(principal.getResource().getType())) {
-            return true;
-        }
-
         if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())) {
             if (requestedResource.getEnvName().equals(principal.getResource().getName())) {
                 return true;
@@ -62,6 +57,10 @@ public class ScriptTokenRoleAuthorizer
             return false;
         }
 
+        if (requestedResource.equals(principal.getResource())
+                || AuthZResource.Type.SYSTEM.equals(principal.getResource().getType())) {
+            return true;
+        }
         LOG.info("Requested resource does not match principal resource");
         return false;
     }

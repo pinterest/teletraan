@@ -64,6 +64,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(DropwizardExtensionsSupport.class)
 public class ResourceAuthorizationTest {
     private static final String SCRIPT_TOKEN = "script_token";
+    private static final String PINGER_TOKEN = "pinger_token";
     private static final String JWT_TOKEN = "jwt_token";
     private static final String JWT_ADMIN_TOKEN = "jwt_admin_token";
     private static final String TEST_USER = "testUser";
@@ -88,6 +89,7 @@ public class ResourceAuthorizationTest {
         public static final String none = "/none";
         public static final String all = "/all";
         public static final String admin = "/admin";
+        public static final String ping = "/ping";
     }
 
     private static String[] protectedResourceTargetsProvider() {
@@ -110,6 +112,7 @@ public class ResourceAuthorizationTest {
         EnvironDAO environDAO = mock(EnvironDAO.class);
         UserRolesBean adminRolesBean = new UserRolesBean();
         TokenRolesBean tokenRolesBean = new TokenRolesBean();
+        TokenRolesBean pingerRolesBean = new TokenRolesBean();
 
         mockWebServer = new MockWebServer();
         mockWebServer.setDispatcher(new AuthDispatcher());
@@ -119,6 +122,9 @@ public class ResourceAuthorizationTest {
         tokenRolesBean.setRole(TeletraanPrincipalRole.OPERATOR);
         tokenRolesBean.setResource_id("testEnv");
         tokenRolesBean.setResource_type(AuthZResource.Type.ENV);
+        pingerRolesBean.setRole(TeletraanPrincipalRole.PINGER);
+        pingerRolesBean.setResource_id(AuthZResource.ALL);
+        pingerRolesBean.setResource_type(AuthZResource.Type.SYSTEM);
 
         context.setAuthorizationFactory(authorizationFactory);
         context.setTokenRolesDAO(tokenRolesDAO);
@@ -133,6 +139,7 @@ public class ResourceAuthorizationTest {
                             TEST_ADMIN_USER, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
                     .thenReturn(adminRolesBean);
             when(tokenRolesDAO.getByToken(SCRIPT_TOKEN)).thenReturn(tokenRolesBean);
+            when(tokenRolesDAO.getByToken(PINGER_TOKEN)).thenReturn(pingerRolesBean);
             when(environDAO.getByName(TEST_ENV_ID)).thenReturn(Collections.singletonList(new EnvironBean()));
             EXT =
                     ResourceExtension.builder()
@@ -281,6 +288,17 @@ public class ResourceAuthorizationTest {
         assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
     }
 
+    @Test
+    void validPingerToken_pingResource_200() {
+        Response response =
+                EXT.target(Targets.ping)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + PINGER_TOKEN)
+                        .get();
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    }
+
     @Produces(MediaType.APPLICATION_JSON)
     @Path(Targets.root)
     public static class TestResource {
@@ -350,6 +368,14 @@ public class ResourceAuthorizationTest {
         @Path(Targets.all)
         @PermitAll
         public Response permitAllResource() {
+            return Response.ok().build();
+        }
+
+        @GET
+        @Path(Targets.ping)
+        @RolesAllowed(TeletraanPrincipalRole.Names.PINGER)
+        @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
+        public Response pingResource() {
             return Response.ok().build();
         }
     }
