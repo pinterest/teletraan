@@ -1,11 +1,6 @@
 package com.pinterest.teletraan.exception;
 
 
-import com.pinterest.deployservice.common.Constants;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -15,6 +10,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.pinterest.deployservice.common.Constants;
 
 // Thanks to http://stackoverflow.com/questions/19621653/how-should-i-log-uncaught-exceptions-in-my-restful-jax-rs-web-service
 @Provider
@@ -33,47 +33,31 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     @Override
     public Response toResponse(Throwable t) {
         LOG.error("Server error:", t);
+        StringBuilder sb = new StringBuilder();
+        if (t.getMessage() != null) {
+            sb.append("Message: ").append(t.getMessage());
+        }
+        if (!Constants.CLIENT_ERROR_SHORT.equals(clientError)) {
+            sb.append(buildErrorMessage(request, t));
+        }
+
         if (t instanceof WebApplicationException) {
-            StringBuilder sb = new StringBuilder();
-            if (t.getMessage() != null) {
-                sb.append("\nMessage: ").append(t.getMessage());
-            }
-
-            if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
-                return Response.serverError().entity(sb.toString()).build();
-            } else {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                t.printStackTrace(pw);
-                sb.append("\n").append(sw.toString());
-                final Response response = ((WebApplicationException) t).getResponse();
-                Response.Status.Family family = response.getStatusInfo().getFamily();
-                if (family.equals(Response.Status.Family.CLIENT_ERROR)) {
-                    return Response.status(response.getStatus()).entity(sb.toString()).build();
-                } else {
-                    return Response.serverError().entity(sb.toString()).build();
-                }
-            }
+            return Response.status(((WebApplicationException) t).getResponse().getStatus()).entity(sb.toString())
+                    .build();
         } else {
-            String errorMessage = buildErrorMessage(request);
-            StringBuilder sb = new StringBuilder();
-            if (t.getMessage() != null) {
-                sb.append("\nMessage: ").append(t.getMessage());
-            }
-
-            if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
-                return Response.serverError().entity(sb.toString()).build();
-            } else {
-                sb.append(errorMessage);
-                return Response.serverError().entity(sb.toString()).build();
-            }
+            return Response.serverError().entity(sb.toString()).build();
         }
     }
 
-    private String buildErrorMessage(HttpServletRequest req) {
+    private String buildErrorMessage(HttpServletRequest req, Throwable t) {
         StringBuilder message = new StringBuilder();
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
+
         message.append("\nResource: ").append(getOriginalURL(req));
         message.append("\nMethod: ").append(req.getMethod());
+        message.append("\nStack:\n").append(sw.toString());
         return message.toString();
     }
 
