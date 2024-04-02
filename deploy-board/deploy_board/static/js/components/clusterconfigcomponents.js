@@ -553,7 +553,7 @@ Vue.component('remaining-capacity', {
     template: '<div class="form-group">\
     <div class="col-xs-2"></div>\
     <div class="col-xs-6" v-bind:style="marginStyle">\
-        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Capacity: {{remainingcapacity}}</span>\
+        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Subnet Capacity: {{remainingcapacity}}</span>\
     </div>\
     </div>',
     props: ['title', 'remainingcapacity', 'inadvanced'],
