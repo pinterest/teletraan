@@ -41,6 +41,8 @@ log = logging.getLogger(__name__)
 
 DEFAULT_PAGE_SIZE = 200
 
+DEFAULT_ACCOUNT_NAME = 'Primary AWS account'
+
 
 class EnvCapacityBasicCreateView(View):
     def get(self, request, name, stage):
@@ -614,7 +616,7 @@ def get_default_account(accounts):
     if accounts is None:
         return None
     for account in accounts:
-        if account['name'] == 'default':
+        if account['name'] == DEFAULT_ACCOUNT_NAME:
             return account
     return None
 
@@ -1277,7 +1279,7 @@ def gen_replacement_config(request):
         scaleInProtectedInstances = 'Refresh'
 
     rollingUpdateConfig = {}
-    
+
     if params["availabilitySettingRadio"] == "launchBeforeTerminate":
         rollingUpdateConfig["minHealthyPercentage"] = 100
         if params["maxHealthyPercentage"] == None or len(params["maxHealthyPercentage"]) == 0:
