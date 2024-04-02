@@ -238,10 +238,10 @@ def redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfi
         max_retry = int(healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_MAX_RETRY", REDEPLOY_MAX_RETRY))
         if redeploy < max_retry:
             log.info(f"redeploy is {redeploy}; max retry is {max_retry}")
-            send_statsboard_metric(name='deployd.service_health_status', value=1,
+            create_sc_increment(name='deployd.service_health_status', 
                 tags={"status": "redeploy", "service": service, "commit": commit})
             return "redeploy-" + str(redeploy + 1)
-    send_statsboard_metric(name='deployd.service_health_status', value=1,
+    create_sc_increment(name='deployd.service_health_status', 
         tags={"status": "unhealthy", "service": service, "commit": commit})
     return service + ":unhealthy"
 
@@ -261,7 +261,7 @@ def redeploy_check_without_container_status(commit, service, redeploy):
         try:
             resp = requests.get(url)
             if resp.status_code >= 200 and resp.status_code < 300:
-                send_statsboard_metric(name='deployd.service_health_status', value=1,
+                create_sc_increment(name='deployd.service_health_status', 
                     tags={"status": "healthy", "service": service, "commit": commit})
                 return service + ":healthy"
         except requests.ConnectionError:
@@ -289,7 +289,7 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                                 labels = parts[2].split(',')
                                 ret = redeploy_check_for_container(labels, service, redeploy)
                                 if ret > 0:
-                                    send_statsboard_metric(name='deployd.service_health_status', value=1,
+                                    create_sc_increment(name='deployd.service_health_status', 
                                             tags={"status": "redeploy", "service": service, "commit": commit})
                                     return "redeploy-" + str(ret)
                             result.append(f"{name}:{status}")
@@ -297,10 +297,10 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                         continue
             returnValue = ";".join(result) if result else None
             if returnValue and "unhealthy" in returnValue:
-                send_statsboard_metric(name='deployd.service_health_status', value=1,
+                create_sc_increment(name='deployd.service_health_status', 
                                             tags={"status": "unhealthy", "service": service, "commit": commit})
             elif returnValue and "unhealthy" not in returnValue:
-                send_statsboard_metric(name='deployd.service_health_status', value=1,
+                create_sc_increment(name='deployd.service_health_status', 
                                             tags={"status": "healthy", "service": service, "commit": commit})
             if returnValue:
                 return returnValue
