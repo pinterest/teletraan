@@ -11,5 +11,6 @@ Contributors
 * Suli Xu <suli@pinterest.com>
 * Saurabh Joshi <sjoshi@pinterest.com>
 * Yongwen Xu <yongwen@pinterest.com>
+* Anh Nguyen <anhn@pinterest.com>
 * Yaqin Li <yaqinli@pinterest.com>
 * Khoi Nguyen <khoinguyen@pinterest.com>
