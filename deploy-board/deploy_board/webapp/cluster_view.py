@@ -148,7 +148,7 @@ class EnvCapacityAdvCreateView(View):
             request, DEFAULT_PROVIDER, DEFAULT_CELL, DEFAULT_ARCH)
 
         accounts = accounts_helper.get_all_accounts(request)
-        default_account = get_default_account(accounts)
+        default_account = accounts_helper.get_default_account(request, DEFAULT_CELL)
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -609,14 +609,6 @@ def create_ui_accounts(accounts):
 
     return sorted(res, key=lambda r: r['name'])
 
-
-def get_default_account(accounts):
-    if accounts is None:
-        return None
-    for account in accounts:
-        if account['name'] == 'default':
-            return account
-    return None
 
 def get_base_images_by_name_json(request, name):
     cell = DEFAULT_CELL
@@ -1277,7 +1269,7 @@ def gen_replacement_config(request):
         scaleInProtectedInstances = 'Refresh'
 
     rollingUpdateConfig = {}
-    
+
     if params["availabilitySettingRadio"] == "launchBeforeTerminate":
         rollingUpdateConfig["minHealthyPercentage"] = 100
         if params["maxHealthyPercentage"] == None or len(params["maxHealthyPercentage"]) == 0:
