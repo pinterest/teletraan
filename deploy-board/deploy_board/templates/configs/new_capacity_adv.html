@@ -113,6 +113,7 @@ var capacityView = new Vue({
 var info = {{capacity_creation_info|safe}};
 var environment = info.environment;
 var placements = getDefaultPlacement(info);
+var hostTypes = getDefaultHostType(info);
 var statefulOptions = info.stateful_options;
 const goldenImage = info.baseImages.find(goldenImageFinder);
 const baseImagesSorted = info.baseImages.sort(baseImageSorter);
@@ -157,15 +158,7 @@ var capacitySetting = new Vue({
         currentCell: getDefaultCell(info.defaultAccountId),
         currentArch: info.defaultArch,
         hostTypeHelpData:[],
-        hostTypeOptions: info.hostTypes.map(
-            function (item, idx) {
-                return {
-                    value: item.id,
-                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.provider_name + ", " + item.network + ")",
-                    isSelected: item.abstract_name === info.defaultHostType,
-                    isDisabled: item.retired || item.blessed_status === "DECOMMISSIONING"
-                }
-            }),
+        hostTypeOptions: hostTypes.getOptions(),
         archValue: info.defaultArch,
         imageNameValue: info.defaultBaseImage,
         imageNames: mapImageNameToOptions(info.baseImageNames),
@@ -206,7 +199,7 @@ var capacitySetting = new Vue({
                 }
             }),
         // TODO: The default host type comes from settings and should probably not be an abstract_name since they are not guaranteed to be unique.
-        selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType) != undefined ? capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id : "",
+        selectedHostTypeValue: hostTypes.getSelectedId(),
         selectedSecurityZoneValue: info.defaultSeurityZone,
         selectedPlacements: [],
         showBaseImageHelp: false,
@@ -572,6 +565,18 @@ var capacitySetting = new Vue({
             var access_role = clusterInfo.configs['access_role'].trim();
             if (!access_role) {
                 globalNotificationBanner.error = "Access Role must be specified";
+                return false;
+            }
+
+            var host_type = clusterInfo['hostType'];
+            if (host_type ===undefined || host_type === null || host_type.trim().length===0){
+                globalNotificationBanner.error = "Host type must be specified";
+                return false;
+            }
+
+            var host_type = capacityCreationInfo.hostTypes.find(hostType => hostType.id === clusterInfo['hostType']);
+            if (!host_type || hostTypes.isDisabledHostType(host_type)) {
+                globalNotificationBanner.error = "Host type must not be retired or decomissioned";
                 return false;
             }
 

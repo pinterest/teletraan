@@ -271,6 +271,7 @@ function getDefaultPlacement(capacityCreationInfo) {
     }
 }
 
+
 function getAccount(accountId) {
     return info.accounts != null ?
         info.accounts.find(function (o) { return o.id === accountId })
@@ -280,4 +281,57 @@ function getAccount(accountId) {
 function getAccountOwnerId(accountId) {
     const account = getAccount(accountId);
     return account ? account.ownerId : null;
+
+function getDefaultHostType(capacityCreationInfo) {
+    this.capacityCreationInfo = capacityCreationInfo
+        var isProcessed = false;
+        var selected = false;
+        var lowestHostType = false;
+        var isDisabledHostType = function(item){
+            return item.retired || item.blessed_status === "DECOMMISSIONING";
+        };
+
+        var isSelected = function(item) {
+            return (item.abstract_name === capacityCreationInfo.defaultHostType) && !isDisabledHostType(item);
+        }
+
+        this.options = this.capacityCreationInfo.hostTypes.map(function(item,idx){
+            if(isSelected(item)){
+                selected = item;
+            } else if(!isDisabledHostType(item)){
+                lowestHostType = item;
+                console.log(lowestHostType);
+            }
+            isProcessed = true;
+            return {
+            value: item.id,
+            text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
+            isSelected: isSelected(item),
+            isDisabled: isDisabledHostType(item)
+        };
+    });
+
+    return {
+        getOptions: function () {
+            return options;
+        },
+        getSelected: function () {
+            if(isProcessed === false){
+                this.getOptions();
+                isProcessed = true;
+            }
+            if(selected !== false){
+                return selected;
+            }
+            return lowestHostType;
+        },
+        isDisabledHostType: function(item){
+            return isDisabledHostType(item);
+        },
+        getSelectedId: function() {
+            var selected = this.getSelected();
+            return selected != undefined ? selected.id : "";
+        }
+    }
+
 }

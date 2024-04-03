@@ -362,8 +362,8 @@ if IS_PINTEREST:
     # Pinterest Default Host Type
     # TODO: This is a description of the host type but is nonunique. However, it cannot be replaced by host_type ID since it is unique per service database.
     # TODO: The model for host type should be rebuilt based on a unique abstract factor such as ec2 instance type, for now we should keep expected behavior.
-    DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
-    DEFAULT_CMP_ARM_HOST_TYPE = 'EbsComputeXLoArm'
+    DEFAULT_CMP_HOST_TYPE = 'm7a.xlarge'
+    DEFAULT_CMP_ARM_HOST_TYPE = 'c7g.large'
     HOST_TYPE_ROADMAP_LINK = os.getenv("HOST_TYPE_ROADMAP_LINK")
 
     DEFAULT_CELL = 'aws-us-east-1'
