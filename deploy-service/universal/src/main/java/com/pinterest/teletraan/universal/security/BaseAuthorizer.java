@@ -15,12 +15,15 @@
  */
 package com.pinterest.teletraan.universal.security;
 
+import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.BeanClassExtractionException;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.dropwizard.auth.Authorizer;
 import javax.annotation.Nullable;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,13 +74,16 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Au
                         extractorFactory
                                 .create(safeAuthZInfo)
                                 .extractResource(context, safeAuthZInfo.beanClass());
+            } catch (BeanClassExtractionException ex) {
+                // Although within the authorization process, if we cannot extract the bean from
+                // the request body, it is a client error.
+                throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
             } catch (ExtractionException ex) {
-                log.warn(
+                // Otherwise, it is a server error.
+                throw new WebApplicationException(
                         "Failed to extract resource. Did you forget to annotate the resource with @ResourceAuthZInfo?",
                         ex);
-                return false;
             }
-
             return authorize(principal, role, requestedResource, context);
         }
     }

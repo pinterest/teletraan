@@ -29,7 +29,7 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.fixture.EnvironBeanFixture;
-import com.pinterest.teletraan.security.EnvStageBodyExtractor.BeanClassExtractionException;
+import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.BeanClassExtractionException;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import java.io.ByteArrayInputStream;

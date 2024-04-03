@@ -124,10 +124,4 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
         EnvironBean envBean = environDAO.getById(agentBean.getEnv_id());
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }
-
-    class BeanClassExtractionException extends ExtractionException {
-        public BeanClassExtractionException(Class<?> beanClass, Throwable cause) {
-            super(String.format("failed to extract as %s", beanClass.getName()), cause);
-        }
-    }
 }
