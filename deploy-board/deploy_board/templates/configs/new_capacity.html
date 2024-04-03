@@ -102,6 +102,7 @@ var statefulOptions = capacityCreationInfo.stateful_options;
 let goldenImage = capacityCreationInfo.baseImages.find(goldenImageFinder);
 
 var placements = getDefaultPlacement(capacityCreationInfo);
+var hostTypes = getDefaultHostType(capacityCreationInfo.hostTypes, capacityCreationInfo.defaultHostType, capacityCreationInfo.defaultARMHostType);
 
 var capacitySetting = new Vue({
     el:"#capacityPanel",
@@ -112,14 +113,7 @@ var capacitySetting = new Vue({
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
         instanceCount:"",
-        hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){
-            return {
-                value: item.id,
-                text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
-                isSelected: item.abstract_name === capacityCreationInfo.defaultHostType,
-                isDisabled: item.retired || item.blessed_status === "DECOMMISSIONING"
-            }
-        }),
+        hostTypeOptions: hostTypes.getOptions(),
         placements: placements.getSimpleList(false, null),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
             return {
@@ -129,7 +123,7 @@ var capacitySetting = new Vue({
             }
         }),
         // TODO: The default host type comes from settings and should probably not be an abstract_name since they are not guaranteed to be unique.
-        selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType) != undefined ? capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id : "",
+        selectedHostTypeValue: hostTypes.getSelectedId(),
         selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
         selectedPlacements: null,
         accessRole: localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : capacityCreationInfo.defaultCMPConfigs['access_role'],
@@ -164,6 +158,19 @@ var capacitySetting = new Vue({
                 globalNotificationBanner.error = "Access Role must be specified";
                 return false;
             }
+
+            var host_type = clusterInfo['hostType'];
+            if (host_type ===undefined || host_type === null || host_type.trim().length===0){
+                globalNotificationBanner.error = "Host type must be specified";
+                return false;
+            }
+
+            host_type = capacityCreationInfo.hostTypes.find(hostType => hostType.id === clusterInfo['hostType']);
+            if (!host_type || hostTypes.isDisabledHostType(host_type)) {
+                globalNotificationBanner.error = "Host type must not be retired or decommissioned";
+                return false;
+            }
+
             return true;
         },
         sendRequest: function(clusterInfo){
