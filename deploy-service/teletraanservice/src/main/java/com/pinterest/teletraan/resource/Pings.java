@@ -63,7 +63,7 @@ public class Pings {
             notes = "Returns a deploy goal object given a ping request object",
             response = PingResponseBean.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.PINGER)
-    @ResourceAuthZInfo(type = AuthZResource.Type.GROUP)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public PingResponseBean ping(@Context SecurityContext sc,
                                  @Context HttpHeaders headers,
                                  @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
