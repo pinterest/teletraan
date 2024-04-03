@@ -270,3 +270,14 @@ function getDefaultPlacement(capacityCreationInfo) {
         }
     }
 }
+
+function getAccount(accountId) {
+    return info.accounts != null ?
+        info.accounts.find(function (o) { return o.id === accountId })
+        : null;
+}
+
+function getAccountOwnerId(accountId) {
+    const account = getAccount(accountId);
+    return account ? account.ownerId : null;
+}
