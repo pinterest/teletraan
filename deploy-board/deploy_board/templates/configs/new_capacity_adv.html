@@ -113,7 +113,7 @@ var capacityView = new Vue({
 var info = {{capacity_creation_info|safe}};
 var environment = info.environment;
 var placements = getDefaultPlacement(info);
-var hostTypes = getDefaultHostType(info);
+var hostTypes = getDefaultHostType(info.hostTypes, info.defaultHostType, info.defaultARMHostType);
 var statefulOptions = info.stateful_options;
 const goldenImage = info.baseImages.find(goldenImageFinder);
 const baseImagesSorted = info.baseImages.sort(baseImageSorter);
@@ -410,16 +410,10 @@ var capacitySetting = new Vue({
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
-                    capacitySetting.hostTypeOptions = data.map(
-                            function (item) {
-                                return {
-                                    value: item.id,
-                                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.provider_name + ", " + item.network + ")",
-                                    isSelected: item.id === data[0].id,
-                                    isDisabled: item.retired || item.blessed_status === "DECOMMISSIONING"
-                                }
-                            });
-                    capacitySetting.selectedHostTypeValue = data[0].id;
+                    hostTypes = getDefaultHostType(data, info.defaultHostType, info.defaultARMHostType);
+                    capacitySetting.hostTypeOptions = hostTypes.getOptions();
+                    capacitySetting.selectedHostTypeValue = hostTypes.getSelectedId();
+                    capacityCreationInfo.hostTypes = data;
                     //Schedule this to nextTick that calls after next DOM refresh
                     //as JQuery chosen call must happen after DOM updates finished
                     Vue.nextTick(function(){
@@ -575,6 +569,9 @@ var capacitySetting = new Vue({
             }
 
             var host_type = capacityCreationInfo.hostTypes.find(hostType => hostType.id === clusterInfo['hostType']);
+            console.log(host_type);
+            console.log(hostTypes);
+
             if (!host_type || hostTypes.isDisabledHostType(host_type)) {
                 globalNotificationBanner.error = "Host type must not be retired or decomissioned";
                 return false;

@@ -271,7 +271,6 @@ function getDefaultPlacement(capacityCreationInfo) {
     }
 }
 
-
 function getAccount(accountId) {
     return info.accounts != null ?
         info.accounts.find(function (o) { return o.id === accountId })
@@ -282,32 +281,41 @@ function getAccountOwnerId(accountId) {
     const account = getAccount(accountId);
     return account ? account.ownerId : null;
 
-function getDefaultHostType(capacityCreationInfo) {
-    this.capacityCreationInfo = capacityCreationInfo
+
+function getDefaultHostType(hostTypes, defaultHostType, defaultARMHostType) {
+    this.hostTypes = hostTypes;
+    this.defaultHostType = defaultHostType;
+    this.defaultARMHostType = defaultARMHostType;
         var isProcessed = false;
         var selected = false;
         var lowestHostType = false;
-        var isDisabledHostType = function(item){
+        this.checkIsDisabledHostType = function(item){
             return item.retired || item.blessed_status === "DECOMMISSIONING";
         };
 
         var isSelected = function(item) {
-            return (item.abstract_name === capacityCreationInfo.defaultHostType) && !isDisabledHostType(item);
+            return (
+                ("x86_64" === item.arch_name && item.abstract_name === this.defaultHostType)
+                || ("arm64" === item.arch_name && item.abstract_name === this.defaultARMHostType)
+                ) && !checkIsDisabledHostType(item);
         }
 
-        this.options = this.capacityCreationInfo.hostTypes.map(function(item,idx){
+        this.options = this.hostTypes.map(function(item,idx){
             if(isSelected(item)){
                 selected = item;
-            } else if(!isDisabledHostType(item)){
-                lowestHostType = item;
-                console.log(lowestHostType);
+            } else if(!checkIsDisabledHostType(item)){
+                if(lowestHostType === false){
+                    lowestHostType = item;
+                } else if (lowestHostType.core < item.core){
+                    lowestHostType = item;
+                }
             }
             isProcessed = true;
             return {
             value: item.id,
             text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
             isSelected: isSelected(item),
-            isDisabled: isDisabledHostType(item)
+            isDisabled: checkIsDisabledHostType(item)
         };
     });
 
@@ -326,7 +334,7 @@ function getDefaultHostType(capacityCreationInfo) {
             return lowestHostType;
         },
         isDisabledHostType: function(item){
-            return isDisabledHostType(item);
+            return checkIsDisabledHostType(item);
         },
         getSelectedId: function() {
             var selected = this.getSelected();

@@ -102,7 +102,7 @@ var statefulOptions = capacityCreationInfo.stateful_options;
 let goldenImage = capacityCreationInfo.baseImages.find(goldenImageFinder);
 
 var placements = getDefaultPlacement(capacityCreationInfo);
-var hostTypes = getDefaultHostType(capacityCreationInfo);
+var hostTypes = getDefaultHostType(capacityCreationInfo.hostTypes, capacityCreationInfo.defaultHostType, capacityCreationInfo.defaultARMHostType);
 
 var capacitySetting = new Vue({
     el:"#capacityPanel",
