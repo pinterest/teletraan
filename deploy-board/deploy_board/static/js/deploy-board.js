@@ -280,7 +280,7 @@ function getAccount(accountId) {
 function getAccountOwnerId(accountId) {
     const account = getAccount(accountId);
     return account ? account.ownerId : null;
-
+}
 
 function getDefaultHostType(hostTypes, defaultHostType, defaultARMHostType) {
     this.hostTypes = hostTypes;
@@ -341,5 +341,4 @@ function getDefaultHostType(hostTypes, defaultHostType, defaultARMHostType) {
             return selected != undefined ? selected.id : "";
         }
     }
-
 }
