@@ -166,5 +166,24 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <!-- If you are outside Pinterest, use this profile instead -->
+            <!-- i.e. mvn clean package -P-pinterest-dependenies,exclude-pinterest-only-classes -->
+            <id>exclude-pinterest-only-classes</id>
+            <build>
+              <plugins>
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <configuration>
+                    <excludes>
+                      <exclude>com/pinterest/teletraan/config/CompositeAuthorizationFactory.java</exclude>
+                    </excludes>
+                  </configuration>
+                </plugin>
+              </plugins>
+            </build>
+          </profile>
     </profiles>
 </project>
