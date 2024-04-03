@@ -233,6 +233,7 @@ class ClusterConfigurationView(View):
     def get(self, request, name, stage):
 
         current_cluster = get_current_cluster(request, name, stage)
+        accounts = accounts_helper.get_all_accounts(request)
         host_types = hosttypes_helper.get_by_arch(
             request, current_cluster['archName'])
         current_image = baseimages_helper.get_by_id(
@@ -267,6 +268,7 @@ class ClusterConfigurationView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
+            'accounts': create_ui_accounts(accounts),
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,

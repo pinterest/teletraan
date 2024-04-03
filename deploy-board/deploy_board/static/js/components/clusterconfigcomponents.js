@@ -15,8 +15,9 @@ Vue.component('accounts-select', {
   <label-select label="Account" title="Account" \
       v-bind:value="value" \
       v-bind:selectoptions="accounts" \
+      :disabled="disabled" \
       v-on:input="updateAccountValue"></label-select></div>',
-    props: ['accounts', 'value'],
+    props: ['accounts', 'value', 'disabled'],
     methods: {
         updateAccountValue: function (value) {
             this.$emit('accountchange', value);

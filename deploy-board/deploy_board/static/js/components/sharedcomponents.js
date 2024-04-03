@@ -159,7 +159,7 @@ Vue.component('label-select', {
   template: '<div v-bind:class="formStyle">\
   <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">{{label}}</label>\
   <div v-bind:class="width"><div v-bind:class="groupStyle">\
-  <select class="form-control" v-on:change="updateValue($event.target.value)" required="true">\
+  <select :disabled="disabled" class="form-control" v-on:change="updateValue($event.target.value)" required="true">\
   <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option></select>\
   <span v-if="showhelp" class="input-group-btn">\
     <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" title="click to see more information" v-on:click="helpClick">\
@@ -167,7 +167,7 @@ Vue.component('label-select', {
     </button>\
   </span></div>\
   </div></div>',
-  props: ['label', 'title', 'selectoptions', 'showhelp', 'small'],
+  props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'disabled'],
   data: function () {
     return {
       width: this.small ? 'col-xs-4' : 'col-xs-10',

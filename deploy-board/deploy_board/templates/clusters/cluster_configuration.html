@@ -66,10 +66,11 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
+                    <accounts-select v-bind:accounts="accounts" v-bind:value="currentAccountId" v-bind:disabled="!canChangeAccount"></accounts-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="currentArch"></arch-select>
                     <baseimage-select v-show="inAdvanced" v-model="pinImage" :pin-image-enabled="pinImageEnabled"
-                        :image-names="imageNames" :base-images="baseImages"
+                        :image-names="imageNames" :base-images="baseImages" v-bind:account-owner-id="currentAccountOwnerId"
                         :selected-image-name="imageNameValue" :selected-base-image="baseImageValue"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
@@ -463,6 +464,8 @@
                 confirmDialogTitle: "Update Cluster Settings",
                 confirmDialogId: "updateClusterSettings",
                 currentProvider: currentCluster.provider,
+                currentAccountId: currentCluster.accountId,
+                currentAccountOwnerId: getAccountOwnerId(this.currentAccountId),
                 currentCell: currentCluster.cellName,
                 currentArch: currentCluster.archName,
                 currentStatefulStatus: currentCluster.statefulStatus,
@@ -481,6 +484,11 @@
                 placements: this.inAdvanced ?
                     placements.getFullList(initialAssignPublicIP, currentPlacements) :
                     placements.getSimpleList(initialAssignPublicIP, currentPlacements),
+                accounts: info.accounts?.map(account => ({
+                    value: account.id,
+                    text: `${account.ownerId} / ${account.name} / ${account.description}`,
+                    isSelected: account.id === currentCluster.accountId
+                })),
                 providers: info.providerList.map(function(o) {
                     return {
                         value: o,
@@ -528,6 +536,7 @@
                 securityZoneHelpData: [],
                 showPlacementsHelp: false,
                 placementsHelpData: [],
+                canChangeAccount: false,
                 canSaveCapacity: !showReplaceAlert,
                 showCmpGroup: Boolean(getUrlParameter("showcmpgroup")),
                 subnetType: initialAssignPublicIP ? "public" : "private",
@@ -660,24 +669,27 @@
                     });
 
                      // grab all security zone for this cell
+                    const securityZonesUrl =
+                        `${location.protocol}//${location.host}/clouds/securityzones/${provider}/${cell}` +
+                        `?accountId=${this.currentAccountId}`
                     $.ajax({
                         type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
+                        url: securityZonesUrl,
                         dataType: "json",
                         beforeSend: function (xhr) {
                             var csrftoken = getCookie('csrftoken');
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         },
                         success: function (data) {
-                            capacitySetting.securityZones = data.map(
+                            capacitySetting.securityZones = data?.map(
                                 function (item) {
                                     return {
                                         value: item.abstract_name,
                                         text: item.abstract_name,
                                         isSelected: item.id === data[0].id
                                     }
-                                });
-                            capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
+                                }) ?? [];
+                            capacitySetting.selectedSecurityZoneValue = data[0]?.abstract_name;
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
@@ -685,18 +697,21 @@
                     });
 
                     // grab all placement for this cell
+                    const placementsUrl =
+                        `${location.protocol}//${location.host}/clouds/placements/${provider}/${cell}` +
+                        `?accountId=${this.currentAccountId}`
                     $.ajax({
                         type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
+                        url: placementsUrl,
                         dataType: "json",
                         beforeSend: function (xhr) {
                             var csrftoken = getCookie('csrftoken');
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         },
                         success: function (data) {
-                            var placements = getDefaultPlacement({'placements': data});
+                            var placements = data ? getDefaultPlacement({'placements': data}) : null;
                             capacitySetting.placements =
-                                placements.getFullList(false, cell == initialCell ? currentPlacements : null);
+                                placements ? placements.getFullList(false, cell == initialCell ? currentPlacements : null) : null;
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
@@ -925,7 +940,7 @@
                     // It's really just update cluster info config without capacity
                     //Create the default capacity. The input here aligns to the Rodimus new cluster
                     var clusterInfo = {};
-                    clusterInfo['accountId'] = currentCluster.accountId;
+                    clusterInfo['accountId'] = this.currentAccoundId;
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
@@ -1070,8 +1085,7 @@
                 globalNotificationBanner.error = "This cluster is currently using an unblessed Instance Type. Please refer to " + hostTypeRoadmapLink + " for the recommended Instance Type.";
             }
         });
-    }
-    else{
+    } else {
         globalNotificationBanner.error = "Cannot find the cluster"
     }
 
