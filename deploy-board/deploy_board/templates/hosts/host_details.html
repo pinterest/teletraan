@@ -44,7 +44,7 @@
 <div class="panel panel-default">
     {% if has_host_env_sidecar_agents %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="down" copy_host_name_button=True %}
-    <div id="sidecarAgentDetailsId" class="panel-body">
+    <div id="sidecarAgentDetailsId" class="collapse in panel-body">
     {% else %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="right" copy_host_name_button=True %}
     <div id="sidecarAgentDetailsId" class="collapse panel-body">
@@ -52,8 +52,11 @@
         {% for agent_wrapper in agent_wrappers.sidecars %}
             {% with env=agent_wrapper.env agent=agent_wrapper.agent %}
             <button
-                class="{% if env and env_name == env.envName and stage_name == env.stageName %}sidecarButton{% endif %} deployToolTip btn btn-xs btn-default"
+                class="sidecarButton {% if agent.status == 'SUCCEEDED' %}bg-success{% elif agent.status in 'TOO_MANY_RETRY,SCRIPT_TIMEOUT,AGENT_FAILED,AGENT_FAILED,SCRIPT_FAILED' %}bg-danger{% endif %} deployToolTip btn btn-xs btn-default"
                 onclick="scrollToSidecar('{{agent.deployId}}')">
+                {% if env and env_name == env.envName and stage_name == env.stageName %}
+                <i class="fa fa-star"></i>
+                {% endif %}
                 {{ env.envName }}
             </button>
             {% endwith %}
@@ -195,9 +198,11 @@
     }
 </script>
 <style>
-     button.sidecarButton {
-        background-color: #d9edf7;
-        font-weight: bold;
-    }
+    .sidecarButton.bg-success{background-color:#dff0d8}
+    .sidecarButton.bg-success:hover{background-color:#c1e2b3}
+    .sidecarButton.bg-success:focus{background-color:#c1e2b3}
+    .sidecarButton.bg-danger{background-color:#f2dede}
+    .sidecarButton.bg-danger:hover{background-color:#e4b9b9}
+    .sidecarButton.bg-danger:focus{background-color:#e4b9b9}
 </style>
 {% endblock %}
