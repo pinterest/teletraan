@@ -44,12 +44,20 @@
 <div class="panel panel-default">
     {% if has_host_env_sidecar_agents %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="down" copy_host_name_button=True %}
-    <div id="sidecarAgentDetailsId" class="collapse in panel-body">
-        <span>This is a sidecar deployment on the host. The relevant sidecar has been marked with a <span class="bg-info">blue background</span> for visibility.</span>
+    <div id="sidecarAgentDetailsId" class="panel-body">
     {% else %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="right" copy_host_name_button=True %}
     <div id="sidecarAgentDetailsId" class="collapse panel-body">
     {% endif %}
+        {% for agent_wrapper in agent_wrappers.sidecars %}
+            {% with env=agent_wrapper.env agent=agent_wrapper.agent %}
+            <button
+                class="{% if env and env_name == env.envName and stage_name == env.stageName %}sidecarButton{% endif %} deployToolTip btn btn-xs btn-default"
+                onclick="scrollToSidecar('{{agent.deployId}}')">
+                {{ env.envName }}
+            </button>
+            {% endwith %}
+        {% endfor %}
         {% for agent_wrapper in agent_wrappers.sidecars %}
         {% with env=agent_wrapper.env agent=agent_wrapper.agent hostdetailsvalue=host_details|getValue:"Phobos Link" %}
         {% if env and env_name == env.envName and stage_name == env.stageName %}
@@ -180,6 +188,16 @@
         document.execCommand('copy');
         document.body.removeChild(el);
     });
-</script>
 
+    function scrollToSidecar(sideCarId) {
+        const el = document.getElementById(`hostInfo${sideCarId}`);
+        el?.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+</script>
+<style>
+     button.sidecarButton {
+        background-color: #d9edf7;
+        font-weight: bold;
+    }
+</style>
 {% endblock %}

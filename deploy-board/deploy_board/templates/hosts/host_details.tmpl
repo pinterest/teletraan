@@ -1,5 +1,5 @@
 {% load utils %}
-<div id="hostInfo" class="panel panel-default">
+<div id="hostInfo{{agent.deployId}}" class="panel panel-default">
     {% if host_related_sidecar %}
     <div class="panel-heading host-related-sidecar">
     {% else %}
@@ -88,10 +88,13 @@
     </div>
 </div>
 <style>
-    #hostInfo>.panel-heading.host-related-sidecar {
+    #hostInfo{{agent.deployId}}>.panel-heading.host-related-sidecar {
         background-image: none;
         background-color: #d9edf7;
         font-weight: bold;
+    }
+    #hostInfo{{agent.deployId}} {
+        scroll-margin-top: 80px;
     }
 </style>
 <script>
