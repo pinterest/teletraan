@@ -9,9 +9,13 @@
         </span>
         {% endif %}
         Builds to Deploy
+        {% if build_deploy_pipeline_url %}
+        <span  class="deployToolTip"> <a href="{{build_deploy_pipeline_url}}">(Build pipeline)</a></span>
+        {% endif %}
         </h4>
+        
     </div>
-    <div class="row">
+    <div class="row">    
         {% if env|isEnvEnabled %}
         <ul class="list-group">
             <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
