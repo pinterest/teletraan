@@ -55,4 +55,10 @@ public interface AuthZResourceExtractor {
             super(message);
         }
     }
+
+    class BeanClassExtractionException extends ExtractionException {
+        public BeanClassExtractionException(Class<?> beanClass, Throwable cause) {
+            super(String.format("failed to extract as %s. Check if request body is valid", beanClass.getName()), cause);
+        }
+    }
 }

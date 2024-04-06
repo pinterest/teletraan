@@ -30,6 +30,7 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import java.util.Collections;
 import javax.annotation.Nullable;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,7 +91,7 @@ class BaseAuthorizerTest {
         verify(extractor).extractResource(context, authZInfo.beanClass());
 
         when(extractor.extractResource(any(), any())).thenThrow(new ExtractionException(null));
-        assertFalse(sut.authorize(principal, TEST_ROLE, context));
+        assertThrows(WebApplicationException.class, () -> sut.authorize(principal, TEST_ROLE, context));
     }
 
     @Test
