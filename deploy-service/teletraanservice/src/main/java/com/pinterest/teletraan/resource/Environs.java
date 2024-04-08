@@ -22,6 +22,7 @@ import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
@@ -161,6 +162,11 @@ public class Environs {
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();
         List<EnvironBean> environBeans = environDAO.getByName(envName);
+        if (environBean.getStage_type() == EnvType.DEFAULT) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                    "DEFAULT stage type is not allowed! Please one of the following Stage Types: " +
+                        "PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV.");
+        }
         String id = environHandler.createEnvStage(environBean, operator);
         if (sc.getUserPrincipal() instanceof UserPrincipal && CollectionUtils.isEmpty(environBeans)) {
             // This is the first stage for this env, let's make operator ADMIN of this env
