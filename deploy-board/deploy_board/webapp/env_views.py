@@ -16,6 +16,7 @@
 """Collection of all env related views
 """
 import functools
+import re
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -1123,6 +1124,10 @@ def remove_stage(request, name, stage):
 
     return response
 
+def get_pipeline_url_from_build_info(build):
+    if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/[\d]*(/)", build['publishInfo']):
+        return re.sub("/[\d]*/$", '', build['publishInfo'])    
+    return False
 
 def get_builds(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -1131,20 +1136,34 @@ def get_builds(request, name, stage):
     if env_promote['type'] == 'AUTO' and env_promote['predStage'] and \
             env_promote['predStage'] == environs_helper.BUILD_STAGE:
         show_lock = True
-
+    
     if 'buildName' not in env and not env['buildName']:
         html = render_to_string('builds/simple_builds.tmpl', {
             "builds": [],
-            "env": env,
+            "env": env,            
             "show_lock": show_lock,
         })
         return HttpResponse(html)
 
     current_publish_date = 0
+    build_deploy_pipeline_url = False    
+    
     if 'deployId' in env and env['deployId']:
         deploy = deploys_helper.get(request, env['deployId'])
         build = builds_helper.get_build(request, deploy['buildId'])
         current_publish_date = build['publishDate']
+        build_deploy_pipeline_url = get_pipeline_url_from_build_info(build)
+
+    if not build_deploy_pipeline_url:
+        result = deploys_helper.get_all(request, envId=env['id'], pageIndex=1,
+                                    pageSize=DEFAULT_ROLLBACK_DEPLOY_NUM)
+        deploys = result.get("deploys")
+        for deploy in deploys:
+            if deploy['buildId'] :
+                build = builds_helper.get_build(request, deploy['buildId'])
+                build_deploy_pipeline_url = get_pipeline_url_from_build_info(build)
+                if build_deploy_pipeline_url:
+                    break
 
     # return only the new builds
     index = int(request.GET.get('page_index', '1'))
@@ -1158,6 +1177,7 @@ def get_builds(request, name, stage):
 
     html = render_to_string('builds/simple_builds.tmpl', {
         "builds": new_builds,
+        "build_deploy_pipeline_url" : build_deploy_pipeline_url,
         "current_publish_date": current_publish_date,
         "env": env,
         "show_lock": show_lock,
