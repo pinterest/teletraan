@@ -20,15 +20,20 @@ import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.List;
 
 public abstract class GroupRoles {
     private final GroupRolesDAO groupRolesDAO;
+    private boolean aclManagementEnabled;
+    private String aclManagementDisabledMessage;
 
     protected GroupRoles(TeletraanServiceContext context) {
         groupRolesDAO = context.getGroupRolesDAO();
+        aclManagementEnabled = context.isAclManagementEnabled();
+        aclManagementDisabledMessage = context.getAclManagementDisabledMessage();
     }
 
     public List<GroupRolesBean> getByResource(String resourceId,
@@ -43,11 +48,17 @@ public abstract class GroupRoles {
 
     public void update(GroupRolesBean bean, String groupName, String resourceId, AuthZResource.Type resourceType)
             throws Exception {
+        if (!aclManagementEnabled) {
+            throw new WebApplicationException(aclManagementDisabledMessage, Response.Status.FORBIDDEN);
+        }
         groupRolesDAO.update(bean, groupName, resourceId, resourceType);
     }
 
     public Response create(UriInfo uriInfo, GroupRolesBean bean, String resourceId, AuthZResource.Type resourceType)
             throws Exception {
+        if (!aclManagementEnabled) {
+            throw new WebApplicationException(aclManagementDisabledMessage, Response.Status.FORBIDDEN);
+        }
         bean.setResource_id(resourceId);
         bean.setResource_type(resourceType);
         groupRolesDAO.insert(bean);
@@ -58,6 +69,9 @@ public abstract class GroupRoles {
     }
 
     public void delete(String groupName, String resourceId, AuthZResource.Type resourceType) throws Exception {
+        if (!aclManagementEnabled) {
+            throw new WebApplicationException(aclManagementDisabledMessage, Response.Status.FORBIDDEN);
+        }
         groupRolesDAO.delete(groupName, resourceId, resourceType);
     }
 }
