@@ -27,7 +27,6 @@ import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.events.BuildEventPublisher;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
@@ -101,7 +100,7 @@ public class Builds {
             @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
+            throw new WebApplicationException(String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
         }
         return buildBean;
     }
@@ -116,7 +115,7 @@ public class Builds {
         @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
+            throw new WebApplicationException(String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
         }
 
         BuildTagsManager manager = new BuildTagsManagerImpl(this.tagDAO);
@@ -133,8 +132,8 @@ public class Builds {
 
 
         if (StringUtils.isEmpty(scmCommit) && StringUtils.isEmpty(buildName)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "Require either commit id or build name in the request.");
+            throw new WebApplicationException("Require either commit id or build name in the request.",
+                    Response.Status.BAD_REQUEST);
         }
 
         return buildDAO.get(scmCommit, buildName, scmBranch, pageIndex, pageSize, before, after);
@@ -144,8 +143,7 @@ public class Builds {
     @Path("/current")
     public List<BuildBean> getCurrentBuildsWithGroupName(@QueryParam("group") String groupName) throws Exception {
         if (StringUtils.isEmpty(groupName)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "Require group name in the request.");
+            throw new WebApplicationException("Require group name in the request.", Response.Status.BAD_REQUEST);
         }
         return buildDAO.getCurrentBuildsByGroupName(groupName);
     }
@@ -164,8 +162,8 @@ public class Builds {
         @QueryParam("after") Long after) throws Exception {
 
         if (StringUtils.isEmpty(buildName) && StringUtils.isEmpty(scmCommit)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "Require either commit or build name in the request.");
+            throw new WebApplicationException("Require either commit or build name in the request.",
+                    Response.Status.BAD_REQUEST);
         }
 
         List<BuildBean> builds =
@@ -215,14 +213,14 @@ public class Builds {
 
         // Check if build is approved via our allow list of URLs
         if (!Boolean.TRUE.equals(buildAllowlist.approved(buildBean.getArtifact_url()))) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "Artifact URL points to unapproved location.");
+            throw new WebApplicationException("Artifact URL points to unapproved location.",
+                    Response.Status.BAD_REQUEST);
         }
 
         // Check if build SCM is approved via allow list of SCMs
         if (!Boolean.TRUE.equals(sourceControlManagerProxy.hasSCMType(buildBean.getScm()))) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                String.format("Unsupported SCM type. %s not in list %s.", buildBean.getScm(), sourceControlManagerProxy.getSCMs()));
+            throw new WebApplicationException(String.format("Unsupported SCM type. %s not in list %s.",
+                    buildBean.getScm(), sourceControlManagerProxy.getSCMs()), Response.Status.BAD_REQUEST);
         }
 
         // We append commit SHA after build id to make build directory name human friendly
@@ -257,14 +255,16 @@ public class Builds {
         @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
+            throw new WebApplicationException(String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
         }
 
         if (deployDAO.isThereADeployWithBuildId(buildBean.getBuild_id())) {
             // When a build has been deployed (associated with a deployment), it should not be deleted.
             // This keeps a record for what was deployed. Also, this helps avoid problem when
             // the build is currently deployed (or being actively deployed).
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Build %s is currently associated with a deployment and cannot be deleted", id));
+            throw new WebApplicationException(
+                    String.format("Build %s is currently associated with a deployment and cannot be deleted", id),
+                    Response.Status.BAD_REQUEST);
         }
 
         buildDAO.delete(id);

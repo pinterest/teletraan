@@ -20,7 +20,6 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
@@ -158,7 +157,7 @@ public class EnvAgents {
                 count = agentDAO.countFailedFirstDeployingAgent(envBean.getEnv_id());
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
         return count;
     }

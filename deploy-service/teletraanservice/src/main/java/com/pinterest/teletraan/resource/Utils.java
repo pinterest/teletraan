@@ -18,6 +18,7 @@ package com.pinterest.teletraan.resource;
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.WebApplicationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,6 @@ import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
-
 public class Utils {
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
@@ -35,8 +34,8 @@ public class Utils {
         String stageName) throws Exception {
         EnvironBean environBean = environDAO.getByStage(envName, stageName);
         if (environBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Environment %s/%s does not exist.", envName, stageName));
+            throw new WebApplicationException(String.format("Environment %s/%s does not exist.", envName, stageName),
+                    Response.Status.NOT_FOUND);
         }
         return environBean;
     }
@@ -44,8 +43,8 @@ public class Utils {
     public static EnvironBean getEnvStage(EnvironDAO environDAO, String envId) throws Exception {
         EnvironBean environBean = environDAO.getById(envId);
         if (environBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Environment %s does not exist.", envId));
+            throw new WebApplicationException(String.format("Environment %s does not exist.", envId),
+                    Response.Status.NOT_FOUND);
         }
         return environBean;
     }
@@ -53,8 +52,8 @@ public class Utils {
     public static DeployBean getDeploy(DeployDAO deployDAO, String deployId) throws Exception {
         DeployBean deployBean = deployDAO.getById(deployId);
         if (deployBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Deploy %s does not exist.", deployId));
+            throw new WebApplicationException(String.format("Deploy %s does not exist.", deployId),
+                    Response.Status.NOT_FOUND);
         }
         return deployBean;
     }

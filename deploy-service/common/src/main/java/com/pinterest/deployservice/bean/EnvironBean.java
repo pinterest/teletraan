@@ -206,7 +206,7 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("terminationLimit")
     private Integer termination_limit;
 
-    public void validate() throws Exception {
+    public void validate() throws IllegalArgumentException {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         String envRegEx = "^[A-Za-z0-9_\\-]*$";
         if (this.env_name != null && !this.env_name.matches(envRegEx)) {

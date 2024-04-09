@@ -27,7 +27,6 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
@@ -133,7 +132,7 @@ public class EnvDeploys {
                 newDeployId = deployHandler.promote(envBean, fromDeployId, description, operator);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
 
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ACTION, actionType.toString(), operator);
@@ -184,7 +183,7 @@ public class EnvDeploys {
                 LOG.info("Succesfully resumed hosts in environment {} and stage {}", envName, stageName);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
     }
 

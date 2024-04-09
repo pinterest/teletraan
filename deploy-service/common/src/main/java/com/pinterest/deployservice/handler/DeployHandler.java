@@ -54,7 +54,6 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 
 import com.google.common.base.Joiner;
@@ -76,6 +75,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.WebApplicationException;
 
 public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
@@ -386,7 +386,7 @@ public class DeployHandler implements DeployHandlerInterface{
     */
     private void validateBuild(EnvironBean envBean, String buildId) throws Exception {
         if(StringUtils.isEmpty(buildId)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build id can not be empty.");
+            throw new WebApplicationException("Build id can not be empty.", Response.Status.BAD_REQUEST);
         }
         BuildBean buildBean = buildDAO.getById(buildId);
 
@@ -398,23 +398,30 @@ public class DeployHandler implements DeployHandlerInterface{
         // only allow a non-private deploy if the build is from a trusted artifact url
         if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
             buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
-                buildBean.getArtifact_url()));
+            throw new WebApplicationException(String.format(
+                    "Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
+                    buildBean.getArtifact_url()), Response.Status.BAD_REQUEST);
         }
         // if the stage is not allowed (allow_private_build)
         if(!envBean.getAllow_private_build()) {
             // only allow deploy if it is not private build
             if (buildBean.getScm_branch().equals("private")) {
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.");
+                throw new WebApplicationException(
+                        "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.",
+                        Response.Status.BAD_REQUEST);
             }
         }
         // disallow sox deploy if the build artifact is private
         if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
+            throw new WebApplicationException(
+                    "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.",
+                    Response.Status.BAD_REQUEST);
         }
         // disallow sox deploy if the build artifact is not from a sox source url
         if(envBean.getIs_sox() && buildAllowlist != null && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
+            throw new WebApplicationException(
+                    "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.",
+                    Response.Status.BAD_REQUEST);
         }
     }
 
@@ -437,7 +444,7 @@ public class DeployHandler implements DeployHandlerInterface{
                         "The delivery type %s is different with the stage type %s for %s/%s",
                         deliveryType, envBean.getStage_type(), envBean.getEnv_name(), envBean.getStage_name());
                 LOG.error(errorMessage);
-                throw new TeletaanInternalException(Response.Status.CONFLICT, errorMessage);
+                throw new WebApplicationException(errorMessage, Response.Status.CONFLICT);
             } else {
                 EnvType type = EnvType.valueOf(deliveryType);
                 envBean.setStage_type(type);
