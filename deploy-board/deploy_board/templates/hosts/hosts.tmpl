@@ -316,6 +316,10 @@
                 <div class="modal-body">
                     <p> Are you sure to terminate the following hosts?</p>
                     <input class="form-control" name="hostIds" type="text" value="{{ host_ids }}"/>
+                     <p><input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
+                    <br><em>Note replacement will only work if the host belongs to an auto scaling group.</em>
+                    <br><em>If you choose to not replace host, it can't be guaranteed that the auto scaling group's min and max sizes will keep identical.</em>
+                    </p>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
