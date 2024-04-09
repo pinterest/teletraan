@@ -124,7 +124,7 @@ public class EnvStages {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
         }
 
-        if (origBean.getStage_type() == EnvType.DEFAULT && environBean.getStage_type() == EnvType.DEFAULT) {
+        if (origBean.getStage_type() == EnvType.DEFAULT && environBean.getStage_type() == null) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Please update the Stage Type to a value other than DEFAULT.");
         } else if (environBean.getStage_type() == null) {
             // Request has no intention to change stage type, so set it to the current value
