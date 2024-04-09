@@ -157,7 +157,7 @@ public class Environs {
         try {
             environBean.validate();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Environment bean validation failed", e);
+            throw new IllegalArgumentException(String.format("Environment bean validation failed: %s", e));
         }
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();

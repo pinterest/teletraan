@@ -229,8 +229,8 @@ public class EnvironBean implements Updatable, Serializable {
             throw new IllegalArgumentException(String.format("Chatroom must match regex %s", chatRegex));
         }
         if (this.stage_type == EnvType.DEFAULT) {
-            throw new IllegalArgumentException("DEFAULT stage type is not allowed!" +
-                        "Please one of the following Stage Types: " +
+            throw new IllegalArgumentException("DEFAULT stage type is not allowed! " +
+                        "Please select one of the following Stage Types: " +
                         "PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV.");
         }
     }
