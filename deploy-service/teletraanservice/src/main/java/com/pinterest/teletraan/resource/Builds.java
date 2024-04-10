@@ -214,7 +214,7 @@ public class Builds {
         // Check if build is approved via our allow list of URLs
         if (!Boolean.TRUE.equals(buildAllowlist.approved(buildBean.getArtifact_url()))) {
             throw new WebApplicationException("Artifact URL points to unapproved location.",
-                    Response.Status.BAD_REQUEST);
+                    Response.Status.FORBIDDEN);
         }
 
         // Check if build SCM is approved via allow list of SCMs
@@ -264,7 +264,7 @@ public class Builds {
             // the build is currently deployed (or being actively deployed).
             throw new WebApplicationException(
                     String.format("Build %s is currently associated with a deployment and cannot be deleted", id),
-                    Response.Status.BAD_REQUEST);
+                    Response.Status.CONFLICT);
         }
 
         buildDAO.delete(id);

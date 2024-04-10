@@ -157,7 +157,7 @@ public class EnvAgents {
                 count = agentDAO.countFailedFirstDeployingAgent(envBean.getEnv_id());
                 break;
             default:
-                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
+                throw new WebApplicationException("No action found.", Response.Status.NOT_FOUND);
         }
         return count;
     }

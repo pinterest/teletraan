@@ -196,7 +196,7 @@ public class Environs {
                 tagBean.setValue(TagValue.DISABLE_ENV);
                 break;
             default:
-                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
+                throw new WebApplicationException("No action found.", Response.Status.NOT_FOUND);
         }
 
         tagBean.setTarget_type(TagTargetType.TELETRAAN);

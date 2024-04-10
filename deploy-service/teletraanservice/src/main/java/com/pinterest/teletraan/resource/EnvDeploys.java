@@ -132,7 +132,7 @@ public class EnvDeploys {
                 newDeployId = deployHandler.promote(envBean, fromDeployId, description, operator);
                 break;
             default:
-                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
+                throw new WebApplicationException("No action found.", Response.Status.NOT_FOUND);
         }
 
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ACTION, actionType.toString(), operator);
@@ -183,7 +183,7 @@ public class EnvDeploys {
                 LOG.info("Succesfully resumed hosts in environment {} and stage {}", envName, stageName);
                 break;
             default:
-                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
+                throw new WebApplicationException("No action found.", Response.Status.NOT_FOUND);
         }
     }
 
