@@ -1124,9 +1124,11 @@ def remove_stage(request, name, stage):
 
     return response
 
-def get_pipeline_url_from_build_info(build):
-    if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/[\d]*(/)", build['publishInfo']):
-        return re.sub("/[\d]*/$", '', build['publishInfo'])    
+def get_pipeline_url_from_build_info(build):       
+    if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/[\d]*(/)?", build['publishInfo']):
+        return re.sub("/[\d]*(/)?$", '', build['publishInfo'])    
+    if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/?", build['publishInfo']):
+        return build['publishInfo']
     return False
 
 def get_builds(request, name, stage):
@@ -1178,7 +1180,7 @@ def get_builds(request, name, stage):
     html = render_to_string('builds/simple_builds.tmpl', {
         "builds": new_builds,
         "build_deploy_pipeline_url" : build_deploy_pipeline_url,
-        "current_publish_date": current_publish_date,
+        "current_publish_date": current_publish_date,        
         "env": env,
         "show_lock": show_lock,
     })
