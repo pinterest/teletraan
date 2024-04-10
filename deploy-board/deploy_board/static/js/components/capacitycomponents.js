@@ -121,10 +121,10 @@ Vue.component('in-rolling-alert', {
 });
 
 function getCapacityAlertMessage(isWarning, remainingCapacity, placements, increase) {
-    const errorMessage = `Insufficient combined remaining capacity in this cluster/auto scaling group. `;
+    const errorMessage = `Insufficient combined remaining subnet capacity in this cluster/auto scaling group. `;
     const instruction = `You can attach additional placements to the corresponding clutter to increase` +
                         ` total potential capacity at Cluster Configuration -> Advanced Settings.\n`;
-    const status = `Combined remaining capacity: ${remainingCapacity}\n` +
+    const status = `Combined remaining subnet capacity: ${remainingCapacity}\n` +
                    `Current placement(s): ${JSON.stringify(placements, ['capacity', 'provider_name', 'abstract_name'], 2)}`;
 
     if (isWarning) {
@@ -197,7 +197,7 @@ Vue.component("static-capacity-config", {
             <input name="capacity" class="form-control" type="number" min="0" required
                 :value="capacity" v-on:change="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
             <div v-model="remainingCapacity">\
-                Remaining Capacity: {{remainingCapacity}}\
+                Remaining Subnet Capacity: {{remainingCapacity}}\
             </div>\
         </div>
     </div>
