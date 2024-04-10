@@ -1292,6 +1292,7 @@ def gen_replacement_config(request):
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
     rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
+    rollingUpdateConfig["instanceWarmup"] = params["instanceWarmup"]
 
     return rollingUpdateConfig
 
