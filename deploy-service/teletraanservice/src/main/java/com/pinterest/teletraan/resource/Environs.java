@@ -22,6 +22,7 @@ import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
@@ -156,7 +157,7 @@ public class Environs {
         try {
             environBean.validate();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Environment bean validation failed", e);
+            throw new IllegalArgumentException(String.format("Environment bean validation failed: %s", e));
         }
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();
