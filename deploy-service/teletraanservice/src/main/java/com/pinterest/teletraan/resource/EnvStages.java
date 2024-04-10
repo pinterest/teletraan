@@ -133,7 +133,7 @@ public class EnvStages {
         } else if (origBean.getStage_type() != Constants.DEFAULT_STAGE_TYPE
                 && origBean.getStage_type() != environBean.getStage_type()) {
             throw new WebApplicationException("Modification of non-default stage type is not allowed!",
-                    Response.Status.BAD_REQUEST);
+                    Response.Status.FORBIDDEN);
         }
         if (environBean.getStage_type() == EnvType.DEV) {
             environBean.setAllow_private_build(true);
@@ -245,7 +245,7 @@ public class EnvStages {
                 tagBean.setValue(TagValue.DISABLE_ENV);
                 break;
             default:
-                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
+                throw new WebApplicationException("No action found.", Response.Status.NOT_FOUND);
         }
 
         tagBean.setTarget_id(envBean.getEnv_id());

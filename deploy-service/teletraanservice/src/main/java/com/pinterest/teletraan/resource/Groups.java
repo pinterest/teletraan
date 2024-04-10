@@ -92,7 +92,7 @@ public class Groups {
                 hostIds = hostDAO.getTerminatingHostIdsByGroup(groupName);
                 break;
             default:
-                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
+                throw new WebApplicationException("No action found.", Response.Status.NOT_FOUND);
         }
         return hostIds;
     }

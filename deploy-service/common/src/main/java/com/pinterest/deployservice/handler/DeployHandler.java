@@ -400,7 +400,7 @@ public class DeployHandler implements DeployHandlerInterface{
             buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
             throw new WebApplicationException(String.format(
                     "Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
-                    buildBean.getArtifact_url()), Response.Status.BAD_REQUEST);
+                    buildBean.getArtifact_url()), Response.Status.FORBIDDEN);
         }
         // if the stage is not allowed (allow_private_build)
         if(!envBean.getAllow_private_build()) {
@@ -408,20 +408,20 @@ public class DeployHandler implements DeployHandlerInterface{
             if (buildBean.getScm_branch().equals("private")) {
                 throw new WebApplicationException(
                         "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.",
-                        Response.Status.BAD_REQUEST);
+                        Response.Status.FORBIDDEN);
             }
         }
         // disallow sox deploy if the build artifact is private
         if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
             throw new WebApplicationException(
                     "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.",
-                    Response.Status.BAD_REQUEST);
+                    Response.Status.FORBIDDEN);
         }
         // disallow sox deploy if the build artifact is not from a sox source url
         if(envBean.getIs_sox() && buildAllowlist != null && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
             throw new WebApplicationException(
                     "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.",
-                    Response.Status.BAD_REQUEST);
+                    Response.Status.FORBIDDEN);
         }
     }
 
