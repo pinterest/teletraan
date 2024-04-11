@@ -879,7 +879,6 @@
                     return true
                 },
                 sendRequest: function(clusterInfo) {
-                    console.log('newCluster:', clusterInfo);
                     $.ajax({
                         type: 'POST',
                         url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',

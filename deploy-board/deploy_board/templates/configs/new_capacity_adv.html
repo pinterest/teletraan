@@ -498,63 +498,64 @@ var capacitySetting = new Vue({
         },
         validateInput: function (clusterInfo) {
             //Validate input data.
-            var count = clusterInfo['capacity']
+            var count = clusterInfo['capacity'];
             if (count == null || isNaN(count) || count < 0 || count > 1000) {
                 // do something
-                globalNotificationBanner.error = "Capacity must be a number between 0 and 1000"
-                return false
+                globalNotificationBanner.error = "Capacity must be a number between 0 and 1000";
+                return false;
             }
 
             if (clusterInfo.placement == null || clusterInfo.placement.length === 0) {
-                globalNotificationBanner.error = "Placement is not specified"
+                globalNotificationBanner.error = "Placement is not specified";
+                return false;
             }
 
             if (this.imageNameValue.startsWith('cmp_base')){
                 if (clusterInfo.configs['cmp_group'] == undefined || clusterInfo.configs['cmp_group'].indexOf('CMP,')<0){
-                    globalNotificationBanner.error = "cmp_base image must have cmp_group defined and CMP in it"
-                    return false
+                    globalNotificationBanner.error = "cmp_base image must have cmp_group defined and CMP in it";
+                    return false;
                 }
 
                 if (clusterInfo.configs['pinfo_role'] == undefined || clusterInfo.configs['pinfo_role']!='cmp_base'){
-                    globalNotificationBanner.error = "cmp_base image must have pinfo_role set to be cmp_base"
-                    return false
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_role set to be cmp_base";
+                    return false;
                 }
 
                 if (clusterInfo.configs['pinfo_team'] == undefined || clusterInfo.configs['pinfo_team']!='cloudeng'){
-                    globalNotificationBanner.error = "cmp_base image must have pinfo_team set to be cloudeng"
-                    return false
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_team set to be cloudeng";
+                    return false;
                 }
 
                 if (clusterInfo.configs['pinfo_environment'] == undefined ||
                 (clusterInfo.configs['pinfo_environment']!='prod' && clusterInfo.configs['pinfo_environment']!='dev')){
-                    globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be dev or prod"
-                    return false
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be dev or prod";
+                    return false;
                 }
             }
             else if ('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base'){
-                globalNotificationBanner.error = "Non cmp_base image cannot have pinfo_role set to cmp_base"
-                return false
+                globalNotificationBanner.error = "Non cmp_base image cannot have pinfo_role set to cmp_base";
+                return false;
             }
 
             if (clusterInfo.cellName  === "aws-us-east-2" && clusterInfo.hostType.startsWith('Compute')){
-                globalNotificationBanner.error = "compute hosts (c3) are not available. Use EbsCompute instead"
-                return false
+                globalNotificationBanner.error = "compute hosts (c3) are not available. Use EbsCompute instead";
+                return false;
             }
 
             if (this.imageNameValue ==='cmp_base' && clusterInfo.hostType.startsWith('EbsCompute')){
-                globalNotificationBanner.error = "EbsCompute host must use ebs AMI. Try cmp_base-ebs"
-                return false
+                globalNotificationBanner.error = "EbsCompute host must use ebs AMI. Try cmp_base-ebs";
+                return false;
             }
 
             if ('root_volume_type' in clusterInfo.configs && !(["gp2", "gp3"].includes(clusterInfo.configs['root_volume_type']))) {
-                globalNotificationBanner.error = "At this time only gp2 and gp3 root volume types are supported"
-                return false
+                globalNotificationBanner.error = "At this time only gp2 and gp3 root volume types are supported";
+                return false;
             }
 
             const replacementTimeout = clusterInfo['replacementTimeout']
             if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 || replacementTimeout > 24 * 60) {
-                globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
-                return false
+                globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)";
+                return false;
             }
             var access_role = clusterInfo.configs['access_role'].trim();
             if (!access_role) {
@@ -568,16 +569,13 @@ var capacitySetting = new Vue({
                 return false;
             }
 
-            var host_type = capacityCreationInfo.hostTypes.find(hostType => hostType.id === clusterInfo['hostType']);
-            console.log(host_type);
-            console.log(hostTypes);
-
+            var host_type = capacityCreationInfo.hostTypes?.find(hostType => hostType.id === clusterInfo['hostType']);
             if (!host_type || hostTypes.isDisabledHostType(host_type)) {
                 globalNotificationBanner.error = "Host type must not be retired or decomissioned";
                 return false;
             }
 
-            return true
+            return true;
         },
         sendRequest: function (clusterInfo) {
             $.ajax({

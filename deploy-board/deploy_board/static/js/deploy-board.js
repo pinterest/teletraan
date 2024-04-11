@@ -66,7 +66,10 @@ function getRemainingCapacity(capacityInfo, placementList) {
 }
 
 function getDefaultPlacement(capacityCreationInfo) {
-    this.capacityCreationInfo = capacityCreationInfo
+    this.capacityCreationInfo = {
+        ...this.capacityCreationInfo,
+        ...capacityCreationInfo
+    };
     var cmpPublicIPPlacements = {}
     var cmpPrivateIPPlacements = {}
     var topCmpPublicIPPlacements = []
