@@ -27,7 +27,7 @@ install_requires = [
     "requests==2.20.0",
     "gevent>=1.0.2,<=1.2.2; python_version < '3'",
     "gevent>=1.0.2,<=1.5.0; python_version < '3.8'",
-    "gevent==20.12.0; python_version >= '3.8'",
+    "gevent==23.9.0; python_version >= '3.8'",
     "lockfile==0.10.2",
     "boto>=2.39.0",
     "python-daemon==2.0.6",
