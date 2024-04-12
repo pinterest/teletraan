@@ -395,6 +395,13 @@ public class DeployHandler implements DeployHandlerInterface{
             throw new DeployInternalException("Build name (%s) does not match stage config (%s).",
                     buildBean.getBuild_name(), envBean.getBuild_name());
         }
+        
+        if(envBean.getStage_type() != EnvType.DEV &&
+                buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())
+                &&  !buildBean.getScm_branch().equalsIgnoreCase("private")) {
+            buildBean.setScm_branch("private");
+        }
+
         // only allow a non-private deploy if the build is from a trusted artifact url
         if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
             buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
