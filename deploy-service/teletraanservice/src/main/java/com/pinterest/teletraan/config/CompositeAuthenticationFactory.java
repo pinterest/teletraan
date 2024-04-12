@@ -28,8 +28,7 @@ import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import javax.ws.rs.container.ContainerRequestFilter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,7 +37,6 @@ public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
-        List<AuthFilter> tokenFilters = createAuthFilters(context);
         Authenticator<EnvoyCredentials, TeletraanPrincipal> authenticator =
                 new EnvoyAuthenticator();
 
@@ -54,10 +52,7 @@ public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
                         .setAuthorizer(context.getAuthorizationFactory().create(context))
                         .buildAuthFilter();
 
-        List<AuthFilter> filters = new ArrayList<>();
-        filters.addAll(tokenFilters);
-        filters.add(envoyAuthFilter);
-
-        return new ChainedAuthFilter(filters);
+        return new ChainedAuthFilter(Arrays.asList(createScriptTokenAuthFilter(context),
+                createOauthTokenAuthFilter(context), envoyAuthFilter, createJwtTokenAuthFilter(context)));
     }
 }
