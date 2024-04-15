@@ -132,7 +132,7 @@
     </div>
     {% if hasGroups %}
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.clusterName }}/config" title="Configure autoscaling group"></side-button>
+        <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Configure autoscaling group"></side-button>
     </div>
     {% endif %}
     {% if hasCluster %}
@@ -313,7 +313,7 @@ $('#privateBldUploadBtnId button').click(function () {
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
         <strong>Info!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
         Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for image update history.
-        Click <a href="/groups/{{ env.clusterName }}/host-ami-dist/" target="_blank">here</a> to see AMI(s) used by hosts.
+        Click <a href="/groups/{{ env.envName }}-{{ env.stageName }}/host-ami-dist/" target="_blank">here</a> to see AMI(s) used by hosts.
         Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> to replace the cluster.
     </div>
 {% endif %}

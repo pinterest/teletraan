@@ -55,7 +55,7 @@
                 try {
                     result = await $.ajax({
                         type: 'GET',
-                        url: `/groups/{{ group_name }}/hosts`,
+                        url: `/groups/{{env_name}}-{{stage_name}}/hosts`,
                         dataType: "json",
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken');
@@ -72,7 +72,7 @@
                 terminatingHostCount = data;
                 if (terminatingHostCount >= `{{termination_limit}}`) {
                     $('#terminationWarning').show();
-                }
+                } 
             });
         }
     });

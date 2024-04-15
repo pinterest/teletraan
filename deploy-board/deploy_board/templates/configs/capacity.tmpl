@@ -66,7 +66,7 @@
                 var groups = rootVue.$refs.groupsinput.tags;
                 var image = info.basic_cluster_info ? info.basic_cluster_info.base_image_info : null;
                 if(hasCMPCluster && image && image.abstract_name && image.abstract_name.startsWith('cmp_base')) {
-                     var defaultClusterASGGroupName = '{{ cluster_name }}';
+                     var defaultClusterASGGroupName = '{{ env.envName }}-{{ env.stageName }}';
                      if(groups.indexOf(defaultClusterASGGroupName) < 0) {
                         groups.push(defaultClusterASGGroupName);
                      }

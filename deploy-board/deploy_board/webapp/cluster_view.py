@@ -232,7 +232,8 @@ class EnvCapacityAdvCreateView(View):
 class ClusterConfigurationView(View):
     def get(self, request, name, stage):
 
-        current_cluster = get_current_cluster(request, name, stage)
+        cluster_name = '{}-{}'.format(name, stage)
+        current_cluster = clusters_helper.get_cluster(request, cluster_name)
         accounts = accounts_helper.get_all_accounts(request)
         host_types = hosttypes_helper.get_by_arch(
             request, current_cluster['archName'])
@@ -307,7 +308,8 @@ class ClusterConfigurationView(View):
             cluster_info = json.loads(request.body)
             log.info("Update Cluster Configuration with {}", cluster_info)
 
-            current_cluster = get_current_cluster(request, name, stage, env=env)
+            cluster_name = '{}-{}'.format(name, stage)
+            current_cluster = clusters_helper.get_cluster(request, cluster_name)
             log.info("getting current Cluster Configuration is {}", current_cluster)
             if 'configs' in current_cluster and 'configs' in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
@@ -336,7 +338,7 @@ class ClusterCapacityUpdateView(View):
         log.info("Update Cluster Capacity with data {}".format(request.body))
         try:
             settings = json.loads(request.body)
-            cluster_name = get_cluster_name(request, name, stage)
+            cluster_name = '{}-{}'.format(name, stage)
             log.info("Update cluster {0} with {1}".format(
                 cluster_name, settings))
             minSize = int(settings['minsize'])
@@ -897,7 +899,7 @@ def clone_cluster(request, src_name, src_stage):
         dest_name = params.get('new_environment', src_name)
         dest_stage = params.get('new_stage', src_stage + '_clone')
 
-        src_cluster_name = get_cluster_name(request, src_name, src_stage)
+        src_cluster_name = '{}-{}'.format(src_name, src_stage)
         dest_cluster_name = '{}-{}'.format(dest_name, dest_stage)
 
         # 0. teletraan service get src env buildName
@@ -1070,7 +1072,7 @@ def enable_cluster_replacement(request, name, stage):
 
 def gen_cluster_replacement_view(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    cluster_name = get_cluster_name(request, name, stage, env=env)
+    cluster_name = '{}-{}'.format(name, stage)
     get_cluster_replacement_body = {
         "clusterName": cluster_name
     }
@@ -1097,7 +1099,7 @@ def gen_cluster_replacement_view(request, name, stage):
 
 def gen_auto_cluster_refresh_view(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    cluster_name = get_cluster_name(request, name, stage, env=env)
+    cluster_name = '{}-{}'.format(name, stage)
     get_cluster_replacement_body = {
         "clusterName": cluster_name
     }
@@ -1179,7 +1181,7 @@ def sanitize_slack_email_input(input):
 
 def get_cluster_replacement_details(request, name, stage, replacement_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    cluster_name = get_cluster_name(request, name, stage, env=env)
+    cluster_name = '{}-{}'.format(name, stage)
     get_cluster_replacement_details_body = {
         "clusterName": cluster_name,
         "replacementIds": [replacement_id]
@@ -1422,7 +1424,7 @@ class ClusterHistoriesView(View):
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
 
-        cluster_name = get_cluster_name(request, name, stage, env=env)
+        cluster_name = '{}-{}'.format(name, stage)
         page_index = request.GET.get('index')
         page_size = request.GET.get('size')
         histories = clusters_helper.get_cluster_replacement_histories(
@@ -1449,7 +1451,7 @@ class ClusterBaseImageHistoryView(View):
 
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
-        cluster_name = get_cluster_name(request, name, stage, env=env)
+        cluster_name = '{}-{}'.format(name, stage)
         current_cluster = clusters_helper.get_cluster(request, cluster_name)
         current_image = baseimages_helper.get_by_id(request, current_cluster['baseImageId'])
         golden_image = baseimages_helper.get_current_golden_image(
@@ -1467,23 +1469,3 @@ class ClusterBaseImageHistoryView(View):
         }
 
         return render(request, 'clusters/base_image_history.html', data)
-
-def get_cluster_name(request, name, stage, env=None):
-    cluster_name = '{}-{}'.format(name, stage)
-    current_cluster = clusters_helper.get_cluster(request, cluster_name)
-    if current_cluster is None:
-        if env is None:
-            env = environs_helper.get_env_by_stage(request, name, stage)
-        cluster_name = env.get("clusterName")
-    return cluster_name
-
-def get_current_cluster(request, name, stage, env=None):
-    cluster_name = '{}-{}'.format(name, stage)
-    current_cluster = clusters_helper.get_cluster(request, cluster_name)
-    if current_cluster is None:
-        if env is None:
-            env = environs_helper.get_env_by_stage(request, name, stage)
-        cluster_name = env.get("clusterName")
-        current_cluster = clusters_helper.get_cluster(request, cluster_name)
-    return current_cluster
-
