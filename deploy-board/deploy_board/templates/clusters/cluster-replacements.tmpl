@@ -357,6 +357,13 @@
                 </div>
 
                 <div style="padding-top: 20px;">
+                    <label for="instanceWarmup" data-toggle="tooltip" title="Extra delay to wait for instance to warm up.">
+                        <span class="fa fa-clock-o"></span> Instance warmup (seconds):
+                    </label>
+                    <input type="number" id="instanceWarmup" name="instanceWarmup" min="0" value={% if auto_refresh_config.config.instanceWarmup %}{{ auto_refresh_config.config.instanceWarmup }}{% else %}0{% endif %}>
+                </div>
+
+                <div style="padding-top: 20px;">
                     <div>
                         <label for="bakeTime" data-toggle="tooltip" title="Hour(s) to wait after cluster refreshed successfully before refreshing clusters in the next stage">
                             <span class="fa fa-clock-o"></span> Bake time:
