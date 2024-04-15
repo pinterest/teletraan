@@ -106,7 +106,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private final BuildTagsManager buildTagsManager;
     private final Allowlist buildAllowlist;
     private final ConfigHistoryHandler configHistoryHandler;
-
+    private final String PRIVATE_BUILD_SCM_BRANCH = "private";
 
     private final class NotifyJob implements Callable<Void> {
         private final EnvironBean envBean;
@@ -398,8 +398,9 @@ public class DeployHandler implements DeployHandlerInterface{
         
         if(envBean.getStage_type() != EnvType.DEV &&
                 buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())
-                &&  !buildBean.getScm_branch().equalsIgnoreCase("private")) {
-            buildBean.setScm_branch("private");
+                && buildBean.getScm_branch() != null
+                && !buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH)) {
+            buildBean.setScm_branch(PRIVATE_BUILD_SCM_BRANCH);
         }
 
         // only allow a non-private deploy if the build is from a trusted artifact url
