@@ -734,6 +734,7 @@ def create_security_zone(request):
     security_zone_info['provider'] = params['provider']
     security_zone_info['description'] = params['description']
     security_zone_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
+    security_zone_info['account_id'] = params.get('accountId')
     securityzones_helper.create_security_zone(request, security_zone_info)
     return redirect('/clouds/securityzones/')
 
@@ -744,6 +745,7 @@ def get_security_zones(request):
     security_zones = securityzones_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    accounts = accounts_helper.get_all_accounts(request)
 
     return render(request, 'clusters/security_zones.html', {
         'security_zones': security_zones,
@@ -753,6 +755,7 @@ def get_security_zones(request):
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
         'disableNext': len(security_zones) < DEFAULT_PAGE_SIZE,
+        'accounts': create_ui_accounts(accounts)
     })
 
 
@@ -788,6 +791,7 @@ def create_placement(request):
     placement_info['provider'] = params['provider']
     placement_info['description'] = params['description']
     placement_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
+    placement_info['account_id'] = params.get('accountId')
     placements_helper.create_placement(request, placement_info)
     return redirect('/clouds/placements/')
 
@@ -798,6 +802,7 @@ def get_placements(request):
     placements = placements_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    accounts = accounts_helper.get_all_accounts(request)
 
     return render(request, 'clusters/placements.html', {
         'placements': placements,
@@ -807,6 +812,7 @@ def get_placements(request):
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
         'disableNext': len(placements) < DEFAULT_PAGE_SIZE,
+        'accounts': create_ui_accounts(accounts)
     })
 
 
