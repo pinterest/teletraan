@@ -94,18 +94,13 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
-        List<AuthFilter> filters = createAuthFilters(context);
-
-        return new ChainedAuthFilter(filters);
-    }
-
-    @SuppressWarnings("rawtypes")
-    List<AuthFilter> createAuthFilters(TeletraanServiceContext context) throws Exception {
-        return Arrays.asList(createScriptTokenAuthFilter(context), createOauthTokenAuthFilter(context), createJwtTokenAuthFilter(context));
+        return new ChainedAuthFilter(Arrays.asList(createScriptTokenAuthFilter(context),
+                createOauthTokenAuthFilter(context), createJwtTokenAuthFilter(context)));
     }
 
     @SuppressWarnings({ "unchecked" })
-    private AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthFilter(TeletraanServiceContext context) throws Exception {
+    AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthFilter(
+            TeletraanServiceContext context) throws Exception {
         Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthenticator =
                 new ScriptTokenAuthenticator<>(new TeletraanScriptTokenProvider(context));
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
@@ -125,7 +120,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     // TODO: CDP-7837 remove this after all the clients are updated to use the new token scheme
     @SuppressWarnings({ "unchecked" })
-    private AuthFilter<String, UserPrincipal> createOauthTokenAuthFilter(TeletraanServiceContext context) throws Exception {
+    AuthFilter<String, UserPrincipal> createOauthTokenAuthFilter(TeletraanServiceContext context) throws Exception {
         Authenticator<String, UserPrincipal> oauthAuthenticator =
                 new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl());
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
@@ -144,7 +139,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     }
 
     @SuppressWarnings({ "unchecked" })
-    private AuthFilter<String, UserPrincipal> createJwtTokenAuthFilter(TeletraanServiceContext context) throws Exception {
+    AuthFilter<String, UserPrincipal> createJwtTokenAuthFilter(TeletraanServiceContext context) throws Exception {
         Authenticator<String, UserPrincipal> oauthJwtAuthenticator = new OAuthAuthenticator(getUserDataUrl(),
                 getGroupDataUrl());
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
