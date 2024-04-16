@@ -74,6 +74,24 @@ public class Hosts {
     }
 
     @PUT
+    @Path("/{hostId : [a-zA-Z0-9\\-_]+}//{env : [a-zA-Z0-9\\-_]+}/protectasg/{isProtected : [0-1]}")
+    public HostBean isProtectedUpdate(
+            @Context SecurityContext sc,
+            @PathParam("env") String env,
+            @PathParam("hostId") String hostId,
+            @PathParam("isProtected") String isProtectedStr)
+            throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        HostBean hostBean =  hostDAO.getByEnvIdAndHostId(env, hostId);
+        int isProtected = Integer.parseInt(isProtectedStr);
+        hostBean.setIs_protected(isProtected);
+        hostBean.setLast_update(System.currentTimeMillis());
+        hostDAO.updateHostById(hostId, hostBean);
+        LOG.info(String.format("Successfully protected/unprotected one host by %s: %s", operator, hostBean.toString()));
+        return hostBean;
+    }
+
+    @PUT
     @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
     public void updateHost(@Context SecurityContext sc,
                            @PathParam("hostId") String hostId,

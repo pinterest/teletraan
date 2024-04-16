@@ -32,6 +32,14 @@
 </div>
 {% endif %}
 
+
+{% if hostname and host_is_protected %}
+<div class="alert alert-danger" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> {{ hostname }} is protected.
+</div>
+{% endif %}
+
 {% if duplicate_stage %}
 <div class="alert alert-danger" role="alert">
     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
