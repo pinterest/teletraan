@@ -27,6 +27,8 @@ public class TeletraanServiceContext extends ServiceContext {
   private ExternalAlertFactory externalAlertsFactory;
   private AuthorizationFactory authorizationFactory;
   private AuthZResourceExtractor.Factory authZResourceExtractorFactory;
+  private boolean aclManagementEnabled;
+  private String aclManagementDisabledMessage;
 
   public ExternalAlertFactory getExternalAlertsFactory() {
     return externalAlertsFactory;
@@ -69,4 +71,21 @@ public class TeletraanServiceContext extends ServiceContext {
       AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
     this.authZResourceExtractorFactory = authZResourceExtractorFactory;
   }
+
+  public boolean isAclManagementEnabled() {
+    return aclManagementEnabled;
+  }
+
+  public void setAclManagementEnabled(boolean environmentAclManagementEnabled) {
+    this.aclManagementEnabled = environmentAclManagementEnabled;
+  }
+
+  public String getAclManagementDisabledMessage() {
+    return aclManagementDisabledMessage;
+  }
+
+  public void setAclManagementDisabledMessage(String environmentAclManagementDisabledMessage) {
+    this.aclManagementDisabledMessage = environmentAclManagementDisabledMessage;
+  }
+
 }

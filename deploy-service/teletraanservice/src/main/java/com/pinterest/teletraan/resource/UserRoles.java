@@ -26,13 +26,18 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.List;
+import javax.ws.rs.WebApplicationException;
 
 public abstract class UserRoles {
     private static final Logger LOG = LoggerFactory.getLogger(UserRoles.class);
     private final UserRolesDAO userRolesDAO;
+    private boolean aclManagementEnabled;
+    private String aclManagementDisabledMessage;
 
     protected UserRoles(TeletraanServiceContext context) {
         userRolesDAO = context.getUserRolesDAO();
+        aclManagementEnabled = context.isAclManagementEnabled();
+        aclManagementDisabledMessage = context.getAclManagementDisabledMessage();
     }
 
     public List<UserRolesBean> getByResource(String resourceId,
@@ -47,6 +52,9 @@ public abstract class UserRoles {
 
     public void update(UserRolesBean bean, String userName, String resourceId, AuthZResource.Type resourceType)
             throws Exception {
+        if (!aclManagementEnabled) {
+            throw new WebApplicationException(aclManagementDisabledMessage, Response.Status.FORBIDDEN);
+        }
         userRolesDAO.update(bean, userName, resourceId, resourceType);
         LOG.info("Successfully updated user {} permission for resource {} with {}",
             userName, resourceId, bean);
@@ -54,6 +62,9 @@ public abstract class UserRoles {
 
     public Response create(UriInfo uriInfo, UserRolesBean bean, String resourceId, AuthZResource.Type resourceType)
             throws Exception {
+        if (!aclManagementEnabled) {
+            throw new WebApplicationException(aclManagementDisabledMessage, Response.Status.FORBIDDEN);
+        }
         bean.setResource_id(resourceId);
         bean.setResource_type(resourceType);
         userRolesDAO.insert(bean);
@@ -66,6 +77,9 @@ public abstract class UserRoles {
     }
 
     public void delete(String userName, String resourceId, AuthZResource.Type resourceType) throws Exception {
+        if (!aclManagementEnabled) {
+            throw new WebApplicationException(aclManagementDisabledMessage, Response.Status.FORBIDDEN);
+        }
         userRolesDAO.delete(userName, resourceId, resourceType);
         LOG.info("Successfully deleted user {} permission for resource {}",
             userName, resourceId);
