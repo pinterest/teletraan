@@ -436,8 +436,9 @@ class EnvLandingView(View):
                 host_type_blessed_status = host_type['blessed_status']
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
-        last_cluster_refresh_status = _getLastClusterRefreshStatus(request, env)
+        last_cluster_refresh_status = _get_last_cluster_refresh_status(request, env)
         latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
+        is_auto_refresh_enabled = _is_cluster_auto_refresh_enabled(request, env)
 
         cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env)
 
@@ -474,6 +475,7 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": last_cluster_refresh_status,
+                "is_auto_refresh_enabled": is_auto_refresh_enabled,
                 "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
@@ -563,6 +565,7 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": last_cluster_refresh_status,
+                "is_auto_refresh_enabled": is_auto_refresh_enabled,
                 "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
@@ -609,7 +612,7 @@ def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, la
         return None
 
 
-def _getLastClusterRefreshStatus(request, env):
+def _get_last_cluster_refresh_status(request, env):
     try:
         cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
         replace_summaries = clusters_helper.get_cluster_replacement_status(
@@ -619,6 +622,15 @@ def _getLastClusterRefreshStatus(request, env):
             return None
 
         return replace_summaries["clusterRollingUpdateStatuses"][0]
+    except:
+        return None
+    
+def _is_cluster_auto_refresh_enabled(request, env):
+    try:
+        cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
+        cluster_info = clusters_helper.get_cluster(request, cluster_name)
+
+        return cluster_info["autoRefresh"]
     except:
         return None
 
