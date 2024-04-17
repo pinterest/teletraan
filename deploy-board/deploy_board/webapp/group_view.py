@@ -1467,8 +1467,19 @@ def get_health_check_activities(request, group_name):
         "disableNext": len(health_checks) < DEFAULT_PAGE_SIZE
     })
 
+def get_charts(request, group_name, type):
 
-def get_host_az_dist(request, group_name):
+    if type == "az":    
+        return render(request, 'groups/distribution_charts.tmpl', get_host_az_dist(group_name))
+    
+    elif type == "ami":
+        return render(request, 'groups/distribution_charts.tmpl', get_host_ami_dist(request, group_name))
+    
+    elif type == "host-type":
+        return render(request, 'groups/distribution_charts.tmpl', get_host_type_dist(group_name))
+
+
+def get_host_az_dist(group_name):
     host_az_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
             "query": "tags.Autoscaling:{} AND state:running".format(group_name),
             "fields": "location"
@@ -1481,13 +1492,38 @@ def get_host_az_dist(request, group_name):
     total = sum(data)
     percentages = map(lambda x: round((x / total) * 100, 1), data)
 
-    return render(request, 'groups/host_az_dist.tmpl', {
+    return {
+        "chart_name": "AZ Distribution",
+        "chart_type": "az",
         "group_name": group_name,
         'labels': labels,
         'data': data,
         'label_data_percentage': list(zip(labels, data, percentages)),
         'total': total
-    })
+    }
+
+def get_host_type_dist(group_name):
+    host_type_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
+            "query": "tags.Autoscaling:{} AND state:running".format(group_name),
+            "fields": "cloud.aws"
+        }
+    )
+
+    counter = Counter([x['cloud.aws']['instanceType'] for x in host_type_dist.json()])
+    labels = list(counter.keys())
+    data = list(counter.values())
+    total = sum(data)
+    percentages = map(lambda x: round((x / total) * 100, 1), data)
+
+    return {
+        "chart_name": "Host Types Distribution",
+        "chart_type": "host-type",
+        "group_name": group_name,
+        'labels': labels,
+        'data': data,
+        'label_data_percentage': list(zip(labels, data, percentages)),
+        'total': total
+    }
 
 def get_host_ami_dist(request, group_name):
     host_ami_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
@@ -1512,7 +1548,9 @@ def get_host_ami_dist(request, group_name):
     if len(label_data_percentage) > 1 or (len(label_data_percentage) == 1 and label_data_percentage[0][0] != current_AMI):
         any_host_with_outdated_ami = True
 
-    return render(request, 'groups/host_ami_dist.tmpl', {
+    return {
+        "chart_name": "AMI Distribution",
+        "chart_type": "ami",
         "group_name": group_name,
         'labels': labels,
         'data': data,
@@ -1520,7 +1558,8 @@ def get_host_ami_dist(request, group_name):
         'total': total,
         'current_AMI': current_AMI,
         'any_host_with_outdated_ami': any_host_with_outdated_ami
-    })
+    }
+    
 
 def get_health_check_details(request, id):
     health_check = autoscaling_groups_helper.get_health_check(request, id)
