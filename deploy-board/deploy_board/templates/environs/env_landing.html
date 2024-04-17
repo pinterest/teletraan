@@ -311,7 +311,7 @@ $('#privateBldUploadBtnId button').click(function () {
 {% if is_auto_refresh_enabled == True %}
     <div class="alert alert-success alert-dismissible">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong> <span class="glyphicon glyphicon-leaf" style="color:green;"></span> This cluster is enabled for auto refresh.</strong>
+        <strong><span class="glyphicon glyphicon-leaf" style="color:green;"></span> This cluster is enabled for auto refresh.</strong>
         You can customize auto refresh configuration <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/auto_refresh" target="_blank">here</a>.
     </div>
 {% endif %}
