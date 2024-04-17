@@ -23,6 +23,6 @@ deployclient = DeployClient()
 def get_hosts_by_name(request, host_name):
     return deployclient.get("/hosts/%s" % host_name, request.teletraan_user_id.token)
 
-def is_protect_host(request, env, host_id ,is_protect):
-    return deployclient.put("/hosts/%s/%s/protectasg/%s" % (env, host_id, is_protect), request.teletraan_user_id.token)
+def is_protect_host(request, host_id ,is_protect):
+    return deployclient.put("/hosts/%s/protectasg/%s" % (host_id, is_protect), request.teletraan_user_id.token)
 

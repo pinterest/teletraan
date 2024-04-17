@@ -50,7 +50,7 @@ def get_agent_wrapper(request, hostname):
             agent_wrappers['sidecars'].append(agent_wrapper)
         else:
             agent_wrappers['services'].append(agent_wrapper)
-    
+
     agent_wrappers['sidecars'] = sorted(agent_wrappers['sidecars'], key=lambda x: x["agent"]['lastUpdateDate'])
     agent_wrappers['services'] = sorted(agent_wrappers['services'], key=lambda x: x["agent"]['lastUpdateDate'])
     return agent_wrappers, is_unreachable
@@ -84,6 +84,10 @@ def get_host_id(hosts):
         return hosts[0].get('hostId')
     return None
 
+def get_host_is_protected(hosts):
+    if hosts:
+        return hosts[0].get('isProtected')
+    return None
 def get_account_id(hosts):
     for host in hosts:
         if host and host.get('accountId') and host.get('accountId') not in {'NULL', 'null'}:
@@ -142,6 +146,7 @@ class GroupHostDetailView(View):
         host_id = get_host_id(hosts)
         account_id = get_account_id(hosts)
         asg = get_asg_name(request, hosts)
+        host_is_protected = get_host_is_protected(hosts)
 
         show_terminate = get_show_terminate(hosts)
         show_reset_all_environments = should_display_reset_all_environments(hosts)
@@ -153,6 +158,7 @@ class GroupHostDetailView(View):
             'group_name': groupname,
             'hostname': hostname,
             'hosts': hosts,
+            'host_is_protected': host_is_protected,
             'host_id': host_id,
             'account_id': account_id,
             'agent_wrappers': agent_wrappers,
@@ -179,6 +185,7 @@ class HostDetailView(View):
 
         hosts = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         host_id = get_host_id(hosts)
+        host_is_protected = get_host_is_protected(hosts)
         account_id = get_account_id(hosts)
         show_terminate = get_show_terminate(hosts)
         show_reset_all_environments = should_display_reset_all_environments(hosts)
@@ -197,7 +204,7 @@ class HostDetailView(View):
             wrapper['env']['stageName'] == stage) or
             is_agent_failed(wrapper['agent'])
         )
-        
+
         host_details = get_host_details(host_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')
@@ -206,6 +213,7 @@ class HostDetailView(View):
             'env_name': name,
             'stage_name': stage,
             'hostname': hostname,
+            'host_is_protected': host_is_protected,
             'hosts': hosts,
             'host_id': host_id,
             'account_id': account_id,

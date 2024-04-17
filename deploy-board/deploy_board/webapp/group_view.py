@@ -1417,30 +1417,29 @@ def terminate_all_hosts(request, group_name):
 def instance_action_in_asg(request, group_name):
     host_id = request.GET.get("hostId", "")
     action = request.GET.get("action", "")
-    env = request.GET.get("env", "")
     host_ids = []
     host_ids.append(host_id)
     update_is_protect = False
     is_protect_value = -1
     not_is_protect_value = -1
 
-    if env:
+    if action == 'PROTECT':
+        is_protect_value = 1
+        not_is_protect_value = 0
         update_is_protect = True
-        if action == 'PROTECT':
-            is_protect_value = 1
-            not_is_protect_value = 0
-        elif action == 'UNPROTECT':
-            is_protect_value = 0
-            not_is_protect_value = 1
+    elif action == 'UNPROTECT':
+        update_is_protect = True
+        is_protect_value = 0
+        not_is_protect_value = 1
 
     try:
         autoscaling_groups_helper.hosts_action_in_group(request, group_name, host_ids, action)
         if update_is_protect:
-            hosts_helper.is_protect_host(request, env, host_id, is_protect_value)
+            hosts_helper.is_protect_host(request, host_id, is_protect_value)
     except:
         log.error(traceback.format_exc())
         if is_protect_value:
-            hosts_helper.is_protect_host(request, env, host_id, not_is_protect_value)
+            hosts_helper.is_protect_host(request, host_id, not_is_protect_value)
         raise
     return redirect('/groups/{}/'.format(group_name))
 

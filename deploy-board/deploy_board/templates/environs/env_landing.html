@@ -554,9 +554,9 @@ $('#privateBldUploadBtnId button').click(function () {
                        type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
                        title="{{ host | hostTip }}">
                         {{ host.hostName }}
-                        {% if host.isProtected  %}<i class="fa fa-fw fa-solid fa-lock"></i>{% endif %}
                         <i class="fa fa-fw {{ host | hostIcon }}"></i>
                     </a>
+                        {% if host.isProtected  %}<i class="fa fa-fw fa-solid fa-lock" title="This host is protected"></i>{% endif %}
                     {% endfor %}
                 </small>
             </td>
@@ -590,8 +590,8 @@ $('#privateBldUploadBtnId button').click(function () {
                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host }}"
                        type="button" class="btn btn-xs btn-warning">
                         {{ host }}
-                    {% if host.isProtected  %}<i class="fa fa-fw fa-solid fa-lock"></i>{% endif %}
                     </a>
+                        {% if host.isProtected  %}<i class="fa fa-fw fa-solid fa-lock" title="This host is protected"></i>{% endif %}
                     {% endfor %}
                 </small>
             </td>
