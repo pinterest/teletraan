@@ -395,11 +395,10 @@ public class DeployHandler implements DeployHandlerInterface{
             throw new DeployInternalException("Build name (%s) does not match stage config (%s).",
                     buildBean.getBuild_name(), envBean.getBuild_name());
         }
-        
+
         if(envBean.getStage_type() != EnvType.DEV &&
                 buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())
-                && buildBean.getScm_branch() != null
-                && !buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH)) {
+                && isPrivateBuild(buildBean)){
             buildBean.setScm_branch(PRIVATE_BUILD_SCM_BRANCH);
         }
 
@@ -431,6 +430,11 @@ public class DeployHandler implements DeployHandlerInterface{
                     "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.",
                     Response.Status.BAD_REQUEST);
         }
+    }
+
+    private boolean isPrivateBuild(BuildBean buildBean) {
+        return buildBean.getScm_branch() != null
+                && !buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH);
     }
 
     public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
