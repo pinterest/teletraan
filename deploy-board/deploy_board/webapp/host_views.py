@@ -41,7 +41,7 @@ def get_agent_wrapper(request, hostname):
         agent_env = environs_helper.get(request, envId)
         agent_wrapper["env"] = agent_env
         agent_wrapper["error"] = ""
-        if agent.get('lastErrno', 0) != 0:
+        if agent_env and agent.get('lastErrno', 0) != 0:
             agent_wrapper["error"] = agents_helper.get_agent_error(request, agent_env['envName'],
                                                                    agent_env['stageName'], hostname)
         if agent['state'] == 'UNREACHABLE':
@@ -169,7 +169,7 @@ class GroupHostDetailView(View):
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
         envs = environs_helper.get_all_env_stages(request, name)
-        stages, env = common.get_all_stages(envs, stage)
+        stages, _ = common.get_all_stages(envs, stage)
         duplicate_stage = ''
         for stage_name in stages:
             if stage_name != stage:
