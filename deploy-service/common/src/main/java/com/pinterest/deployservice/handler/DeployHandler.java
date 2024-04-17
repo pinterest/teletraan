@@ -384,7 +384,7 @@ public class DeployHandler implements DeployHandlerInterface{
         5. no private build for sox env
         6. only sox build can be deployed for sox env
     */
-    private void validateBuild(EnvironBean envBean, String buildId) throws Exception {
+    protected void validateBuild(EnvironBean envBean, String buildId) throws Exception {
         if(StringUtils.isEmpty(buildId)) {
             throw new WebApplicationException("Build id can not be empty.", Response.Status.BAD_REQUEST);
         }
