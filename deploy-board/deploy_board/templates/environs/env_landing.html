@@ -556,7 +556,6 @@ $('#privateBldUploadBtnId button').click(function () {
                         {{ host.hostName }}
                         <i class="fa fa-fw {{ host | hostIcon }}"></i>
                     </a>
-                        {% if host.isProtected  %}<i class="fa fa-fw fa-solid fa-lock" title="This host is protected"></i>{% endif %}
                     {% endfor %}
                 </small>
             </td>
@@ -591,7 +590,6 @@ $('#privateBldUploadBtnId button').click(function () {
                        type="button" class="btn btn-xs btn-warning">
                         {{ host }}
                     </a>
-                        {% if host.isProtected  %}<i class="fa fa-fw fa-solid fa-lock" title="This host is protected"></i>{% endif %}
                     {% endfor %}
                 </small>
             </td>

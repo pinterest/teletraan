@@ -29,8 +29,7 @@ import traceback
 from itertools import groupby
 
 from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
-                     specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper,
-                      hosts_helper)
+                     specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
 from .helpers.exceptions import TeletraanException
@@ -1419,27 +1418,10 @@ def instance_action_in_asg(request, group_name):
     action = request.GET.get("action", "")
     host_ids = []
     host_ids.append(host_id)
-    update_is_protect = False
-    is_protect_value = -1
-    not_is_protect_value = -1
-
-    if action == 'PROTECT':
-        is_protect_value = 1
-        not_is_protect_value = 0
-        update_is_protect = True
-    elif action == 'UNPROTECT':
-        update_is_protect = True
-        is_protect_value = 0
-        not_is_protect_value = 1
-
     try:
         autoscaling_groups_helper.hosts_action_in_group(request, group_name, host_ids, action)
-        if update_is_protect:
-            hosts_helper.is_protect_host(request, host_id, is_protect_value)
     except:
         log.error(traceback.format_exc())
-        if is_protect_value:
-            hosts_helper.is_protect_host(request, host_id, not_is_protect_value)
         raise
     return redirect('/groups/{}/'.format(group_name))
 
