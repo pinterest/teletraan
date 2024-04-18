@@ -42,7 +42,7 @@
 
 {% if agent_wrappers %}
 <div class="panel panel-default">
-    {% if has_host_env_sidecar_agents %}
+    {% if has_failed_sidecars_or_host_env_sidecars %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="down" copy_host_name_button=True %}
     <div id="sidecarAgentDetailsId" class="collapse in panel-body">
     {% else %}
@@ -52,7 +52,7 @@
         {% for agent_wrapper in agent_wrappers.sidecars %}
             {% with env=agent_wrapper.env agent=agent_wrapper.agent %}
             <button
-                class="sidecarButton {% if agent.status == 'SUCCEEDED' %}bg-success{% elif agent.status in 'TOO_MANY_RETRY,SCRIPT_TIMEOUT,AGENT_FAILED,AGENT_FAILED,SCRIPT_FAILED' %}bg-danger{% endif %} deployToolTip btn btn-xs btn-default"
+                class="sidecarButton {% if agent.status == 'SUCCEEDED' %}bg-success{% elif agent.status not in 'UNKNOWN' or agent.state == 'PAUSED_BY_SYSTEM' %}bg-danger{% endif %} deployToolTip btn btn-xs btn-default"
                 onclick="scrollToSidecar('{{agent.deployId}}')">
                 {% if env and env_name == env.envName and stage_name == env.stageName %}
                 <i class="fa fa-star"></i>

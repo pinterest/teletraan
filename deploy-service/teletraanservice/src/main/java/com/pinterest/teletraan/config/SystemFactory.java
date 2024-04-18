@@ -27,10 +27,16 @@ public class SystemFactory {
     private String changeFeedUrl;
 
     @JsonProperty
-    private long agentCountCacheTtl = 10 * 1000;
+    private long agentCountCacheTtl = 10 * 1000l;
 
     @JsonProperty
     private long maxParallelThreshold = 10000;
+
+    @JsonProperty
+    private boolean aclManagementEnabled = true;
+
+    @JsonProperty
+    private String aclManagementDisabledMessage = "ACL management is disabled. Please contact your admin for modification.";
 
     public String getDashboardUrl() {
         return dashboardUrl;
@@ -63,4 +69,21 @@ public class SystemFactory {
     public void setMaxParallelThreshold(Long maxParallelThreshold) {
         this.maxParallelThreshold = maxParallelThreshold;
     }
+
+    public boolean isAclManagementEnabled() {
+        return aclManagementEnabled;
+    }
+
+    public void setAclManagementEnabled(boolean aclManagementEnabled) {
+        this.aclManagementEnabled = aclManagementEnabled;
+    }
+
+    public String getAclManagementDisabledMessage() {
+        return aclManagementDisabledMessage;
+    }
+
+    public void setAclManagementDisabledMessage(String aclManagementDisabledMessage) {
+        this.aclManagementDisabledMessage = aclManagementDisabledMessage;
+    }
+
 }

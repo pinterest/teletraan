@@ -227,6 +227,10 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
+
+        context.setAclManagementEnabled(configuration.getSystemFactory().isAclManagementEnabled());
+        context.setAclManagementDisabledMessage(configuration.getSystemFactory().getAclManagementDisabledMessage());
+
         // Only applies to Teletraan agent service
         context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
         context.setMaxParallelThreshold(configuration.getSystemFactory().getMaxParallelThreshold());

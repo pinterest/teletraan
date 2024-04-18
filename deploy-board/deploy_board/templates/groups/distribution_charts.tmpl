@@ -1,0 +1,219 @@
+{% extends 'groups/group_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/groups/">Groups</a></li>
+    <li><a href="/groups/{{ group_name }}">{{ group_name }}</a></li>
+    <li><a href="/groups/{{ group_name }}/dist-charts/ami">Distribution Charts</a></li>
+    <li>{{ chart_name }}</li>
+</ul>
+{% endblock %}
+
+{% block side-panel %}
+
+<div class="row">
+  <a type="button" href="/groups/{{ group_name }}/dist-charts/ami/"
+          class="deployToolTip btn btn-default btn-block"
+      data-toggle="tooltip" title="Show stats for hosts and AMIs">
+      <span class="glyphicon glyphicon-stats"></span> AMI
+  </a>
+</div>
+
+<div class="row">
+  <a type="button" href="/groups/{{ group_name }}/dist-charts/az/"
+          class="deployToolTip btn btn-default btn-block"
+      data-toggle="tooltip" title="Show host ditribution among availability zones">
+      <span class="glyphicon glyphicon-stats"></span> Availability Zone
+  </a>
+</div>
+
+<div class="row">
+  <a type="button" href="/groups/{{ group_name }}/dist-charts/host-type/"
+          class="deployToolTip btn btn-default btn-block"
+      data-toggle="tooltip" title="Show host types distribution">
+      <span class="glyphicon glyphicon-stats"></span> Host Type
+  </a>
+</div>
+
+{% endblock %}
+
+{% block main %}
+
+<h1>{{ chart_name }}</h1>
+
+{% if chart_type == "az" %}
+  <div id="container" style="width: 100%;">
+    <canvas id="pie-chart"></canvas>
+  </div>
+
+  <div>
+    <table id="az-stat" class="table">
+      <tr>
+          <th>Availability Zone</th>
+          <th>Host Count</th>
+          <th>Percentage</th>
+      </tr>
+      {% for l, d, p in label_data_percentage %}
+      <tr>
+          <td>
+            {{ l }}
+          </td>
+          <td>
+            {{ d }}
+          </td>
+          <td>
+            {{ p }}%
+          </td>
+      </tr>
+      {% endfor%}
+    </table>
+  <b>Total:</b> {{ total }} hosts
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    var config = {
+      type: 'pie',
+      data: {
+        datasets: [{
+          data: {{ data|safe }},
+          label: 'Host'
+        }],
+        labels: {{ labels|safe }}
+      },
+      options: {
+        responsive: false
+      }
+    };
+
+    window.onload = function() {
+      var ctx = document.getElementById('pie-chart').getContext('2d');
+      window.myPie = new Chart(ctx, config);
+    };
+  </script>
+
+{% elif chart_type == "ami"%}
+
+  {% if any_host_with_outdated_ami == True %}
+  <div class="alert alert-warning alert-dismissible">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <strong>Warning!</strong> Some hosts in the cluster are not running with the current AMI. To have all hosts run with the current AMI, replace the cluster.
+  </div>
+  {% endif %}
+
+  <div id="container" style="width: 100%;">
+  <canvas id="pie-chart"></canvas>
+  </div>
+
+  <div>
+  <p style="color:green;">The cluster's current AMI is {{ current_AMI }} </p>
+  </div>
+
+  <div>
+  <table id="ami-stat" class="table">
+    <tr>
+        <th>AMI ID</th>
+        <th>Current</th>
+        <th>Host Count</th>
+        <th>Percentage</th>
+    </tr>
+    {% for l, d, p in label_data_percentage %}
+    <tr>
+        <td>
+          {{ l }}
+        </td>
+        <td>
+          {% if l == current_AMI %} <p style="color:green;">true</p> {% else %} <p style="color:red;">false</p> {% endif %}
+      </td>
+        <td>
+          {{ d }}
+        </td>
+        <td>
+          {{ p }}%
+        </td>
+    </tr>
+    {% endfor%}
+  </table>
+  <b>Total:</b> {{ total }} hosts
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+  var config = {
+    type: 'pie',
+    data: {
+      datasets: [{
+        data: {{ data|safe }},
+        label: 'Host'
+      }],
+      labels: {{ labels|safe }}
+    },
+    options: {
+      responsive: false
+    }
+  };
+
+  window.onload = function() {
+    var ctx = document.getElementById('pie-chart').getContext('2d');
+    window.myPie = new Chart(ctx, config);
+  };
+  </script>
+
+{% elif chart_type == "host-type"%}
+
+  <div id="container" style="width: 100%;">
+    <canvas id="pie-chart"></canvas>
+  </div>
+
+  <div>
+    <table id="host-type-stat" class="table">
+      <tr>
+          <th>Host Type</th>
+          <th>Count</th>
+          <th>Percentage</th>
+      </tr>
+      {% for l, d, p in label_data_percentage %}
+      <tr>
+          <td>
+            {{ l }}
+          </td>
+          <td>
+            {{ d }}
+          </td>
+          <td>
+            {{ p }}%
+          </td>
+      </tr>
+      {% endfor%}
+    </table>
+  <b>Total:</b> {{ total }} hosts
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    var config = {
+      type: 'pie',
+      data: {
+        datasets: [{
+          data: {{ data|safe }},
+          label: 'Host'
+        }],
+        labels: {{ labels|safe }}
+      },
+      options: {
+        responsive: false
+      }
+    };
+
+    window.onload = function() {
+      var ctx = document.getElementById('pie-chart').getContext('2d');
+      window.myPie = new Chart(ctx, config);
+    };
+  </script>
+
+{% endif %}
+
+{% endblock %}

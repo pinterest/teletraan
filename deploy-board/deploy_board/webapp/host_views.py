@@ -16,6 +16,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
+from .common import is_agent_failed
 from .helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from .helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
@@ -40,7 +41,7 @@ def get_agent_wrapper(request, hostname):
         agent_env = environs_helper.get(request, envId)
         agent_wrapper["env"] = agent_env
         agent_wrapper["error"] = ""
-        if agent.get('lastErrno', 0) != 0:
+        if agent_env and agent.get('lastErrno', 0) != 0:
             agent_wrapper["error"] = agents_helper.get_agent_error(request, agent_env['envName'],
                                                                    agent_env['stageName'], hostname)
         if agent['state'] == 'UNREACHABLE':
@@ -168,7 +169,7 @@ class GroupHostDetailView(View):
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
         envs = environs_helper.get_all_env_stages(request, name)
-        stages, env = common.get_all_stages(envs, stage)
+        stages, _ = common.get_all_stages(envs, stage)
         duplicate_stage = ''
         for stage_name in stages:
             if stage_name != stage:
@@ -188,12 +189,13 @@ class HostDetailView(View):
             is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
-        has_host_env_sidecar_agents = any(
-            agent for agent in agent_wrappers['sidecars']
-            if agent['env'] and agent['env']['envName'] and
-            agent['env']['stageName'] and
-            agent['env']['envName'] == name and
-            agent['env']['stageName'] == stage
+        has_failed_sidecars_or_host_env_sidecars = any(
+            wrapper for wrapper in agent_wrappers['sidecars']
+            if (wrapper['env'] and wrapper['env']['envName'] and
+            wrapper['env']['stageName'] and
+            wrapper['env']['envName'] == name and
+            wrapper['env']['stageName'] == stage) or
+            is_agent_failed(wrapper['agent'])
         )
         
         host_details = get_host_details(host_id)
@@ -220,7 +222,7 @@ class HostDetailView(View):
             'host_details': host_details,
             'duplicate_stage': duplicate_stage,
             'termination_limit': termination_limit,
-            'has_host_env_sidecar_agents': has_host_env_sidecar_agents,
+            'has_failed_sidecars_or_host_env_sidecars': has_failed_sidecars_or_host_env_sidecars,
         })
 
 
