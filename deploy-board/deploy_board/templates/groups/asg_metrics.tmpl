@@ -1,6 +1,6 @@
-<div id="asMetricsId" class="collapse in panel-body">
 {% load utils %}
 {% include "panel_heading.tmpl" with panel_title="Scaling Alarms" panel_body_id="asMetricsId" direction="down" %}
+<div id="asMetricsId" class="collapse in panel-body">
 <script>
 var ALARM_WARNING_THRESHOLD = 70;
 var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recommended only for applications that are less latency sensitive. Load testing to determine an appropriate threshold is strongly encouraged.`;
