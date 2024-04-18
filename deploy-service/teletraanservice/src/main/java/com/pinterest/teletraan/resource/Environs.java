@@ -29,7 +29,6 @@ import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
@@ -94,8 +93,8 @@ public class Environs {
             @ApiParam(value = "Environment id", required = true)@PathParam("id") String id) throws Exception {
         EnvironBean environBean = environDAO.getById(id);
         if (environBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Environment %s does not exist.", id));
+            throw new WebApplicationException(String.format("Environment %s does not exist.", id),
+                    Response.Status.NOT_FOUND);
         }
         return environBean;
     }
@@ -156,8 +155,8 @@ public class Environs {
             @ApiParam(value = "Environment object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
         try {
             environBean.validate();
-        } catch (Exception e) {
-            throw new IllegalArgumentException(String.format("Environment bean validation failed: %s", e));
+        } catch (IllegalArgumentException e) {
+            throw new WebApplicationException("Environment bean validation failed", e);
         }
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();
@@ -197,7 +196,7 @@ public class Environs {
                 tagBean.setValue(TagValue.DISABLE_ENV);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
 
         tagBean.setTarget_type(TagTargetType.TELETRAAN);

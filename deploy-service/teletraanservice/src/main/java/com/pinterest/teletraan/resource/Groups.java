@@ -21,8 +21,6 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
-
 import javax.annotation.security.PermitAll;
 import javax.validation.constraints.NotNull;
 
@@ -94,7 +92,7 @@ public class Groups {
                 hostIds = hostDAO.getTerminatingHostIdsByGroup(groupName);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
         return hostIds;
     }

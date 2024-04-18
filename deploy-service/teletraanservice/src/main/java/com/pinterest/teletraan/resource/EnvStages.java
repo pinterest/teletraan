@@ -34,6 +34,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.WebApplicationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,6 @@ import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
@@ -114,26 +114,26 @@ public class EnvStages {
         if (environBean.getIs_sox() == null) {
             environBean.setIs_sox(originalIsSox);
         } else if (!environBean.getIs_sox().equals(originalIsSox)) {
-            throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Modification of isSox flag is not allowed!");
+            throw new WebApplicationException("Modification of isSox flag is not allowed!", Response.Status.FORBIDDEN);
         }
 
         String operator = sc.getUserPrincipal().getName();
         try {
             environBean.validate();
-        } catch (Exception e) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
+        } catch (IllegalArgumentException e) {
+            throw new WebApplicationException(e.toString(), Response.Status.BAD_REQUEST);
         }
 
         if (origBean.getStage_type() == EnvType.DEFAULT && environBean.getStage_type() == null) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Please update the Stage Type to a value other than DEFAULT.");
+            throw new WebApplicationException("Please update the Stage Type to a value other than DEFAULT.", Response.Status.BAD_REQUEST);
         } else if (environBean.getStage_type() == null) {
             // Request has no intention to change stage type, so set it to the current value
             // to avoid the default value being used.
             environBean.setStage_type(origBean.getStage_type());
         } else if (origBean.getStage_type() != Constants.DEFAULT_STAGE_TYPE
                 && origBean.getStage_type() != environBean.getStage_type()) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                    "Modification of non-default stage type is not allowed!");
+            throw new WebApplicationException("Modification of non-default stage type is not allowed!",
+                    Response.Status.BAD_REQUEST);
         }
         if (environBean.getStage_type() == EnvType.DEV) {
             environBean.setAllow_private_build(true);
@@ -204,13 +204,15 @@ public class EnvStages {
          UUID uuid = UUID.fromString(externalId);
        } catch (Exception ex){
          LOG.info("Invalid UUID supplied - {}.", externalId);
-         throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Client supplied an invalid externalId - %s. Please retry with an externalId in the UUID format", externalId));
+         throw new WebApplicationException(String.format(
+                 "Client supplied an invalid externalId - %s. Please retry with an externalId in the UUID format",
+                 externalId), Response.Status.BAD_REQUEST);
        }
 
        EnvironBean originalBean = environDAO.getByStage(envName, stageName);
        if(originalBean == null) {
-         throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-             String.format("Environment %s/%s does not exist.", envName, stageName));
+           throw new WebApplicationException(String.format("Environment %s/%s does not exist.", envName, stageName),
+                   Response.Status.NOT_FOUND);
        }
        environDAO.setExternalId(originalBean, externalId);
        EnvironBean updatedBean = environDAO.getByStage(envName, stageName);
@@ -243,7 +245,7 @@ public class EnvStages {
                 tagBean.setValue(TagValue.DISABLE_ENV);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
 
         tagBean.setTarget_id(envBean.getEnv_id());

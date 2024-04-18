@@ -31,7 +31,6 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
@@ -55,6 +54,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.WebApplicationException;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -95,8 +95,8 @@ public class Deploys {
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id) throws Exception {
         DeployBean deployBean = deployDAO.getById(id);
         if (deployBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Deploy %s does not exist.", id));
+                throw new WebApplicationException(String.format("Deploy %s does not exist.", id),
+                                Response.Status.NOT_FOUND);
         }
         return deployBean;
     }

@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan;
 
-import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
 import com.pinterest.teletraan.universal.security.PrincipalNameInjector;
@@ -24,8 +23,6 @@ import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
-import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
-import io.dropwizard.jersey.validation.JerseyViolationExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -107,13 +104,6 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         ConfigHelper.scheduleWorkers(configuration, context);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
-
-        // Exception handlers
-        // Constrains validation exceptions, returns 4xx
-        environment.jersey().register(JerseyViolationExceptionMapper.class);
-        // Jackson Json parsing exceptions
-        environment.jersey().register(new JsonProcessingExceptionMapper(true));
-        environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
 
         environment.jersey().register(PrincipalNameInjector.class);
 

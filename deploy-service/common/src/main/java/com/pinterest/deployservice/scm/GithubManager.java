@@ -19,7 +19,6 @@ import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.common.EncryptionUtils;
 import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.KnoxKeyReader;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -40,6 +39,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.WebApplicationException;
 
 public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
@@ -84,7 +84,7 @@ public class GithubManager extends BaseManager {
                 // get installation token using the jwt token
                 GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
                 GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
-                GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();    
+                GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();
 
                 // always use the newly created GitHub app token as the token will expire
                 this.headers.put("Authorization", String.format("Token %s", appInstallationToken.getToken()));
@@ -181,7 +181,8 @@ public class GithubManager extends BaseManager {
             // an IOException (and its subclasses) in this case indicates that the commit hash is not found in the repo.
             // e.g. java.io.IOException: Server returned HTTP response code: 422
             LOG.warn("GitHub commit hash {} is not found in repo {}.", sha, repo);
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("Commit hash %s is not found in repo %s", sha, repo));
+            throw new WebApplicationException(String.format("Commit hash %s is not found in repo %s", sha, repo),
+                    Response.Status.NOT_FOUND);
         }
 
         GsonBuilder builder = new GsonBuilder();

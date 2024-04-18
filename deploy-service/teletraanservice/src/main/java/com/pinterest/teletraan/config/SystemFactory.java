@@ -16,7 +16,6 @@
 package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pinterest.deployservice.common.Constants;
 
 public class SystemFactory {
     private static final String DEFAULT_DASHBOARD_URL = "http://localhost:8888";
@@ -26,9 +25,6 @@ public class SystemFactory {
 
     @JsonProperty
     private String changeFeedUrl;
-
-    @JsonProperty
-    private String clientError = Constants.CLIENT_ERROR_SHORT;
 
     @JsonProperty
     private long agentCountCacheTtl = 10 * 1000l;
@@ -56,14 +52,6 @@ public class SystemFactory {
 
     public void setChangeFeedUrl(String changeFeedUrl) {
         this.changeFeedUrl = changeFeedUrl;
-    }
-
-    public String getClientError() {
-        return clientError;
-    }
-
-    public void setClientError(String clientError) {
-        this.clientError = clientError;
     }
 
     public Long getAgentCountCacheTtl() {

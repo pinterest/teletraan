@@ -24,7 +24,8 @@ server:
           customFieldNames:
             requestAttributes: principal
           includes: [timestamp, remoteAddress, protocol, method, requestUri, statusCode]
-  registerDefaultExceptionMappers: false
+  detailedJsonProcessingExceptionMapper: true
+  registerDefaultExceptionMappers: true
 
 #
 # Logging settings. refer
@@ -159,7 +160,6 @@ system:
   # Teletraan needs to refer Deploy Dashboard url in its notify etc.
   dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-http://localhost:8888}
   # Display full stack trace or just the error to user.
-  #clientError: long|short
 
 #External Alerts
 externalAlerts:
