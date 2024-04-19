@@ -7,10 +7,10 @@ import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.dao.BuildDAO;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG;
@@ -30,7 +30,7 @@ public class DeployHandlerTest {
     private BuildDAO buildDAO;
     private final String BUILD_ID = "buildId01";
     private final String NON_PRIVATE_BUILD_SCM_BRANCH ="non_private";
-    private final String FAIL_MESSAGE = "Should have thrown TeletaanInternalException: %s";
+    private final String FAIL_MESSAGE = "Should have thrown WebApplicationException: %s";
 
     private ServiceContext createMockServiceContext() throws Exception {
         buildDAO = mock(BuildDAO.class);
@@ -80,8 +80,8 @@ public class DeployHandlerTest {
             fail(String.format(FAIL_MESSAGE,
                     ERROR_EMPTY_BUILD_ID
             ));
-        } catch (TeletaanInternalException ex){
-            assertTrue(ex.getResponse().getEntity().toString().contains(
+        } catch (WebApplicationException ex){
+            assertTrue(ex.getMessage().contains(
                     ERROR_EMPTY_BUILD_ID
             ));
         }
@@ -119,8 +119,8 @@ public class DeployHandlerTest {
             fail(String.format(FAIL_MESSAGE,
                     String.format(ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
                             buildBean.getArtifact_url())));
-        } catch (TeletaanInternalException ex){
-            assertTrue(ex.getResponse().getEntity().toString().contains(
+        } catch (WebApplicationException ex){
+            assertTrue(ex.getMessage().contains(
                     String.format(ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
                             buildBean.getArtifact_url())
             ));
@@ -136,8 +136,8 @@ public class DeployHandlerTest {
             deployHandler.validateBuild(genDefaultEnvBean(), BUILD_ID);
             fail(String.format(FAIL_MESSAGE,
                     ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD));
-        } catch (TeletaanInternalException ex){
-            assertTrue(ex.getResponse().getEntity().toString().contains(
+        } catch (WebApplicationException ex){
+            assertTrue(ex.getMessage().contains(
                     ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD));
         }
     }
@@ -155,8 +155,8 @@ public class DeployHandlerTest {
             deployHandler.validateBuild(envBean, BUILD_ID);
             fail(String.format(FAIL_MESSAGE,
                     ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE));
-        } catch (TeletaanInternalException ex){
-            assertTrue(ex.getResponse().getEntity().toString().contains(
+        } catch (WebApplicationException ex){
+            assertTrue(ex.getMessage().contains(
                     ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE)
             );
         }
@@ -174,8 +174,8 @@ public class DeployHandlerTest {
             deployHandler.validateBuild(envBean, BUILD_ID);
             fail(String.format(FAIL_MESSAGE,
                     ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE));
-        } catch (TeletaanInternalException ex){
-            assertTrue(ex.getResponse().getEntity().toString().contains(
+        } catch (WebApplicationException ex){
+            assertTrue(ex.getMessage().contains(
                     ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE)
             );
         }
