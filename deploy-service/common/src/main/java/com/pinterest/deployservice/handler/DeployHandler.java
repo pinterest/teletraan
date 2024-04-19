@@ -89,6 +89,15 @@ public class DeployHandler implements DeployHandlerInterface{
         + "\"nimbus_uuid\":\"%s\"}";
     private static final String COMPARE_DEPLOY_URL = "https://deploy.pinadmin.com/env/%s/%s/compare_deploys_2/?chkbox_1=%s&chkbox_2=%s";
 
+    static final String ERROR_EMPTY_BUILD_ID = "Build id can not be empty.";
+    static final String ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG = "Build name (%s) does not match stage config (%s).";
+    static final String ERROR_NON_PRIVATE_UNTRUSTED_LOCATION = "Non-private build url points to an untrusted location (%s)."
+            + " Please Contact #teletraan to ensure the build artifact is published to a trusted url.";
+    static final String ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD = "This stage does not allow deploying a private build. "
+            + "Please Contact #teletraan to allow your stage for deploying private build.";
+    static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE = "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.";
+    static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE = "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.";
+
     private final DeployDAO deployDAO;
     private final EnvironDAO environDAO;
     private final BuildDAO buildDAO;
@@ -106,7 +115,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private final BuildTagsManager buildTagsManager;
     private final Allowlist buildAllowlist;
     private final ConfigHistoryHandler configHistoryHandler;
-    private final String PRIVATE_BUILD_SCM_BRANCH = "private";
+    static final String PRIVATE_BUILD_SCM_BRANCH = "private";
 
     private final class NotifyJob implements Callable<Void> {
         private final EnvironBean envBean;
@@ -392,7 +401,7 @@ public class DeployHandler implements DeployHandlerInterface{
 
         // check build name must match stage config
         if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new DeployInternalException("Build name (%s) does not match stage config (%s).",
+            throw new DeployInternalException(ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
                     buildBean.getBuild_name(), envBean.getBuild_name());
         }
 
@@ -434,7 +443,7 @@ public class DeployHandler implements DeployHandlerInterface{
 
     private boolean isPrivateBuild(BuildBean buildBean) {
         return buildBean.getScm_branch() != null
-                && !buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH);
+                && buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH);
     }
 
     public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
