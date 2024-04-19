@@ -89,6 +89,15 @@ public class DeployHandler implements DeployHandlerInterface{
         + "\"nimbus_uuid\":\"%s\"}";
     private static final String COMPARE_DEPLOY_URL = "https://deploy.pinadmin.com/env/%s/%s/compare_deploys_2/?chkbox_1=%s&chkbox_2=%s";
 
+    static final String ERROR_EMPTY_BUILD_ID = "Build id can not be empty.";
+    static final String ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG = "Build name (%s) does not match stage config (%s).";
+    static final String ERROR_NON_PRIVATE_UNTRUSTED_LOCATION = "Non-private build url points to an untrusted location (%s)."
+            + " Please Contact #teletraan to ensure the build artifact is published to a trusted url.";
+    static final String ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD = "This stage does not allow deploying a private build. "
+            + "Please Contact #teletraan to allow your stage for deploying private build.";
+    static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE = "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.";
+    static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE = "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.";
+
     private final DeployDAO deployDAO;
     private final EnvironDAO environDAO;
     private final BuildDAO buildDAO;
@@ -106,7 +115,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private final BuildTagsManager buildTagsManager;
     private final Allowlist buildAllowlist;
     private final ConfigHistoryHandler configHistoryHandler;
-
+    static final String PRIVATE_BUILD_SCM_BRANCH = "private";
 
     private final class NotifyJob implements Callable<Void> {
         private final EnvironBean envBean;
@@ -384,45 +393,57 @@ public class DeployHandler implements DeployHandlerInterface{
         5. no private build for sox env
         6. only sox build can be deployed for sox env
     */
-    private void validateBuild(EnvironBean envBean, String buildId) throws Exception {
+    protected void validateBuild(EnvironBean envBean, String buildId) throws Exception {
         if(StringUtils.isEmpty(buildId)) {
-            throw new WebApplicationException("Build id can not be empty.", Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(ERROR_EMPTY_BUILD_ID, Response.Status.BAD_REQUEST);
         }
         BuildBean buildBean = buildDAO.getById(buildId);
 
         // check build name must match stage config
         if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new DeployInternalException("Build name (%s) does not match stage config (%s).",
+            throw new DeployInternalException(ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
                     buildBean.getBuild_name(), envBean.getBuild_name());
         }
+
+        if(envBean.getStage_type() != EnvType.DEV &&
+                buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())
+                && isPrivateBuild(buildBean)){
+            buildBean.setScm_branch(PRIVATE_BUILD_SCM_BRANCH);
+        }
+
         // only allow a non-private deploy if the build is from a trusted artifact url
-        if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
+        if(envBean.getEnsure_trusted_build() && !isPrivateBuild(buildBean) &&
             buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
             throw new WebApplicationException(String.format(
-                    "Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
+                    ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
                     buildBean.getArtifact_url()), Response.Status.BAD_REQUEST);
         }
         // if the stage is not allowed (allow_private_build)
         if(!envBean.getAllow_private_build()) {
             // only allow deploy if it is not private build
-            if (buildBean.getScm_branch().equals("private")) {
+            if (isPrivateBuild(buildBean)) {
                 throw new WebApplicationException(
-                        "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.",
+                        ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD,
                         Response.Status.BAD_REQUEST);
             }
         }
         // disallow sox deploy if the build artifact is private
-        if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
+        if(envBean.getIs_sox() && isPrivateBuild(buildBean)) {
             throw new WebApplicationException(
-                    "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.",
+                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE,
                     Response.Status.BAD_REQUEST);
         }
         // disallow sox deploy if the build artifact is not from a sox source url
         if(envBean.getIs_sox() && buildAllowlist != null && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
             throw new WebApplicationException(
-                    "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.",
+                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE,
                     Response.Status.BAD_REQUEST);
         }
+    }
+
+    private boolean isPrivateBuild(BuildBean buildBean) {
+        return buildBean.getScm_branch() == null
+                || buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH);
     }
 
     public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
