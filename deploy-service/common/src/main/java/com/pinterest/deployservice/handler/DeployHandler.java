@@ -442,8 +442,8 @@ public class DeployHandler implements DeployHandlerInterface{
     }
 
     private boolean isPrivateBuild(BuildBean buildBean) {
-        return buildBean.getScm_branch() != null
-                && buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH);
+        return buildBean.getScm_branch() == null
+                || buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH);
     }
 
     public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
