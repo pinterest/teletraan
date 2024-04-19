@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
@@ -7,8 +23,8 @@ import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.dao.BuildDAO;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
@@ -20,16 +36,18 @@ import static com.pinterest.deployservice.handler.DeployHandler.ERROR_STAGE_NOT_
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE;
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE;
 import static com.pinterest.deployservice.handler.DeployHandler.PRIVATE_BUILD_SCM_BRANCH;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DeployHandlerTest {
-    private DeployHandler deployHandler;
+    private static DeployHandler deployHandler;
     private BuildDAO buildDAO;
     private final String BUILD_ID = "buildId01";
-    private final String NON_PRIVATE_BUILD_SCM_BRANCH ="non_private";
+    private final String NON_PRIVATE_BUILD_SCM_BRANCH = "non_private";
     private final String FAIL_MESSAGE = "Should have thrown WebApplicationException: %s";
 
     private ServiceContext createMockServiceContext() throws Exception {
@@ -37,11 +55,11 @@ public class DeployHandlerTest {
 
         ServiceContext serviceContext = new ServiceContext();
         serviceContext.setBuildDAO(buildDAO);
-        serviceContext.setBuildAllowlist( new BuildAllowlistImpl(new ArrayList<>(),new ArrayList<>(),new ArrayList<>()));
+        serviceContext.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
         return serviceContext;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         deployHandler = new DeployHandler(createMockServiceContext());
     }
@@ -52,11 +70,7 @@ public class DeployHandlerTest {
 
         EnvironBean envBean = genDefaultEnvBean();
         envBean.setAllow_private_build(true);
-        try {
-            deployHandler.validateBuild(envBean, BUILD_ID);
-        } catch (Exception ex){
-            fail("Should not throw exception");
-        }
+        assertDoesNotThrow(() -> deployHandler.validateBuild(envBean, BUILD_ID));
     }
 
     @Test
@@ -65,26 +79,16 @@ public class DeployHandlerTest {
 
         EnvironBean envBean = genDefaultEnvBean();
         envBean.setAllow_private_build(true);
-        try {
-            deployHandler.validateBuild(envBean, BUILD_ID);
-        } catch (Exception ex){
-            fail("Should not throw exception");
-        }
+        assertDoesNotThrow(() -> deployHandler.validateBuild(envBean, BUILD_ID));
     }
 
     @Test
     public void validateBuildFailBuildIdEmpty() throws Exception {
         EnvironBean envBean = genDefaultEnvBean();
-        try {
-            deployHandler.validateBuild(envBean, "");
-            fail(String.format(FAIL_MESSAGE,
-                    ERROR_EMPTY_BUILD_ID
-            ));
-        } catch (WebApplicationException ex){
-            assertTrue(ex.getMessage().contains(
-                    ERROR_EMPTY_BUILD_ID
-            ));
-        }
+
+        Throwable throwable = assertThrows(WebApplicationException.class,
+                () -> deployHandler.validateBuild(envBean, ""));
+        assertTrue(throwable.getMessage().contains(ERROR_EMPTY_BUILD_ID));
     }
 
     @Test
@@ -93,18 +97,12 @@ public class DeployHandlerTest {
         envBean.setBuild_name("other");
         when(buildDAO.getById(BUILD_ID)).thenReturn(genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH));
 
-        try {
-            deployHandler.validateBuild(envBean, BUILD_ID);
-            fail(String.format(FAIL_MESSAGE,
-                    String.format(ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
-                            genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH).getBuild_name(),
-                            envBean.getBuild_name())));
-        } catch (DeployInternalException ex){
-            assertTrue(ex.getMessage().contains(
-                    String.format(ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
-                            genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH).getBuild_name(),
-                            envBean.getBuild_name())));
-        }
+        Throwable throwable = assertThrows(DeployInternalException.class,
+                () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        assertTrue(throwable.getMessage().contains(
+                String.format(ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
+                        genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH).getBuild_name(),
+                        envBean.getBuild_name())));
     }
 
     @Test
@@ -113,18 +111,12 @@ public class DeployHandlerTest {
         when(buildDAO.getById(BUILD_ID)).thenReturn(buildBean);
         EnvironBean envBean = genDefaultEnvBean();
         envBean.setEnsure_trusted_build(true);
-
-        try {
-            deployHandler.validateBuild(envBean, BUILD_ID);
-            fail(String.format(FAIL_MESSAGE,
-                    String.format(ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
-                            buildBean.getArtifact_url())));
-        } catch (WebApplicationException ex){
-            assertTrue(ex.getMessage().contains(
-                    String.format(ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
-                            buildBean.getArtifact_url())
-            ));
-        }
+        Throwable throwable = assertThrows(WebApplicationException.class,
+                () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        assertTrue(throwable.getMessage().contains(
+                String.format(ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
+                        buildBean.getArtifact_url()))
+        );
     }
 
     @Test
@@ -132,14 +124,9 @@ public class DeployHandlerTest {
         BuildBean buildBean = genBuildBean(PRIVATE_BUILD_SCM_BRANCH);
         when(buildDAO.getById(BUILD_ID)).thenReturn(buildBean);
 
-        try {
-            deployHandler.validateBuild(genDefaultEnvBean(), BUILD_ID);
-            fail(String.format(FAIL_MESSAGE,
-                    ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD));
-        } catch (WebApplicationException ex){
-            assertTrue(ex.getMessage().contains(
-                    ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD));
-        }
+        Throwable throwable = assertThrows(WebApplicationException.class,
+                () -> deployHandler.validateBuild(genDefaultEnvBean(), BUILD_ID));
+        assertTrue(throwable.getMessage().contains(ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD));
     }
 
     @Test
@@ -151,16 +138,11 @@ public class DeployHandlerTest {
         envBean.setIs_sox(true);
         envBean.setAllow_private_build(true);
 
-        try {
-            deployHandler.validateBuild(envBean, BUILD_ID);
-            fail(String.format(FAIL_MESSAGE,
-                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE));
-        } catch (WebApplicationException ex){
-            assertTrue(ex.getMessage().contains(
-                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE)
-            );
-        }
+        Throwable throwable = assertThrows(WebApplicationException.class,
+                () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        assertTrue(throwable.getMessage().contains(ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE));
     }
+
     @Test
     public void validateBuildFailErrorStageRequiresSoxBuildCompliantSource() throws Exception {
         BuildBean buildBean = genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH);
@@ -170,15 +152,9 @@ public class DeployHandlerTest {
         envBean.setIs_sox(true);
         envBean.setAllow_private_build(true);
 
-        try {
-            deployHandler.validateBuild(envBean, BUILD_ID);
-            fail(String.format(FAIL_MESSAGE,
-                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE));
-        } catch (WebApplicationException ex){
-            assertTrue(ex.getMessage().contains(
-                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE)
-            );
-        }
+        Throwable throwable = assertThrows(WebApplicationException.class,
+                () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        assertTrue(throwable.getMessage().contains(ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE));
     }
 
     private BuildBean genBuildBean(String scmBranch) {
