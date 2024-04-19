@@ -128,8 +128,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
 
             // Special case for the build resource
             // Authorize PUBLISHER role for build resource here and let the build resource
-            // handle
-            // the rest of the authorization
+            // handle the rest of the authorization
             if (AuthZResource.Type.BUILD.equals(convertedRequestedResource.getType())) {
                 return TeletraanPrincipalRole.PUBLISHER.equals(requiredRole);
             }

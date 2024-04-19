@@ -22,10 +22,12 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 
 import com.codahale.metrics.SharedMetricRegistries;
+import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
@@ -65,17 +67,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class ResourceAuthorizationTest {
     private static final String SCRIPT_TOKEN = "script_token";
     private static final String PINGER_TOKEN = "pinger_token";
+    private static final String PUBLISHER_TOKEN = "publisher_token";
     private static final String JWT_TOKEN = "jwt_token";
     private static final String JWT_ADMIN_TOKEN = "jwt_admin_token";
     private static final String TEST_USER = "testUser";
     private static final String TEST_ADMIN_USER = "testAdminUser";
     private static final String GROUP_PATH = "/group/";
     private static final String USER_PATH = "/user/";
+    private static final String BUILD_SUFFIX = "/{id : [a-zA-Z0-9\\-_]+}";
     private static final String ENV_STAGE_SUFFIX =
             "/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}";
     private static final String TEST_ENV_ID = "testEnv";
     private static final String TEST_ENV_STAGE_ID = "testEnv/testStage";
     private static final String TEST_ENV_STAGE_PATH = "/envs/" + TEST_ENV_STAGE_ID;
+    private static final String TEST_BUILD_ID = "testBuild";
 
     private static ResourceExtension EXT;
     private static MockWebServer mockWebServer;
@@ -90,6 +95,7 @@ public class ResourceAuthorizationTest {
         public static final String all = "/all";
         public static final String admin = "/admin";
         public static final String ping = "/ping";
+        public static final String build = "/build";
     }
 
     private static String[] protectedResourceTargetsProvider() {
@@ -110,9 +116,12 @@ public class ResourceAuthorizationTest {
         UserRolesDAO userRolesDAO = mock(UserRolesDAO.class);
         GroupRolesDAO groupRolesDAO = mock(GroupRolesDAO.class);
         EnvironDAO environDAO = mock(EnvironDAO.class);
+        BuildDAO buildDAO = mock(BuildDAO.class);
         UserRolesBean adminRolesBean = new UserRolesBean();
         TokenRolesBean tokenRolesBean = new TokenRolesBean();
         TokenRolesBean pingerRolesBean = new TokenRolesBean();
+        TokenRolesBean publisherRolesBean = new TokenRolesBean();
+        BuildBean buildBean = new BuildBean();
 
         mockWebServer = new MockWebServer();
         mockWebServer.setDispatcher(new AuthDispatcher());
@@ -125,12 +134,17 @@ public class ResourceAuthorizationTest {
         pingerRolesBean.setRole(TeletraanPrincipalRole.PINGER);
         pingerRolesBean.setResource_id(AuthZResource.ALL);
         pingerRolesBean.setResource_type(AuthZResource.Type.SYSTEM);
+        publisherRolesBean.setRole(TeletraanPrincipalRole.PUBLISHER);
+        publisherRolesBean.setResource_id(AuthZResource.ALL);
+        publisherRolesBean.setResource_type(AuthZResource.Type.SYSTEM);
+        buildBean.setBuild_name(TEST_BUILD_ID);
 
         context.setAuthorizationFactory(authorizationFactory);
         context.setTokenRolesDAO(tokenRolesDAO);
         context.setUserRolesDAO(userRolesDAO);
         context.setGroupRolesDAO(groupRolesDAO);
         context.setEnvironDAO(environDAO);
+        context.setBuildDAO(buildDAO);
         context.setAuthZResourceExtractorFactory(
                 new TeletraanAuthZResourceExtractorFactory(context));
 
@@ -140,7 +154,9 @@ public class ResourceAuthorizationTest {
                     .thenReturn(adminRolesBean);
             when(tokenRolesDAO.getByToken(SCRIPT_TOKEN)).thenReturn(tokenRolesBean);
             when(tokenRolesDAO.getByToken(PINGER_TOKEN)).thenReturn(pingerRolesBean);
+            when(tokenRolesDAO.getByToken(PUBLISHER_TOKEN)).thenReturn(publisherRolesBean);
             when(environDAO.getByName(TEST_ENV_ID)).thenReturn(Collections.singletonList(new EnvironBean()));
+            when(buildDAO.getById(TEST_BUILD_ID)).thenReturn(buildBean);
             EXT =
                     ResourceExtension.builder()
                             .addProvider(
@@ -299,6 +315,18 @@ public class ResourceAuthorizationTest {
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 
+
+    @Test
+    void validPublisherToken_buildResource_200() {
+        Response response =
+                EXT.target(Targets.build + "/" + TEST_BUILD_ID)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + PUBLISHER_TOKEN)
+                        .get();
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    }
+
     @Produces(MediaType.APPLICATION_JSON)
     @Path(Targets.root)
     public static class TestResource {
@@ -376,6 +404,14 @@ public class ResourceAuthorizationTest {
         @RolesAllowed(TeletraanPrincipalRole.Names.PINGER)
         @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
         public Response pingResource() {
+            return Response.ok().build();
+        }
+
+        @GET
+        @Path(Targets.build + BUILD_SUFFIX)
+        @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
+        @ResourceAuthZInfo(type = AuthZResource.Type.BUILD, idLocation = ResourceAuthZInfo.Location.PATH)
+        public Response buildResource() {
             return Response.ok().build();
         }
     }

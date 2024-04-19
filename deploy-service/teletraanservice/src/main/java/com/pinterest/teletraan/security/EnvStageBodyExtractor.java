@@ -27,6 +27,8 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 
 import org.glassfish.jersey.server.ContainerRequest;
@@ -71,6 +73,9 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
                 return extractDeployResource(inputStream);
             } catch (Exception e) {
                 if (!tryAll) {
+                    if (e instanceof NotFoundException) {
+                        throw (NotFoundException) e;
+                    }
                     throw new BeanClassExtractionException(beanClass, e);
                 }
             }
@@ -91,6 +96,9 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
                 return extractAgentResource(inputStream);
             } catch (Exception e) {
                 if (!tryAll) {
+                    if (e instanceof NotFoundException) {
+                        throw (NotFoundException) e;
+                    }
                     throw new BeanClassExtractionException(beanClass, e);
                 }
             }
@@ -108,9 +116,18 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }
 
-    private AuthZResource extractDeployResource(InputStream inputStream) throws Exception {
+    private AuthZResource extractDeployResource(InputStream inputStream) throws IOException, ExtractionException, NotFoundException {
         DeployBean deployBean = new ObjectMapper().readValue(inputStream, DeployBean.class);
-        EnvironBean envBean = environDAO.getById(deployBean.getEnv_id());
+        EnvironBean envBean;
+        try {
+            envBean = environDAO.getById(deployBean.getEnv_id());
+        } catch (Exception e) {
+            throw new ExtractionException("Failed to get environment bean", e);
+        }
+        if (envBean == null) {
+            throw new NotFoundException(String.format("Environment(%s) not found, referenced by deploy(%s)",
+                    deployBean.getEnv_id(), deployBean.getDeploy_id()));
+        }
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }
 
@@ -119,9 +136,19 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
         return new AuthZResource(hotfixBean.getEnv_name(), "");
     }
 
-    private AuthZResource extractAgentResource(InputStream inputStream) throws Exception {
+    private AuthZResource extractAgentResource(InputStream inputStream) throws IOException, ExtractionException, NotFoundException {
         AgentBean agentBean = new ObjectMapper().readValue(inputStream, AgentBean.class);
-        EnvironBean envBean = environDAO.getById(agentBean.getEnv_id());
+        EnvironBean envBean;
+        try {
+            envBean = environDAO.getById(agentBean.getEnv_id());
+        } catch (Exception e) {
+            throw new ExtractionException("Failed to get environment bean", e);
+        }
+
+        if (envBean == null) {
+            throw new NotFoundException(String.format("Environment(%s) not found, referenced by agent(%s)",
+                    agentBean.getEnv_id(), agentBean.getHost_name()));
+        }
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }
 }
