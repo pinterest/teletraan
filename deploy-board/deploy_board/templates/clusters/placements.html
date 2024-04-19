@@ -126,7 +126,7 @@
                         <div class="col-md-6">
                             <select class="form-control" name="accountId" required id="account">
                                 {% for account in accounts %}
-                                    <option value="{{account.id}}" >{{ account.ownerId }} / {{ account.name }} / {{ account.description }}</option>
+                                    <option {% if account.id == defaultAccountId %}selected{% endif %} value="{{account.id}}" >{{ account.ownerId }} / {{ account.name }} / {{ account.description }}</option>
                                 {% endfor %}
                             </select>
                         </div>

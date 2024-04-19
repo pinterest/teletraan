@@ -746,11 +746,13 @@ def get_security_zones(request):
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     accounts = accounts_helper.get_all_accounts(request)
+    default_account = accounts_helper.get_default_account(request, DEFAULT_CELL)
 
     return render(request, 'clusters/security_zones.html', {
         'security_zones': security_zones,
         'provider_list': provider_list,
         'cells_list': cells_list,
+        'defaultAccountId': default_account['id'] if default_account is not None else None,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -803,11 +805,13 @@ def get_placements(request):
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     accounts = accounts_helper.get_all_accounts(request)
+    default_account = accounts_helper.get_default_account(request, DEFAULT_CELL)
 
     return render(request, 'clusters/placements.html', {
         'placements': placements,
         'provider_list': provider_list,
         'cells_list': cells_list,
+        'defaultAccountId': default_account['id'] if default_account is not None else None,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
