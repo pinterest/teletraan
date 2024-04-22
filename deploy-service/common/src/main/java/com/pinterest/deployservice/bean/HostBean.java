@@ -31,7 +31,6 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * state           VARCHAR(32)         NOT NULL,
  * can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
  * account_id      VARCHAR(64),
- * is_protected    TINYINT(1)         NOT NULL DEFAULT 0,
  * PRIMARY KEY    (host_name, group_name)
  * );
  */
@@ -69,8 +68,6 @@ public class HostBean implements Updatable {
     // TO_BE_REPLACED(1) = marked by cluster replace event to be replaced
     // HEALTH_CHECK(2) = host only launch for health check purpose and not to be replaced/retired
 
-    @JsonProperty("isProtected")
-    private Integer is_protected ;
 
     public String getHost_name() {
         return host_name;
@@ -148,14 +145,6 @@ public class HostBean implements Updatable {
         return this.state == HostState.PENDING_TERMINATE || this.state == HostState.PENDING_TERMINATE_NO_REPLACE;
     }
 
-    public Integer getIs_protected() {
-        return is_protected;
-    }
-
-    public void setIs_protected(Integer is_protected) {
-        this.is_protected = is_protected;
-    }
-
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -168,7 +157,6 @@ public class HostBean implements Updatable {
         clause.addColumn("state", state);
         clause.addColumn("can_retire", can_retire);
         clause.addColumn("account_id", account_id);
-        clause.addColumn("is_protected", is_protected);
         return clause;
     }
 
@@ -180,8 +168,7 @@ public class HostBean implements Updatable {
             "create_date=VALUES(create_date)," +
             "last_update=VALUES(last_update)," +
             "state=VALUES(state)," +
-            "can_retire=VALUES(can_retire), "+
-            "is_protected=VALUES(is_protected)";
+            "can_retire=VALUES(can_retire)";
 
     @Override
     public String toString() {

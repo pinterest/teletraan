@@ -1,1028 +1,0 @@
-[[1;34mINFO[m] Scanning for projects...
-[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
-[[1;34mINFO[m] [1mReactor Build Order:[m
-[[1;34mINFO[m] 
-[[1;34mINFO[m] teletraan                                                          [pom]
-[[1;34mINFO[m] Teletraan platform universal components                            [jar]
-[[1;34mINFO[m] common                                                             [jar]
-[[1;34mINFO[m] teletraan-service                                                  [jar]
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/exec-maven-plugin/3.0.0/exec-maven-plugin-3.0.0.pom
-Progress (1): 1.4/14 kBProgress (1): 2.7/14 kBProgress (1): 4.1/14 kBProgress (1): 5.5/14 kBProgress (1): 6.9/14 kBProgress (1): 8.2/14 kBProgress (1): 9.6/14 kBProgress (1): 11/14 kB Progress (1): 12/14 kBProgress (1): 14 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/exec-maven-plugin/3.0.0/exec-maven-plugin-3.0.0.pom (14 kB at 90 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/50/mojo-parent-50.pom
-Progress (1): 1.4/34 kBProgress (1): 2.7/34 kBProgress (1): 4.1/34 kBProgress (1): 5.5/34 kBProgress (1): 6.9/34 kBProgress (1): 8.2/34 kBProgress (1): 9.6/34 kBProgress (1): 11/34 kB Progress (1): 12/34 kBProgress (1): 14/34 kBProgress (1): 15/34 kBProgress (1): 16/34 kBProgress (1): 18/34 kBProgress (1): 19/34 kBProgress (1): 21/34 kBProgress (1): 22/34 kBProgress (1): 23/34 kBProgress (1): 25/34 kBProgress (1): 26/34 kBProgress (1): 27/34 kBProgress (1): 29/34 kBProgress (1): 30/34 kBProgress (1): 32/34 kBProgress (1): 33/34 kBProgress (1): 34 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/50/mojo-parent-50.pom (34 kB at 2.6 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/exec-maven-plugin/3.0.0/exec-maven-plugin-3.0.0.jar
-Progress (1): 4.1/68 kBProgress (1): 8.2/68 kBProgress (1): 12/68 kB Progress (1): 16/68 kBProgress (1): 20/68 kBProgress (1): 24/68 kBProgress (1): 28/68 kBProgress (1): 32/68 kBProgress (1): 36/68 kBProgress (1): 40/68 kBProgress (1): 45/68 kBProgress (1): 49/68 kBProgress (1): 53/68 kBProgress (1): 57/68 kBProgress (1): 61/68 kBProgress (1): 65/68 kBProgress (1): 68 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/exec-maven-plugin/3.0.0/exec-maven-plugin-3.0.0.jar (68 kB at 6.1 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-install-plugin/3.1.1/maven-install-plugin-3.1.1.pom
-Progress (1): 4.1/7.8 kBProgress (1): 7.8 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-install-plugin/3.1.1/maven-install-plugin-3.1.1.pom (7.8 kB at 1.1 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-install-plugin/3.1.1/maven-install-plugin-3.1.1.jar
-Progress (1): 4.1/31 kBProgress (1): 8.2/31 kBProgress (1): 12/31 kB Progress (1): 16/31 kBProgress (1): 20/31 kBProgress (1): 25/31 kBProgress (1): 29/31 kBProgress (1): 31 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-install-plugin/3.1.1/maven-install-plugin-3.1.1.jar (31 kB at 3.5 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-deploy-plugin/2.7/maven-deploy-plugin-2.7.pom
-Progress (1): 4.1/5.6 kBProgress (1): 5.6 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-deploy-plugin/2.7/maven-deploy-plugin-2.7.pom (5.6 kB at 802 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/22/maven-plugins-22.pom
-Progress (1): 4.1/13 kBProgress (1): 8.2/13 kBProgress (1): 12/13 kB Progress (1): 13 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/22/maven-plugins-22.pom (13 kB at 1.6 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/21/maven-parent-21.pom
-Progress (1): 4.1/26 kBProgress (1): 8.2/26 kBProgress (1): 12/26 kB Progress (1): 16/26 kBProgress (1): 20/26 kBProgress (1): 24/26 kBProgress (1): 26 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/21/maven-parent-21.pom (26 kB at 2.6 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/10/apache-10.pom
-Progress (1): 4.1/15 kBProgress (1): 8.2/15 kBProgress (1): 12/15 kB Progress (1): 15 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/apache/10/apache-10.pom (15 kB at 2.1 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-deploy-plugin/2.7/maven-deploy-plugin-2.7.jar
-Progress (1): 4.1/27 kBProgress (1): 8.2/27 kBProgress (1): 12/27 kB Progress (1): 16/27 kBProgress (1): 20/27 kBProgress (1): 25/27 kBProgress (1): 27 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-deploy-plugin/2.7/maven-deploy-plugin-2.7.jar (27 kB at 3.4 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-site-plugin/3.3/maven-site-plugin-3.3.pom
-Progress (1): 4.1/21 kBProgress (1): 8.2/21 kBProgress (1): 12/21 kB Progress (1): 16/21 kBProgress (1): 20/21 kBProgress (1): 21 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-site-plugin/3.3/maven-site-plugin-3.3.pom (21 kB at 3.5 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/24/maven-plugins-24.pom
-Progress (1): 4.1/11 kBProgress (1): 8.2/11 kBProgress (1): 11 kB                       Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/24/maven-plugins-24.pom (11 kB at 1.5 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-site-plugin/3.3/maven-site-plugin-3.3.jar
-Progress (1): 4.1/124 kBProgress (1): 8.2/124 kBProgress (1): 12/124 kB Progress (1): 16/124 kBProgress (1): 20/124 kBProgress (1): 24/124 kBProgress (1): 28/124 kBProgress (1): 32/124 kBProgress (1): 36/124 kBProgress (1): 40/124 kBProgress (1): 45/124 kBProgress (1): 49/124 kBProgress (1): 53/124 kBProgress (1): 57/124 kBProgress (1): 61/124 kBProgress (1): 65/124 kBProgress (1): 69/124 kBProgress (1): 73/124 kBProgress (1): 77/124 kBProgress (1): 81/124 kBProgress (1): 85/124 kBProgress (1): 90/124 kBProgress (1): 94/124 kBProgress (1): 98/124 kBProgress (1): 102/124 kBProgress (1): 106/124 kBProgress (1): 110/124 kBProgress (1): 114/124 kBProgress (1): 118/124 kBProgress (1): 122/124 kBProgress (1): 124 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-site-plugin/3.3/maven-site-plugin-3.3.jar (124 kB at 11 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-antrun-plugin/1.3/maven-antrun-plugin-1.3.pom
-Progress (1): 4.1/4.7 kBProgress (1): 4.7 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-antrun-plugin/1.3/maven-antrun-plugin-1.3.pom (4.7 kB at 676 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/12/maven-plugins-12.pom
-Progress (1): 4.1/12 kBProgress (1): 8.2/12 kBProgress (1): 12 kB                       Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/12/maven-plugins-12.pom (12 kB at 2.0 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/9/maven-parent-9.pom
-Progress (1): 4.1/33 kBProgress (1): 8.2/33 kBProgress (1): 12/33 kB Progress (1): 16/33 kBProgress (1): 20/33 kBProgress (1): 24/33 kBProgress (1): 28/33 kBProgress (1): 32/33 kBProgress (1): 33 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/9/maven-parent-9.pom (33 kB at 3.6 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-antrun-plugin/1.3/maven-antrun-plugin-1.3.jar
-Progress (1): 4.1/24 kBProgress (1): 8.2/24 kBProgress (1): 12/24 kB Progress (1): 16/24 kBProgress (1): 20/24 kBProgress (1): 24 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-antrun-plugin/1.3/maven-antrun-plugin-1.3.jar (24 kB at 3.4 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/jacoco/jacoco-maven-plugin/0.8.9/jacoco-maven-plugin-0.8.9.pom
-Progress (1): 3.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/jacoco/jacoco-maven-plugin/0.8.9/jacoco-maven-plugin-0.8.9.pom (3.8 kB at 473 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/jacoco/org.jacoco.build/0.8.9/org.jacoco.build-0.8.9.pom
-Progress (1): 4.1/44 kBProgress (1): 8.2/44 kBProgress (1): 12/44 kB Progress (1): 16/44 kBProgress (1): 20/44 kBProgress (1): 25/44 kBProgress (1): 29/44 kBProgress (1): 33/44 kBProgress (1): 37/44 kBProgress (1): 41/44 kBProgress (1): 44 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/jacoco/org.jacoco.build/0.8.9/org.jacoco.build-0.8.9.pom (44 kB at 4.9 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/ow2/asm/asm-bom/9.5/asm-bom-9.5.pom
-Progress (1): 3.2 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/ow2/asm/asm-bom/9.5/asm-bom-9.5.pom (3.2 kB at 538 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/jacoco/jacoco-maven-plugin/0.8.9/jacoco-maven-plugin-0.8.9.jar
-Progress (1): 4.1/56 kBProgress (1): 8.2/56 kBProgress (1): 12/56 kB Progress (1): 16/56 kBProgress (1): 20/56 kBProgress (1): 25/56 kBProgress (1): 29/56 kBProgress (1): 33/56 kBProgress (1): 37/56 kBProgress (1): 41/56 kBProgress (1): 45/56 kBProgress (1): 49/56 kBProgress (1): 53/56 kBProgress (1): 56 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/jacoco/jacoco-maven-plugin/0.8.9/jacoco-maven-plugin-0.8.9.jar (56 kB at 6.2 MB/s)
-[[1;34mINFO[m] 
-[[1;34mINFO[m] Using the MultiThreadedBuilder implementation with a thread count of 32
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m-----------------< [0;36mcom.pinterest.teletraan:teletraan[0;1m >------------------[m
-[[1;34mINFO[m] [1mBuilding teletraan 0.2-SNAPSHOT                                    [1/4][m
-[[1;34mINFO[m] [1m--------------------------------[ pom ]---------------------------------[m
-Downloading from central: https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/junit/vintage/junit-vintage-engine/5.10.1/junit-vintage-engine-5.10.1.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/vintage/junit-vintage-engine/5.10.1/junit-vintage-engine-5.10.1.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.pom (0 B at 0 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.pom (0 B at 0 B/s)
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:3.6.1:tree[m [1m(default-cli)[m @ [36mteletraan[0;1m ---[m
-Downloading from central: https://repo.maven.apache.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.pom (0 B at 0 B/s)
-[[1;34mINFO[m] com.pinterest.teletraan:teletraan:pom:0.2-SNAPSHOT
-[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.10.1:test
-[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.10.1:test
-[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.3.0:test
-[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.10.1:test
-[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test
-[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
-[[1;34mINFO[m] +- org.junit.vintage:junit-vintage-engine:jar:5.10.1:test
-[[1;34mINFO[m] \- junit:junit:jar:4.13.2:test
-[[1;34mINFO[m]    \- org.hamcrest:hamcrest-core:jar:1.3:test
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m-----------------< [0;36mcom.pinterest.teletraan:universal[0;1m >------------------[m
-[[1;34mINFO[m] [1mBuilding Teletraan platform universal components 2.0-SNAPSHOT      [2/4][m
-[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:3.6.1:tree[m [1m(default-cli)[m @ [36muniversal[0;1m ---[m
-[[1;34mINFO[m] com.pinterest.teletraan:universal:jar:2.0-SNAPSHOT
-[[1;34mINFO[m] +- io.micrometer:micrometer-core:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-observation:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- org.hdrhistogram:HdrHistogram:jar:2.1.12:compile
-[[1;34mINFO[m] |  \- org.latencyutils:LatencyUtils:jar:2.0.3:runtime
-[[1;34mINFO[m] +- io.micrometer:micrometer-commons:jar:1.11.3:compile
-[[1;34mINFO[m] +- io.micrometer:micrometer-registry-opentsdb:jar:1.11.3:compile
-[[1;34mINFO[m] +- io.projectreactor:reactor-core:jar:3.6.3:compile
-[[1;34mINFO[m] |  \- org.reactivestreams:reactive-streams:jar:1.0.4:compile
-[[1;34mINFO[m] +- io.projectreactor.netty:reactor-netty-core:jar:1.1.16:compile
-[[1;34mINFO[m] |  +- io.netty:netty-handler:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-common:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-resolver:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-transport:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-transport-native-unix-common:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-codec:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- io.netty:netty-handler-proxy:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-codec-socks:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- io.netty:netty-resolver-dns:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-codec-dns:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- io.netty:netty-resolver-dns-native-macos:jar:osx-x86_64:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-resolver-dns-classes-macos:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  \- io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.106.Final:compile
-[[1;34mINFO[m] |     \- io.netty:netty-transport-classes-epoll:jar:4.1.106.Final:compile
-[[1;34mINFO[m] +- io.projectreactor.netty:reactor-netty-http:jar:1.1.16:compile
-[[1;34mINFO[m] |  +- io.netty:netty-codec-http:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  \- io.netty:netty-codec-http2:jar:4.1.106.Final:compile
-[[1;34mINFO[m] +- org.projectlombok:lombok:jar:1.18.28:provided
-[[1;34mINFO[m] +- org.apache.commons:commons-lang3:jar:3.14.0:compile
-[[1;34mINFO[m] +- org.slf4j:slf4j-api:jar:1.7.36:compile
-[[1;34mINFO[m] +- com.fasterxml.jackson.core:jackson-annotations:jar:2.13.5:compile
-[[1;34mINFO[m] +- com.fasterxml.jackson.core:jackson-databind:jar:2.13.5:compile
-[[1;34mINFO[m] |  \- com.fasterxml.jackson.core:jackson-core:jar:2.13.5:compile
-[[1;34mINFO[m] +- com.google.guava:guava:jar:33.0.0-jre:compile
-[[1;34mINFO[m] |  +- com.google.guava:failureaccess:jar:1.0.2:compile
-[[1;34mINFO[m] |  +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
-[[1;34mINFO[m] |  +- org.checkerframework:checker-qual:jar:3.42.0:compile
-[[1;34mINFO[m] |  +- com.google.errorprone:error_prone_annotations:jar:2.10.0:compile
-[[1;34mINFO[m] |  \- com.google.j2objc:j2objc-annotations:jar:2.8:compile
-[[1;34mINFO[m] +- jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6:compile
-[[1;34mINFO[m] +- jakarta.annotation:jakarta.annotation-api:jar:1.3.5:compile
-[[1;34mINFO[m] +- io.dropwizard:dropwizard-auth:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-jersey:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard:dropwizard-jackson:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-guava:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  +- com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  +- com.fasterxml.jackson.module:jackson-module-blackbird:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  \- com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard:dropwizard-validation:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  |  \- org.glassfish:jakarta.el:jar:3.0.4:runtime
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.ext:jersey-metainf-services:jar:2.41:runtime
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.inject:jersey-hk2:jar:2.41:runtime
-[[1;34mINFO[m] |  |  |  \- org.glassfish.hk2:hk2-locator:jar:2.6.1:runtime
-[[1;34mINFO[m] |  |  +- org.javassist:javassist:jar:3.29.2-GA:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.metrics:metrics-jersey2:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  |  \- io.dropwizard.metrics:metrics-annotation:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml:classmate:jar:1.6.0:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  \- com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |     +- jakarta.xml.bind:jakarta.xml.bind-api:jar:2.3.3:compile
-[[1;34mINFO[m] |  |  |     \- jakarta.activation:jakarta.activation-api:jar:1.2.2:compile
-[[1;34mINFO[m] |  |  +- jakarta.validation:jakarta.validation-api:jar:2.0.2:compile
-[[1;34mINFO[m] |  |  +- joda-time:joda-time:jar:2.12.5:compile
-[[1;34mINFO[m] |  |  +- org.glassfish.hk2:hk2-api:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  |  +- org.glassfish.hk2:hk2-utils:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  |  \- org.glassfish.hk2.external:aopalliance-repackaged:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.containers:jersey-container-servlet:jar:2.41:runtime
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.core:jersey-client:jar:2.41:compile
-[[1;34mINFO[m] |  |  +- org.hibernate.validator:hibernate-validator:jar:6.2.5.Final:compile
-[[1;34mINFO[m] |  |  |  \- org.jboss.logging:jboss-logging:jar:3.4.1.Final:compile
-[[1;34mINFO[m] |  |  +- org.eclipse.jetty:jetty-io:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  |  \- jakarta.servlet:jakarta.servlet-api:jar:4.0.4:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-logging:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.metrics:metrics-logback:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  +- org.slf4j:jul-to-slf4j:jar:1.7.36:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.logback:logback-throttling-appender:jar:1.1.11:compile
-[[1;34mINFO[m] |  |  +- org.slf4j:jcl-over-slf4j:jar:1.7.36:runtime
-[[1;34mINFO[m] |  |  \- org.eclipse.jetty:jetty-util:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-util:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-core:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-caffeine:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- com.github.ben-manes.caffeine:caffeine:jar:2.9.3:compile
-[[1;34mINFO[m] |  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile
-[[1;34mINFO[m] |  +- jakarta.inject:jakarta.inject-api:jar:1.0.5:compile
-[[1;34mINFO[m] |  +- org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.41:compile
-[[1;34mINFO[m] |  +- org.glassfish.jersey.core:jersey-common:jar:2.41:compile
-[[1;34mINFO[m] |  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.3:compile
-[[1;34mINFO[m] |  \- org.glassfish.jersey.core:jersey-server:jar:2.41:compile
-[[1;34mINFO[m] +- org.mockito:mockito-core:jar:4.11.0:test
-[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.10:test
-[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.12.19:test
-[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
-[[1;34mINFO[m] +- io.micrometer:micrometer-test:jar:1.11.3:test
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-observation-test:jar:1.11.3:test
-[[1;34mINFO[m] |  +- org.assertj:assertj-core:jar:3.24.2:test
-[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter:jar:5.10.1:test
-[[1;34mINFO[m] |  |  \- org.junit.jupiter:junit-jupiter-params:jar:5.10.1:test
-[[1;34mINFO[m] |  +- ru.lanwen.wiremock:wiremock-junit5:jar:1.3.1:test
-[[1;34mINFO[m] |  +- com.github.tomakehurst:wiremock-jre8-standalone:jar:2.33.2:test
-[[1;34mINFO[m] |  \- org.awaitility:awaitility:jar:4.2.0:test
-[[1;34mINFO[m] |     \- org.hamcrest:hamcrest:jar:2.1:test
-[[1;34mINFO[m] +- com.squareup.okhttp3:mockwebserver:jar:4.12.0:test
-[[1;34mINFO[m] |  +- com.squareup.okhttp3:okhttp:jar:4.12.0:test
-[[1;34mINFO[m] |  |  \- com.squareup.okio:okio:jar:3.6.0:test
-[[1;34mINFO[m] |  |     \- com.squareup.okio:okio-jvm:jar:3.6.0:test
-[[1;34mINFO[m] |  \- org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.8.21:test
-[[1;34mINFO[m] |     +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.8.21:test
-[[1;34mINFO[m] |     |  +- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.8.21:test
-[[1;34mINFO[m] |     |  \- org.jetbrains:annotations:jar:13.0:test
-[[1;34mINFO[m] |     \- org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.8.21:test
-[[1;34mINFO[m] +- ch.qos.logback:logback-classic:jar:1.2.13:test
-[[1;34mINFO[m] |  \- ch.qos.logback:logback-core:jar:1.2.13:compile
-[[1;34mINFO[m] +- com.pinterest.optimus.commons:pinterest-commons:jar:0.1-SNAPSHOT:compile
-[[1;34mINFO[m] |  +- javax.inject:javax.inject:jar:1:compile
-[[1;34mINFO[m] |  +- net.sf.uadetector:uadetector-resources:jar:2013.10:compile
-[[1;34mINFO[m] |  |  \- net.sf.uadetector:uadetector-core:jar:0.9.10:compile
-[[1;34mINFO[m] |  |     +- net.sf.qualitycheck:quality-check:jar:1.3:compile
-[[1;34mINFO[m] |  |     \- javax.annotation:jsr250-api:jar:1.0:compile
-[[1;34mINFO[m] |  +- io.netty:netty-buffer:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- io.netty:netty-tcnative-boringssl-static:jar:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-tcnative-classes:jar:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-tcnative-boringssl-static:jar:linux-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-tcnative-boringssl-static:jar:linux-aarch_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-tcnative-boringssl-static:jar:osx-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-tcnative-boringssl-static:jar:osx-aarch_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-tcnative-boringssl-static:jar:windows-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  +- io.netty:netty:jar:3.10.1.Final-p1:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-core_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-toggle_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-app_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-cache_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-codec_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-core_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-function_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  \- org.scala-lang:scala-reflect:jar:2.11.8:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-hashing_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-jvm_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-lint_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-logging_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-registry_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-security_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-stats_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  \- com.twitter:util-tunable_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-memcached_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-netty4_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:bijection-core_2.11:jar:0.9.4:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:io-json:jar:0.0.54:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:io:jar:0.0.68:compile
-[[1;34mINFO[m] |  |  \- com.fasterxml.jackson.module:jackson-module-scala_2.11:jar:2.13.5:compile
-[[1;34mINFO[m] |  |     \- com.thoughtworks.paranamer:paranamer:jar:2.8:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-ostrich4_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  \- com.twitter:ostrich_2.11:jar:9.26.0:compile
-[[1;34mINFO[m] |  |     \- com.twitter:util-eval_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |        \- org.scala-lang:scala-compiler:jar:2.11.8:compile
-[[1;34mINFO[m] |  |           \- org.scala-lang.modules:scala-xml_2.11:jar:1.0.4:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-redis_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-thrift_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  \- com.twitter:scrooge-core_2.11:jar:4.15.0:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-thriftmux_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-mux_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  \- com.twitter.common:stats-util:jar:0.0.60:compile
-[[1;34mINFO[m] |  +- org.openjdk.jmh:jmh-core:jar:1.21:compile
-[[1;34mINFO[m] |  |  \- net.sf.jopt-simple:jopt-simple:jar:4.6:compile
-[[1;34mINFO[m] |  +- org.openjdk.jmh:jmh-generator-annprocess:jar:1.21:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-serversets_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:util-zk-common_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-zk_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common.zookeeper:group:jar:0.0.92:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common.zookeeper:server-set:jar:1.0.112:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:io-thrift:jar:0.0.67:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:dynamic-host-set:jar:0.0.56:compile
-[[1;34mINFO[m] |  |  \- com.twitter.common:service-thrift:jar:1.0.55:compile
-[[1;34mINFO[m] |  +- com.twitter.common:args:jar:0.2.41:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:args-core:jar:0.1.37:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:base:jar:0.0.115:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:net-util:jar:0.0.102:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:quantity:jar:0.0.99:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:collections:jar:0.0.110:compile
-[[1;34mINFO[m] |  |  +- commons-lang:commons-lang:jar:2.6:compile
-[[1;34mINFO[m] |  |  \- commons-codec:commons-codec:jar:1.16.0:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-base-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-netty4-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-http2_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  \- com.twitter:util-collection_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  +- com.twitter:finagle-stats_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:metrics:jar:0.0.39:compile
-[[1;34mINFO[m] |  |  \- com.twitter:util-events_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  +- com.twitter.common:thrift:jar:0.0.57:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:net-pool:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:stats:jar:0.0.66:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:stat-registry:jar:0.0.10:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common:stat:jar:0.0.11:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:stats-provider:jar:0.0.36:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:application-action:jar:0.0.46:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:util-sampler:jar:0.0.33:compile
-[[1;34mINFO[m] |  |  \- com.twitter.common:util-system-mocks:jar:0.0.43:compile
-[[1;34mINFO[m] |  +- com.twitter.common:thrift-text:jar:0.0.27:compile
-[[1;34mINFO[m] |  +- com.twitter.common.zookeeper:map:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  \- com.twitter.common.zookeeper:client:jar:0.0.68:compile
-[[1;34mINFO[m] |  +- com.twitter.common.zookeeper:node:jar:0.0.49:compile
-[[1;34mINFO[m] |  +- com.twitter.common:util:jar:0.0.118:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:util-executor-service-shutdown:jar:0.0.64:compile
-[[1;34mINFO[m] |  |  \- com.twitter.common:jdk-logging:jar:0.0.76:compile
-[[1;34mINFO[m] |  +- org.apache.zookeeper:zookeeper:jar:3.4.5:compile
-[[1;34mINFO[m] |  |  \- jline:jline:jar:0.9.94:compile
-[[1;34mINFO[m] |  +- org.hbase:asynchbase:jar:1.7.5.35-pinterest:compile
-[[1;34mINFO[m] |  |  +- com.google.protobuf:protobuf-java:jar:2.5.0:compile
-[[1;34mINFO[m] |  |  \- com.stumbleupon:async:jar:1.4.0:compile
-[[1;34mINFO[m] |  +- com.google.auto.value:auto-value-annotations:jar:1.6.2:compile
-[[1;34mINFO[m] |  +- commons-collections:commons-collections:jar:3.2.1:compile
-[[1;34mINFO[m] |  +- commons-configuration:commons-configuration:jar:1.9:compile
-[[1;34mINFO[m] |  |  \- commons-logging:commons-logging:jar:1.1.1:compile
-[[1;34mINFO[m] |  +- commons-io:commons-io:jar:2.4:compile
-[[1;34mINFO[m] |  +- org.apache.commons:commons-compress:jar:1.8:compile
-[[1;34mINFO[m] |  |  \- org.tukaani:xz:jar:1.5:compile
-[[1;34mINFO[m] |  +- org.apache.thrift:libthrift:jar:0.5.0-p8:compile
-[[1;34mINFO[m] |  +- com.google.inject:guice:jar:3.0:compile
-[[1;34mINFO[m] |  |  \- aopalliance:aopalliance:jar:1.0:compile
-[[1;34mINFO[m] |  +- org.apache.curator:curator-framework:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  \- org.apache.curator:curator-client:jar:2.9.0:compile
-[[1;34mINFO[m] |  +- org.apache.curator:curator-recipes:jar:2.9.0:compile
-[[1;34mINFO[m] |  +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile
-[[1;34mINFO[m] |  |  \- org.codehaus.jackson:jackson-core-asl:jar:1.9.13:compile
-[[1;34mINFO[m] |  +- org.apache.commons:commons-dbcp2:jar:2.1.1:compile
-[[1;34mINFO[m] |  |  \- org.apache.commons:commons-pool2:jar:2.4.2:compile
-[[1;34mINFO[m] |  +- org.json:json:jar:20090211:compile
-[[1;34mINFO[m] |  +- net.minidev:json-smart:jar:1.0.9:compile
-[[1;34mINFO[m] |  +- com.jayway.jsonpath:json-path:jar:0.9.1:compile
-[[1;34mINFO[m] |  +- org.hamcrest:hamcrest-all:jar:1.3:compile
-[[1;34mINFO[m] |  +- org.apache.httpcomponents:httpclient:jar:4.5.14:compile
-[[1;34mINFO[m] |  +- org.apache.httpcomponents:httpcore:jar:4.4.16:compile
-[[1;34mINFO[m] |  +- com.github.sgroschupf:zkclient:jar:0.1:compile
-[[1;34mINFO[m] |  +- org.apache.kafka:kafka_2.11:jar:0.10.2.0:compile
-[[1;34mINFO[m] |  |  +- com.yammer.metrics:metrics-core:jar:2.2.0:compile
-[[1;34mINFO[m] |  |  +- com.101tec:zkclient:jar:0.10:compile
-[[1;34mINFO[m] |  |  \- org.scala-lang.modules:scala-parser-combinators_2.11:jar:1.0.4:compile
-[[1;34mINFO[m] |  +- org.apache.kafka:kafka-clients:jar:0.10.2.0:compile
-[[1;34mINFO[m] |  |  +- net.jpountz.lz4:lz4:jar:1.3.0:compile
-[[1;34mINFO[m] |  |  \- org.xerial.snappy:snappy-java:jar:1.1.2.6:compile
-[[1;34mINFO[m] |  +- com.google.code.gson:gson:jar:2.2.2:compile
-[[1;34mINFO[m] |  +- org.yaml:snakeyaml:jar:1.12:compile
-[[1;34mINFO[m] |  +- org.jctools:jctools-core:jar:1.0:compile
-[[1;34mINFO[m] |  +- org.apache.commons:commons-math3:jar:3.0:compile
-[[1;34mINFO[m] |  +- cglib:cglib-nodep:jar:3.2.5:compile
-[[1;34mINFO[m] |  +- commons-dbutils:commons-dbutils:jar:1.6:compile
-[[1;34mINFO[m] |  +- commons-net:commons-net:jar:3.1:compile
-[[1;34mINFO[m] |  +- org.scala-lang:scala-library:jar:2.11.12:compile
-[[1;34mINFO[m] |  +- org.scala-lang.modules:scala-java8-compat_2.11:jar:0.9.0:compile
-[[1;34mINFO[m] |  +- com.tdunning:t-digest:jar:3.2:compile
-[[1;34mINFO[m] |  +- org.apache.commons:commons-configuration2:jar:2.7:compile
-[[1;34mINFO[m] |  |  \- org.apache.commons:commons-text:jar:1.11.0:compile
-[[1;34mINFO[m] |  \- com.google.crypto.tink:tink:jar:1.7.0:compile
-[[1;34mINFO[m] +- org.slf4j:log4j-over-slf4j:jar:1.7.36:compile
-[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.10.1:test
-[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.10.1:test
-[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.3.0:test
-[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.10.1:test
-[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test
-[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
-[[1;34mINFO[m] +- org.junit.vintage:junit-vintage-engine:jar:5.10.1:test
-[[1;34mINFO[m] \- junit:junit:jar:4.13.2:test
-[[1;34mINFO[m]    \- org.hamcrest:hamcrest-core:jar:1.3:test
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m-------------------< [0;36mcom.pinterest.teletraan:common[0;1m >-------------------[m
-[[1;34mINFO[m] [1mBuilding common 0.1-SNAPSHOT                                       [3/4][m
-[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:3.6.1:tree[m [1m(default-cli)[m @ [36mcommon[0;1m ---[m
-[[1;34mINFO[m] com.pinterest.teletraan:common:jar:0.1-SNAPSHOT
-[[1;34mINFO[m] +- com.pinterest.teletraan:universal:jar:2.0-SNAPSHOT:compile
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-core:jar:1.11.3:compile
-[[1;34mINFO[m] |  |  +- io.micrometer:micrometer-observation:jar:1.11.3:compile
-[[1;34mINFO[m] |  |  +- org.hdrhistogram:HdrHistogram:jar:2.1.12:compile
-[[1;34mINFO[m] |  |  \- org.latencyutils:LatencyUtils:jar:2.0.3:runtime
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-commons:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-registry-opentsdb:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- io.projectreactor:reactor-core:jar:3.6.3:compile
-[[1;34mINFO[m] |  |  \- org.reactivestreams:reactive-streams:jar:1.0.4:compile
-[[1;34mINFO[m] |  +- io.projectreactor.netty:reactor-netty-core:jar:1.1.16:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-handler:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-transport-native-unix-common:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-handler-proxy:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-codec-socks:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-resolver-dns:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-codec-dns:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-resolver-dns-native-macos:jar:osx-x86_64:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-resolver-dns-classes-macos:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- io.projectreactor.netty:reactor-netty-http:jar:1.1.16:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-codec-http:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-codec-http2:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- jakarta.annotation:jakarta.annotation-api:jar:1.3.5:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-auth:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard:dropwizard-jersey:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  |  +- io.dropwizard:dropwizard-jackson:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-guava:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |  +- com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |  +- com.fasterxml.jackson.module:jackson-module-blackbird:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |  \- com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  +- org.glassfish.jersey.ext:jersey-metainf-services:jar:2.41:runtime
-[[1;34mINFO[m] |  |  |  +- org.glassfish.jersey.inject:jersey-hk2:jar:2.41:runtime
-[[1;34mINFO[m] |  |  |  |  \- org.glassfish.hk2:hk2-locator:jar:2.6.1:runtime
-[[1;34mINFO[m] |  |  |  +- org.javassist:javassist:jar:3.29.2-GA:compile
-[[1;34mINFO[m] |  |  |  +- io.dropwizard.metrics:metrics-jersey2:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  |  |  \- io.dropwizard.metrics:metrics-annotation:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |  \- com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |  |     +- jakarta.xml.bind:jakarta.xml.bind-api:jar:2.3.3:compile
-[[1;34mINFO[m] |  |  |  |     \- jakarta.activation:jakarta.activation-api:jar:1.2.2:compile
-[[1;34mINFO[m] |  |  |  +- org.glassfish.hk2:hk2-api:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  |  |  +- org.glassfish.hk2:hk2-utils:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  |  |  \- org.glassfish.hk2.external:aopalliance-repackaged:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  |  +- org.glassfish.jersey.containers:jersey-container-servlet:jar:2.41:runtime
-[[1;34mINFO[m] |  |  |  +- org.glassfish.jersey.core:jersey-client:jar:2.41:compile
-[[1;34mINFO[m] |  |  |  +- org.eclipse.jetty:jetty-io:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  |  |  \- jakarta.servlet:jakarta.servlet-api:jar:4.0.4:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard:dropwizard-logging:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  |  +- io.dropwizard.metrics:metrics-logback:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  |  +- org.slf4j:jul-to-slf4j:jar:1.7.36:compile
-[[1;34mINFO[m] |  |  |  +- ch.qos.logback:logback-core:jar:1.2.13:compile
-[[1;34mINFO[m] |  |  |  +- ch.qos.logback:logback-classic:jar:1.2.13:compile
-[[1;34mINFO[m] |  |  |  +- io.dropwizard.logback:logback-throttling-appender:jar:1.1.11:compile
-[[1;34mINFO[m] |  |  |  +- org.slf4j:jcl-over-slf4j:jar:1.7.36:runtime
-[[1;34mINFO[m] |  |  |  \- org.eclipse.jetty:jetty-util:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.metrics:metrics-caffeine:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  +- com.github.ben-manes.caffeine:caffeine:jar:2.9.3:compile
-[[1;34mINFO[m] |  |  +- jakarta.inject:jakarta.inject-api:jar:1.0.5:compile
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.41:compile
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.core:jersey-common:jar:2.41:compile
-[[1;34mINFO[m] |  |  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.3:compile
-[[1;34mINFO[m] |  |  \- org.glassfish.jersey.core:jersey-server:jar:2.41:compile
-[[1;34mINFO[m] |  +- com.pinterest.optimus.commons:pinterest-commons:jar:0.1-SNAPSHOT:compile
-[[1;34mINFO[m] |  |  +- javax.inject:javax.inject:jar:1:compile
-[[1;34mINFO[m] |  |  +- net.sf.uadetector:uadetector-resources:jar:2013.10:compile
-[[1;34mINFO[m] |  |  |  \- net.sf.uadetector:uadetector-core:jar:0.9.10:compile
-[[1;34mINFO[m] |  |  |     +- net.sf.qualitycheck:quality-check:jar:1.3:compile
-[[1;34mINFO[m] |  |  |     \- javax.annotation:jsr250-api:jar:1.0:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-buffer:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-tcnative-boringssl-static:jar:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-classes:jar:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:linux-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:linux-aarch_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:osx-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:osx-aarch_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-tcnative-boringssl-static:jar:windows-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty:jar:3.10.1.Final-p1:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-core_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-toggle_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-app_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-cache_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-codec_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-core_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter:util-function_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  \- org.scala-lang:scala-reflect:jar:2.11.8:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-hashing_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-jvm_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-lint_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-logging_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-registry_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-security_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-stats_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:util-tunable_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-memcached_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-netty4_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:bijection-core_2.11:jar:0.9.4:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:io-json:jar:0.0.54:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common:io:jar:0.0.68:compile
-[[1;34mINFO[m] |  |  |  \- com.fasterxml.jackson.module:jackson-module-scala_2.11:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |     \- com.thoughtworks.paranamer:paranamer:jar:2.8:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-ostrich4_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:ostrich_2.11:jar:9.26.0:compile
-[[1;34mINFO[m] |  |  |     \- com.twitter:util-eval_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |        \- org.scala-lang:scala-compiler:jar:2.11.8:compile
-[[1;34mINFO[m] |  |  |           \- org.scala-lang.modules:scala-xml_2.11:jar:1.0.4:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-redis_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-thrift_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:scrooge-core_2.11:jar:4.15.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-thriftmux_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-mux_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:stats-util:jar:0.0.60:compile
-[[1;34mINFO[m] |  |  +- org.openjdk.jmh:jmh-core:jar:1.21:compile
-[[1;34mINFO[m] |  |  |  \- net.sf.jopt-simple:jopt-simple:jar:4.6:compile
-[[1;34mINFO[m] |  |  +- org.openjdk.jmh:jmh-generator-annprocess:jar:1.21:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-serversets_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-zk-common_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter:util-zk_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common.zookeeper:group:jar:0.0.92:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common.zookeeper:server-set:jar:1.0.112:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:io-thrift:jar:0.0.67:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common:dynamic-host-set:jar:0.0.56:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:service-thrift:jar:1.0.55:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:args:jar:0.2.41:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:args-core:jar:0.1.37:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:base:jar:0.0.115:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:net-util:jar:0.0.102:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:quantity:jar:0.0.99:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:collections:jar:0.0.110:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-base-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-netty4-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-http2_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:util-collection_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-stats_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:metrics:jar:0.0.39:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:util-events_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:thrift:jar:0.0.57:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:net-pool:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:stats:jar:0.0.66:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:stat-registry:jar:0.0.10:compile
-[[1;34mINFO[m] |  |  |  |  |  \- com.twitter.common:stat:jar:0.0.11:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:stats-provider:jar:0.0.36:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:application-action:jar:0.0.46:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common:util-sampler:jar:0.0.33:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:util-system-mocks:jar:0.0.43:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:thrift-text:jar:0.0.27:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common.zookeeper:map:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common.zookeeper:client:jar:0.0.68:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common.zookeeper:node:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:util:jar:0.0.118:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:util-executor-service-shutdown:jar:0.0.64:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:jdk-logging:jar:0.0.76:compile
-[[1;34mINFO[m] |  |  +- org.apache.zookeeper:zookeeper:jar:3.4.5:compile
-[[1;34mINFO[m] |  |  |  \- jline:jline:jar:0.9.94:compile
-[[1;34mINFO[m] |  |  +- org.hbase:asynchbase:jar:1.7.5.35-pinterest:compile
-[[1;34mINFO[m] |  |  |  \- com.stumbleupon:async:jar:1.4.0:compile
-[[1;34mINFO[m] |  |  +- com.google.auto.value:auto-value-annotations:jar:1.6.2:compile
-[[1;34mINFO[m] |  |  +- commons-configuration:commons-configuration:jar:1.9:compile
-[[1;34mINFO[m] |  |  |  \- commons-logging:commons-logging:jar:1.1.1:compile
-[[1;34mINFO[m] |  |  +- org.apache.thrift:libthrift:jar:0.5.0-p8:compile
-[[1;34mINFO[m] |  |  +- com.google.inject:guice:jar:3.0:compile
-[[1;34mINFO[m] |  |  |  \- aopalliance:aopalliance:jar:1.0:compile
-[[1;34mINFO[m] |  |  +- org.apache.curator:curator-framework:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  |  \- org.apache.curator:curator-client:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  +- org.apache.curator:curator-recipes:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile
-[[1;34mINFO[m] |  |  |  \- org.codehaus.jackson:jackson-core-asl:jar:1.9.13:compile
-[[1;34mINFO[m] |  |  +- org.apache.commons:commons-dbcp2:jar:2.1.1:compile
-[[1;34mINFO[m] |  |  |  \- org.apache.commons:commons-pool2:jar:2.4.2:compile
-[[1;34mINFO[m] |  |  +- org.json:json:jar:20090211:compile
-[[1;34mINFO[m] |  |  +- org.hamcrest:hamcrest-all:jar:1.3:compile
-[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpclient:jar:4.5.14:compile
-[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpcore:jar:4.4.16:compile
-[[1;34mINFO[m] |  |  +- com.github.sgroschupf:zkclient:jar:0.1:compile
-[[1;34mINFO[m] |  |  +- org.apache.kafka:kafka_2.11:jar:0.10.2.0:compile
-[[1;34mINFO[m] |  |  |  +- com.yammer.metrics:metrics-core:jar:2.2.0:compile
-[[1;34mINFO[m] |  |  |  +- com.101tec:zkclient:jar:0.10:compile
-[[1;34mINFO[m] |  |  |  \- org.scala-lang.modules:scala-parser-combinators_2.11:jar:1.0.4:compile
-[[1;34mINFO[m] |  |  +- org.apache.kafka:kafka-clients:jar:0.10.2.0:compile
-[[1;34mINFO[m] |  |  |  +- net.jpountz.lz4:lz4:jar:1.3.0:compile
-[[1;34mINFO[m] |  |  |  \- org.xerial.snappy:snappy-java:jar:1.1.2.6:compile
-[[1;34mINFO[m] |  |  +- org.yaml:snakeyaml:jar:1.12:compile
-[[1;34mINFO[m] |  |  +- org.jctools:jctools-core:jar:1.0:compile
-[[1;34mINFO[m] |  |  +- org.apache.commons:commons-math3:jar:3.0:compile
-[[1;34mINFO[m] |  |  +- cglib:cglib-nodep:jar:3.2.5:compile
-[[1;34mINFO[m] |  |  +- commons-net:commons-net:jar:3.1:compile
-[[1;34mINFO[m] |  |  +- org.scala-lang:scala-library:jar:2.11.12:compile
-[[1;34mINFO[m] |  |  +- org.scala-lang.modules:scala-java8-compat_2.11:jar:0.9.0:compile
-[[1;34mINFO[m] |  |  +- com.tdunning:t-digest:jar:3.2:compile
-[[1;34mINFO[m] |  |  +- org.apache.commons:commons-configuration2:jar:2.7:compile
-[[1;34mINFO[m] |  |  |  \- org.apache.commons:commons-text:jar:1.11.0:compile
-[[1;34mINFO[m] |  |  \- com.google.crypto.tink:tink:jar:1.7.0:compile
-[[1;34mINFO[m] |  \- org.slf4j:log4j-over-slf4j:jar:1.7.36:compile
-[[1;34mINFO[m] +- com.sun.mail:javax.mail:jar:1.5.4:compile
-[[1;34mINFO[m] |  \- javax.activation:activation:jar:1.1:compile
-[[1;34mINFO[m] +- org.slf4j:slf4j-api:jar:1.7.36:compile
-[[1;34mINFO[m] +- com.mysql:mysql-connector-j:jar:8.3.0:compile
-[[1;34mINFO[m] |  \- com.google.protobuf:protobuf-java:jar:3.25.1:compile
-[[1;34mINFO[m] +- commons-dbcp:commons-dbcp:jar:1.4:compile
-[[1;34mINFO[m] |  \- commons-pool:commons-pool:jar:1.5.4:compile
-[[1;34mINFO[m] +- commons-dbutils:commons-dbutils:jar:1.6:compile
-[[1;34mINFO[m] +- commons-codec:commons-codec:jar:1.16.0:compile
-[[1;34mINFO[m] +- commons-collections:commons-collections:jar:3.2.1:compile
-[[1;34mINFO[m] +- commons-lang:commons-lang:jar:2.6:compile
-[[1;34mINFO[m] +- org.apache.commons:commons-lang3:jar:3.14.0:compile
-[[1;34mINFO[m] +- com.google.guava:guava:jar:33.0.0-jre:compile
-[[1;34mINFO[m] |  +- com.google.guava:failureaccess:jar:1.0.2:compile
-[[1;34mINFO[m] |  +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
-[[1;34mINFO[m] |  +- org.checkerframework:checker-qual:jar:3.42.0:compile
-[[1;34mINFO[m] |  +- com.google.errorprone:error_prone_annotations:jar:2.10.0:compile
-[[1;34mINFO[m] |  \- com.google.j2objc:j2objc-annotations:jar:2.8:compile
-[[1;34mINFO[m] +- software.amazon.awssdk:eventbridge:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:protocol-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:aws-json-protocol:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  \- software.amazon.awssdk:third-party-jackson-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:sdk-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  \- software.amazon.awssdk:profiles:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:auth:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  \- software.amazon.eventstream:eventstream:jar:1.0.1:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:http-client-spi:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:regions:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:annotations:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:utils:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:aws-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:metrics-spi:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:json-utils:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:endpoints-spi:jar:2.20.149:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:apache-client:jar:2.20.149:runtime
-[[1;34mINFO[m] |  \- software.amazon.awssdk:netty-nio-client:jar:2.20.149:runtime
-[[1;34mINFO[m] |     +- io.netty:netty-codec:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |     +- io.netty:netty-transport:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |     +- io.netty:netty-common:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |     +- io.netty:netty-transport-classes-epoll:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |     \- io.netty:netty-resolver:jar:4.1.94.Final:compile
-[[1;34mINFO[m] +- com.google.code.gson:gson:jar:2.8.8:compile
-[[1;34mINFO[m] +- joda-time:joda-time:jar:2.12.5:compile
-[[1;34mINFO[m] +- commons-io:commons-io:jar:2.8.0:compile
-[[1;34mINFO[m] +- com.jayway.jsonpath:json-path:jar:2.9.0:compile
-[[1;34mINFO[m] |  \- net.minidev:json-smart:jar:2.5.0:compile
-[[1;34mINFO[m] |     \- net.minidev:accessors-smart:jar:2.5.0:compile
-[[1;34mINFO[m] |        \- org.ow2.asm:asm:jar:9.3:compile
-[[1;34mINFO[m] +- com.slack.api:slack-api-client:jar:1.11.0:compile
-[[1;34mINFO[m] |  +- com.slack.api:slack-api-model:jar:1.11.0:compile
-[[1;34mINFO[m] |  \- com.squareup.okhttp3:okhttp:jar:4.9.1:compile
-[[1;34mINFO[m] |     +- com.squareup.okio:okio:jar:2.8.0:compile
-[[1;34mINFO[m] |     |  \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.4.0:compile
-[[1;34mINFO[m] |     \- org.jetbrains.kotlin:kotlin-stdlib:jar:1.4.10:compile
-[[1;34mINFO[m] +- com.fasterxml.jackson.core:jackson-annotations:jar:2.13.5:compile
-[[1;34mINFO[m] +- com.fasterxml.jackson.module:jackson-module-afterburner:jar:2.13.5:compile
-[[1;34mINFO[m] |  \- com.fasterxml.jackson.core:jackson-core:jar:2.13.5:compile
-[[1;34mINFO[m] +- com.fasterxml.jackson.core:jackson-databind:jar:2.13.5:compile
-[[1;34mINFO[m] +- org.hibernate.validator:hibernate-validator:jar:6.2.5.Final:compile
-[[1;34mINFO[m] |  +- org.jboss.logging:jboss-logging:jar:3.4.1.Final:compile
-[[1;34mINFO[m] |  \- com.fasterxml:classmate:jar:1.6.0:compile
-[[1;34mINFO[m] +- jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6:compile
-[[1;34mINFO[m] +- jakarta.validation:jakarta.validation-api:jar:2.0.2:compile
-[[1;34mINFO[m] +- org.mockito:mockito-core:jar:1.10.8:test
-[[1;34mINFO[m] |  +- org.hamcrest:hamcrest-core:jar:1.1:test
-[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:2.1:test
-[[1;34mINFO[m] +- org.testcontainers:testcontainers:jar:1.19.7:test
-[[1;34mINFO[m] |  +- org.apache.commons:commons-compress:jar:1.24.0:compile
-[[1;34mINFO[m] |  +- org.rnorth.duct-tape:duct-tape:jar:1.0.8:test
-[[1;34mINFO[m] |  |  \- org.jetbrains:annotations:jar:17.0.0:compile
-[[1;34mINFO[m] |  +- com.github.docker-java:docker-java-api:jar:3.3.6:test
-[[1;34mINFO[m] |  \- com.github.docker-java:docker-java-transport-zerodep:jar:3.3.6:test
-[[1;34mINFO[m] |     +- com.github.docker-java:docker-java-transport:jar:3.3.6:test
-[[1;34mINFO[m] |     \- net.java.dev.jna:jna:jar:5.13.0:test
-[[1;34mINFO[m] +- org.testcontainers:junit-jupiter:jar:1.19.7:test
-[[1;34mINFO[m] +- org.testcontainers:mysql:jar:1.19.7:test
-[[1;34mINFO[m] |  \- org.testcontainers:jdbc:jar:1.19.7:test
-[[1;34mINFO[m] |     \- org.testcontainers:database-commons:jar:1.19.7:test
-[[1;34mINFO[m] +- com.ibatis:ibatis2-common:jar:2.1.7.597:test
-[[1;34mINFO[m] +- org.kohsuke:github-api:jar:1.133:compile
-[[1;34mINFO[m] +- io.jsonwebtoken:jjwt-api:jar:0.10.5:compile
-[[1;34mINFO[m] +- io.jsonwebtoken:jjwt-impl:jar:0.10.5:runtime
-[[1;34mINFO[m] +- io.dropwizard.metrics:metrics-core:jar:3.1.0:compile
-[[1;34mINFO[m] +- io.dropwizard:dropwizard-validation:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-util:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile
-[[1;34mINFO[m] |  \- org.glassfish:jakarta.el:jar:3.0.4:runtime
-[[1;34mINFO[m] +- io.jsonwebtoken:jjwt-jackson:jar:0.10.5:runtime
-[[1;34mINFO[m] +- org.quartz-scheduler:quartz:jar:2.3.2:compile
-[[1;34mINFO[m] |  +- com.mchange:c3p0:jar:0.9.5.4:compile
-[[1;34mINFO[m] |  +- com.mchange:mchange-commons-java:jar:0.2.15:compile
-[[1;34mINFO[m] |  \- com.zaxxer:HikariCP-java7:jar:2.4.13:compile
-[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.10.1:test
-[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.10.1:test
-[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.3.0:test
-[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.10.1:test
-[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test
-[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
-[[1;34mINFO[m] +- org.junit.vintage:junit-vintage-engine:jar:5.10.1:test
-[[1;34mINFO[m] \- junit:junit:jar:4.13.2:test
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m-------------< [0;36mcom.pinterest.teletraan:teletraan-service[0;1m >--------------[m
-[[1;34mINFO[m] [1mBuilding teletraan-service 0.1-SNAPSHOT                            [4/4][m
-[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
-[[1;34mINFO[m] 
-[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:3.6.1:tree[m [1m(default-cli)[m @ [36mteletraan-service[0;1m ---[m
-[[1;34mINFO[m] com.pinterest.teletraan:teletraan-service:jar:0.1-SNAPSHOT
-[[1;34mINFO[m] +- io.swagger:swagger-jersey2-jaxrs:jar:1.6.9:compile
-[[1;34mINFO[m] |  +- io.swagger:swagger-jaxrs:jar:1.6.9:compile
-[[1;34mINFO[m] |  |  +- io.swagger:swagger-core:jar:1.6.9:compile
-[[1;34mINFO[m] |  |  |  \- io.swagger:swagger-models:jar:1.6.9:compile
-[[1;34mINFO[m] |  |  |     \- io.swagger:swagger-annotations:jar:1.6.9:compile
-[[1;34mINFO[m] |  |  \- org.reflections:reflections:jar:0.10.2:compile
-[[1;34mINFO[m] |  +- org.yaml:snakeyaml:jar:1.33:compile
-[[1;34mINFO[m] |  +- org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.41:compile
-[[1;34mINFO[m] |  |  \- org.glassfish.hk2.external:jakarta.inject:jar:2.6.1:compile
-[[1;34mINFO[m] |  \- org.glassfish.jersey.media:jersey-media-multipart:jar:2.41:compile
-[[1;34mINFO[m] |     \- org.jvnet.mimepull:mimepull:jar:1.9.15:compile
-[[1;34mINFO[m] +- io.dropwizard:dropwizard-core:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-util:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-jackson:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.core:jackson-core:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.module:jackson-module-blackbird:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  \- com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.13.5:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-validation:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml:classmate:jar:1.6.0:compile
-[[1;34mINFO[m] |  |  \- org.glassfish:jakarta.el:jar:3.0.4:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-configuration:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  \- org.apache.commons:commons-text:jar:1.11.0:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-logging:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.metrics:metrics-logback:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  +- org.slf4j:jul-to-slf4j:jar:1.7.36:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.logback:logback-throttling-appender:jar:1.1.11:compile
-[[1;34mINFO[m] |  |  \- org.slf4j:jcl-over-slf4j:jar:1.7.36:runtime
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-metrics:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-jersey:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.ext:jersey-metainf-services:jar:2.41:runtime
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.inject:jersey-hk2:jar:2.41:runtime
-[[1;34mINFO[m] |  |  |  \- org.glassfish.hk2:hk2-locator:jar:2.6.1:runtime
-[[1;34mINFO[m] |  |  +- org.javassist:javassist:jar:3.29.2-GA:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.metrics:metrics-jersey2:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  +- org.glassfish.hk2:hk2-api:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  |  +- org.glassfish.hk2:hk2-utils:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  |  \- org.glassfish.hk2.external:aopalliance-repackaged:jar:2.6.1:compile
-[[1;34mINFO[m] |  |  \- org.glassfish.jersey.containers:jersey-container-servlet:jar:2.41:runtime
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-servlets:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-jetty:jar:2.1.11:compile
-[[1;34mINFO[m] |  |  \- org.eclipse.jetty:jetty-servlets:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  |     \- org.eclipse.jetty:jetty-continuation:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-lifecycle:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-health:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-core:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-annotation:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-jetty9:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-jvm:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-jmx:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-servlets:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  +- io.dropwizard.metrics:metrics-json:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  \- com.helger:profiler:jar:1.1.1:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-healthchecks:jar:4.2.23:compile
-[[1;34mINFO[m] |  +- io.dropwizard:dropwizard-request-logging:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- ch.qos.logback:logback-classic:jar:1.2.13:compile
-[[1;34mINFO[m] |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.13.5:compile
-[[1;34mINFO[m] |  +- com.fasterxml.jackson.core:jackson-databind:jar:2.13.5:compile
-[[1;34mINFO[m] |  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile
-[[1;34mINFO[m] |  +- jakarta.servlet:jakarta.servlet-api:jar:4.0.4:compile
-[[1;34mINFO[m] |  +- jakarta.validation:jakarta.validation-api:jar:2.0.2:compile
-[[1;34mINFO[m] |  +- jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6:compile
-[[1;34mINFO[m] |  +- net.sourceforge.argparse4j:argparse4j:jar:0.9.0:compile
-[[1;34mINFO[m] |  +- org.eclipse.jetty:jetty-security:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  +- org.eclipse.jetty:jetty-server:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  +- org.eclipse.jetty:jetty-servlet:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  |  \- org.eclipse.jetty:jetty-util-ajax:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  +- org.eclipse.jetty:jetty-util:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  +- org.eclipse.jetty.toolchain.setuid:jetty-setuid-java:jar:1.0.4:compile
-[[1;34mINFO[m] |  +- jakarta.inject:jakarta.inject-api:jar:1.0.5:compile
-[[1;34mINFO[m] |  +- org.glassfish.jersey.core:jersey-common:jar:2.41:compile
-[[1;34mINFO[m] |  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.3:compile
-[[1;34mINFO[m] |  +- org.glassfish.jersey.ext:jersey-bean-validation:jar:2.41:compile
-[[1;34mINFO[m] |  +- org.hibernate.validator:hibernate-validator:jar:6.2.5.Final:compile
-[[1;34mINFO[m] |  |  \- org.jboss.logging:jboss-logging:jar:3.4.1.Final:compile
-[[1;34mINFO[m] |  \- org.slf4j:slf4j-api:jar:1.7.36:compile
-[[1;34mINFO[m] +- io.dropwizard:dropwizard-auth:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- io.dropwizard.metrics:metrics-caffeine:jar:4.2.23:compile
-[[1;34mINFO[m] |  |  \- org.checkerframework:checker-qual:jar:3.42.0:compile
-[[1;34mINFO[m] |  +- com.github.ben-manes.caffeine:caffeine:jar:2.9.3:compile
-[[1;34mINFO[m] |  |  \- com.google.errorprone:error_prone_annotations:jar:2.10.0:compile
-[[1;34mINFO[m] |  +- jakarta.annotation:jakarta.annotation-api:jar:1.3.5:compile
-[[1;34mINFO[m] |  \- org.glassfish.jersey.core:jersey-server:jar:2.41:compile
-[[1;34mINFO[m] +- io.dropwizard:dropwizard-json-logging:jar:2.1.11:compile
-[[1;34mINFO[m] |  +- ch.qos.logback:logback-access:jar:1.2.13:compile
-[[1;34mINFO[m] |  +- ch.qos.logback:logback-core:jar:1.2.13:compile
-[[1;34mINFO[m] |  \- org.eclipse.jetty:jetty-http:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] +- com.pinterest.teletraan:common:jar:0.1-SNAPSHOT:compile
-[[1;34mINFO[m] |  +- com.sun.mail:javax.mail:jar:1.5.4:compile
-[[1;34mINFO[m] |  |  \- javax.activation:activation:jar:1.1:compile
-[[1;34mINFO[m] |  +- com.mysql:mysql-connector-j:jar:8.3.0:compile
-[[1;34mINFO[m] |  |  \- com.google.protobuf:protobuf-java:jar:3.25.1:compile
-[[1;34mINFO[m] |  +- commons-dbcp:commons-dbcp:jar:1.4:compile
-[[1;34mINFO[m] |  |  \- commons-pool:commons-pool:jar:1.5.4:compile
-[[1;34mINFO[m] |  +- commons-dbutils:commons-dbutils:jar:1.6:compile
-[[1;34mINFO[m] |  +- commons-codec:commons-codec:jar:1.16.0:compile
-[[1;34mINFO[m] |  +- commons-collections:commons-collections:jar:3.2.1:compile
-[[1;34mINFO[m] |  +- commons-lang:commons-lang:jar:2.6:compile
-[[1;34mINFO[m] |  +- org.apache.commons:commons-lang3:jar:3.14.0:compile
-[[1;34mINFO[m] |  +- com.google.guava:guava:jar:33.0.0-jre:compile
-[[1;34mINFO[m] |  |  +- com.google.guava:failureaccess:jar:1.0.2:compile
-[[1;34mINFO[m] |  |  +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
-[[1;34mINFO[m] |  |  \- com.google.j2objc:j2objc-annotations:jar:2.8:compile
-[[1;34mINFO[m] |  +- software.amazon.awssdk:eventbridge:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:protocol-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:aws-json-protocol:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  |  \- software.amazon.awssdk:third-party-jackson-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:sdk-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  |  \- software.amazon.awssdk:profiles:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:auth:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  |  \- software.amazon.eventstream:eventstream:jar:1.0.1:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:http-client-spi:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:regions:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:annotations:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:utils:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:aws-core:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:metrics-spi:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:json-utils:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:endpoints-spi:jar:2.20.149:compile
-[[1;34mINFO[m] |  |  +- software.amazon.awssdk:apache-client:jar:2.20.149:runtime
-[[1;34mINFO[m] |  |  \- software.amazon.awssdk:netty-nio-client:jar:2.20.149:runtime
-[[1;34mINFO[m] |  |     +- io.netty:netty-codec:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |  |     +- io.netty:netty-transport:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |  |     +- io.netty:netty-common:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |  |     +- io.netty:netty-transport-classes-epoll:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |  |     \- io.netty:netty-resolver:jar:4.1.94.Final:compile
-[[1;34mINFO[m] |  +- com.google.code.gson:gson:jar:2.8.8:compile
-[[1;34mINFO[m] |  +- joda-time:joda-time:jar:2.12.5:compile
-[[1;34mINFO[m] |  +- commons-io:commons-io:jar:2.8.0:compile
-[[1;34mINFO[m] |  +- com.jayway.jsonpath:json-path:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  \- net.minidev:json-smart:jar:2.5.0:compile
-[[1;34mINFO[m] |  |     \- net.minidev:accessors-smart:jar:2.5.0:compile
-[[1;34mINFO[m] |  |        \- org.ow2.asm:asm:jar:9.3:compile
-[[1;34mINFO[m] |  +- com.slack.api:slack-api-client:jar:1.11.0:compile
-[[1;34mINFO[m] |  |  \- com.slack.api:slack-api-model:jar:1.11.0:compile
-[[1;34mINFO[m] |  +- com.fasterxml.jackson.module:jackson-module-afterburner:jar:2.13.5:compile
-[[1;34mINFO[m] |  +- org.kohsuke:github-api:jar:1.133:compile
-[[1;34mINFO[m] |  +- io.jsonwebtoken:jjwt-api:jar:0.10.5:compile
-[[1;34mINFO[m] |  +- io.jsonwebtoken:jjwt-impl:jar:0.10.5:runtime
-[[1;34mINFO[m] |  \- io.jsonwebtoken:jjwt-jackson:jar:0.10.5:runtime
-[[1;34mINFO[m] +- com.pinterest.teletraan:common:test-jar:tests:0.1-SNAPSHOT:test
-[[1;34mINFO[m] +- com.pinterest.teletraan:universal:jar:2.0-SNAPSHOT:compile
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-commons:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-registry-opentsdb:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- io.projectreactor:reactor-core:jar:3.6.3:compile
-[[1;34mINFO[m] |  |  \- org.reactivestreams:reactive-streams:jar:1.0.4:compile
-[[1;34mINFO[m] |  +- io.projectreactor.netty:reactor-netty-core:jar:1.1.16:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-handler:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-transport-native-unix-common:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-handler-proxy:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-codec-socks:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-resolver-dns:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-codec-dns:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-resolver-dns-native-macos:jar:osx-x86_64:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-resolver-dns-classes-macos:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- io.projectreactor.netty:reactor-netty-http:jar:1.1.16:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-codec-http:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  \- io.netty:netty-codec-http2:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  +- com.pinterest.optimus.commons:pinterest-commons:jar:0.1-SNAPSHOT:compile
-[[1;34mINFO[m] |  |  +- javax.inject:javax.inject:jar:1:compile
-[[1;34mINFO[m] |  |  +- net.sf.uadetector:uadetector-resources:jar:2013.10:compile
-[[1;34mINFO[m] |  |  |  \- net.sf.uadetector:uadetector-core:jar:0.9.10:compile
-[[1;34mINFO[m] |  |  |     +- net.sf.qualitycheck:quality-check:jar:1.3:compile
-[[1;34mINFO[m] |  |  |     \- javax.annotation:jsr250-api:jar:1.0:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-buffer:jar:4.1.106.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty-tcnative-boringssl-static:jar:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-classes:jar:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:linux-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:linux-aarch_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:osx-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  +- io.netty:netty-tcnative-boringssl-static:jar:osx-aarch_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  |  \- io.netty:netty-tcnative-boringssl-static:jar:windows-x86_64:2.0.65.Final:compile
-[[1;34mINFO[m] |  |  +- io.netty:netty:jar:3.10.1.Final-p1:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-core_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-toggle_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-app_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-cache_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-codec_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-core_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter:util-function_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  \- org.scala-lang:scala-reflect:jar:2.11.8:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-hashing_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-jvm_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-lint_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-logging_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-registry_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-security_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-stats_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:util-tunable_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-memcached_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-netty4_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:bijection-core_2.11:jar:0.9.4:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:io-json:jar:0.0.54:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common:io:jar:0.0.68:compile
-[[1;34mINFO[m] |  |  |  \- com.fasterxml.jackson.module:jackson-module-scala_2.11:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  |     \- com.thoughtworks.paranamer:paranamer:jar:2.8:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-ostrich4_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:ostrich_2.11:jar:9.26.0:compile
-[[1;34mINFO[m] |  |  |     \- com.twitter:util-eval_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |        \- org.scala-lang:scala-compiler:jar:2.11.8:compile
-[[1;34mINFO[m] |  |  |           \- org.scala-lang.modules:scala-xml_2.11:jar:1.0.4:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-redis_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-thrift_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:scrooge-core_2.11:jar:4.15.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-thriftmux_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-mux_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:stats-util:jar:0.0.60:compile
-[[1;34mINFO[m] |  |  +- org.openjdk.jmh:jmh-core:jar:1.21:compile
-[[1;34mINFO[m] |  |  |  \- net.sf.jopt-simple:jopt-simple:jar:4.6:compile
-[[1;34mINFO[m] |  |  +- org.openjdk.jmh:jmh-generator-annprocess:jar:1.21:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-serversets_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:util-zk-common_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter:util-zk_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common.zookeeper:group:jar:0.0.92:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common.zookeeper:server-set:jar:1.0.112:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:io-thrift:jar:0.0.67:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common:dynamic-host-set:jar:0.0.56:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:service-thrift:jar:1.0.55:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:args:jar:0.2.41:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:args-core:jar:0.1.37:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:base:jar:0.0.115:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:net-util:jar:0.0.102:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:quantity:jar:0.0.99:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:collections:jar:0.0.110:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-base-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-netty4-http_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter:finagle-http2_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:util-collection_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter:finagle-stats_2.11:jar:6.43.0-p6:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:metrics:jar:0.0.39:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter:util-events_2.11:jar:6.42.0:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:thrift:jar:0.0.57:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:net-pool:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:stats:jar:0.0.66:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:stat-registry:jar:0.0.10:compile
-[[1;34mINFO[m] |  |  |  |  |  \- com.twitter.common:stat:jar:0.0.11:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:stats-provider:jar:0.0.36:compile
-[[1;34mINFO[m] |  |  |  |  +- com.twitter.common:application-action:jar:0.0.46:compile
-[[1;34mINFO[m] |  |  |  |  \- com.twitter.common:util-sampler:jar:0.0.33:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:util-system-mocks:jar:0.0.43:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:thrift-text:jar:0.0.27:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common.zookeeper:map:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common.zookeeper:client:jar:0.0.68:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common.zookeeper:node:jar:0.0.49:compile
-[[1;34mINFO[m] |  |  +- com.twitter.common:util:jar:0.0.118:compile
-[[1;34mINFO[m] |  |  |  +- com.twitter.common:util-executor-service-shutdown:jar:0.0.64:compile
-[[1;34mINFO[m] |  |  |  \- com.twitter.common:jdk-logging:jar:0.0.76:compile
-[[1;34mINFO[m] |  |  +- org.apache.zookeeper:zookeeper:jar:3.4.5:compile
-[[1;34mINFO[m] |  |  |  \- jline:jline:jar:0.9.94:compile
-[[1;34mINFO[m] |  |  +- org.hbase:asynchbase:jar:1.7.5.35-pinterest:compile
-[[1;34mINFO[m] |  |  |  \- com.stumbleupon:async:jar:1.4.0:compile
-[[1;34mINFO[m] |  |  +- com.google.auto.value:auto-value-annotations:jar:1.6.2:compile
-[[1;34mINFO[m] |  |  +- commons-configuration:commons-configuration:jar:1.9:compile
-[[1;34mINFO[m] |  |  |  \- commons-logging:commons-logging:jar:1.1.1:compile
-[[1;34mINFO[m] |  |  +- org.apache.commons:commons-compress:jar:1.8:compile
-[[1;34mINFO[m] |  |  |  \- org.tukaani:xz:jar:1.5:compile
-[[1;34mINFO[m] |  |  +- org.apache.thrift:libthrift:jar:0.5.0-p8:compile
-[[1;34mINFO[m] |  |  +- com.google.inject:guice:jar:3.0:compile
-[[1;34mINFO[m] |  |  |  \- aopalliance:aopalliance:jar:1.0:compile
-[[1;34mINFO[m] |  |  +- org.apache.curator:curator-framework:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  |  \- org.apache.curator:curator-client:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  +- org.apache.curator:curator-recipes:jar:2.9.0:compile
-[[1;34mINFO[m] |  |  +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile
-[[1;34mINFO[m] |  |  |  \- org.codehaus.jackson:jackson-core-asl:jar:1.9.13:compile
-[[1;34mINFO[m] |  |  +- org.apache.commons:commons-dbcp2:jar:2.1.1:compile
-[[1;34mINFO[m] |  |  |  \- org.apache.commons:commons-pool2:jar:2.4.2:compile
-[[1;34mINFO[m] |  |  +- org.json:json:jar:20090211:compile
-[[1;34mINFO[m] |  |  +- org.hamcrest:hamcrest-all:jar:1.3:compile
-[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpclient:jar:4.5.14:compile
-[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpcore:jar:4.4.16:compile
-[[1;34mINFO[m] |  |  +- com.github.sgroschupf:zkclient:jar:0.1:compile
-[[1;34mINFO[m] |  |  +- org.apache.kafka:kafka_2.11:jar:0.10.2.0:compile
-[[1;34mINFO[m] |  |  |  +- com.yammer.metrics:metrics-core:jar:2.2.0:compile
-[[1;34mINFO[m] |  |  |  +- com.101tec:zkclient:jar:0.10:compile
-[[1;34mINFO[m] |  |  |  \- org.scala-lang.modules:scala-parser-combinators_2.11:jar:1.0.4:compile
-[[1;34mINFO[m] |  |  +- org.apache.kafka:kafka-clients:jar:0.10.2.0:compile
-[[1;34mINFO[m] |  |  |  +- net.jpountz.lz4:lz4:jar:1.3.0:compile
-[[1;34mINFO[m] |  |  |  \- org.xerial.snappy:snappy-java:jar:1.1.2.6:compile
-[[1;34mINFO[m] |  |  +- org.jctools:jctools-core:jar:1.0:compile
-[[1;34mINFO[m] |  |  +- org.apache.commons:commons-math3:jar:3.0:compile
-[[1;34mINFO[m] |  |  +- cglib:cglib-nodep:jar:3.2.5:compile
-[[1;34mINFO[m] |  |  +- commons-net:commons-net:jar:3.1:compile
-[[1;34mINFO[m] |  |  +- org.scala-lang:scala-library:jar:2.11.12:compile
-[[1;34mINFO[m] |  |  +- org.scala-lang.modules:scala-java8-compat_2.11:jar:0.9.0:compile
-[[1;34mINFO[m] |  |  +- com.tdunning:t-digest:jar:3.2:compile
-[[1;34mINFO[m] |  |  +- org.apache.commons:commons-configuration2:jar:2.7:compile
-[[1;34mINFO[m] |  |  \- com.google.crypto.tink:tink:jar:1.7.0:compile
-[[1;34mINFO[m] |  \- org.slf4j:log4j-over-slf4j:jar:1.7.36:compile
-[[1;34mINFO[m] +- org.quartz-scheduler:quartz:jar:2.3.2:compile
-[[1;34mINFO[m] |  +- com.mchange:c3p0:jar:0.9.5.4:compile
-[[1;34mINFO[m] |  +- com.mchange:mchange-commons-java:jar:0.2.15:compile
-[[1;34mINFO[m] |  \- com.zaxxer:HikariCP-java7:jar:2.4.13:compile
-[[1;34mINFO[m] +- com.ibatis:ibatis2-common:jar:2.1.7.597:compile
-[[1;34mINFO[m] +- org.mockito:mockito-core:jar:4.11.0:test
-[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.10:test
-[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.12.19:test
-[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
-[[1;34mINFO[m] +- io.micrometer:micrometer-core:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- io.micrometer:micrometer-observation:jar:1.11.3:compile
-[[1;34mINFO[m] |  +- org.hdrhistogram:HdrHistogram:jar:2.1.12:compile
-[[1;34mINFO[m] |  \- org.latencyutils:LatencyUtils:jar:2.0.3:runtime
-[[1;34mINFO[m] +- io.dropwizard:dropwizard-testing:jar:2.1.11:test
-[[1;34mINFO[m] |  +- com.fasterxml.jackson.datatype:jackson-datatype-guava:jar:2.13.5:compile
-[[1;34mINFO[m] |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  +- com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:jar:2.13.5:compile
-[[1;34mINFO[m] |  |  \- com.fasterxml.jackson.module:jackson-module-jaxb-annotations:jar:2.13.5:compile
-[[1;34mINFO[m] |  +- org.eclipse.jetty:jetty-io:jar:9.4.53.v20231009:compile
-[[1;34mINFO[m] |  +- org.glassfish.jersey.connectors:jersey-grizzly-connector:jar:2.41:test
-[[1;34mINFO[m] |  |  +- org.glassfish.grizzly:grizzly-http-client:jar:1.16:test
-[[1;34mINFO[m] |  |  +- org.glassfish.grizzly:grizzly-websockets:jar:2.4.4:test
-[[1;34mINFO[m] |  |  |  +- org.glassfish.grizzly:grizzly-framework:jar:2.4.4:test
-[[1;34mINFO[m] |  |  |  \- org.glassfish.grizzly:grizzly-http:jar:2.4.4:test
-[[1;34mINFO[m] |  |  \- org.glassfish.grizzly:connection-pool:jar:2.4.4:test
-[[1;34mINFO[m] |  +- org.glassfish.jersey.core:jersey-client:jar:2.41:compile
-[[1;34mINFO[m] |  +- org.glassfish.jersey.test-framework:jersey-test-framework-core:jar:2.41:test
-[[1;34mINFO[m] |  |  +- org.glassfish.jersey.media:jersey-media-jaxb:jar:2.41:test
-[[1;34mINFO[m] |  |  +- org.junit.jupiter:junit-jupiter:jar:5.10.1:test
-[[1;34mINFO[m] |  |  \- org.hamcrest:hamcrest:jar:2.2:test
-[[1;34mINFO[m] |  +- org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-inmemory:jar:2.41:test
-[[1;34mINFO[m] |  +- jakarta.activation:jakarta.activation-api:jar:1.2.2:compile
-[[1;34mINFO[m] |  \- jakarta.xml.bind:jakarta.xml.bind-api:jar:2.3.3:compile
-[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-params:jar:5.10.1:test
-[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.10.1:test
-[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.3.0:test
-[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.10.1:test
-[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
-[[1;34mINFO[m] +- com.squareup.okhttp3:mockwebserver:jar:4.12.0:test
-[[1;34mINFO[m] |  +- com.squareup.okhttp3:okhttp:jar:4.12.0:compile
-[[1;34mINFO[m] |  |  \- com.squareup.okio:okio:jar:3.6.0:compile
-[[1;34mINFO[m] |  |     \- com.squareup.okio:okio-jvm:jar:3.6.0:compile
-[[1;34mINFO[m] |  \- org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.8.21:compile
-[[1;34mINFO[m] |     +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.8.21:compile
-[[1;34mINFO[m] |     |  +- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.8.21:compile
-[[1;34mINFO[m] |     |  \- org.jetbrains:annotations:jar:13.0:compile
-[[1;34mINFO[m] |     \- org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.8.21:compile
-[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.10.1:test
-[[1;34mINFO[m] |  \- org.junit.platform:junit-platform-engine:jar:1.10.1:test
-[[1;34mINFO[m] +- org.junit.vintage:junit-vintage-engine:jar:5.10.1:test
-[[1;34mINFO[m] \- junit:junit:jar:4.13.2:test
-[[1;34mINFO[m]    \- org.hamcrest:hamcrest-core:jar:1.3:test
-[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
-[[1;34mINFO[m] [1mReactor Summary:[m
-[[1;34mINFO[m] 
-[[1;34mINFO[m] teletraan 0.2-SNAPSHOT ............................. [1;32mSUCCESS[m [  0.536 s]
-[[1;34mINFO[m] Teletraan platform universal components 2.0-SNAPSHOT [1;32mSUCCESS[m [  0.326 s]
-[[1;34mINFO[m] common 0.1-SNAPSHOT ................................ [1;32mSUCCESS[m [  0.123 s]
-[[1;34mINFO[m] teletraan-service 0.1-SNAPSHOT ..................... [1;32mSUCCESS[m [  0.108 s]
-[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
-[[1;34mINFO[m] [1;32mBUILD SUCCESS[m
-[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
-[[1;34mINFO[m] Total time:  1.863 s (Wall Clock)
-[[1;34mINFO[m] Finished at: 2024-04-15T19:20:11Z
-[[1;34mINFO[m] [1m------------------------------------------------------------------------[m

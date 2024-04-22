@@ -124,7 +124,6 @@ CREATE TABLE IF NOT EXISTS hosts (
     state           VARCHAR(32)         NOT NULL,
     can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
     account_id      VARCHAR(64),
-    is_protected    TINYINT(1)         NOT NULL DEFAULT 0,
     PRIMARY KEY    (host_id, group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX rev_group_host_idx ON hosts (group_name, host_name);

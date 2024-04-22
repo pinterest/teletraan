@@ -16,10 +16,8 @@
 package com.pinterest.teletraan.resource;
 
 import com.google.common.base.Optional;
-import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -53,12 +51,10 @@ import java.util.List;
 public class Hosts {
     private static final Logger LOG = LoggerFactory.getLogger(Hosts.class);
     private HostDAO hostDAO;
-    private EnvironDAO environDAO;
     private EnvironHandler environHandler;
 
     public Hosts(@Context TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
-        environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
     }
 
@@ -75,23 +71,6 @@ public class Hosts {
         }
         hostDAO.insert(hostBean);
         LOG.info(String.format("Successfully added one host by %s: %s", operator, hostBean.toString()));
-    }
-
-    @PUT
-    @Path("/{hostId : [a-zA-Z0-9\\-_]+}/protectasg/{isProtected : [0-1]}")
-    public HostBean isProtectedUpdate(
-            @Context SecurityContext sc,
-            @PathParam("hostId") String hostId,
-            @PathParam("isProtected") String isProtectedStr)
-            throws Exception {
-        String operator = sc.getUserPrincipal().getName();
-        HostBean hostBeanUpdate = new HostBean();
-        int isProtected = Integer.parseInt(isProtectedStr);
-        hostBeanUpdate.setIs_protected(isProtected);
-        hostBeanUpdate.setLast_update(System.currentTimeMillis());
-        hostDAO.updateHostById(hostId, hostBeanUpdate);
-        LOG.info(String.format("Successfully protected/unprotected one host by %s: %s", operator, hostBeanUpdate.toString()));
-        return hostBeanUpdate;
     }
 
     @PUT
