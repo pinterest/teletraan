@@ -415,6 +415,7 @@
     var info = {{capacity_creation_info | safe}};
     var env = info.environment;
     var currentCluster = info.currentCluster;
+    var asgLaunchInfo = currentCluster.asg_info.launchInfo;
     var statefulOptions = info.stateful_options;
     const goldenImage = info.baseImages.find(goldenImageFinder);
     if (currentCluster!=null){
@@ -456,6 +457,7 @@
                         }).filter(function(item){return item.name!='assign_public_ip'}),
                 assignPublicIP: initialAssignPublicIP,
                 awsRole: currentCluster.configs.aws_role,
+                capacity: currentCluster.capacity != asgLaunchInfo.minSize ? asgLaunchInfo.minSize : currentCluster.capacity,
                 useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : info.defaultUseLaunchTemplate,
                 baseImages: mapBaseImagesToOptions(baseImagesSorted),
                 baseImageValue: currentCluster.baseImageId,
@@ -940,6 +942,7 @@
                     //Create the default capacity. The input here aligns to the Rodimus new cluster
                     var clusterInfo = {};
                     clusterInfo['accountId'] = this.currentAccoundId;
+                    clusterInfo['capacity'] = this.capacity;
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
