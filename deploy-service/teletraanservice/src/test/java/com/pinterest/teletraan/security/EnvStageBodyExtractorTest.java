@@ -35,6 +35,8 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 
 import org.glassfish.jersey.server.ContainerRequest;
@@ -129,7 +131,7 @@ class EnvStageBodyExtractorTest {
 
     @ParameterizedTest
     @MethodSource("getSupportedClassed")
-    void testExtractResource_deployFixBean_success(Class<?> beanClass) throws Exception {
+    void testExtractResource_deployBean_success(Class<?> beanClass) throws Exception {
         EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
         DeployBean deployBean = new DeployBean();
         String envId = "env_id";
@@ -140,9 +142,15 @@ class EnvStageBodyExtractorTest {
         inputStream = new ByteArrayInputStream(out.toByteArray());
 
         when(context.getEntityStream()).thenReturn(inputStream);
-        when(environDAO.getById(envId)).thenReturn(envBean);
 
         if (beanClass.equals(DeployBean.class)) {
+            when(environDAO.getById(envId)).thenReturn(null);
+            assertThrows(NotFoundException.class, () -> sut.extractResource(context, DeployBean.class));
+
+            inputStream = new ByteArrayInputStream(out.toByteArray());
+            when(environDAO.getById(envId)).thenReturn(envBean);
+            when(context.getEntityStream()).thenReturn(inputStream);
+
             AuthZResource resource = sut.extractResource(context, DeployBean.class);
             assertTrue(resource.getName().contains(envBean.getEnv_name()));
             assertTrue(resource.getName().contains(envBean.getStage_name()));
@@ -167,9 +175,15 @@ class EnvStageBodyExtractorTest {
         inputStream = new ByteArrayInputStream(out.toByteArray());
 
         when(context.getEntityStream()).thenReturn(inputStream);
-        when(environDAO.getById(envId)).thenReturn(envBean);
 
         if (beanClass.equals(AgentBean.class)) {
+            when(environDAO.getById(envId)).thenReturn(null);
+            assertThrows(NotFoundException.class, () -> sut.extractResource(context, AgentBean.class));
+
+            inputStream = new ByteArrayInputStream(out.toByteArray());
+            when(environDAO.getById(envId)).thenReturn(envBean);
+            when(context.getEntityStream()).thenReturn(inputStream);
+
             AuthZResource resource = sut.extractResource(context, AgentBean.class);
             assertTrue(resource.getName().contains(envBean.getEnv_name()));
             assertTrue(resource.getName().contains(envBean.getStage_name()));

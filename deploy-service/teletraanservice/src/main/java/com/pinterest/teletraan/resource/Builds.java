@@ -179,7 +179,7 @@ public class Builds {
             notes = "Publish a build given a build object",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
-    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD)
+    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD, idLocation = ResourceAuthZInfo.Location.BODY)
     public Response publish(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
@@ -249,7 +249,7 @@ public class Builds {
         value = "Delete a build",
         notes = "Deletes a build given a build id")
     @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD)
+    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD, idLocation = ResourceAuthZInfo.Location.PATH)
     public void delete(
         @Context SecurityContext sc,
         @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {

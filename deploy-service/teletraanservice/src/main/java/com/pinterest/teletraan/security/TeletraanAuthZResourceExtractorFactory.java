@@ -21,13 +21,15 @@ import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 
 public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtractor.Factory {
 
+    private static final AuthZResourceExtractor BUILD_BODY_EXTRACTOR = new BuildBodyExtractor();
     private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvPathExtractor();
-    private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR =
-            new EnvStagePathExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR = new EnvStagePathExtractor();
+    private final AuthZResourceExtractor BUILD_PATH_EXTRACTOR;
     private final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR;
 
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
         ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor(serviceContext);
+        BUILD_PATH_EXTRACTOR = new BuildPathExtractor(serviceContext);
     }
 
     @Override
@@ -46,6 +48,15 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                         return ENV_STAGE_PATH_EXTRACTOR;
                     case BODY:
                         return ENV_STAGE_BODY_EXTRACTOR;
+                    default:
+                        throw new UnsupportedResourceIDLocationException(authZInfo);
+                }
+            case BUILD:
+                switch (authZInfo.idLocation()) {
+                    case PATH:
+                        return BUILD_PATH_EXTRACTOR;
+                    case BODY:
+                        return BUILD_BODY_EXTRACTOR;
                     default:
                         throw new UnsupportedResourceIDLocationException(authZInfo);
                 }
