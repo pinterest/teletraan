@@ -55,6 +55,9 @@ public class ScriptTokenRoleAuthorizer
                 && !(TeletraanPrincipalRole.ADMIN.getRole().equals(principal.getRole())
                         || AuthZResource.Type.SYSTEM.equals(principal.getResource().getType()))) {
             return false;
+        } else if (AuthZResource.Type.BUILD.equals(requestedResource.getType())
+                && principal.getRole().isEqualOrSuperior(TeletraanPrincipalRole.PUBLISHER.getRole())) {
+            return true;
         }
 
         if (requestedResource.equals(principal.getResource())

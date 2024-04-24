@@ -223,8 +223,19 @@ public class ScriptTokenRoleAuthorizerTest {
     }
 
     @Test
-    public void testPublisherCanPublish() throws Exception {
+    public void testPublish() throws Exception {
+        AuthZResource build = new AuthZResource("build", AuthZResource.Type.BUILD);
         checkPositive(publisher, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRole.PUBLISHER);
-        checkPositive(publisher, new AuthZResource("build", AuthZResource.Type.BUILD), TeletraanPrincipalRole.PUBLISHER);
+        checkPositive(publisher, build, TeletraanPrincipalRole.PUBLISHER);
+
+        checkNegative(pinger, build, TeletraanPrincipalRole.PUBLISHER);
+
+        checkPositive(envAdmin, build, TeletraanPrincipalRole.PUBLISHER);
+        checkPositive(envOperator, build, TeletraanPrincipalRole.PUBLISHER);
+        checkNegative(envReader, build, TeletraanPrincipalRole.PUBLISHER);
+
+        checkPositive(sysAdmin, build, TeletraanPrincipalRole.PUBLISHER);
+        checkPositive(sysOperator, build, TeletraanPrincipalRole.PUBLISHER);
+        checkNegative(sysReader, build, TeletraanPrincipalRole.PUBLISHER);
     }
 }
