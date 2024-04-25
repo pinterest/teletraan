@@ -64,6 +64,7 @@ import com.pinterest.deployservice.db.DBTagDAOImpl;
 import com.pinterest.deployservice.db.DBTokenRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUserRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUtilDAOImpl;
+import com.pinterest.deployservice.db.DBPindeployDAOImpl;
 import com.pinterest.deployservice.events.EventBridgePublisher;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
@@ -118,6 +119,7 @@ public class ConfigHelper {
         context.setPromoteDAO(new DBPromoteDAOImpl(dataSource));
 
         context.setDataDAO(new DBDataDAOImpl(dataSource));
+        context.setPindeployDAO(new DBPindeployDAOImpl(dataSource));
         context.setUtilDAO(new DBUtilDAOImpl(dataSource));
 
         context.setConfigHistoryDAO(new DBConfigHistoryDAOImpl(dataSource));
