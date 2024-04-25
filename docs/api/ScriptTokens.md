@@ -2,7 +2,7 @@
 Internal script tokens APIs
 
 
-<a name="create"></a>
+<a name="create_2"></a>
 #### Create an environment script token
 ```
 POST /v1/envs/{envName}/token_roles
@@ -38,7 +38,7 @@ Creates an environment script token with given environment name and TokenRoles o
 * `application/json`
 
 
-<a name="getbyresource"></a>
+<a name="getbyresource_1"></a>
 #### Get environment TokenRoles objects
 ```
 GET /v1/envs/{envName}/token_roles
@@ -73,7 +73,7 @@ Returns all the TokenRoles objects for a given environment.
 * `application/json`
 
 
-<a name="getbynameandresource"></a>
+<a name="getbynameandresource_1"></a>
 #### Get TokenRoles object by script and environment names
 ```
 GET /v1/envs/{envName}/token_roles/{scriptName}
@@ -109,7 +109,7 @@ Returns a TokenRoles object given a script and environment name.
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_11"></a>
 #### Update an envrionment's script token
 ```
 PUT /v1/envs/{envName}/token_roles/{scriptName}
@@ -146,7 +146,7 @@ Update a specific environment script token given environment and script names.
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_6"></a>
 #### Delete an environment script token
 ```
 DELETE /v1/envs/{envName}/token_roles/{scriptName}
@@ -182,7 +182,7 @@ Deletes a script token by given environment and script name.
 * `application/json`
 
 
-<a name="create"></a>
+<a name="create_5"></a>
 #### Create a system script token
 ```
 POST /v1/system/token_roles
@@ -217,7 +217,7 @@ Creates a specified system wide TokenRole and returns a Response object
 * `application/json`
 
 
-<a name="getbyresource"></a>
+<a name="getbyresource_3"></a>
 #### Get system script tokens
 ```
 GET /v1/system/token_roles
@@ -245,7 +245,7 @@ Returns all system TokenRoles objects
 * `application/json`
 
 
-<a name="getbynameandresource"></a>
+<a name="getbynameandresource_3"></a>
 #### Get system TokenRoles object by script name
 ```
 GET /v1/system/token_roles/{scriptName}
@@ -280,7 +280,7 @@ Returns a TokenRoles object for given script name
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_14"></a>
 #### Update a system script token
 ```
 PUT /v1/system/token_roles/{scriptName}
@@ -316,7 +316,7 @@ Updates a TokenRoles object by given script name and replacement TokenRoles obje
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_8"></a>
 #### Delete a system wide script token
 ```
 DELETE /v1/system/token_roles/{scriptName}

@@ -37,7 +37,7 @@ Publish a build given a build object
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_1"></a>
 #### GET /v1/builds
 
 ##### Parameters
@@ -202,7 +202,7 @@ Return a bean object containing the build and the build tag
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_2"></a>
 #### Get build info
 ```
 GET /v1/builds/{id}

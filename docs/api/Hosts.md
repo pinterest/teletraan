@@ -1,6 +1,6 @@
 ### Hosts
 
-<a name="get"></a>
+<a name="get_11"></a>
 #### Get hosts for env stage
 ```
 GET /v1/envs/{envName}/{stageName}/hosts

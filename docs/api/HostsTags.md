@@ -2,7 +2,7 @@
 Hosts Tags related APIs
 
 
-<a name="get"></a>
+<a name="get_9"></a>
 #### List all the hosts tags
 ```
 GET /v1/envs/{envName}/{stageName}/host_tags
@@ -39,7 +39,7 @@ Returns a list the host tags in an environment
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_10"></a>
 #### List all the hosts that are tagged with tagName in an environment, and group by tagValue
 ```
 GET /v1/envs/{envName}/{stageName}/host_tags/{tagName}
