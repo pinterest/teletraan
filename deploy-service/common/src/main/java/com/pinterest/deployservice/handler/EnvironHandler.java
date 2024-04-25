@@ -22,6 +22,7 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 
@@ -41,6 +42,7 @@ public class EnvironHandler {
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
     private HostDAO hostDAO;
+    private PindeployDAO pindeployDAO;
     private ScheduleDAO scheduleDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
@@ -51,6 +53,7 @@ public class EnvironHandler {
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
+        pindeployDAO = serviceContext.getPindeployDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
@@ -331,6 +334,10 @@ public class EnvironHandler {
         } else {
             promoteDAO.update(envId, promoteBean);
         }
+    }
+
+    public void updatePindeploy(PindeployBean pindeployBean) throws Exception {
+        pindeployDAO.insertOrUpdate(pindeployBean);
     }
 
     public String resume(EnvironBean envBean, String operator) throws Exception {

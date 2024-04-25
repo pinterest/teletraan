@@ -43,6 +43,7 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.dao.RatingDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
@@ -82,6 +83,7 @@ public class ServiceContext {
     private ScheduleDAO scheduleDAO;
     private HostTagDAO hostTagDAO;
     private DeployConstraintDAO deployConstraintDAO;
+    private PindeployDAO pindeployDAO;
 
     private Allowlist buildAllowlist;
 
@@ -212,6 +214,14 @@ public class ServiceContext {
 
     public void setHostDAO(HostDAO hostDAO) {
         this.hostDAO = hostDAO;
+    }
+
+    public PindeployDAO getPindeployDAO() {
+        return pindeployDAO;
+    }
+
+    public void setPindeployDAO(PindeployDAO pindeployDAO) {
+        this.pindeployDAO = pindeployDAO;
     }
 
     public HostAgentDAO getHostAgentDAO() {

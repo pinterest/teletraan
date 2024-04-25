@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TagBean;
+import com.pinterest.deployservice.bean.PindeployBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
@@ -253,5 +254,35 @@ public class EnvStages {
         tagBean.setComments(description);
         tagHandler.createTag(tagBean, operator);
         LOG.info(String.format("Successfully updated action %s for %s/%s by %s", actionType, envName, stageName, operator));
+    }
+
+    @POST
+    @Path("/keelPipeline/action")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
+    public void keelPipelineAction(@Context SecurityContext sc,
+                       @PathParam("envName") String envName,
+                       @PathParam("stageName") String stageName,
+                       @NotNull @QueryParam("actionType") ActionType actionType,
+                       @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        String operator = sc.getUserPrincipal().getName();
+
+        PindeployBean pindeployBean = new PindeployBean();
+        pindeployBean.setEnv_id(envBean.getEnv_id());
+        pindeployBean.setPipeline(pipeline);
+        switch (actionType) {
+            case ENABLE:
+                pindeployBean.setIs_pindeploy(true);
+                break;
+            case DISABLE:
+                pindeployBean.setIs_pindeploy(false);
+                break;
+            default:
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
+        }
+
+        environHandler.updatePindeploy(pindeployBean);
+        LOG.info(String.format("Successfully updated keel pipeline action %s for %s/%s by %s", actionType, envName, stageName, operator));
     }
 }
