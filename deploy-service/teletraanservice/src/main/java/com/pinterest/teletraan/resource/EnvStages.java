@@ -269,8 +269,10 @@ public class EnvStages {
         String operator = sc.getUserPrincipal().getName();
 
         PindeployBean pindeployBean = new PindeployBean();
+        LOG.info("before updating the pindeploy bean");
         pindeployBean.setEnv_id(envBean.getEnv_id());
         pindeployBean.setPipeline(pipeline);
+        LOG.info("before checking actionType");
         switch (actionType) {
             case ENABLE:
                 pindeployBean.setIs_pindeploy(true);
@@ -281,7 +283,7 @@ public class EnvStages {
             default:
                 throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
-
+        LOG.info("before updating pindeploy bean in the database");
         environHandler.updatePindeploy(pindeployBean);
         LOG.info(String.format("Successfully updated keel pipeline action %s for %s/%s by %s", actionType, envName, stageName, operator));
     }
