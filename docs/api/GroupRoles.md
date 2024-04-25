@@ -109,7 +109,7 @@ Returns a GroupRoles object containing for given group and environment names.
 * `application/json`
 
 
-<a name="update_6"></a>
+<a name="update_7"></a>
 #### Update an environment's group role
 ```
 PUT /v1/envs/{envName}/group_roles/{groupName}

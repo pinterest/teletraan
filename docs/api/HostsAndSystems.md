@@ -194,7 +194,7 @@ Host info APIs
 * `application/json`
 
 
-<a name="get_19"></a>
+<a name="get_20"></a>
 #### Get host info objects by host name
 ```
 GET /v1/hosts/{hostName}
@@ -439,4 +439,4 @@ Sends a chatroom message given a ChatMessageRequest to configured chat client
 * `application/json`
 
 
-<a name="script-tokens_resource"></a>
+<a name="hotfixs_resource"></a>

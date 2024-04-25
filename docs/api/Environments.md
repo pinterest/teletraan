@@ -121,7 +121,7 @@ Returns a list of environment objects related to the given environment name
 * `application/json`
 
 
-<a name="get_17"></a>
+<a name="get_18"></a>
 #### GET /v1/envs/names
 
 ##### Parameters
@@ -178,7 +178,7 @@ Returns a list of sidecar environment objects
 * `application/json`
 
 
-<a name="get_15"></a>
+<a name="get_16"></a>
 #### Get an environment
 ```
 GET /v1/envs/{envName}/{stageName}
@@ -214,7 +214,7 @@ Returns an environment object given environment and stage names
 * `application/json`
 
 
-<a name="update_10"></a>
+<a name="update_11"></a>
 #### Update an environment
 ```
 PUT /v1/envs/{envName}/{stageName}
@@ -390,6 +390,63 @@ Updates environment agent configs given an environment name and stage name with 
 * `application/json`
 
 
+<a name="get_6"></a>
+#### GET /v1/envs/{envName}/{stageName}/alarms
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**stageName**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|< [AlarmBean](#alarmbean) > array|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="update_4"></a>
+#### PUT /v1/envs/{envName}/{stageName}/alarms
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**stageName**  <br>*required*|string|
+|**Body**|**body**  <br>*optional*|< [AlarmBean](#alarmbean) > array|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**default**|successful operation|No Content|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
 <a name="add"></a>
 #### Create the capacities for Group and hosts
 ```
@@ -428,7 +485,7 @@ Create the capacities for Group and hosts
 * `application/json`
 
 
-<a name="get_6"></a>
+<a name="get_7"></a>
 #### Get the capacities for Group and hosts
 ```
 GET /v1/envs/{envName}/{stageName}/capacity
@@ -465,7 +522,7 @@ Get the capacities for Group and hosts
 * `application/json`
 
 
-<a name="update_4"></a>
+<a name="update_5"></a>
 #### Update the capacities for Group and hosts
 ```
 PUT /v1/envs/{envName}/{stageName}/capacity
@@ -578,7 +635,7 @@ Sets the external_id column on a stage given the environment and stage names
 * `application/json`
 
 
-<a name="get_8"></a>
+<a name="get_9"></a>
 #### Get the config history for the environment
 ```
 GET /v1/envs/{envName}/{stageName}/history
@@ -649,7 +706,7 @@ PUT /v1/envs/{envName}/{stageName}/is-sox/{booleanValue}
 * `application/json`
 
 
-<a name="get_12"></a>
+<a name="get_13"></a>
 #### Get environment metrics
 ```
 GET /v1/envs/{envName}/{stageName}/metrics
@@ -685,7 +742,7 @@ Returns a list of MetricsConfig object containing details for environment metric
 * `application/json`
 
 
-<a name="update_7"></a>
+<a name="update_8"></a>
 #### Update environment metrics
 ```
 PUT /v1/envs/{envName}/{stageName}/metrics
@@ -722,7 +779,7 @@ Updates an environment's metrics configs given an environment name, stage name, 
 * `application/json`
 
 
-<a name="get_13"></a>
+<a name="get_14"></a>
 #### Get promote info
 ```
 GET /v1/envs/{envName}/{stageName}/promotes
@@ -758,7 +815,7 @@ Returns a promote info object given environment and stage names
 * `application/json`
 
 
-<a name="update_8"></a>
+<a name="update_9"></a>
 #### Update promote info
 ```
 PUT /v1/envs/{envName}/{stageName}/promotes
@@ -795,7 +852,7 @@ Updates promote info given environment and stage names by given promote info obj
 * `application/json`
 
 
-<a name="get_14"></a>
+<a name="get_15"></a>
 #### Get script configs
 ```
 GET /v1/envs/{envName}/{stageName}/script_configs
@@ -831,7 +888,7 @@ Returns name value pairs of script configs for given environment and stage names
 * `application/json`
 
 
-<a name="update_9"></a>
+<a name="update_10"></a>
 #### Update script configs
 ```
 PUT /v1/envs/{envName}/{stageName}/script_configs
@@ -868,7 +925,7 @@ Updates script configs given environment and stage names with given name:value m
 * `application/json`
 
 
-<a name="get_16"></a>
+<a name="get_17"></a>
 #### Get webhooks object
 ```
 GET /v1/envs/{envName}/{stageName}/web_hooks
@@ -904,7 +961,7 @@ Returns a pre/post webhooks object by given environment and stage names
 * `application/json`
 
 
-<a name="update_13"></a>
+<a name="update_14"></a>
 #### Update webhooks
 ```
 PUT /v1/envs/{envName}/{stageName}/web_hooks
@@ -941,7 +998,7 @@ Updates pre/deploy webhooks by given environment and stage names with given webh
 * `application/json`
 
 
-<a name="get_18"></a>
+<a name="get_19"></a>
 #### Get environment object
 ```
 GET /v1/envs/{id}

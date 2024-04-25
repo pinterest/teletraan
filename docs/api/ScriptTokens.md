@@ -109,7 +109,7 @@ Returns a TokenRoles object given a script and environment name.
 * `application/json`
 
 
-<a name="update_11"></a>
+<a name="update_12"></a>
 #### Update an envrionment's script token
 ```
 PUT /v1/envs/{envName}/token_roles/{scriptName}
@@ -182,7 +182,7 @@ Deletes a script token by given environment and script name.
 * `application/json`
 
 
-<a name="create_5"></a>
+<a name="create_8"></a>
 #### Create a system script token
 ```
 POST /v1/system/token_roles
@@ -217,7 +217,7 @@ Creates a specified system wide TokenRole and returns a Response object
 * `application/json`
 
 
-<a name="getbyresource_3"></a>
+<a name="getbyresource_4"></a>
 #### Get system script tokens
 ```
 GET /v1/system/token_roles
@@ -245,7 +245,7 @@ Returns all system TokenRoles objects
 * `application/json`
 
 
-<a name="getbynameandresource_3"></a>
+<a name="getbynameandresource_4"></a>
 #### Get system TokenRoles object by script name
 ```
 GET /v1/system/token_roles/{scriptName}
@@ -280,7 +280,7 @@ Returns a TokenRoles object for given script name
 * `application/json`
 
 
-<a name="update_14"></a>
+<a name="update_17"></a>
 #### Update a system script token
 ```
 PUT /v1/system/token_roles/{scriptName}
@@ -316,7 +316,7 @@ Updates a TokenRoles object by given script name and replacement TokenRoles obje
 * `application/json`
 
 
-<a name="delete_8"></a>
+<a name="delete_10"></a>
 #### Delete a system wide script token
 ```
 DELETE /v1/system/token_roles/{scriptName}
@@ -351,4 +351,4 @@ Deletes a system wide TokenRoles object by specified script name
 * `application/json`
 
 
-<a name="tags_resource"></a>
+<a name="system-group-roles_resource"></a>

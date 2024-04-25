@@ -215,7 +215,7 @@ Creates a deploy given an environment name, stage name, build id and description
 * `application/json`
 
 
-<a name="get_7"></a>
+<a name="get_8"></a>
 #### Get deploy info by environment
 ```
 GET /v1/envs/{envName}/{stageName}/deploys/current
@@ -363,7 +363,7 @@ Updates a deploy's progress given an environment name and stage name and returns
 * `application/json`
 
 
-<a name="update_5"></a>
+<a name="update_6"></a>
 #### Take a deploy action
 ```
 PUT /v1/envs/{envName}/{stageName}/deploys/hostactions

@@ -20,6 +20,8 @@ import com.pinterest.deployservice.bean.RatingBean;
 import com.pinterest.deployservice.handler.RatingsHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 
+import io.swagger.annotations.Api;
+
 import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -29,6 +31,7 @@ import java.util.List;
 
 @PermitAll
 @Path("/v1/ratings")
+@Api(tags = "Ratings")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Ratings {

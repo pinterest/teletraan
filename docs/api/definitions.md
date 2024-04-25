@@ -36,6 +36,16 @@
 |**hostName**  <br>*optional*|string|
 
 
+<a name="alarmbean"></a>
+### AlarmBean
+
+|Name|Schema|
+|---|---|
+|**alarmUrl**  <br>*optional*|string|
+|**metricsUrl**  <br>*optional*|string|
+|**name**  <br>*optional*|string|
+
+
 <a name="buildbean"></a>
 ### BuildBean
 
@@ -285,6 +295,28 @@
 |**tagValue**  <br>*optional*|string|
 
 
+<a name="hotfixbean"></a>
+### HotfixBean
+
+|Name|Schema|
+|---|---|
+|**baseCommit**  <br>*optional*|string|
+|**baseDeployId**  <br>*optional*|string|
+|**commits**  <br>*optional*|string|
+|**envName**  <br>*optional*|string|
+|**errorMessage**  <br>*optional*|string|
+|**id**  <br>*optional*|string|
+|**jobName**  <br>*optional*|string|
+|**jobNum**  <br>*optional*|string|
+|**lastWorkedOn**  <br>*optional*|integer (int64)|
+|**operator**  <br>*optional*|string|
+|**progress**  <br>*optional*|integer (int32)|
+|**repo**  <br>*optional*|string|
+|**startDate**  <br>*optional*|integer (int64)|
+|**state**  <br>*optional*|enum (INITIAL, PUSHING, BUILDING, SUCCEEDED, FAILED, ABORTED)|
+|**timeout**  <br>*optional*|integer (int32)|
+
+
 <a name="metricsconfigbean"></a>
 ### MetricsConfigBean
 
@@ -365,6 +397,32 @@
 |**queueSize**  <br>*optional*|**Minimum value** : `1`  <br>**Maximum value** : `10`|integer (int32)|
 |**schedule**  <br>*optional*||string|
 |**type**  <br>*required*||enum (MANUAL, AUTO)|
+
+
+<a name="ratingbean"></a>
+### RatingBean
+
+|Name|Schema|
+|---|---|
+|**author**  <br>*optional*|string|
+|**createDate**  <br>*optional*|integer (int64)|
+|**feedback**  <br>*optional*|string|
+|**id**  <br>*optional*|string|
+|**rating**  <br>*optional*|string|
+
+
+<a name="schedulebean"></a>
+### ScheduleBean
+
+|Name|Schema|
+|---|---|
+|**cooldownTimes**  <br>*optional*|string|
+|**currentSession**  <br>*optional*|integer (int32)|
+|**hostNumbers**  <br>*optional*|string|
+|**id**  <br>*optional*|string|
+|**state**  <br>*optional*|enum (NOT_STARTED, RUNNING, COOLING_DOWN, FINAL)|
+|**stateStartTime**  <br>*optional*|integer (int64)|
+|**totalSessions**  <br>*optional*|integer (int32)|
 
 
 <a name="tagbean"></a>

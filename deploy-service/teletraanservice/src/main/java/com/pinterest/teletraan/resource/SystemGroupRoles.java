@@ -21,6 +21,8 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
+import io.swagger.annotations.Api;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
@@ -32,6 +34,7 @@ import java.util.List;
 
 @PermitAll
 @Path("/v1/system/group_roles")
+@Api(tags = "System Group Roles")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SystemGroupRoles extends GroupRoles {

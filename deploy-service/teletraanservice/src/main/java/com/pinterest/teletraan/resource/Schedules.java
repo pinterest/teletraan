@@ -22,6 +22,9 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 
 import com.pinterest.teletraan.TeletraanServiceContext;
+
+import io.swagger.annotations.Api;
+
 import com.pinterest.deployservice.common.CommonUtils;
 
 import org.slf4j.Logger;
@@ -36,6 +39,7 @@ import javax.ws.rs.core.SecurityContext;
 
 @PermitAll
 @Path("/v1/schedules")
+@Api(tags = "Schedules")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Schedules {
