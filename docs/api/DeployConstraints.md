@@ -31,7 +31,7 @@ Deploy constraints related APIs
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_3"></a>
 #### Get deploy constraint info
 ```
 GET /v1/envs/{envName}/{stageName}/deploy_constraint
@@ -67,7 +67,7 @@ Returns a deploy constraint object given a constraint id
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_1"></a>
 #### DELETE /v1/envs/{envName}/{stageName}/deploy_constraint
 
 ##### Parameters

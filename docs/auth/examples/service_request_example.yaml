@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://github.com/pinterest/teletraan/blob/master/docs/auth/teletraan_auth.yaml?raw=true
+# The following is an example of a valid Teletraan & Rodimus Authorization payload
+input:
+  principal:
+    type: SERVICE
+    id: spiffe://pin220.com/teletraan/rodimus/prod
+  action: WRITE
+  resource:
+    type: ENV
+    name: Teletraan
+

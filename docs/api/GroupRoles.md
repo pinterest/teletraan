@@ -2,7 +2,7 @@
 Group Roles related APIs
 
 
-<a name="create"></a>
+<a name="create_1"></a>
 #### Create a group role for an environment
 ```
 POST /v1/envs/{envName}/group_roles
@@ -109,7 +109,7 @@ Returns a GroupRoles object containing for given group and environment names.
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_7"></a>
 #### Update an environment's group role
 ```
 PUT /v1/envs/{envName}/group_roles/{groupName}
@@ -146,7 +146,7 @@ Updates a GroupRoles object for given group and environment names with given Gro
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_4"></a>
 #### Deletes a group role from an environment
 ```
 DELETE /v1/envs/{envName}/group_roles/{groupName}

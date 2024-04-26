@@ -2,6 +2,88 @@
 Host info APIs
 
 
+<a name="getbyclustername"></a>
+#### GET /v1/groups/{groupName}/env
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**groupName**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|[EnvironBean](#environbean)|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="gethostids"></a>
+#### GET /v1/groups/{groupName}/hosts
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**groupName**  <br>*required*|string|
+|**Query**|**actionType**  <br>*required*|enum (ALL, RETIRED, FAILED, RETIRED_AND_FAILED, NEW_AND_SERVING_BUILD, NEW, TERMINATING)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|< string > array|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="gethostsbygroup"></a>
+#### GET /v1/groups/{groupName}/instances
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**groupName**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|< [HostBean](#hostbean) > array|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
 <a name="addhost"></a>
 #### POST /v1/hosts
 
@@ -29,7 +111,7 @@ Host info APIs
 * `application/json`
 
 
-<a name="getbyid"></a>
+<a name="getbyid_1"></a>
 #### GET /v1/hosts/id/{hostId}
 
 ##### Parameters
@@ -112,7 +194,7 @@ Host info APIs
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_20"></a>
 #### Get host info objects by host name
 ```
 GET /v1/hosts/{hostName}
@@ -357,4 +439,4 @@ Sends a chatroom message given a ChatMessageRequest to configured chat client
 * `application/json`
 
 
-<a name="script-tokens_resource"></a>
+<a name="hotfixs_resource"></a>

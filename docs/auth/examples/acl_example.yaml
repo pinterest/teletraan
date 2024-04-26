@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://github.com/pinterest/teletraan/blob/master/docs/auth/teletraan_auth.yaml?raw=true
+# The following is an example of a valid Teletraan & Rodimus Authorization ACL
+resourceACLs:
+  "ENV_STAGE:teletraan-prod":
+    resourceName: teletraan-prod
+    resourceType: ENV_STAGE
+    principals:
+      - principalId: Jane Doe
+        type: USER
+        role: envAdmin
+    groups:
+      - groupName: sre
+        role: envOperator
+  "ENV:teletraan":
+    resourceName: teletraan
+    resourceType: ENV
+    principals:
+      - principalId: spiffe://pin220.com/teletraan/rodimus/prod
+        type: SERVICE
+        role: deployer
+      - principalId: Jane Doe
+        type: USER
+        role: envAdmin

@@ -2,7 +2,7 @@
 Environment info APIs
 
 
-<a name="create"></a>
+<a name="create_4"></a>
 #### Create environment
 ```
 POST /v1/envs
@@ -17,7 +17,7 @@ Creates a new environment given an environment object
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*required*|Environemnt object to create in database|[EnvironBean](#environbean)|
+|**Body**|**body**  <br>*required*|Environment object to create in database|[EnvironBean](#environbean)|
 
 
 ##### Responses
@@ -73,14 +73,14 @@ Returns a list of environment objects related to the given environment name
 * `application/json`
 
 
-<a name="action"></a>
+<a name="action_2"></a>
 #### POST /v1/envs/actions
 
 ##### Parameters
 
 |Type|Name|Schema|
 |---|---|---|
-|**Query**|**actionType**  <br>*optional*|enum (ENABLE, DISABLE)|
+|**Query**|**actionType**  <br>*required*|enum (ENABLE, DISABLE)|
 |**Query**|**description**  <br>*optional*|string|
 
 
@@ -121,7 +121,7 @@ Returns a list of environment objects related to the given environment name
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_18"></a>
 #### GET /v1/envs/names
 
 ##### Parameters
@@ -178,7 +178,7 @@ Returns a list of sidecar environment objects
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_16"></a>
 #### Get an environment
 ```
 GET /v1/envs/{envName}/{stageName}
@@ -214,7 +214,7 @@ Returns an environment object given environment and stage names
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_11"></a>
 #### Update an environment
 ```
 PUT /v1/envs/{envName}/{stageName}
@@ -251,7 +251,7 @@ Update an environment given environment and stage names with a environment objec
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_5"></a>
 #### Delete an environment
 ```
 DELETE /v1/envs/{envName}/{stageName}
@@ -287,7 +287,7 @@ Deletes an environment given a environment and stage names
 * `application/json`
 
 
-<a name="action"></a>
+<a name="action_1"></a>
 #### POST /v1/envs/{envName}/{stageName}/actions
 
 ##### Parameters
@@ -296,7 +296,7 @@ Deletes an environment given a environment and stage names
 |---|---|---|
 |**Path**|**envName**  <br>*required*|string|
 |**Path**|**stageName**  <br>*required*|string|
-|**Query**|**actionType**  <br>*optional*|enum (ENABLE, DISABLE)|
+|**Query**|**actionType**  <br>*required*|enum (ENABLE, DISABLE)|
 |**Query**|**description**  <br>*optional*|string|
 
 
@@ -317,7 +317,7 @@ Deletes an environment given a environment and stage names
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_5"></a>
 #### Get agent configs
 ```
 GET /v1/envs/{envName}/{stageName}/agent_configs
@@ -353,7 +353,7 @@ Returns a name,value map of environment agent configs given an environment name 
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_2"></a>
 #### Update agent configs
 ```
 PUT /v1/envs/{envName}/{stageName}/agent_configs
@@ -371,6 +371,63 @@ Updates environment agent configs given an environment name and stage name with 
 |**Path**|**envName**  <br>*required*|Environment name|string|
 |**Path**|**stageName**  <br>*required*|Stage name|string|
 |**Body**|**body**  <br>*required*|Map of configs to update with|< string, string > map|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**default**|successful operation|No Content|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="get_6"></a>
+#### GET /v1/envs/{envName}/{stageName}/alarms
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**stageName**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|< [AlarmBean](#alarmbean) > array|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="update_4"></a>
+#### PUT /v1/envs/{envName}/{stageName}/alarms
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**stageName**  <br>*required*|string|
+|**Body**|**body**  <br>*optional*|< [AlarmBean](#alarmbean) > array|
 
 
 ##### Responses
@@ -428,7 +485,7 @@ Create the capacities for Group and hosts
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_7"></a>
 #### Get the capacities for Group and hosts
 ```
 GET /v1/envs/{envName}/{stageName}/capacity
@@ -465,7 +522,7 @@ Get the capacities for Group and hosts
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_5"></a>
 #### Update the capacities for Group and hosts
 ```
 PUT /v1/envs/{envName}/{stageName}/capacity
@@ -503,7 +560,7 @@ Update the capacities for Group and hosts
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_3"></a>
 #### Delete the capacities for Group and hosts
 ```
 DELETE /v1/envs/{envName}/{stageName}/capacity
@@ -578,7 +635,7 @@ Sets the external_id column on a stage given the environment and stage names
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_9"></a>
 #### Get the config history for the environment
 ```
 GET /v1/envs/{envName}/{stageName}/history
@@ -616,7 +673,40 @@ Get the config history for the environment
 * `application/json`
 
 
-<a name="get"></a>
+<a name="updateissox"></a>
+#### Update an environment/stage's isSox flag
+```
+PUT /v1/envs/{envName}/{stageName}/is-sox/{booleanValue}
+```
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**booleanValue**  <br>*required*|Is sox flag|boolean|
+|**Path**|**envName**  <br>*required*|Environment name|string|
+|**Path**|**stageName**  <br>*required*|Stage name|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**default**|successful operation|No Content|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="get_13"></a>
 #### Get environment metrics
 ```
 GET /v1/envs/{envName}/{stageName}/metrics
@@ -652,7 +742,7 @@ Returns a list of MetricsConfig object containing details for environment metric
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_8"></a>
 #### Update environment metrics
 ```
 PUT /v1/envs/{envName}/{stageName}/metrics
@@ -689,7 +779,7 @@ Updates an environment's metrics configs given an environment name, stage name, 
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_14"></a>
 #### Get promote info
 ```
 GET /v1/envs/{envName}/{stageName}/promotes
@@ -725,7 +815,7 @@ Returns a promote info object given environment and stage names
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_9"></a>
 #### Update promote info
 ```
 PUT /v1/envs/{envName}/{stageName}/promotes
@@ -762,7 +852,7 @@ Updates promote info given environment and stage names by given promote info obj
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_15"></a>
 #### Get script configs
 ```
 GET /v1/envs/{envName}/{stageName}/script_configs
@@ -798,7 +888,7 @@ Returns name value pairs of script configs for given environment and stage names
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_10"></a>
 #### Update script configs
 ```
 PUT /v1/envs/{envName}/{stageName}/script_configs
@@ -835,7 +925,7 @@ Updates script configs given environment and stage names with given name:value m
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_17"></a>
 #### Get webhooks object
 ```
 GET /v1/envs/{envName}/{stageName}/web_hooks
@@ -871,7 +961,7 @@ Returns a pre/post webhooks object by given environment and stage names
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_14"></a>
 #### Update webhooks
 ```
 PUT /v1/envs/{envName}/{stageName}/web_hooks
@@ -908,7 +998,7 @@ Updates pre/deploy webhooks by given environment and stage names with given webh
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_19"></a>
 #### Get environment object
 ```
 GET /v1/envs/{id}

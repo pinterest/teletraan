@@ -1,0 +1,173 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: teletraan-auth-model
+title: Teletraan Auth Model
+version: 1.0.0
+type: object
+description: |
+  This is the model for Teletraan & Rodimus Authorization payload
+definitions:
+  principal:
+    type: object
+    description: |
+      The principal who is making the request
+    properties:
+      type:
+        description: |
+          The type of the principal, either user or service
+        enum:
+          - USER
+          - SERVICE
+      id:
+        type: string
+        description: >
+          The name of the user principal, or the spiffeId of the service
+          principal
+      groups:
+        type: array
+        description: |
+          The groups the principal belongs to
+        items:
+          type: string
+    required:
+      - id
+      - type
+  action:
+    description: |
+      The action of the request
+    enum:
+      - READ
+      - WRITE
+      - EXECUTE
+      - DELETE
+      - PUBLISHER
+      - PINGER
+  role:
+    type: object
+    description: |
+      A role is a set of permissions that can be assigned to a principal
+    properties:
+      name:
+        type: string
+        description: |
+          The name of the role
+      actions:
+        type: array
+        description: |
+          The actions this role can perform on the resource
+        items:
+          $ref: "#/definitions/action"
+    required:
+      - name
+      - actions
+  resource:
+    type: object
+    description: |
+      The resource the request is about
+    properties:
+      account:
+        type: string
+        description: |
+          The AWS account the resource belongs to
+      type:
+        description: |
+          The type of the resource, helps fine-grain access
+        enum:
+          - ENV
+          - ENV_STAGE
+          - GROUP
+          - SYSTEM
+          - PLACEMENTS
+          - BASE_IMAGES
+          - SECURITY_ZONE
+          - IAM_ROLE
+      resourceName:
+        type: string
+        description: >
+          Name of the resource. If this is an environment, it is the name of the
+          environment.
+    required:
+      - type
+      - name
+  resourceACL:
+    type: object
+    description: >
+      The Access Control List of the resource which defines permissions
+      associated with the resource
+    properties:
+      resourceName:
+        $ref: "#/definitions/resource/properties/resourceName"
+      resourceType:
+        $ref: "#/definitions/resource/properties/type"
+      principals:
+        type: array
+        description: |
+          The individual principals who have access to the resource
+        items:
+          type: object
+          properties:
+            principalId:
+              $ref: "#/definitions/principal/properties/id"
+            type:
+              $ref: "#/definitions/principal/properties/type"
+            role:
+              $ref: "#/definitions/role/properties/name"
+          required:
+            - principalId
+            - role
+            - type
+      groups:
+        type: array
+        description: |
+          The groups who have access to the resource
+        items:
+          type: object
+          properties:
+            groupName:
+              $ref: "#/definitions/principal/properties/groups/items"
+            role:
+              $ref: "#/definitions/role/properties/name"
+          required:
+            - groupName
+            - role
+    required:
+      - resourceName
+      - resourceType
+    anyOf:
+      - required:
+          - principals
+      - required:
+          - groups
+properties:
+  resourceACLs:
+    type: object
+    description: |
+      Resource ACLs stored as key-value pairs for optimal lookup performance
+    patternProperties:
+      "^[A-Z_]+:[\\S^:]+$":
+        $ref: "#/definitions/resourceACL"
+    additionalProperties: false
+  principals:
+    type: object
+    patternProperties:
+      "^[\\S^:]+$":
+        $ref: "#/definitions/principal"
+    additionalProperties: false
+  resources:
+    type: object
+    patternProperties:
+      "^[\\S^:]+$":
+        $ref: "#/definitions/resource"
+    additionalProperties: false
+  input:
+    type: object
+    properties:
+      principal:
+        $ref: "#/definitions/principal"
+      action:
+        $ref: "#/definitions/action"
+      resource:
+        $ref: "#/definitions/resource"
+    required:
+      - principal
+      - action
+      - resource

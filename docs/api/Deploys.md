@@ -70,7 +70,7 @@ Get total numbers of deploys on the current day
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_4"></a>
 #### Get deploy info
 ```
 GET /v1/deploys/{id}
@@ -105,7 +105,7 @@ Returns a deploy object given a deploy id
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_1"></a>
 #### Update deploy
 ```
 PUT /v1/deploys/{id}
@@ -141,7 +141,7 @@ Update deploy given a deploy id and a deploy object. Current only acceptanceStat
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_2"></a>
 #### Delete deploy info
 ```
 DELETE /v1/deploys/{id}
@@ -194,6 +194,7 @@ Creates a deploy given an environment name, stage name, build id and description
 |**Path**|**envName**  <br>*required*|Environment name|string|
 |**Path**|**stageName**  <br>*required*|Stage name|string|
 |**Query**|**buildId**  <br>*required*|Build id|string|
+|**Query**|**deliveryType**  <br>*optional*|Delivery type|string|
 |**Query**|**description**  <br>*required*|Description|string|
 
 
@@ -214,7 +215,7 @@ Creates a deploy given an environment name, stage name, build id and description
 * `application/json`
 
 
-<a name="get"></a>
+<a name="get_8"></a>
 #### Get deploy info by environment
 ```
 GET /v1/envs/{envName}/{stageName}/deploys/current
@@ -362,7 +363,7 @@ Updates a deploy's progress given an environment name and stage name and returns
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_6"></a>
 #### Take a deploy action
 ```
 PUT /v1/envs/{envName}/{stageName}/deploys/hostactions
