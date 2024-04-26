@@ -344,3 +344,23 @@ Vue.component("help-table", {
     </div></div>',
     props: ['dismissible', 'alertText']
   })
+
+
+/**
+ * pinfo warning banner
+ */
+Vue.component('deployservice-warning-banner', {
+    template: `<div v-if="hasPotentialConflicts" id="deployServiceBanner" class="alert alert-warning" role="alert" align="center">
+    This cluster has userdata which defines a 'deploy_service' value and a pinfo_role that isn't 'cmp_base'. 
+    This could cause conflicts. Please read <a target="_blank" :href="deployservicewikiurl">this wiki</a> for more info.
+    </div>`,
+    props: ['alluserdata', 'deployservicewikiurl'],
+    computed: {
+        hasPotentialConflicts: function() {
+            const externalFacts = this.alluserdata?.find(field => field.name == 'external_facts')?.value ?? "";
+            containsDeployService = /['"]deploy_service['"]:/.test(externalFacts);
+            const pinfoRole = this.alluserdata?.find(field => field.name === 'pinfo_role');
+            return pinfoRole?.value !== 'cmp_base' && containsDeployService;
+        },
+    }
+});

@@ -35,7 +35,7 @@
          <div v-if="showAddExistingCapacity" class="row">
             <side-button styleclass="fa fa-plus" text="Add Existing Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?addexisting" title="Add Existing Capacity"></side-button>
         </div>
-        <clone-cluster v-bind:showclone="!noCluster" v-on:input="cloneClick"></clone-cluster>
+        <clone-cluster v-bind:deployservicewikiurl="deployServiceWikiUrl" v-bind:showclone="!noCluster" v-bind:alluserdata="allUserData" v-on:input="cloneClick"></clone-cluster>
         <delete-cluster v-bind:showdelete="!noCluster" v-on:input="deleteClick"></delete-cluster>
     {% else %}
         <div class="row">
@@ -65,18 +65,29 @@ window.env = info.env;
 window.hosts = info.hosts;
 window.groups = info.groups;
 window.showExistingCapacity = !window.info.is_pinterest || getUrlParameter("addexisting") || (hosts!=null && hosts.length>0)||(groups!=null && groups.length>0)
-
+const deployServiceWikiUrl = "{{conflicting_deploy_service_wiki_url}}";
+let clusterConfigs;
 if (info.is_pinterest){
     hasCMPCluster = info.basic_cluster_info != null;
+    clusterConfigs = info.basic_cluster_info?.configs ?? {};
 }
 else{
-    hasCMPCluster = false
+    hasCMPCluster = false;
+    clusterConfigs = {};
 }
 var sidebar = new Vue({
     el:"#side-panel",
     data:{
         noCluster: !hasCMPCluster,
-        showAddExistingCapacity: !window.showExistingCapacity
+        allUserData: Object.keys(clusterConfigs).map(
+            function(key) {
+                return {
+                    name: key,
+                    value: clusterConfigs[key],
+                }
+            }),
+        showAddExistingCapacity: !window.showExistingCapacity,
+        deployServiceWikiUrl,
     },
     methods:{
         //Send delete request
@@ -106,7 +117,6 @@ var sidebar = new Vue({
                 this.sendDelete()
             }
         },
-
         sendClone: function (new_environment, new_stage) {
             $.ajax({
                     type: 'POST',

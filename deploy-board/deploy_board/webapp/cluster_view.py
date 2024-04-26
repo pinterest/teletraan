@@ -25,7 +25,7 @@ if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK, PUPPET_CONFIG_REPOSITORY, PUPPET_HIERA_PATHS
+        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK, PUPPET_CONFIG_REPOSITORY, PUPPET_HIERA_PATHS, CONFLICTING_DEPLOY_SERVICE_WIKI_URL
 
 import json
 import logging
@@ -191,7 +191,8 @@ class EnvCapacityAdvCreateView(View):
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'is_pinterest': IS_PINTEREST,
             'puppet_repository': PUPPET_CONFIG_REPOSITORY,
-            'puppet_hiera_paths': PUPPET_HIERA_PATHS
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS,
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
         })
 
     def post(self, request, name, stage):
@@ -299,7 +300,8 @@ class ClusterConfigurationView(View):
             'host_type_roadmap_link': HOST_TYPE_ROADMAP_LINK,
             'is_pinterest': IS_PINTEREST,
             'puppet_repository': PUPPET_CONFIG_REPOSITORY,
-            'puppet_hiera_paths': PUPPET_HIERA_PATHS
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS,
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
         })
 
     def post(self, request, name, stage):
@@ -914,6 +916,7 @@ def clone_cluster(request, src_name, src_stage):
 
         # 0. teletraan service get src env buildName
         src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
+        dest_stage_type = src_env['stageType']
         build_name = src_env.get('buildName', None)
         external_id = environs_helper.create_identifier_for_new_stage(request, dest_name, dest_stage)
 
@@ -922,7 +925,8 @@ def clone_cluster(request, src_name, src_stage):
             'envName': dest_name,
             'stageName': dest_stage,
             'buildName': build_name,
-            'externalId': external_id
+            'externalId': external_id,
+            'stageType': dest_stage_type
         })
         log.info('clone_cluster, created a new env %s' % dest_env)
 

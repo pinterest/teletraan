@@ -35,6 +35,7 @@ Vue.component('clone-cluster', {
     </side-button-modal-confirm>\
     <modal title="Clone Cluster Confirm" id="cloneClusterDialogId" v-on:input="clickDialog">\
         <div slot="body">\
+           <deployservice-warning-banner :deployservicewikiurl="deployservicewikiurl" :alluserdata="alluserdata"></deployservice-warning-banner>\
            The fleet size (capacity) will not be cloned, initially the capacity is 0, ASG size is 0. \
            <div class="panel-body">\
                 <div class="form-group">\
@@ -57,7 +58,7 @@ Vue.component('clone-cluster', {
         </div>\
     </modal>\
     </div>',
-    props: ['showclone'],
+    props: ['showclone', 'alluserdata', 'deployservicewikiurl'],
     methods: {
         clickDialog: function (value) {
             if(value == true) {
