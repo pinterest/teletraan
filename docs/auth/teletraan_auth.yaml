@@ -39,6 +39,8 @@ definitions:
       - WRITE
       - EXECUTE
       - DELETE
+      - PUBLISHER
+      - PINGER
   role:
     type: object
     description: |
