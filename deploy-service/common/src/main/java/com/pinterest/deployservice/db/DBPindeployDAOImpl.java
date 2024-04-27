@@ -30,7 +30,7 @@ public class DBPindeployDAOImpl implements PindeployDAO {
     private static final String DELETE_PINDEPLOY =
         "DELETE * FROM pindeploy WHERE env_id=?";
     private static final String INSERT_OR_UPDATE_PINDEPLOY =
-        "INSERT INTO pindeploy SET %s ON DUPLICATE KEY UPDATE %s";
+        "INSERT INTO pindeploy SET %s ON DUPLICATE KEY UPDATE pipeline=?, is_pindeploy=?";
 
     private BasicDataSource dataSource;
 
@@ -53,7 +53,9 @@ public class DBPindeployDAOImpl implements PindeployDAO {
     @Override
     public void insertOrUpdate(PindeployBean pindeployBean) throws Exception {
         SetClause setClause = pindeployBean.genSetClause();
-        String clause = String.format(INSERT_OR_UPDATE_PINDEPLOY, setClause.getClause(), PindeployBean.UPDATE_CLAUSE);
+        String clause = String.format(INSERT_OR_UPDATE_PINDEPLOY, setClause.getClause());
+        setClause.addValue(pindeployBean.getPipeline());
+        setClause.addValue(pindeployBean.getIs_pindeploy());
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 }
