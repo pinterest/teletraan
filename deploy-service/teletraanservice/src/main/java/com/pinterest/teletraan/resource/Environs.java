@@ -152,9 +152,13 @@ public class Environs {
             value = "Get pindeploy related info",
             notes = "Return is_pindeploy and pipeline given the environment id",
             response = PindeployBean.class)
-    public PindeployBean getPindeployInfo(@PathParam("id") String id) throws Exception {
-        PindeployBean pindeployBean = pindeployDAO.get(id);
-        return pindeployBean;
+    public PindeployBean getPindeployInfo(@PathParam("id") String envId) throws Exception {
+        if (StringUtils.isEmpty(envId)) {
+            throw new WebApplicationException(
+                    "Require at least envId specified in the request.",
+                    Response.Status.BAD_REQUEST);
+        }
+        return pindeployDAO.get(envId);
     }
 
     @POST
