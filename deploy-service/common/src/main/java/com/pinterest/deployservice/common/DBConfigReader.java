@@ -15,12 +15,12 @@
  */
 package com.pinterest.deployservice.common;
 
-import com.jayway.jsonpath.JsonPath;
-import net.minidev.json.JSONArray;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * Parse and return DB config info from
@@ -75,30 +75,43 @@ public class DBConfigReader {
     }
 
     public String getHost(String replicaSetName) {
-        return JsonPath.read(dbJson, String.format("$.%s.master.host", replicaSetName));
+        JsonNode master = read(dbJson, replicaSetName);
+        return master.findPath("host").textValue();
     }
 
     public Integer getPort(String replicaSetName) {
-        return JsonPath.read(dbJson, String.format("$.%s.master.port", replicaSetName));
+        JsonNode master = read(dbJson, replicaSetName);
+        return master.findPath("port").intValue();
     }
 
     public String getUsername(String role) {
-        JSONArray jsonArray = JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)]", role));
-        if(jsonArray.size()>0){
-            Map hashMap =  (Map) jsonArray.get(0);
-            return hashMap.get("username").toString();
-        }
-
-        return null;
+        JsonNode cred = readEnabled(credJson, role);
+        return cred.findPath("username").textValue();
     }
 
     public String getPassword(String role) {
-        JSONArray jsonArray = JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)]", role));
-        if(jsonArray.size()>0){
-            Map hashMap =  (Map) jsonArray.get(0);
-            return hashMap.get("password").toString();
-        }
+        JsonNode cred = readEnabled(credJson, role);
+        return cred.get("password").textValue();
+    }
 
-        return null;
+    private JsonNode readEnabled (String jsonInput, String  role){
+        JsonNode cred = read(jsonInput, role);
+        for(JsonNode node: cred.findPath("users")){
+            if(node.get("enabled").booleanValue()){
+                return node;
+            }
+        }
+        throw new RuntimeException("Missing enabled user");
+    }
+
+    private JsonNode read (String jsonInput, String  path){
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode actualObj = null;
+        try {
+            actualObj = mapper.readTree(jsonInput);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return actualObj.get(path);
     }
 }

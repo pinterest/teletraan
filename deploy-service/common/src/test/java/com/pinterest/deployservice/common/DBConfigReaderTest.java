@@ -51,9 +51,9 @@ public class DBConfigReaderTest {
             + "    }" +
             "}";
         DBConfigReader reader = new DBConfigReader(dbJson, credJson);
-        assertEquals(reader.getHost("admindb"), "admindb001c");
-        assertEquals(reader.getPort("admindb"), new Integer(3306));
-        assertEquals(reader.getUsername("scriptrw"), "scriptrw");
-        assertEquals(reader.getPassword("scriptrw"), "12345");
+        assertEquals("admindb001c", reader.getHost("admindb"));
+        assertEquals(new Integer(3306), reader.getPort("admindb"));
+        assertEquals("scriptrw", reader.getUsername("scriptrw"));
+        assertEquals("12345", reader.getPassword("scriptrw"));
     }
 }
