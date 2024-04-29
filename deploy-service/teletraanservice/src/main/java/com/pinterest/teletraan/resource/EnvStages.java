@@ -102,7 +102,7 @@ public class EnvStages {
     }
 
     @GET
-    @Path("/keelPipeline")
+    @Path("/pindeployPipeline")
     @ApiOperation(
             value = "Get pindeploy related info",
             notes = "Return is_pindeploy and pipeline given the environment id",
@@ -274,10 +274,10 @@ public class EnvStages {
     }
 
     @POST
-    @Path("/keelPipeline/action")
+    @Path("/pindeployPipeline/action")
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void keelPipelineAction(@Context SecurityContext sc,
+    public void pindeployPipelineAction(@Context SecurityContext sc,
                        @PathParam("envName") String envName,
                        @PathParam("stageName") String stageName,
                        @NotNull @QueryParam("actionType") ActionType actionType,
@@ -299,6 +299,6 @@ public class EnvStages {
                 throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
         environHandler.updatePindeploy(pindeployBean);
-        LOG.info(String.format("Successfully updated keel pipeline action %s for %s/%s by %s", actionType, envName, stageName, operator));
+        LOG.info(String.format("Successfully updated pindeploy pipeline action %s for %s/%s by %s", actionType, envName, stageName, operator));
     }
 }
