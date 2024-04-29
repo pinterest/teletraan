@@ -142,6 +142,18 @@ public class Environs {
         return environDAO.getAllEnvs();
     }
 
+    @GET
+    @Path("/{id : [a-zA-Z0-9\\-_]+}/pindeploy")
+    @ApiOperation(
+            value = "Get pindeploy related info",
+            notes = "Return is_pindeploy and pipeline given the environment id",
+            response = PindeployBean.class)
+    public PindeployBean getPindeployInfo(
+            @ApiParam(value = "Environment id", required = true)@PathParam("id") String id) throws Exception {
+        PindeployBean pindeployBean = pindeployDAO.get(id);
+        return pindeployBean;
+    }
+
     @POST
     @ApiOperation(
             value = "Create environment",
