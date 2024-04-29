@@ -317,6 +317,6 @@ def reset_hosts(request, env_name, stage_name, host_ids):
     return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
                             params=params, data=host_ids)
 
-def get_env_pindeploy(request, env_id):
+def get_env_pindeploy(request, env_name, stage_name):
     return deployclient.get("/envs/%s/%s/pindeployPipeline" % (env_name, stage_name),
                             request.teletraan_user_id.token)
