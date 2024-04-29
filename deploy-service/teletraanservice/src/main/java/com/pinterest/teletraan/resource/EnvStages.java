@@ -120,21 +120,11 @@ public class EnvStages {
         String operator = sc.getUserPrincipal().getName();
         try {
             environBean.validate();
+            environBean.stageTypeValidate(origBean);
         } catch (IllegalArgumentException e) {
             throw new WebApplicationException(e.toString(), Response.Status.BAD_REQUEST);
         }
 
-        if (origBean.getStage_type() == EnvType.DEFAULT && environBean.getStage_type() == null) {
-            throw new WebApplicationException("Please update the Stage Type to a value other than DEFAULT.", Response.Status.BAD_REQUEST);
-        } else if (environBean.getStage_type() == null) {
-            // Request has no intention to change stage type, so set it to the current value
-            // to avoid the default value being used.
-            environBean.setStage_type(origBean.getStage_type());
-        } else if (origBean.getStage_type() != Constants.DEFAULT_STAGE_TYPE
-                && origBean.getStage_type() != environBean.getStage_type()) {
-            throw new WebApplicationException("Modification of non-default stage type is not allowed!",
-                    Response.Status.BAD_REQUEST);
-        }
         if (environBean.getStage_type() == EnvType.DEV) {
             environBean.setAllow_private_build(true);
         }

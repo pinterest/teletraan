@@ -22,6 +22,9 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.validation.constraints.NotEmpty;
 
 /**
@@ -228,10 +231,35 @@ public class EnvironBean implements Updatable, Serializable {
         if (this.chatroom != null && !this.chatroom.matches(chatRegex)) {
             throw new IllegalArgumentException(String.format("Chatroom must match regex %s", chatRegex));
         }
+    }
+
+    public void stageTypeValidate(EnvironBean origBean) throws Exception {
+        Map<EnvType, String> stageTypeCategory = new HashMap<>();
+        stageTypeCategory.put(EnvType.DEFAULT, "PRODUCTION");
+        stageTypeCategory.put(EnvType.PRODUCTION, "PRODUCTION");
+        stageTypeCategory.put(EnvType.CONTROL, "PRODUCTION");
+        stageTypeCategory.put(EnvType.CANARY, "PRODUCTION");
+        stageTypeCategory.put(EnvType.STAGING, "NON-PRODUCTION");
+        stageTypeCategory.put(EnvType.LATEST, "NON-PRODUCTION");
+        stageTypeCategory.put(EnvType.DEV, "NON-PRODUCTION");
+
+
         if (this.stage_type == EnvType.DEFAULT) {
             throw new IllegalArgumentException("DEFAULT stage type is not allowed! " +
                         "Please select one of the following Stage Types: " +
                         "PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV.");
+        } else if (origBean.getStage_type() == EnvType.DEFAULT && this.stage_type == null) {
+            throw new IllegalArgumentException("Please update the Stage Type to a value other than DEFAULT.");
+        } else if (this.getStage_type() == null) {
+            // Request has no intention to change stage type, so set it to the current value
+            // to avoid the default value being used.
+            this.setStage_type(origBean.getStage_type());
+        } else if (origBean.getStage_type() != EnvType.DEFAULT
+                && origBean.getStage_type() != this.stage_type
+                && stageTypeCategory.get(this.stage_type).equals("NON-PRODUCTION")
+                && stageTypeCategory.get(origBean.getStage_type()).equals("PRODUCTION")) {
+            throw new IllegalArgumentException(
+                "Modification of Production stage type (PRODUCTION, CANARY, CONTROL) is not allowed!");
         }
     }
 
