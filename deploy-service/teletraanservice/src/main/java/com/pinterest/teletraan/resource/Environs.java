@@ -152,8 +152,7 @@ public class Environs {
             value = "Get pindeploy related info",
             notes = "Return is_pindeploy and pipeline given the environment id",
             response = PindeployBean.class)
-    public PindeployBean getPindeployInfo(
-            @ApiParam(value = "Environment id", required = true)@PathParam("id") String id) throws Exception {
+    public PindeployBean getPindeployInfo(@PathParam("id") String id) throws Exception {
         PindeployBean pindeployBean = pindeployDAO.get(id);
         return pindeployBean;
     }
