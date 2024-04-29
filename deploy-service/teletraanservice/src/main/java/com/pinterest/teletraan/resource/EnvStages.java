@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.PindeployBean;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.PindeployBean;
 import com.pinterest.deployservice.bean.TagTargetType;
@@ -48,6 +49,7 @@ import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
@@ -74,6 +76,7 @@ public class EnvStages {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvStages.class);
     private EnvironDAO environDAO;
+    private PindeployDAO pindeployDAO;
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
@@ -81,6 +84,7 @@ public class EnvStages {
 
     public EnvStages(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
+        pindeployDAO = context.getPindeployDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         tagHandler = new EnvTagHandler(context);
