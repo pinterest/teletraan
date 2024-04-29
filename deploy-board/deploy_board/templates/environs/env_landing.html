@@ -289,6 +289,18 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 {% endif %}
 
+{% if pindeploy_config %}
+{% if pindeploy_config.is_pindeploy %}
+<div class="alert alert-warning" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is managed by Pindeploy. Deployments should be done from
+    this <a href="{{ pindeploy_config.pipeline }}" target="_blank">pipeline</a>.
+    Creating a deployment from other sources will disable PinDeploy management on the pipeline. 
+    Only do so in case of emergency.
+</div>
+{% endif %}
+{% endif %}
+
 {% if lastClusterRefreshStatus %}
     {% if lastClusterRefreshStatus.status == "Pending" or lastClusterRefreshStatus.status == "InProgress" %}
     <div class="alert alert-info alert-dismissible">
