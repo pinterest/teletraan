@@ -16,9 +16,11 @@
 package com.pinterest.deployservice.common;
 
 import com.jayway.jsonpath.JsonPath;
+import net.minidev.json.JSONArray;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * Parse and return DB config info from
@@ -81,10 +83,22 @@ public class DBConfigReader {
     }
 
     public String getUsername(String role) {
-        return JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)][0].username", role));
+        JSONArray jsonArray = JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)]", role));
+        if(jsonArray.size()>0){
+            Map hashMap =  (Map) jsonArray.get(0);
+            return hashMap.get("username").toString();
+        }
+
+        return null;
     }
 
     public String getPassword(String role) {
-        return JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)][0].password", role));
+        JSONArray jsonArray = JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)]", role));
+        if(jsonArray.size()>0){
+            Map hashMap =  (Map) jsonArray.get(0);
+            return hashMap.get("password").toString();
+        }
+
+        return null;
     }
 }
