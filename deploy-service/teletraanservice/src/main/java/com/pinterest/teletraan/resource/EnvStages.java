@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.PindeployBean;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.PindeployBean;
 import com.pinterest.deployservice.bean.TagTargetType;
@@ -48,6 +49,7 @@ import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
@@ -74,6 +76,7 @@ public class EnvStages {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvStages.class);
     private EnvironDAO environDAO;
+    private PindeployDAO pindeployDAO;
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
@@ -81,6 +84,7 @@ public class EnvStages {
 
     public EnvStages(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
+        pindeployDAO = context.getPindeployDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         tagHandler = new EnvTagHandler(context);
@@ -95,6 +99,19 @@ public class EnvStages {
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName) throws Exception {
         return Utils.getEnvStage(environDAO, envName, stageName);
+    }
+
+    @GET
+    @Path("/pindeployPipeline")
+    @ApiOperation(
+            value = "Get pindeploy related info",
+            notes = "Return is_pindeploy and pipeline given the environment id",
+            response = PindeployBean.class)
+    public PindeployBean getPindeployInfo(
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        return pindeployDAO.get(envBean.getEnv_id());
     }
 
     @PUT
@@ -257,10 +274,10 @@ public class EnvStages {
     }
 
     @POST
-    @Path("/keelPipeline/action")
+    @Path("/pindeployPipeline/action")
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void keelPipelineAction(@Context SecurityContext sc,
+    public void pindeployPipelineAction(@Context SecurityContext sc,
                        @PathParam("envName") String envName,
                        @PathParam("stageName") String stageName,
                        @NotNull @QueryParam("actionType") ActionType actionType,
@@ -282,6 +299,6 @@ public class EnvStages {
                 throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
         environHandler.updatePindeploy(pindeployBean);
-        LOG.info(String.format("Successfully updated keel pipeline action %s for %s/%s by %s", actionType, envName, stageName, operator));
+        LOG.info(String.format("Successfully updated pindeploy pipeline action %s for %s/%s by %s", actionType, envName, stageName, operator));
     }
 }
