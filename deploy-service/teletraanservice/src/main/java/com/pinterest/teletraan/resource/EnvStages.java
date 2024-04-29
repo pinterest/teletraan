@@ -97,6 +97,19 @@ public class EnvStages {
         return Utils.getEnvStage(environDAO, envName, stageName);
     }
 
+    @GET
+    @Path("/keelPipeline")
+    @ApiOperation(
+            value = "Get pindeploy related info",
+            notes = "Return is_pindeploy and pipeline given the environment id",
+            response = PindeployBean.class)
+    public PindeployBean getPindeployInfo(
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        return pindeployDAO.get(envBean.getEnv_id());
+    }
+
     @PUT
     @ApiOperation(
             value = "Update an environment",
