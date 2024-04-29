@@ -147,7 +147,7 @@ public class Environs {
     }
 
     @GET
-    @Path("/{id : [a-zA-Z0-9\\-_]+}/pindeploy")
+    @Path("/pindeploy/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get pindeploy related info",
             notes = "Return is_pindeploy and pipeline given the environment id",
