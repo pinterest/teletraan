@@ -274,11 +274,29 @@
               <groupId>com.pinterest.psc</groupId>
               <artifactId>psc-internal-shaded</artifactId>
             </exclusion>
+            <exclusion>
+              <groupId>org.apache.commons</groupId>
+              <artifactId>commons-compress</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections</artifactId>
+            </exclusion>
           </exclusions>
         </dependency>
         <dependency>
           <groupId>org.slf4j</groupId>
           <artifactId>log4j-over-slf4j</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-compress</artifactId>
+          <version>1.26.1</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
+          <version>4.5.0-M1</version>
         </dependency>
       </dependencies>
     </profile>
