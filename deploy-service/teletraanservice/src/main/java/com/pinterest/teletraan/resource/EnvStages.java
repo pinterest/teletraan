@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.resource;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
@@ -120,7 +122,7 @@ public class EnvStages {
         String operator = sc.getUserPrincipal().getName();
         try {
             environBean.validate();
-            environBean.stageTypeValidate(origBean);
+            stageTypeValidate(origBean, environBean);
         } catch (IllegalArgumentException e) {
             throw new WebApplicationException(e.toString(), Response.Status.BAD_REQUEST);
         }
@@ -243,5 +245,30 @@ public class EnvStages {
         tagBean.setComments(description);
         tagHandler.createTag(tagBean, operator);
         LOG.info(String.format("Successfully updated action %s for %s/%s by %s", actionType, envName, stageName, operator));
+    }
+
+    private void stageTypeValidate(EnvironBean origBean, EnvironBean newBean) throws Exception {
+        Map<EnvType, String> stageTypeCategory = new HashMap<>();
+        stageTypeCategory.put(EnvType.DEFAULT, "PRODUCTION");
+        stageTypeCategory.put(EnvType.PRODUCTION, "PRODUCTION");
+        stageTypeCategory.put(EnvType.CONTROL, "PRODUCTION");
+        stageTypeCategory.put(EnvType.CANARY, "PRODUCTION");
+        stageTypeCategory.put(EnvType.STAGING, "NON-PRODUCTION");
+        stageTypeCategory.put(EnvType.LATEST, "NON-PRODUCTION");
+        stageTypeCategory.put(EnvType.DEV, "NON-PRODUCTION");
+
+        if (origBean.getStage_type() == EnvType.DEFAULT && newBean.getStage_type() == null) {
+            throw new IllegalArgumentException("Please update the Stage Type to a value other than DEFAULT.");
+        } else if (newBean.getStage_type() == null) {
+            // Request has no intention to change stage type, so set it to the current value
+            // to avoid the default value being used.
+            newBean.setStage_type(origBean.getStage_type());
+        } else if (origBean.getStage_type() != EnvType.DEFAULT
+                && origBean.getStage_type() != newBean.getStage_type()
+                && stageTypeCategory.get(newBean.getStage_type()).equals("NON-PRODUCTION")
+                && stageTypeCategory.get(origBean.getStage_type()).equals("PRODUCTION")) {
+            throw new IllegalArgumentException(
+                "Modification of Production stage type (PRODUCTION, CANARY, CONTROL) is not allowed!");
+        }
     }
 }
