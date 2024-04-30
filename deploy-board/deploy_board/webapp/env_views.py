@@ -422,10 +422,6 @@ class EnvLandingView(View):
         accounts = []
         if IS_PINTEREST:
             pindeploy_config = environs_helper.get_env_pindeploy(request, env['envName'], env['stageName'])
-            if pindeploy_config:
-                log.error('Yaqin Debug, pindeploy_config->is_pindeploy: {}'.format(pindeploy_config.get('isPindeploy', None)))
-            else:
-                log.error('Yaqin Debug, pindeploy_config is None')
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
             placements = None
