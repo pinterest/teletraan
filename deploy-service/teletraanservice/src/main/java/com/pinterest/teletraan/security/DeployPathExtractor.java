@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.security;
 
+import java.sql.SQLException;
+
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 
@@ -29,8 +31,6 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
  * present in the request's path parameters. It retrieves the corresponding environment
  * bean from the EnvironDAO and creates an AuthZResource object using the environment's
  * name and stage name.
- *
- * This class is used to enforce access control and permissions for the Teletraan service.
  */
 public class DeployPathExtractor implements AuthZResourceExtractor {
     private static final String DEPLOY_ID = "id";
@@ -45,13 +45,13 @@ public class DeployPathExtractor implements AuthZResourceExtractor {
             throws ExtractionException {
         String deployID = requestContext.getUriInfo().getPathParameters().getFirst(DEPLOY_ID);
         if (deployID == null) {
-            throw new ExtractionException("Failed to extract build id");
+            throw new ExtractionException("Failed to extract deploy id");
         }
 
         EnvironBean envBean;
         try {
             envBean = environDAO.getByDeployId(deployID);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ExtractionException("Failed to get environment bean", e);
         }
         if (envBean == null) {
