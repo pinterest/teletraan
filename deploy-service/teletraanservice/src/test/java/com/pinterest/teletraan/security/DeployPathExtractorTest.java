@@ -30,23 +30,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.dao.BuildDAO;
-import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
-class BuildPathExtractorTest extends BasePathExtractorTest {
-    private BuildPathExtractor sut;
+class DeployPathExtractorTest extends BasePathExtractorTest {
+    private DeployPathExtractor sut;
     private ServiceContext serviceContext;
-    private BuildDAO buildDAO;
+    private EnvironDAO environDAO;
 
     @BeforeEach
     void setUp() {
         super.setUp();
-        buildDAO = mock(BuildDAO.class);
+        environDAO = mock(EnvironDAO.class);
         serviceContext = new ServiceContext();
-        serviceContext.setBuildDAO(buildDAO);
-        sut = new BuildPathExtractor(serviceContext);
+        serviceContext.setEnvironDAO(environDAO);
+        sut = new DeployPathExtractor(serviceContext);
     }
 
     @Test
@@ -55,7 +55,7 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
     }
 
     @Test
-    void testExtractResource_0BuildId() {
+    void testExtractResource_0DeployId() {
         pathParameters.add("param", "val");
 
         assertThrows(ExtractionException.class, () -> sut.extractResource(context));
@@ -63,27 +63,28 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
 
     @Test
     void testExtractResource() throws Exception {
-        String buildId = "testBuildId";
-        pathParameters.add("id", buildId);
+        String deployId = "testDeployId";
+        pathParameters.add("id", deployId);
 
-        when(buildDAO.getById(buildId)).thenReturn(null);
+        when(environDAO.getByDeployId(deployId)).thenReturn(null);
         assertThrows(NotFoundException.class, () -> sut.extractResource(context));
 
-        BuildBean buildBean = new BuildBean();
-        buildBean.setBuild_name("Test Build");
-        when(buildDAO.getById(buildId)).thenReturn(buildBean);
+        EnvironBean envBean = new EnvironBean();
+        envBean.setEnv_name("deploy_env");
+        envBean.setStage_name("deploy_stage");
+        when(environDAO.getByDeployId(deployId)).thenReturn(envBean);
 
         AuthZResource result = sut.extractResource(context);
 
         assertNotNull(result);
-        assertEquals("Test Build", result.getName());
-        assertEquals(AuthZResource.Type.BUILD, result.getType());
+        assertEquals(String.format("%s/%s", envBean.getEnv_name(), envBean.getStage_name()), result.getName());
+        assertEquals(AuthZResource.Type.ENV_STAGE, result.getType());
     }
 
     @Test
     void testExtractResource_sqlException() throws Exception {
         pathParameters.add("id", "someId");
-        when(buildDAO.getById(any())).thenThrow(SQLException.class);
+        when(environDAO.getByDeployId(any())).thenThrow(SQLException.class);
 
         assertThrows(ExtractionException.class, () -> sut.extractResource(context));
     }
