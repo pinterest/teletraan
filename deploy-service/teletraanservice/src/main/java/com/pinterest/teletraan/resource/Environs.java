@@ -148,7 +148,7 @@ public class Environs {
             notes = "Creates a new environment given an environment object",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = EnvironBean.class)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY)
     public Response create(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,

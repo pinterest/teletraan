@@ -101,7 +101,7 @@ public class Hotfixs {
 
     @POST
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = HotfixBean.class)
+    @ResourceAuthZInfo(type = AuthZResource.Type.HOTFIX, idLocation = Location.BODY)
     public Response create(@Context SecurityContext sc, @Context UriInfo uriInfo, @Valid HotfixBean hotfixBean)
             throws Exception {
         String hotfixId = CommonUtils.getBase64UUID();

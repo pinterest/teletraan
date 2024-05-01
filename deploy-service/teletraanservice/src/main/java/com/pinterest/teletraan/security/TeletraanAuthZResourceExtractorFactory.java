@@ -23,14 +23,14 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
 
     private static final AuthZResourceExtractor BUILD_BODY_EXTRACTOR = new BuildBodyExtractor();
     private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvPathExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor();
     private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR = new EnvStagePathExtractor();
+    private static final AuthZResourceExtractor HOTFIX_BODY_EXTRACTOR = new HotfixBodyExtractor();
     private final AuthZResourceExtractor buildPathExtractor;
     private final AuthZResourceExtractor deployPathExtractor;
-    private final AuthZResourceExtractor envStageBodyExtractor;
     private final AuthZResourceExtractor hotfixPathExtractor;
 
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
-        envStageBodyExtractor = new EnvStageBodyExtractor(serviceContext);
         buildPathExtractor = new BuildPathExtractor(serviceContext);
         deployPathExtractor = new DeployPathExtractor(serviceContext);
         hotfixPathExtractor = new HotfixPathExtractor(serviceContext);
@@ -59,7 +59,9 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                     case BUILD:
                         return BUILD_BODY_EXTRACTOR;
                     case ENV_STAGE:
-                        return envStageBodyExtractor;
+                        return ENV_STAGE_BODY_EXTRACTOR;
+                    case HOTFIX:
+                        return HOTFIX_BODY_EXTRACTOR;
                     default:
                         throw new UnsupportedResourceInfoException(authZInfo);
                 }
