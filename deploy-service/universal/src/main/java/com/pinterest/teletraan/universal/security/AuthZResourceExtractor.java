@@ -19,12 +19,12 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import javax.ws.rs.container.ContainerRequestContext;
 
 /**
- * This interface represents an AuthZResourceExtractor, which is responsible for extracting
- * an AuthZResource from a ContainerRequestContext.
+ * This interface represents an AuthZResourceExtractor, which is responsible for extracting an
+ * AuthZResource from a ContainerRequestContext.
  *
- * Note that the extractor can map the input resource type to a different AuthZResource type.
- * And thus the authorization will be based on the mapped AuthZResource type. This can help
- * reduce the complexity of the authorization logic.
+ * <p>Note that the extractor can map the input resource type to a different AuthZResource type. And
+ * thus the authorization will be based on the mapped AuthZResource type. This can help reduce the
+ * complexity of the authorization logic.
  */
 public interface AuthZResourceExtractor {
     /**
@@ -50,9 +50,7 @@ public interface AuthZResourceExtractor {
         return extractResource(requestContext);
     }
 
-    /**
-     * This interface represents a Factory for creating AuthZResourceExtractors.
-     */
+    /** This interface represents a Factory for creating AuthZResourceExtractors. */
     interface Factory {
         /**
          * Creates an AuthZResourceExtractor based on the given ResourceAuthZInfo.
@@ -75,7 +73,11 @@ public interface AuthZResourceExtractor {
 
     class BeanClassExtractionException extends ExtractionException {
         public BeanClassExtractionException(Class<?> beanClass, Throwable cause) {
-            super(String.format("failed to extract as %s. Check if request body is valid", beanClass.getName()), cause);
+            super(
+                    String.format(
+                            "failed to extract as %s. Check if request body is valid",
+                            beanClass.getName()),
+                    cause);
         }
     }
 }

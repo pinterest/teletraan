@@ -22,18 +22,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.sql.SQLException;
-
-import javax.ws.rs.NotFoundException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.sql.SQLException;
+import javax.ws.rs.NotFoundException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class HotfixPathExtractorTest extends BasePathExtractorTest {
     private HotfixPathExtractor sut;

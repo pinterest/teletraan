@@ -15,10 +15,8 @@
  */
 package com.pinterest.teletraan.security;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +27,6 @@ import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
-
 import java.sql.SQLException;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

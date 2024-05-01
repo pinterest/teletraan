@@ -19,12 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.ws.rs.container.ContainerRequestContext;
-
 import org.glassfish.jersey.server.ContainerRequest;
 
 public class EnvStageBodyExtractor implements AuthZResourceExtractor {

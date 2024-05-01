@@ -15,17 +15,14 @@
  */
 package com.pinterest.teletraan.security;
 
-import java.io.InputStream;
-
-import javax.ws.rs.container.ContainerRequestContext;
-
-import org.glassfish.jersey.server.ContainerRequest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.io.InputStream;
+import javax.ws.rs.container.ContainerRequestContext;
+import org.glassfish.jersey.server.ContainerRequest;
 
 public class HotfixBodyExtractor implements AuthZResourceExtractor {
     @Override

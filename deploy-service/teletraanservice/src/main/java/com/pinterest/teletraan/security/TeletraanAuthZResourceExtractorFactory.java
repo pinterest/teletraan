@@ -23,8 +23,10 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
 
     private static final AuthZResourceExtractor BUILD_BODY_EXTRACTOR = new BuildBodyExtractor();
     private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvPathExtractor();
-    private static final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor();
-    private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR = new EnvStagePathExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR =
+            new EnvStageBodyExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR =
+            new EnvStagePathExtractor();
     private static final AuthZResourceExtractor HOTFIX_BODY_EXTRACTOR = new HotfixBodyExtractor();
     private final AuthZResourceExtractor buildPathExtractor;
     private final AuthZResourceExtractor deployPathExtractor;

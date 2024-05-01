@@ -15,20 +15,18 @@
  */
 package com.pinterest.teletraan.security;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.container.ContainerRequestContext;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
- * The authentication and authorization resource is extracted based on the
- * hotfix ID present in the request's path parameters. It retrieves the
- * corresponding environment bean from the EnvironDAO and creates an
- * AuthZResource object using the environment's name and stage name.
+ * The authentication and authorization resource is extracted based on the hotfix ID present in the
+ * request's path parameters. It retrieves the corresponding environment bean from the EnvironDAO
+ * and creates an AuthZResource object using the environment's name and stage name.
  */
 public class HotfixPathExtractor implements AuthZResourceExtractor {
     private static final String HOTFIX_ID = "id";
@@ -53,8 +51,8 @@ public class HotfixPathExtractor implements AuthZResourceExtractor {
             throw new ExtractionException("Failed to get environment bean", e);
         }
         if (hotfixBean == null) {
-            throw new NotFoundException(String.format("Environment not found, referenced by hotfix(%s)",
-                    hotfixID));
+            throw new NotFoundException(
+                    String.format("Environment not found, referenced by hotfix(%s)", hotfixID));
         }
         return new AuthZResource(hotfixBean.getEnv_name(), "");
     }

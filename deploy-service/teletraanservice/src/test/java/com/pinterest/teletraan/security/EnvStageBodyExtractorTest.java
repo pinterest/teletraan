@@ -20,22 +20,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.ws.rs.container.ContainerRequestContext;
-
-import org.glassfish.jersey.server.ContainerRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.teletraan.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.ws.rs.container.ContainerRequestContext;
+import org.glassfish.jersey.server.ContainerRequest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class EnvStageBodyExtractorTest {
 
@@ -43,7 +40,6 @@ class EnvStageBodyExtractorTest {
     private EnvStageBodyExtractor sut;
     private InputStream inputStream;
     private ObjectMapper objectMapper = new ObjectMapper();
-
 
     @BeforeEach
     void setUp() {
@@ -71,7 +67,9 @@ class EnvStageBodyExtractorTest {
 
         AuthZResource resource = sut.extractResource(context);
 
-        assertEquals(String.format("%s/%s", envBean.getEnv_name(), envBean.getStage_name()), resource.getName());
+        assertEquals(
+                String.format("%s/%s", envBean.getEnv_name(), envBean.getStage_name()),
+                resource.getName());
         assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
     }
 

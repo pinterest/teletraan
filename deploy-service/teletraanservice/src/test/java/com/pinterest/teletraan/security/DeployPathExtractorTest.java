@@ -22,18 +22,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.sql.SQLException;
-
-import javax.ws.rs.NotFoundException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.sql.SQLException;
+import javax.ws.rs.NotFoundException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class DeployPathExtractorTest extends BasePathExtractorTest {
     private DeployPathExtractor sut;
@@ -77,7 +74,9 @@ class DeployPathExtractorTest extends BasePathExtractorTest {
         AuthZResource result = sut.extractResource(context);
 
         assertNotNull(result);
-        assertEquals(String.format("%s/%s", envBean.getEnv_name(), envBean.getStage_name()), result.getName());
+        assertEquals(
+                String.format("%s/%s", envBean.getEnv_name(), envBean.getStage_name()),
+                result.getName());
         assertEquals(AuthZResource.Type.ENV_STAGE, result.getType());
     }
 

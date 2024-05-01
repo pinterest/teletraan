@@ -15,22 +15,19 @@
  */
 package com.pinterest.teletraan.security;
 
-import java.sql.SQLException;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.container.ContainerRequestContext;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.sql.SQLException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
- * The authentication and authorization resource is extracted based on the deploy ID
- * present in the request's path parameters. It retrieves the corresponding environment
- * bean from the EnvironDAO and creates an AuthZResource object using the environment's
- * name and stage name.
+ * The authentication and authorization resource is extracted based on the deploy ID present in the
+ * request's path parameters. It retrieves the corresponding environment bean from the EnvironDAO
+ * and creates an AuthZResource object using the environment's name and stage name.
  */
 public class DeployPathExtractor implements AuthZResourceExtractor {
     private static final String DEPLOY_ID = "id";
@@ -55,8 +52,8 @@ public class DeployPathExtractor implements AuthZResourceExtractor {
             throw new ExtractionException("Failed to get environment bean", e);
         }
         if (envBean == null) {
-            throw new NotFoundException(String.format("Environment not found, referenced by deploy(%s)",
-                    deployID));
+            throw new NotFoundException(
+                    String.format("Environment not found, referenced by deploy(%s)", deployID));
         }
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }
