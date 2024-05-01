@@ -28,6 +28,7 @@ import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.BeanClassExtractionException;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
@@ -50,6 +51,7 @@ class EnvStageBodyExtractorTest {
     private ContainerRequestContext context;
     private EnvStageBodyExtractor sut;
     private EnvironDAO environDAO;
+    private HotfixDAO hotfixDAO;
     private InputStream inputStream;
     private ObjectMapper objectMapper = new ObjectMapper();
     private static final Class<?>[] BEAN_CLASSES = {
@@ -59,10 +61,12 @@ class EnvStageBodyExtractorTest {
     @BeforeEach
     void setUp() {
         environDAO = mock(EnvironDAO.class);
+        hotfixDAO = mock(HotfixDAO.class);
         context = mock(ContainerRequest.class);
 
         ServiceContext serviceContext = new ServiceContext();
         serviceContext.setEnvironDAO(environDAO);
+        serviceContext.setHotfixDAO(hotfixDAO);
         sut = new EnvStageBodyExtractor(serviceContext);
     }
 
@@ -110,7 +114,8 @@ class EnvStageBodyExtractorTest {
     @MethodSource("getSupportedClassed")
     void testExtractResource_hotFixBean_success(Class<?> beanClass) throws Exception {
         HotfixBean hotfixBean = new HotfixBean();
-        hotfixBean.setEnv_name("env_name");
+        hotfixBean.setEnv_name("hotfix_env");
+        hotfixBean.setId("hotfix_id");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         objectMapper.writeValue(out, hotfixBean);
         inputStream = new ByteArrayInputStream(out.toByteArray());
@@ -118,6 +123,7 @@ class EnvStageBodyExtractorTest {
         when(context.getEntityStream()).thenReturn(inputStream);
 
         if (beanClass.equals(HotfixBean.class)) {
+            when(hotfixDAO.getByHotfixId(hotfixBean.getId())).thenReturn(hotfixBean);
 
             AuthZResource resource = sut.extractResource(context, HotfixBean.class);
             assertTrue(resource.getName().contains(hotfixBean.getEnv_name()));

@@ -22,6 +22,7 @@ import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
@@ -35,9 +36,11 @@ import org.glassfish.jersey.server.ContainerRequest;
 
 public class EnvStageBodyExtractor implements AuthZResourceExtractor {
     private final EnvironDAO environDAO;
+    private final HotfixDAO hotfixDAO;
 
     public EnvStageBodyExtractor(ServiceContext context) {
         this.environDAO = context.getEnvironDAO();
+        this.hotfixDAO = context.getHotfixDAO();
     }
 
     @Override
@@ -131,8 +134,17 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }
 
-    private AuthZResource extractHotfixResource(InputStream inputStream) throws IOException {
+    private AuthZResource extractHotfixResource(InputStream inputStream) throws IOException, ExtractionException {
         HotfixBean hotfixBean = new ObjectMapper().readValue(inputStream, HotfixBean.class);
+        String hotfixId = hotfixBean.getId();
+        try {
+            hotfixBean = hotfixDAO.getByHotfixId(hotfixId);
+        } catch (Exception e) {
+            throw new ExtractionException("Failed to get hotfix bean", e);
+        }
+        if (hotfixBean == null) {
+            throw new NotFoundException(String.format("Hotfix(%s) not found", hotfixId));
+        }
         return new AuthZResource(hotfixBean.getEnv_name(), "");
     }
 
