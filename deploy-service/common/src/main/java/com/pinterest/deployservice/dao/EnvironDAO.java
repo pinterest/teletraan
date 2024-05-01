@@ -18,6 +18,7 @@ package com.pinterest.deployservice.dao;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.UpdateStatement;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
@@ -43,6 +44,8 @@ public interface EnvironDAO {
 
     EnvironBean getById(String envId) throws Exception;
 
+    EnvironBean getByDeployId(String deployId) throws SQLException;
+
     List<EnvironBean> getByName(String envName) throws Exception;
 
     EnvironBean getByStage(String envName, String envStage) throws Exception;
@@ -65,7 +68,7 @@ public interface EnvironDAO {
 
     // Return all
     List<String> getAllEnvIds() throws Exception;
-    
+
     List<EnvironBean> getAllEnvs() throws Exception;
     List<EnvironBean> getAllSidecarEnvs() throws Exception;
 

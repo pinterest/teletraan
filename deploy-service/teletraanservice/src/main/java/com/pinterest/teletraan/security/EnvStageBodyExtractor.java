@@ -18,7 +18,6 @@ package com.pinterest.teletraan.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
-import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
@@ -71,19 +70,6 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
             }
         }
 
-        if (DeployBean.class.equals(beanClass) || tryAll) {
-            try {
-                return extractDeployResource(inputStream);
-            } catch (Exception e) {
-                if (!tryAll) {
-                    if (e instanceof NotFoundException) {
-                        throw (NotFoundException) e;
-                    }
-                    throw new BeanClassExtractionException(beanClass, e);
-                }
-            }
-        }
-
         if (HotfixBean.class.equals(beanClass) || tryAll) {
             try {
                 return extractHotfixResource(inputStream);
@@ -116,21 +102,6 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
 
     private AuthZResource extractEnvironResource(InputStream inputStream) throws IOException {
         EnvironBean envBean = new ObjectMapper().readValue(inputStream, EnvironBean.class);
-        return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
-    }
-
-    private AuthZResource extractDeployResource(InputStream inputStream) throws IOException, ExtractionException, NotFoundException {
-        DeployBean deployBean = new ObjectMapper().readValue(inputStream, DeployBean.class);
-        EnvironBean envBean;
-        try {
-            envBean = environDAO.getById(deployBean.getEnv_id());
-        } catch (Exception e) {
-            throw new ExtractionException("Failed to get environment bean", e);
-        }
-        if (envBean == null) {
-            throw new NotFoundException(String.format("Environment(%s) not found, referenced by deploy(%s)",
-                    deployBean.getEnv_id(), deployBean.getDeploy_id()));
-        }
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }
 

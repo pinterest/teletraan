@@ -24,12 +24,14 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
     private static final AuthZResourceExtractor BUILD_BODY_EXTRACTOR = new BuildBodyExtractor();
     private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvPathExtractor();
     private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR = new EnvStagePathExtractor();
-    private final AuthZResourceExtractor BUILD_PATH_EXTRACTOR;
-    private final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR;
+    private final AuthZResourceExtractor buildPathExtractor;
+    private final AuthZResourceExtractor envStageBodyExtractor;
+    private final AuthZResourceExtractor deployPathExtractor;
 
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
-        ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor(serviceContext);
-        BUILD_PATH_EXTRACTOR = new BuildPathExtractor(serviceContext);
+        envStageBodyExtractor = new EnvStageBodyExtractor(serviceContext);
+        buildPathExtractor = new BuildPathExtractor(serviceContext);
+        deployPathExtractor = new DeployPathExtractor(serviceContext);
     }
 
     @Override
@@ -47,16 +49,23 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                     case PATH:
                         return ENV_STAGE_PATH_EXTRACTOR;
                     case BODY:
-                        return ENV_STAGE_BODY_EXTRACTOR;
+                        return envStageBodyExtractor;
                     default:
                         throw new UnsupportedResourceIDLocationException(authZInfo);
                 }
             case BUILD:
                 switch (authZInfo.idLocation()) {
                     case PATH:
-                        return BUILD_PATH_EXTRACTOR;
+                        return buildPathExtractor;
                     case BODY:
                         return BUILD_BODY_EXTRACTOR;
+                    default:
+                        throw new UnsupportedResourceIDLocationException(authZInfo);
+                }
+            case DEPLOY:
+                switch (authZInfo.idLocation()) {
+                    case PATH:
+                        return deployPathExtractor;
                     default:
                         throw new UnsupportedResourceIDLocationException(authZInfo);
                 }
