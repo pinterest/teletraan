@@ -21,8 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.teletraan.fixture.EnvironBeanFixture;
+import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import java.io.ByteArrayInputStream;
@@ -34,42 +33,31 @@ import org.glassfish.jersey.server.ContainerRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EnvStageBodyExtractorTest {
-
-    private ContainerRequestContext context;
-    private EnvStageBodyExtractor sut;
-    private InputStream inputStream;
+class HotfixBodyExtractorTest {
+    private HotfixBodyExtractor sut;
+    private ContainerRequestContext requestContext;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        sut = new EnvStageBodyExtractor();
-        context = mock(ContainerRequest.class);
-    }
-
-    @Test
-    void testExtractResource_nothing_exception() throws Exception {
-        inputStream = mock(InputStream.class);
-        when(context.getEntityStream()).thenReturn(inputStream);
-
-        assertThrows(ExtractionException.class, () -> sut.extractResource(context));
+        sut = new HotfixBodyExtractor();
+        requestContext = mock(ContainerRequest.class);
     }
 
     @Test
     void testExtractResource() throws ExtractionException, IOException {
-        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
+        HotfixBean hotfixBean = new HotfixBean();
+        hotfixBean.setEnv_name("test-env");
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        objectMapper.writeValue(out, envBean);
+        objectMapper.writeValue(out, hotfixBean);
         InputStream inputStream = new ByteArrayInputStream(out.toByteArray());
 
-        when(context.getEntityStream()).thenReturn(inputStream);
+        when(requestContext.getEntityStream()).thenReturn(inputStream);
 
-        AuthZResource resource = sut.extractResource(context);
+        AuthZResource resource = sut.extractResource(requestContext);
 
-        assertEquals(
-                String.format("%s/%s", envBean.getEnv_name(), envBean.getStage_name()),
-                resource.getName());
+        assertEquals(hotfixBean.getEnv_name() + "/", resource.getName());
         assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
     }
 
@@ -78,8 +66,8 @@ class EnvStageBodyExtractorTest {
         String invalidJson = "{ xyz }";
         InputStream inputStream = new ByteArrayInputStream(invalidJson.getBytes());
 
-        when(context.getEntityStream()).thenReturn(inputStream);
+        when(requestContext.getEntityStream()).thenReturn(inputStream);
 
-        assertThrows(ExtractionException.class, () -> sut.extractResource(context));
+        assertThrows(ExtractionException.class, () -> sut.extractResource(requestContext));
     }
 }

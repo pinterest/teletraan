@@ -18,12 +18,20 @@ package com.pinterest.teletraan.universal.security;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import javax.ws.rs.container.ContainerRequestContext;
 
+/**
+ * This interface represents an AuthZResourceExtractor, which is responsible for extracting an
+ * AuthZResource from a ContainerRequestContext.
+ *
+ * <p>Note that the extractor can map the input resource type to a different AuthZResource type. And
+ * thus the authorization will be based on the mapped AuthZResource type. This can help reduce the
+ * complexity of the authorization logic.
+ */
 public interface AuthZResourceExtractor {
     /**
      * Extracts AuthZResource from the requestContext.
      *
-     * @param requestContext
-     * @return
+     * @param requestContext the ContainerRequestContext from which to extract the AuthZResource
+     * @return the extracted AuthZResource
      * @throws ExtractionException if no resource can be extracted
      */
     AuthZResource extractResource(ContainerRequestContext requestContext)
@@ -32,9 +40,9 @@ public interface AuthZResourceExtractor {
     /**
      * Extracts AuthZResource from the requestContext.
      *
-     * @param requestContext
-     * @param beanClass is the class of the expected resource bean
-     * @return
+     * @param requestContext the ContainerRequestContext from which to extract the AuthZResource
+     * @param beanClass the class of the expected input resource bean
+     * @return the extracted AuthZResource
      * @throws ExtractionException if no resource can be extracted
      */
     default AuthZResource extractResource(
@@ -42,7 +50,14 @@ public interface AuthZResourceExtractor {
         return extractResource(requestContext);
     }
 
+    /** This interface represents a Factory for creating AuthZResourceExtractors. */
     interface Factory {
+        /**
+         * Creates an AuthZResourceExtractor based on the given ResourceAuthZInfo.
+         *
+         * @param authZInfo the ResourceAuthZInfo used to create the AuthZResourceExtractor
+         * @return the created AuthZResourceExtractor
+         */
         AuthZResourceExtractor create(ResourceAuthZInfo authZInfo);
     }
 
@@ -58,7 +73,11 @@ public interface AuthZResourceExtractor {
 
     class BeanClassExtractionException extends ExtractionException {
         public BeanClassExtractionException(Class<?> beanClass, Throwable cause) {
-            super(String.format("failed to extract as %s. Check if request body is valid", beanClass.getName()), cause);
+            super(
+                    String.format(
+                            "failed to extract as %s. Check if request body is valid",
+                            beanClass.getName()),
+                    cause);
         }
     }
 }

@@ -16,15 +16,15 @@
 package com.pinterest.teletraan.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import java.io.IOException;
 import java.io.InputStream;
 import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.jersey.server.ContainerRequest;
 
-public class EnvStageBodyExtractor implements AuthZResourceExtractor {
+public class HotfixBodyExtractor implements AuthZResourceExtractor {
     @Override
     public AuthZResource extractResource(ContainerRequestContext requestContext)
             throws ExtractionException {
@@ -32,10 +32,10 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
         request.bufferEntity();
         InputStream inputStream = request.getEntityStream();
         try {
-            EnvironBean envBean = new ObjectMapper().readValue(inputStream, EnvironBean.class);
-            return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
-        } catch (IOException e) {
-            throw new BeanClassExtractionException(EnvironBean.class, e);
+            HotfixBean hotfixBean = new ObjectMapper().readValue(inputStream, HotfixBean.class);
+            return new AuthZResource(hotfixBean.getEnv_name(), "");
+        } catch (Exception e) {
+            throw new BeanClassExtractionException(BuildBean.class, e);
         }
     }
 }

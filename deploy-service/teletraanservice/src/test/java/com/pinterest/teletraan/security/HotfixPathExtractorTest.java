@@ -23,8 +23,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.bean.HotfixBean;
+import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import java.sql.SQLException;
@@ -32,18 +32,18 @@ import javax.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class BuildPathExtractorTest extends BasePathExtractorTest {
-    private BuildPathExtractor sut;
+class HotfixPathExtractorTest extends BasePathExtractorTest {
+    private HotfixPathExtractor sut;
     private ServiceContext serviceContext;
-    private BuildDAO buildDAO;
+    private HotfixDAO hotfixDAO;
 
     @BeforeEach
     void setUp() {
         super.setUp();
-        buildDAO = mock(BuildDAO.class);
+        hotfixDAO = mock(HotfixDAO.class);
         serviceContext = new ServiceContext();
-        serviceContext.setBuildDAO(buildDAO);
-        sut = new BuildPathExtractor(serviceContext);
+        serviceContext.setHotfixDAO(hotfixDAO);
+        sut = new HotfixPathExtractor(serviceContext);
     }
 
     @Test
@@ -52,7 +52,7 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
     }
 
     @Test
-    void testExtractResource_0BuildId() {
+    void testExtractResource_0HotfixId() {
         pathParameters.add("param", "val");
 
         assertThrows(ExtractionException.class, () -> sut.extractResource(context));
@@ -60,27 +60,27 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
 
     @Test
     void testExtractResource() throws Exception {
-        String buildId = "testBuildId";
-        pathParameters.add("id", buildId);
+        String hotfixId = "testHotfixId";
+        pathParameters.add("id", hotfixId);
 
-        when(buildDAO.getById(buildId)).thenReturn(null);
+        when(hotfixDAO.getByHotfixId(hotfixId)).thenReturn(null);
         assertThrows(NotFoundException.class, () -> sut.extractResource(context));
 
-        BuildBean buildBean = new BuildBean();
-        buildBean.setBuild_name("Test Build");
-        when(buildDAO.getById(buildId)).thenReturn(buildBean);
+        HotfixBean hotfixBean = new HotfixBean();
+        hotfixBean.setEnv_name("hotfix_env");
+        when(hotfixDAO.getByHotfixId(hotfixId)).thenReturn(hotfixBean);
 
         AuthZResource result = sut.extractResource(context);
 
         assertNotNull(result);
-        assertEquals("Test Build", result.getName());
-        assertEquals(AuthZResource.Type.BUILD, result.getType());
+        assertEquals(hotfixBean.getEnv_name() + "/", result.getName());
+        assertEquals(AuthZResource.Type.ENV_STAGE, result.getType());
     }
 
     @Test
     void testExtractResource_sqlException() throws Exception {
         pathParameters.add("id", "someId");
-        when(buildDAO.getById(any())).thenThrow(SQLException.class);
+        when(hotfixDAO.getByHotfixId(any())).thenThrow(SQLException.class);
 
         assertThrows(ExtractionException.class, () -> sut.extractResource(context));
     }

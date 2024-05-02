@@ -83,7 +83,7 @@ public class Hotfixs {
     @PUT
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = HotfixBean.class)
+    @ResourceAuthZInfo(type = AuthZResource.Type.HOTFIX, idLocation = Location.PATH)
     public void update(@PathParam("id") String id,
         HotfixBean hotfixBean) throws Exception {
         hotfixDAO.update(id, hotfixBean);
@@ -101,7 +101,7 @@ public class Hotfixs {
 
     @POST
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = HotfixBean.class)
+    @ResourceAuthZInfo(type = AuthZResource.Type.HOTFIX, idLocation = Location.BODY)
     public Response create(@Context SecurityContext sc, @Context UriInfo uriInfo, @Valid HotfixBean hotfixBean)
             throws Exception {
         String hotfixId = CommonUtils.getBase64UUID();

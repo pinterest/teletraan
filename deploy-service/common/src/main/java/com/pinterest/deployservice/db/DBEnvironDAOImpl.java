@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET external_id=? WHERE env_name=? AND stage_name=?";
     private static final String GET_ENV_BY_ID =
         "SELECT * FROM environs WHERE env_id=?";
+    private static final String GET_ENV_BY_DEPLOY_ID =
+        "SELECT e.* FROM environs e INNER JOIN deploys d ON e.env_id = d.env_id WHERE d.deploy_id=?";
     private static final String GET_ENV_BY_NAME =
         "SELECT * FROM environs WHERE env_name=?";
     private static final String GET_ENV_BY_STAGE =
@@ -180,8 +183,14 @@ public class DBEnvironDAOImpl implements EnvironDAO {
 
     @Override
     public EnvironBean getById(String envId) throws Exception {
-        ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
         return new QueryRunner(dataSource).query(GET_ENV_BY_ID, h, envId);
+    }
+
+    @Override
+    public EnvironBean getByDeployId(String deployId) throws SQLException {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ENV_BY_DEPLOY_ID, h, deployId);
     }
 
     @Override

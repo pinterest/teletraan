@@ -27,6 +27,7 @@ import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
+import java.sql.SQLException;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,5 +70,13 @@ class TeletraanScriptTokenProviderTest {
         assertEquals(AuthZResource.Type.SYSTEM, principal.getResource().getType());
         assertEquals(tokenRolesBean.getResource_id(), principal.getResource().getName());
         assertEquals(tokenRolesBean.getScript_name(), principal.getName());
+    }
+
+    @Test
+    void testGetPrincipal_tokenRolesDAOException() throws Exception {
+        String token = "exceptionToken";
+        when(tokenRolesDAO.getByToken(token)).thenThrow(SQLException.class);
+        Optional<?> principal = sut.getPrincipal(token);
+        assertFalse(principal.isPresent());
     }
 }

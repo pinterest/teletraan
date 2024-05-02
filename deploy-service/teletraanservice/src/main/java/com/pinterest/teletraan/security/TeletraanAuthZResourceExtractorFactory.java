@@ -23,51 +23,58 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
 
     private static final AuthZResourceExtractor BUILD_BODY_EXTRACTOR = new BuildBodyExtractor();
     private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvPathExtractor();
-    private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR = new EnvStagePathExtractor();
-    private final AuthZResourceExtractor BUILD_PATH_EXTRACTOR;
-    private final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR;
+    private static final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR =
+            new EnvStageBodyExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR =
+            new EnvStagePathExtractor();
+    private static final AuthZResourceExtractor HOTFIX_BODY_EXTRACTOR = new HotfixBodyExtractor();
+    private final AuthZResourceExtractor buildPathExtractor;
+    private final AuthZResourceExtractor deployPathExtractor;
+    private final AuthZResourceExtractor hotfixPathExtractor;
 
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
-        ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor(serviceContext);
-        BUILD_PATH_EXTRACTOR = new BuildPathExtractor(serviceContext);
+        buildPathExtractor = new BuildPathExtractor(serviceContext);
+        deployPathExtractor = new DeployPathExtractor(serviceContext);
+        hotfixPathExtractor = new HotfixPathExtractor(serviceContext);
     }
 
     @Override
     public AuthZResourceExtractor create(ResourceAuthZInfo authZInfo) {
-        switch (authZInfo.type()) {
-            case ENV:
-                switch (authZInfo.idLocation()) {
-                    case PATH:
+        switch (authZInfo.idLocation()) {
+            case PATH:
+                switch (authZInfo.type()) {
+                    case ENV:
                         return ENV_PATH_EXTRACTOR;
-                    default:
-                        throw new UnsupportedResourceIDLocationException(authZInfo);
-                }
-            case ENV_STAGE:
-                switch (authZInfo.idLocation()) {
-                    case PATH:
+                    case ENV_STAGE:
                         return ENV_STAGE_PATH_EXTRACTOR;
-                    case BODY:
-                        return ENV_STAGE_BODY_EXTRACTOR;
+                    case BUILD:
+                        return buildPathExtractor;
+                    case DEPLOY:
+                        return deployPathExtractor;
+                    case HOTFIX:
+                        return hotfixPathExtractor;
                     default:
-                        throw new UnsupportedResourceIDLocationException(authZInfo);
+                        throw new UnsupportedResourceInfoException(authZInfo);
                 }
-            case BUILD:
-                switch (authZInfo.idLocation()) {
-                    case PATH:
-                        return BUILD_PATH_EXTRACTOR;
-                    case BODY:
+            case BODY:
+                switch (authZInfo.type()) {
+                    case BUILD:
                         return BUILD_BODY_EXTRACTOR;
+                    case ENV_STAGE:
+                        return ENV_STAGE_BODY_EXTRACTOR;
+                    case HOTFIX:
+                        return HOTFIX_BODY_EXTRACTOR;
                     default:
-                        throw new UnsupportedResourceIDLocationException(authZInfo);
+                        throw new UnsupportedResourceInfoException(authZInfo);
                 }
             default:
                 throw new IllegalArgumentException(
-                        "Unsupported resource type: " + authZInfo.type());
+                        "Unsupported resource ID location: " + authZInfo.idLocation());
         }
     }
 
-    class UnsupportedResourceIDLocationException extends IllegalArgumentException {
-        public UnsupportedResourceIDLocationException(ResourceAuthZInfo authZInfo) {
+    class UnsupportedResourceInfoException extends IllegalArgumentException {
+        public UnsupportedResourceInfoException(ResourceAuthZInfo authZInfo) {
             super(
                     String.format(
                             "Unsupported resource ID location %s for type %s",

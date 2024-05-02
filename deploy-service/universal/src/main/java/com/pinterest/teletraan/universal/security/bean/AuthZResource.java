@@ -77,16 +77,22 @@ public class AuthZResource {
         SYSTEM,
         /** For resources related to a specific environment-stage. The most common resource type. */
         ENV_STAGE,
-        /** For placement related to a specific environment. */
+        /** For placement related resources. */
         PLACEMENT,
-        /** For base image related to a specific environment. */
+        /** For base image related resources. */
         BASE_IMAGE,
-        /** For security zone related to a specific environment. */
+        /** For security zone related resources. */
         SECURITY_ZONE,
-        /** For IAM role related to a specific environment. */
+        /** For IAM role related resources. */
         IAM_ROLE,
         /** For build related resources. */
-        BUILD
+        BUILD,
+        /** For deploy related resources. */
+        DEPLOY,
+        /** For hotfix related resources. */
+        HOTFIX,
+        /** For Agent related resources. */
+        AGENT,
     }
 
     /**

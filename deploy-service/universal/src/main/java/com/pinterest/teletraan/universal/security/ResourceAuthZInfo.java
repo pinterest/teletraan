@@ -25,6 +25,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ResourceAuthZInfo {
+    /** The type of the original resource for authorization purpose. */
     AuthZResource.Type type();
 
     /** The location of the resource identifier in the request. */

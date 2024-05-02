@@ -289,6 +289,8 @@ public class DBDAOTest {
         assertEquals(beans.size(), 1);
         assertEquals(beans.get(0).getDeploy_id(), "d-5");
 
+        assertEquals(envBean1.getEnv_id(), environDAO.getByDeployId(deployBean1.getDeploy_id()).getEnv_id());
+
         buildDAO.delete("bbb-1");
         buildDAO.delete("bbb-2");
         buildDAO.delete("bbb-3");
