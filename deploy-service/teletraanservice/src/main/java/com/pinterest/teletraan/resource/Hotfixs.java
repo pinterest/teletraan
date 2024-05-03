@@ -82,7 +82,7 @@ public class Hotfixs {
 
     @PUT
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
     @ResourceAuthZInfo(type = AuthZResource.Type.HOTFIX, idLocation = Location.PATH)
     public void update(@PathParam("id") String id,
         HotfixBean hotfixBean) throws Exception {
