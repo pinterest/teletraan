@@ -351,8 +351,9 @@ Vue.component("help-table", {
  */
 Vue.component('deployservice-warning-banner', {
     template: `<div v-if="hasPotentialConflicts" id="deployServiceBanner" class="alert alert-warning" role="alert" align="center">
-    This cluster has userdata which defines a 'deploy_service' value and a pinfo_role that isn't 'cmp_base'. 
-    This could cause conflicts. Please read <a target="_blank" :href="deployservicewikiurl">this wiki</a> for more info.
+    This cluster has userdata which defines a ‘deploy_service’ value and a pinfo_role that isn’t ‘cmp_base’. 
+    Please double check to make sure that this does not conflict with your Puppet server configuration. 
+    <a target="_blank" :href="deployservicewikiurl">Instructions here.</a>
     </div>`,
     props: ['alluserdata', 'deployservicewikiurl'],
     computed: {
