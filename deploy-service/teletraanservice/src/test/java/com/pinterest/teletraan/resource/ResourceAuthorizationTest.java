@@ -19,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-
 import com.codahale.metrics.SharedMetricRegistries;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.EnvironBean;
@@ -42,6 +40,7 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
+import java.util.Collections;
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -131,12 +130,15 @@ public class ResourceAuthorizationTest {
         tokenRolesBean.setRole(TeletraanPrincipalRole.OPERATOR);
         tokenRolesBean.setResource_id("testEnv");
         tokenRolesBean.setResource_type(AuthZResource.Type.ENV);
+        tokenRolesBean.setScript_name(SCRIPT_TOKEN);
         pingerRolesBean.setRole(TeletraanPrincipalRole.PINGER);
         pingerRolesBean.setResource_id(AuthZResource.ALL);
         pingerRolesBean.setResource_type(AuthZResource.Type.SYSTEM);
+        pingerRolesBean.setScript_name(PINGER_TOKEN);
         publisherRolesBean.setRole(TeletraanPrincipalRole.PUBLISHER);
         publisherRolesBean.setResource_id(AuthZResource.ALL);
         publisherRolesBean.setResource_type(AuthZResource.Type.SYSTEM);
+        publisherRolesBean.setScript_name(PUBLISHER_TOKEN);
         buildBean.setBuild_name(TEST_BUILD_ID);
 
         context.setAuthorizationFactory(authorizationFactory);
@@ -155,7 +157,8 @@ public class ResourceAuthorizationTest {
             when(tokenRolesDAO.getByToken(SCRIPT_TOKEN)).thenReturn(tokenRolesBean);
             when(tokenRolesDAO.getByToken(PINGER_TOKEN)).thenReturn(pingerRolesBean);
             when(tokenRolesDAO.getByToken(PUBLISHER_TOKEN)).thenReturn(publisherRolesBean);
-            when(environDAO.getByName(TEST_ENV_ID)).thenReturn(Collections.singletonList(new EnvironBean()));
+            when(environDAO.getByName(TEST_ENV_ID))
+                    .thenReturn(Collections.singletonList(new EnvironBean()));
             when(buildDAO.getById(TEST_BUILD_ID)).thenReturn(buildBean);
             EXT =
                     ResourceExtension.builder()
@@ -315,7 +318,6 @@ public class ResourceAuthorizationTest {
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 
-
     @Test
     void validPublisherToken_buildResource_200() {
         Response response =
@@ -410,7 +412,9 @@ public class ResourceAuthorizationTest {
         @GET
         @Path(Targets.build + BUILD_SUFFIX)
         @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
-        @ResourceAuthZInfo(type = AuthZResource.Type.BUILD, idLocation = ResourceAuthZInfo.Location.PATH)
+        @ResourceAuthZInfo(
+                type = AuthZResource.Type.BUILD,
+                idLocation = ResourceAuthZInfo.Location.PATH)
         public Response buildResource() {
             return Response.ok().build();
         }

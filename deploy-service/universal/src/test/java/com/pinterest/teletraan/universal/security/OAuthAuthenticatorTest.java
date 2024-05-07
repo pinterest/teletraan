@@ -73,7 +73,8 @@ class OAuthAuthenticatorTest {
 
     @AfterEach
     void tearDown() {
-        Metrics.globalRegistry.clear();;
+        Metrics.globalRegistry.clear();
+        ;
     }
 
     @ParameterizedTest

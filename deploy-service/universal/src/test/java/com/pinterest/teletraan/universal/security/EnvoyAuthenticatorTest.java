@@ -48,7 +48,7 @@ class EnvoyAuthenticatorTest {
 
     @AfterEach
     public void tearDown() {
-        Metrics.globalRegistry.clear();;
+        Metrics.globalRegistry.clear();
     }
 
     @Test
