@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -64,17 +65,20 @@ class OAuthAuthenticatorTest {
     private MockResponse baseResponse =
             new MockResponse().setHeader("Content-Type", "application/json");
 
+    @BeforeAll
+    public static void setUpClass() {
+        Metrics.globalRegistry.add(new SimpleMeterRegistry());
+    }
+
     @BeforeEach
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-        Metrics.globalRegistry.add(new SimpleMeterRegistry());
     }
 
     @AfterEach
     void tearDown() {
         Metrics.globalRegistry.clear();
-        ;
     }
 
     @ParameterizedTest

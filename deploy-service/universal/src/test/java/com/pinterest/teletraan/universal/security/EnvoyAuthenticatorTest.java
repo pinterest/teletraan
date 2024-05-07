@@ -30,6 +30,7 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,9 +41,13 @@ class EnvoyAuthenticatorTest {
     private EnvoyAuthenticator authenticator;
     private String COUNTER_NAME = "authn.EnvoyAuthenticator";
 
+    @BeforeAll
+    public static void setUpClass() {
+        Metrics.globalRegistry.add(new SimpleMeterRegistry());
+    }
+
     @BeforeEach
     public void setUp() {
-        Metrics.globalRegistry.add(new SimpleMeterRegistry());
         authenticator = new EnvoyAuthenticator();
     }
 

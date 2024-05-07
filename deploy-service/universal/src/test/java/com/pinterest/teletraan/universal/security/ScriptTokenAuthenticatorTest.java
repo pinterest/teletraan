@@ -31,6 +31,7 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +41,11 @@ class ScriptTokenAuthenticatorTest {
     private ScriptTokenProvider<ValueBasedRole> scriptTokenProvider;
     private ScriptTokenPrincipal<ValueBasedRole> scriptTokenPrincipal;
     private ScriptTokenAuthenticator<ValueBasedRole> sut;
+
+    @BeforeAll
+    public static void setUpClass() {
+        Metrics.globalRegistry.add(new SimpleMeterRegistry());
+    }
 
     @SuppressWarnings("unchecked")
     @BeforeEach
@@ -51,7 +57,6 @@ class ScriptTokenAuthenticatorTest {
                 .thenReturn(Optional.of(scriptTokenPrincipal));
         when(scriptTokenPrincipal.getName()).thenReturn(PRINCIPAL_NAME);
 
-        Metrics.globalRegistry.add(new SimpleMeterRegistry());
         sut = new ScriptTokenAuthenticator<>(scriptTokenProvider);
     }
 
