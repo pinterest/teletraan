@@ -68,7 +68,8 @@ class ScriptTokenAuthenticatorTest {
         Optional<ScriptTokenPrincipal<ValueBasedRole>> principal = sut.authenticate(CREDENTIALS);
         assertTrue(principal.isPresent());
         assertEquals(PRINCIPAL_NAME, principal.get().getName());
-        assertCounterValue(true, 1.0);
+        Counter counter = assertCounterValue(true, 1.0);
+        assertEquals(PRINCIPAL_NAME, counter.getId().getTag("principal"));
     }
 
     @Test
@@ -86,7 +87,7 @@ class ScriptTokenAuthenticatorTest {
         assertCounterValue(false, 1.0);
     }
 
-    private void assertCounterValue(Boolean success, double expected) {
+    private Counter assertCounterValue(Boolean success, double expected) {
         Counter counter =
                 Metrics.globalRegistry
                         .find("authn.ScriptTokenAuthenticator")
@@ -96,5 +97,6 @@ class ScriptTokenAuthenticatorTest {
                                 AuthMetricsFactory.PrincipalType.SERVICE.toString())
                         .counter();
         assertEquals(expected, counter.count());
+        return counter;
     }
 }
