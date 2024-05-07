@@ -15,33 +15,51 @@
  */
 package com.pinterest.teletraan.universal.security;
 
+import com.pinterest.teletraan.universal.security.AuthMetricsFactory.PrincipalType;
 import com.pinterest.teletraan.universal.security.bean.Role;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * ScriptTokenAuthenticator is an authenticator that authenticates a principal using a script token.
  */
-@Slf4j
 public class ScriptTokenAuthenticator<R extends Role<R>>
         implements Authenticator<String, ScriptTokenPrincipal<R>> {
 
     private ScriptTokenProvider<R> tokenProvider;
+    private final Counter.Builder scriptTokenSuccessCounterBuilder;
+    private final Counter scriptTokenFailureCounter;
 
     public ScriptTokenAuthenticator(ScriptTokenProvider<R> tokenProvider) {
         this.tokenProvider = tokenProvider;
+        scriptTokenSuccessCounterBuilder =
+                AuthMetricsFactory.createAuthNCounterBuilder(
+                        ScriptTokenAuthenticator.class, true, PrincipalType.SERVICE);
+        scriptTokenFailureCounter =
+                AuthMetricsFactory.createAuthNCounter(
+                        ScriptTokenAuthenticator.class, false, PrincipalType.SERVICE);
     }
 
     @Override
     public Optional<ScriptTokenPrincipal<R>> authenticate(String credentials)
             throws AuthenticationException {
-        log.debug("Authenticating...");
         try {
-            return tokenProvider.getPrincipal(credentials);
+            Optional<ScriptTokenPrincipal<R>> principal = tokenProvider.getPrincipal(credentials);
+            if (principal.isPresent()) {
+                scriptTokenSuccessCounterBuilder
+                        .tags("principal", principal.get().getName())
+                        .register(Metrics.globalRegistry)
+                        .increment();
+            } else {
+                scriptTokenFailureCounter.increment();
+            }
+            return principal;
         } catch (Exception e) {
+            scriptTokenFailureCounter.increment();
             throw new AuthenticationException(e);
         }
     }

@@ -18,8 +18,10 @@ package com.pinterest.teletraan.universal.security;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pinterest.teletraan.universal.security.AuthMetricsFactory.PrincipalType;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.dropwizard.auth.Authenticator;
+import io.micrometer.core.instrument.Counter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -47,6 +49,8 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
     private final String groupDataUrl;
     private final HttpClient userDataClient;
     private final HttpClient groupDataClient;
+    private final Counter oauthSuccessCounter;
+    private final Counter oauthFailureCounter;
 
     public OAuthAuthenticator(String userDataUrl, String groupDataUrl)
             throws MalformedURLException {
@@ -59,17 +63,24 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
         userDataClient = baseClient.baseUrl(userDataUrl);
         groupDataClient = baseClient.baseUrl(groupDataUrl);
         this.groupDataUrl = groupDataUrl;
+
+        oauthSuccessCounter =
+                AuthMetricsFactory.createAuthNCounter(
+                        OAuthAuthenticator.class, true, PrincipalType.USER);
+        oauthFailureCounter =
+                AuthMetricsFactory.createAuthNCounter(
+                        OAuthAuthenticator.class, false, PrincipalType.USER);
     }
 
     @Override
     public Optional<UserPrincipal> authenticate(String token) {
-        log.debug("Authenticating...");
         try {
             String username = getUsername(token);
             List<String> groups = getUserGroups(token);
+            oauthSuccessCounter.increment();
             return Optional.of(new UserPrincipal(username, groups));
         } catch (Exception exception) {
-            log.debug("authN failed", exception);
+            oauthFailureCounter.increment();
             return Optional.empty();
         }
     }
