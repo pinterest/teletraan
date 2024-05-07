@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
@@ -64,19 +63,17 @@ class OAuthAuthenticatorTest {
     private MockWebServer mockWebServer;
     private MockResponse baseResponse =
             new MockResponse().setHeader("Content-Type", "application/json");
-    private MeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-        meterRegistry = new SimpleMeterRegistry();
-        Metrics.globalRegistry.add(meterRegistry);
+        Metrics.globalRegistry.add(new SimpleMeterRegistry());
     }
 
     @AfterEach
     void tearDown() {
-        Metrics.globalRegistry.remove(meterRegistry);
+        Metrics.globalRegistry.clear();;
     }
 
     @ParameterizedTest

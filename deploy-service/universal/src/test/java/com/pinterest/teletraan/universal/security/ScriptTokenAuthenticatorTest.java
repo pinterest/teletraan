@@ -27,7 +27,6 @@ import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import io.dropwizard.auth.AuthenticationException;
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Optional;
@@ -41,7 +40,6 @@ class ScriptTokenAuthenticatorTest {
     private ScriptTokenProvider<ValueBasedRole> scriptTokenProvider;
     private ScriptTokenPrincipal<ValueBasedRole> scriptTokenPrincipal;
     private ScriptTokenAuthenticator<ValueBasedRole> sut;
-    private MeterRegistry meterRegistry;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
@@ -53,14 +51,13 @@ class ScriptTokenAuthenticatorTest {
                 .thenReturn(Optional.of(scriptTokenPrincipal));
         when(scriptTokenPrincipal.getName()).thenReturn(PRINCIPAL_NAME);
 
-        meterRegistry = new SimpleMeterRegistry();
-        Metrics.globalRegistry.add(meterRegistry);
+        Metrics.globalRegistry.add(new SimpleMeterRegistry());
         sut = new ScriptTokenAuthenticator<>(scriptTokenProvider);
     }
 
     @AfterEach
     void tearDown() {
-        Metrics.globalRegistry.remove(meterRegistry);
+        Metrics.globalRegistry.clear();
     }
 
     @Test

@@ -26,7 +26,6 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.dropwizard.auth.AuthenticationException;
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Optional;
@@ -39,19 +38,17 @@ class EnvoyAuthenticatorTest {
     private static final String USER_NAME = "testUser";
 
     private EnvoyAuthenticator authenticator;
-    private MeterRegistry meterRegistry;
     private String COUNTER_NAME = "authn.EnvoyAuthenticator";
 
     @BeforeEach
     public void setUp() {
-        meterRegistry = new SimpleMeterRegistry();
-        Metrics.globalRegistry.add(meterRegistry);
+        Metrics.globalRegistry.add(new SimpleMeterRegistry());
         authenticator = new EnvoyAuthenticator();
     }
 
     @AfterEach
     public void tearDown() {
-        Metrics.globalRegistry.remove(meterRegistry);
+        Metrics.globalRegistry.clear();;
     }
 
     @Test
