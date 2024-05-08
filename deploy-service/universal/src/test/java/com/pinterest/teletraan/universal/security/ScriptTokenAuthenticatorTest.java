@@ -27,29 +27,29 @@ import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import io.dropwizard.auth.AuthenticationException;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ScriptTokenAuthenticatorTest {
     private static final String PRINCIPAL_NAME = "testPrincipal";
     private static final String CREDENTIALS = "credentials";
+
     private ScriptTokenProvider<ValueBasedRole> scriptTokenProvider;
     private ScriptTokenPrincipal<ValueBasedRole> scriptTokenPrincipal;
     private ScriptTokenAuthenticator<ValueBasedRole> sut;
-
-    @BeforeAll
-    public static void setUpClass() {
-        Metrics.globalRegistry.add(new SimpleMeterRegistry());
-    }
+    private MeterRegistry registry;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() throws Exception {
+        registry = new SimpleMeterRegistry();
+        Metrics.addRegistry(registry);
+
         scriptTokenProvider = mock(ScriptTokenProvider.class);
         scriptTokenPrincipal = mock(ScriptTokenPrincipal.class);
         when(scriptTokenProvider.getPrincipal(anyString())).thenReturn(Optional.empty());
@@ -62,7 +62,8 @@ class ScriptTokenAuthenticatorTest {
 
     @AfterEach
     void tearDown() {
-        Metrics.globalRegistry.clear();
+        registry.close();
+        Metrics.removeRegistry(registry);
     }
 
     @Test
@@ -91,8 +92,7 @@ class ScriptTokenAuthenticatorTest {
 
     private Counter assertCounterValue(Boolean success, double expected) {
         Counter counter =
-                Metrics.globalRegistry
-                        .find("authn.ScriptTokenAuthenticator")
+                registry.find("authn.ScriptTokenAuthenticator")
                         .tag(AuthMetricsFactory.SUCCESS, success.toString())
                         .tag(
                                 AuthMetricsFactory.TYPE,

@@ -26,34 +26,33 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.dropwizard.auth.AuthenticationException;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class EnvoyAuthenticatorTest {
     private static final String SPIFFE_ID = "testSpiffeId";
     private static final String USER_NAME = "testUser";
+    private static final String COUNTER_NAME = "authn.EnvoyAuthenticator";
+    private MeterRegistry registry;
 
     private EnvoyAuthenticator authenticator;
-    private String COUNTER_NAME = "authn.EnvoyAuthenticator";
-
-    @BeforeAll
-    public static void setUpClass() {
-        Metrics.globalRegistry.add(new SimpleMeterRegistry());
-    }
 
     @BeforeEach
     public void setUp() {
+        registry = new SimpleMeterRegistry();
+        Metrics.addRegistry(registry);
         authenticator = new EnvoyAuthenticator();
     }
 
     @AfterEach
-    public void tearDown() {
-        Metrics.globalRegistry.clear();
+    void tearDown() {
+        registry.close();
+        Metrics.removeRegistry(registry);
     }
 
     @Test
@@ -96,8 +95,7 @@ class EnvoyAuthenticatorTest {
 
     private void assertCounterValue(Boolean success, double expected, PrincipalType type) {
         Counter counter =
-                Metrics.globalRegistry
-                        .find(COUNTER_NAME)
+                registry.find(COUNTER_NAME)
                         .tag(AuthMetricsFactory.SUCCESS, success.toString())
                         .tag(AuthMetricsFactory.TYPE, type.toString())
                         .counter();

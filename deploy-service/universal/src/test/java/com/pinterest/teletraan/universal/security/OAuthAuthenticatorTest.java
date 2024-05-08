@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
@@ -34,7 +35,6 @@ import java.util.stream.Stream;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -64,21 +64,20 @@ class OAuthAuthenticatorTest {
     private MockWebServer mockWebServer;
     private MockResponse baseResponse =
             new MockResponse().setHeader("Content-Type", "application/json");
-
-    @BeforeAll
-    public static void setUpClass() {
-        Metrics.globalRegistry.add(new SimpleMeterRegistry());
-    }
+    private MeterRegistry registry;
 
     @BeforeEach
     void setUp() throws IOException {
+        registry = new SimpleMeterRegistry();
+        Metrics.addRegistry(registry);
         mockWebServer = new MockWebServer();
         mockWebServer.start();
     }
 
     @AfterEach
     void tearDown() {
-        Metrics.globalRegistry.clear();
+        registry.close();
+        Metrics.removeRegistry(registry);
     }
 
     @ParameterizedTest
@@ -162,8 +161,7 @@ class OAuthAuthenticatorTest {
 
     private void assertCounterValue(Boolean success, double expected) {
         Counter counter =
-                Metrics.globalRegistry
-                        .find("authn.OAuthAuthenticator")
+                registry.find("authn.OAuthAuthenticator")
                         .tag(AuthMetricsFactory.SUCCESS, success.toString())
                         .tag(
                                 AuthMetricsFactory.TYPE,

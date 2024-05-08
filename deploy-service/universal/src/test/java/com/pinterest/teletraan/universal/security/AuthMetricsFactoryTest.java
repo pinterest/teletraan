@@ -20,8 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.pinterest.teletraan.universal.security.AuthMetricsFactory.PrincipalType;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,10 +32,18 @@ import org.junit.jupiter.params.provider.ValueSource;
 class AuthMetricsFactoryTest {
     private static final String AUTHN_AUTH_METRICS_FACTORY_TEST = "authn.AuthMetricsFactoryTest";
     private static final String[] EXTRA_TAGS = {"tagK", "tagV"};
+    private static MeterRegistry registry;
 
     @BeforeAll
-    public static void setup() {
-        Metrics.globalRegistry.add(new SimpleMeterRegistry());
+    public static void setUpClass() {
+        registry = new SimpleMeterRegistry();
+        Metrics.addRegistry(registry);
+    }
+
+    @AfterAll
+    public static void tearDownClass() {
+        registry.close();
+        Metrics.removeRegistry(registry);
     }
 
     @Test
@@ -51,8 +61,7 @@ class AuthMetricsFactoryTest {
         AuthMetricsFactory.createAuthNCounter(
                 AuthMetricsFactoryTest.class, success, PrincipalType.USER, EXTRA_TAGS);
         Counter counter =
-                Metrics.globalRegistry
-                        .find(AUTHN_AUTH_METRICS_FACTORY_TEST)
+                registry.find(AUTHN_AUTH_METRICS_FACTORY_TEST)
                         .tag(AuthMetricsFactory.SUCCESS, success.toString())
                         .tag(
                                 AuthMetricsFactory.TYPE,
