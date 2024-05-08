@@ -100,6 +100,7 @@
                                 <aws-config-modal id="newConfigModalId" v-bind:options="availableConfigOptions()" v-on:click="addConfig"></aws-config-modal>
                             </div>
                         </div>
+                        <deployservice-warning-banner :deployservicewikiurl="deployServiceWikiUrl" :alluserdata="allUserData"></deployservice-warning-banner>
                         <aws-user-data
                             v-bind:alluserdata="allUserData"
                             v-on:deleteconfig="deleteConfig"
@@ -443,6 +444,7 @@
 
         const hieraPaths = `{{ puppet_hiera_paths }}`;
         const puppetRepository = `{{ puppet_repository }}`;
+        const deployServiceWikiUrl = `{{ conflicting_deploy_service_wiki_url }}`;
 
         var capacitySetting = new Vue({
             el: "#mainPanel",
@@ -547,7 +549,8 @@
                 remainingCapacity: this.placements != null ? getRemainingCapacity(info.placements, currentPlacements) : Infinity,
                 showStatefulHelp: false,
                 puppetRepository,
-                hieraPaths
+                hieraPaths,
+                deployServiceWikiUrl,
             }),
             methods: {
                 addConfig: function(config) {

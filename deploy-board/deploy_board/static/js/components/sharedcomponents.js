@@ -344,3 +344,24 @@ Vue.component("help-table", {
     </div></div>',
     props: ['dismissible', 'alertText']
   })
+
+
+/**
+ * pinfo warning banner
+ */
+Vue.component('deployservice-warning-banner', {
+    template: `<div v-if="hasPotentialConflicts" id="deployServiceBanner" class="alert alert-warning" role="alert" align="center">
+    This cluster has userdata which defines a ‘deploy_service’ value and a pinfo_role that isn’t ‘cmp_base’. 
+    Please double check to make sure that this does not conflict with your Puppet server configuration. 
+    <a target="_blank" :href="deployservicewikiurl">Instructions here.</a>
+    </div>`,
+    props: ['alluserdata', 'deployservicewikiurl'],
+    computed: {
+        hasPotentialConflicts: function() {
+            const externalFacts = this.alluserdata?.find(field => field.name == 'external_facts')?.value ?? "";
+            containsDeployService = /['"]deploy_service['"]:/.test(externalFacts);
+            const pinfoRole = this.alluserdata?.find(field => field.name === 'pinfo_role');
+            return pinfoRole?.value !== 'cmp_base' && containsDeployService;
+        },
+    }
+});

@@ -24,7 +24,7 @@ from django.views.generic import View
 from .common import get_env_groups, get_all_stages
 from .helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
 from .helpers import baseimages_helper
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST, CONFLICTING_DEPLOY_SERVICE_WIKI_URL
 
 
 logger = logging.getLogger(__name__)
@@ -106,6 +106,7 @@ class EnvCapacityConfigView(View):
             'placements': placements,
             'termination_limit': termination_limit,
             'cluster_name': cluster_name,
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
         }
         data['info'] = json.dumps(data)
         return render(request, 'configs/capacity.html', data)
