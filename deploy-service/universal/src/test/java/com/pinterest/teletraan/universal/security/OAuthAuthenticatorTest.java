@@ -22,6 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Arrays;
@@ -30,6 +34,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -59,11 +64,20 @@ class OAuthAuthenticatorTest {
     private MockWebServer mockWebServer;
     private MockResponse baseResponse =
             new MockResponse().setHeader("Content-Type", "application/json");
+    private MeterRegistry registry;
 
     @BeforeEach
     void setUp() throws IOException {
+        registry = new SimpleMeterRegistry();
+        Metrics.addRegistry(registry);
         mockWebServer = new MockWebServer();
         mockWebServer.start();
+    }
+
+    @AfterEach
+    void tearDown() {
+        registry.close();
+        Metrics.removeRegistry(registry);
     }
 
     @ParameterizedTest
@@ -86,6 +100,7 @@ class OAuthAuthenticatorTest {
         mockWebServer.enqueue(baseResponse.clone().setBody("{\"random\": \"body\"}"));
         Optional<UserPrincipal> userPrincipal = sut.authenticate("");
         assertFalse(userPrincipal.isPresent());
+        assertCounterValue(false, 1.0);
     }
 
     @Test
@@ -97,6 +112,7 @@ class OAuthAuthenticatorTest {
         assertTrue(userPrincipal.isPresent());
         assertTrue(userPrincipal.get().getGroups().isEmpty());
         assertEquals(USER_NAME, userPrincipal.get().getName());
+        assertCounterValue(true, 1.0);
     }
 
     @Test
@@ -110,6 +126,7 @@ class OAuthAuthenticatorTest {
         Optional<UserPrincipal> userPrincipal = sut.authenticate("");
         assertTrue(userPrincipal.isPresent());
         assertEquals(GROUPS, userPrincipal.get().getGroups());
+        assertCounterValue(true, 1.0);
     }
 
     @Test
@@ -123,6 +140,7 @@ class OAuthAuthenticatorTest {
         Optional<UserPrincipal> userPrincipal = sut.authenticate("");
         assertTrue(userPrincipal.isPresent());
         assertTrue(userPrincipal.get().getGroups().isEmpty());
+        assertCounterValue(true, 1.0);
     }
 
     static Stream<Arguments> invalidConstructorArguments() {
@@ -139,5 +157,16 @@ class OAuthAuthenticatorTest {
                 Arguments.of(EXAMPLE_URL, EXAMPLE_URL),
                 Arguments.of(EXAMPLE_URL, null),
                 Arguments.of(EXAMPLE_URL, " "));
+    }
+
+    private void assertCounterValue(Boolean success, double expected) {
+        Counter counter =
+                registry.find("authn.OAuthAuthenticator")
+                        .tag(AuthMetricsFactory.SUCCESS, success.toString())
+                        .tag(
+                                AuthMetricsFactory.TYPE,
+                                AuthMetricsFactory.PrincipalType.USER.toString())
+                        .counter();
+        assertEquals(expected, counter.count());
     }
 }

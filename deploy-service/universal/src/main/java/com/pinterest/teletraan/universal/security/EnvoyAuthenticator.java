@@ -15,27 +15,47 @@
  */
 package com.pinterest.teletraan.universal.security;
 
+import com.pinterest.teletraan.universal.security.AuthMetricsFactory.PrincipalType;
 import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
+import io.micrometer.core.instrument.Counter;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 /** An authenticator for Envoy credentials. */
 public class EnvoyAuthenticator implements Authenticator<EnvoyCredentials, TeletraanPrincipal> {
+    private final Counter envoyAuthUserSuccessCounter;
+    private final Counter envoyAuthServiceSuccessCounter;
+    private final Counter envoyAuthFailureCounter;
+
+    public EnvoyAuthenticator() {
+        envoyAuthUserSuccessCounter =
+                AuthMetricsFactory.createAuthNCounter(
+                        EnvoyAuthenticator.class, true, PrincipalType.USER);
+        envoyAuthServiceSuccessCounter =
+                AuthMetricsFactory.createAuthNCounter(
+                        EnvoyAuthenticator.class, true, PrincipalType.SERVICE);
+        envoyAuthFailureCounter =
+                AuthMetricsFactory.createAuthNCounter(
+                        EnvoyAuthenticator.class, false, PrincipalType.NA);
+    }
 
     @Override
     public Optional<TeletraanPrincipal> authenticate(EnvoyCredentials credentials)
             throws AuthenticationException {
         if (StringUtils.isNotBlank(credentials.getUser())) {
+            envoyAuthUserSuccessCounter.increment();
             return Optional.of(new UserPrincipal(credentials.getUser(), credentials.getGroups()));
         }
         if (StringUtils.isNotBlank(credentials.getSpiffeId())) {
+            envoyAuthServiceSuccessCounter.increment();
             return Optional.of(new ServicePrincipal(credentials.getSpiffeId()));
         }
+        envoyAuthFailureCounter.increment();
         return Optional.empty();
     }
 }
