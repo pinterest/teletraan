@@ -7,8 +7,8 @@ import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.TransformerUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.TransformerUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
