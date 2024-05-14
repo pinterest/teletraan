@@ -26,13 +26,17 @@ import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 
-import com.pinterest.deployservice.bean.ScheduleState;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.*;
+
+import javax.ws.rs.NotAllowedException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 
 public class EnvironHandler {
     private static final Logger LOG = LoggerFactory.getLogger(EnvironHandler.class);
@@ -520,6 +524,26 @@ public class EnvironHandler {
     public void stopServiceOnHosts(Collection<String> hostIds, boolean replaceHost) throws Exception {
         for (String hostId : hostIds) {
             stopServiceOnHost(hostId, replaceHost);
+        }
+    }
+
+    public void ensureHostsOwnedByEnv(EnvironBean environBean, Collection<String> hostIds)
+            throws WebApplicationException {
+        for (String hostId : hostIds) {
+            try {
+                EnvironBean mainEnv = environDAO.getMainEnvByHostId(hostId);
+                if (mainEnv == null) {
+                    throw new NotFoundException(
+                            String.format("No main environment found for host %s, refuse to proceed", hostId));
+                }
+                if (!mainEnv.getEnv_id().equals(environBean.getEnv_id())) {
+                    throw new NotAllowedException(String.format("%s/%s is not the owning environment of host %s",
+                            environBean.getEnv_name(), environBean.getStage_name(), hostId));
+                }
+            } catch (SQLException e) {
+                throw new WebApplicationException(String.format("Failed to get main environment for host %s", hostId),
+                        e);
+            }
         }
     }
 }

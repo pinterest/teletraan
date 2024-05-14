@@ -108,6 +108,20 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     private static final String GET_ENV_BY_CONSTRAINT_ID = "SELECT * FROM environs WHERE deploy_constraint_id = ?";
     private static final String DELETE_DEPLOY_CONSTRAINT =
         "UPDATE environs SET deploy_constraint_id=null WHERE env_name=? AND stage_name=?";
+    private static final String GET_MAIN_ENV_BY_HOST_ID = "SELECT e.* " +
+            "FROM hosts_and_agents ha " +
+            "JOIN environs e ON ha.auto_scaling_group = e.cluster_name " +
+            "WHERE ha.host_id = ? " +
+            "UNION " +
+            "(SELECT e.* " +
+            "FROM hosts h " +
+            "JOIN environs e ON h.group_name = e.cluster_name " +
+            "WHERE h.host_id = ? AND NOT EXISTS ( " +
+            "    SELECT 1 " +
+            "    FROM hosts_and_agents ha " +
+            "    JOIN environs e ON ha.auto_scaling_group = e.cluster_name " +
+            "    WHERE ha.host_id = ? )" +
+            "ORDER BY h.create_date ASC LIMIT 1)";
 
     private BasicDataSource dataSource;
 
@@ -248,6 +262,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         Set<EnvironBean> envSet = new TreeSet<EnvironBean>(Comparator.comparing(EnvironBean::getEnv_id));
         envSet.addAll(hostEnvs);
         return new ArrayList<EnvironBean>(envSet);
+    }
+
+    @Override
+    public EnvironBean getMainEnvByHostId(String hostId) throws SQLException {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_MAIN_ENV_BY_HOST_ID, h, hostId, hostId, hostId);
     }
 
     @Override

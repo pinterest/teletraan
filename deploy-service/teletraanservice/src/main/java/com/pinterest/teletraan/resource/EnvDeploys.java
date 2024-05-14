@@ -154,7 +154,6 @@ public class EnvDeploys {
         response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
-    // TODO: sidecar owners can perform actions on non-sidecar agents
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
