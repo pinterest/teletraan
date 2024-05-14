@@ -18,6 +18,7 @@ package com.pinterest.deployservice.dao;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
 
 /**
@@ -43,4 +44,15 @@ public interface HostAgentDAO {
     List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize) throws Exception;
 
     long getDistinctHostsCount() throws SQLException;
+
+    /**
+     * Retrieves the main environment ID for the specified host ID.
+     *
+     * The main environment is where the cluster that the host belongs to is created.
+     *
+     * @param hostId The ID of the host.
+     * @return The bean represents the main environment for the specified host ID.
+     * @throws SQLException if an error occurs while retrieving the main environment ID.
+     */
+    EnvironBean getMainEnvIdbyHostId(String hostId) throws SQLException;
 }

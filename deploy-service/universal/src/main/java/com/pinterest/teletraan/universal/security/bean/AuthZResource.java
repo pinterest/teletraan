@@ -93,6 +93,8 @@ public class AuthZResource {
         HOTFIX,
         /** For Agent related resources. */
         AGENT,
+        /** For Host related resources. */
+        HOST,
     }
 
     /**

@@ -24,6 +24,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.HostAgentDAO;
@@ -39,6 +40,7 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
     private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts_and_agents.* FROM hosts_and_agents INNER JOIN hosts_and_envs ON hosts_and_agents.host_name=hosts_and_envs.host_name WHERE hosts_and_agents.last_update<?";
     private static final String GET_HOSTS_BY_AGENT = "SELECT * FROM hosts_statuses WHERE agent_version=? ORDER BY host_id LIMIT ?,?";
     private static final String GET_DISTINCT_HOSTS_COUNT = "SELECT COUNT(DISTINCT host_id) FROM hosts_and_agents";
+    private static final String GET_MAIN_ENV_BY_HOSTID = "SELECT e.* FROM hosts_and_agents ha JOIN environs e ON ha.auto_scaling_group = e.cluster_name WHERE ha.host_id = ?";
 
     private BasicDataSource dataSource;
 
@@ -106,5 +108,11 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
         Long n = new QueryRunner(dataSource).query(GET_DISTINCT_HOSTS_COUNT,
                 SingleResultSetHandlerFactory.<Long>newObjectHandler());
         return n == null ? 0 : n;
+    }
+
+    @Override
+    public EnvironBean getMainEnvIdbyHostId(String hostId) throws SQLException {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_MAIN_ENV_BY_HOSTID, h, hostId);
     }
 }
