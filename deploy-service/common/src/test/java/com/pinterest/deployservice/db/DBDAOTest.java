@@ -75,11 +75,9 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MySQLContainer;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -115,38 +113,35 @@ public class DBDAOTest {
     private static TagDAO tagDAO;
     private static ScheduleDAO scheduleDAO;
     private static UtilDAO utilDAO;
-
-    public static final MySQLContainer mysql = DBUtils.getContainer();
+    private static BasicDataSource dataSource;
 
     @BeforeAll
     public static void setUpClass() throws Exception {
-        mysql.start();
-        BasicDataSource DATASOURCE = DatabaseUtil.createLocalDataSource(mysql.getJdbcUrl());
-        DBUtils.runMigrations(DATASOURCE);
+        dataSource = DBUtils.createTestDataSource();
 
-        buildDAO = new DBBuildDAOImpl(DATASOURCE);
-        agentDAO = new DBAgentDAOImpl(DATASOURCE);
-        agentErrorDAO = new DBAgentErrorDAOImpl(DATASOURCE);
-        dataDAO = new DBDataDAOImpl(DATASOURCE);
-        deployDAO = new DBDeployDAOImpl(DATASOURCE);
-        environDAO = new DBEnvironDAOImpl(DATASOURCE);
-        promoteDAO = new DBPromoteDAOImpl(DATASOURCE);
-        hostDAO = new DBHostDAOImpl(DATASOURCE);
-        hostTagDAO = new DBHostTagDAOImpl(DATASOURCE);
-        groupDAO = new DBGroupDAOImpl(DATASOURCE);
-        ratingDAO = new DBRatingsDAOImpl(DATASOURCE);
-        userRolesDAO = new DBUserRolesDAOImpl(DATASOURCE);
-        groupRolesDAO = new DBGroupRolesDAOImpl(DATASOURCE);
-        tokenRolesDAO = new DBTokenRolesDAOImpl(DATASOURCE);
-        configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
-        tagDAO = new DBTagDAOImpl(DATASOURCE);
-        scheduleDAO = new DBScheduleDAOImpl(DATASOURCE);
-        utilDAO = new DBUtilDAOImpl(DATASOURCE);
+        buildDAO = new DBBuildDAOImpl(dataSource);
+        agentDAO = new DBAgentDAOImpl(dataSource);
+        agentErrorDAO = new DBAgentErrorDAOImpl(dataSource);
+        dataDAO = new DBDataDAOImpl(dataSource);
+        deployDAO = new DBDeployDAOImpl(dataSource);
+        environDAO = new DBEnvironDAOImpl(dataSource);
+        promoteDAO = new DBPromoteDAOImpl(dataSource);
+        hostDAO = new DBHostDAOImpl(dataSource);
+        hostTagDAO = new DBHostTagDAOImpl(dataSource);
+        groupDAO = new DBGroupDAOImpl(dataSource);
+        ratingDAO = new DBRatingsDAOImpl(dataSource);
+        userRolesDAO = new DBUserRolesDAOImpl(dataSource);
+        groupRolesDAO = new DBGroupRolesDAOImpl(dataSource);
+        tokenRolesDAO = new DBTokenRolesDAOImpl(dataSource);
+        configHistoryDAO = new DBConfigHistoryDAOImpl(dataSource);
+        tagDAO = new DBTagDAOImpl(dataSource);
+        scheduleDAO = new DBScheduleDAOImpl(dataSource);
+        utilDAO = new DBUtilDAOImpl(dataSource);
     }
 
     @AfterAll
     public static void tearDownClass() throws Exception {
-        mysql.stop();
+        DBUtils.truncateAllTables(dataSource);
     }
 
     @Test
