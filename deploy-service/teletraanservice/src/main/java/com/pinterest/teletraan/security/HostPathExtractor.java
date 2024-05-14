@@ -15,16 +15,14 @@
  */
 package com.pinterest.teletraan.security;
 
-import java.sql.SQLException;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.container.ContainerRequestContext;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.sql.SQLException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.container.ContainerRequestContext;
 
 public class HostPathExtractor implements AuthZResourceExtractor {
     private static final String HOST_ID = "hostId";
@@ -44,13 +42,15 @@ public class HostPathExtractor implements AuthZResourceExtractor {
 
         EnvironBean envBean;
         try {
-            envBean = hostAgentDAO.getMainEnvIdbyHostId(hostId);
+            envBean = hostAgentDAO.getMainEnvByHostId(hostId);
         } catch (SQLException e) {
-            throw new ExtractionException("Failed to get the main environment with host ID: " + hostId, e);
+            throw new ExtractionException(
+                    "Failed to get the main environment with host ID: " + hostId, e);
         }
 
         if (envBean == null) {
-            throw new NotFoundException("Failed to get the main environment with host ID: " + hostId);
+            throw new NotFoundException(
+                    "Failed to get the main environment with host ID: " + hostId);
         }
         return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
     }

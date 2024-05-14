@@ -1,5 +1,5 @@
-/*
- * Copyright 2020 Pinterest, Inc.
+/**
+ * Copyright (c) 2020-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,12 @@
  */
 package com.pinterest.deployservice.dao;
 
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HostAgentBean;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.HostAgentBean;
-
-/**
- * A collection of methods to help hosts and groups mapping
- */
+/** A collection of methods to help hosts and groups mapping */
 public interface HostAgentDAO {
     void insert(HostAgentBean hostAgentBean) throws Exception;
 
@@ -37,22 +34,24 @@ public interface HostAgentDAO {
 
     List<HostAgentBean> getStaleHosts(long lastUpdateBefore) throws SQLException;
 
-    List<HostAgentBean> getStaleHosts(long lastUpdateAfter, long lastUpdateBefore) throws SQLException;
+    List<HostAgentBean> getStaleHosts(long lastUpdateAfter, long lastUpdateBefore)
+            throws SQLException;
 
     List<HostAgentBean> getStaleEnvHosts(long lastUpdateBefore) throws Exception;
 
-    List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize) throws Exception;
+    List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize)
+            throws Exception;
 
     long getDistinctHostsCount() throws SQLException;
 
     /**
      * Retrieves the main environment ID for the specified host ID.
      *
-     * The main environment is where the cluster that the host belongs to is created.
+     * <p>The main environment is where the cluster that the host belongs to is created.
      *
      * @param hostId The ID of the host.
      * @return The bean represents the main environment for the specified host ID.
      * @throws SQLException if an error occurs while retrieving the main environment ID.
      */
-    EnvironBean getMainEnvIdbyHostId(String hostId) throws SQLException;
+    EnvironBean getMainEnvByHostId(String hostId) throws SQLException;
 }

@@ -1,0 +1,1 @@
+../../../../../../tools/mysql/schema-update-19.sql

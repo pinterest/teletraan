@@ -1,58 +1,63 @@
+/**
+ * Copyright (c) 2024 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.deployservice.db;
 
-import com.pinterest.deployservice.bean.EnvironBean;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
+import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.testcontainers.containers.MySQLContainer;
-
-import java.sql.SQLException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 class DBHostAgentDAOImplTest {
-
-    private DBHostAgentDAOImpl hostAgentDAO;
-    public static final MySQLContainer<?> mysql = DBUtils.getContainer();
-
-    @Mock
-    private BasicDataSource dataSource;
+    private static final String HOST_ID = "host123";
+    private static final String TEST_CLUSTER = "test-cluster";
+    private static BasicDataSource dataSource;
+    private HostAgentDAO sut;
 
     @BeforeAll
     static void setUpAll() throws Exception {
-        mysql.start();
-        BasicDataSource DATASOURCE = DatabaseUtil.createLocalDataSource(mysql.getJdbcUrl());
-        DBUtils.runMigrations(DATASOURCE);
+        dataSource = DBUtils.createTestDataSource();
     }
 
     @BeforeEach
     void setUp() {
-        hostAgentDAO = new DBHostAgentDAOImpl(dataSource);
+        sut = new DBHostAgentDAOImpl(dataSource);
     }
 
     @Test
-    void testGetMainEnvIdbyHostId() throws SQLException {
-        // GIVEN
-        String hostId = "host123";
-        EnvironBean expectedEnvBean = new EnvironBean();
-        expectedEnvBean.setId("env123");
-        expectedEnvBean.setName("test-env");
+    void testGetMainEnvbyHostId() throws Exception {
+        EnvironDAO environDAO = new DBEnvironDAOImpl(dataSource);
+        EnvironBean expectedEnvBean = EnvironBeanFixture.createRandomEnvironBean();
+        expectedEnvBean.setCluster_name(TEST_CLUSTER);
+        environDAO.insert(expectedEnvBean);
 
-        ResultSetHandler<EnvironBean> resultSetHandler = new BeanHandler<>(EnvironBean.class);
-        when(dataSource.query(eq(DBHostAgentDAOImpl.GET_MAIN_ENV_BY_HOSTID), eq(resultSetHandler), eq(hostId)))
-                .thenReturn(expectedEnvBean);
+        HostAgentBean hostAgentBean = new HostAgentBean();
+        hostAgentBean.setHost_id(HOST_ID);
+        hostAgentBean.setAuto_scaling_group(TEST_CLUSTER);
+        sut.insert(hostAgentBean);
 
-        // WHEN
-        EnvironBean actualEnvBean = hostAgentDAO.getMainEnvIdbyHostId(hostId);
+        EnvironBean actualEnvironBean = sut.getMainEnvByHostId(HOST_ID);
 
-        // THEN
-        assertEquals(expectedEnvBean, actualEnvBean);
+        assertEquals(expectedEnvBean.getEnv_name(), actualEnvironBean.getEnv_name());
+        assertEquals(expectedEnvBean.getStage_name(), actualEnvironBean.getStage_name());
     }
 }

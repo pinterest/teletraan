@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 8 to version 9
+-- This script upgrade DB schema from version 8 to version 9
 
 ALTER TABLE hosts MODIFY group_name VARCHAR(128) NOT NULL;
 

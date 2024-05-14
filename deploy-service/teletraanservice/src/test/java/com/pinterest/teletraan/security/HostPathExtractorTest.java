@@ -64,13 +64,13 @@ class HostPathExtractorTest extends BasePathExtractorTest {
         String hostId = "testHostId";
         pathParameters.add("hostId", hostId);
 
-        when(hostDAO.getMainEnvIdbyHostId(hostId)).thenReturn(null);
+        when(hostDAO.getMainEnvByHostId(hostId)).thenReturn(null);
         assertThrows(NotFoundException.class, () -> sut.extractResource(context));
 
         EnvironBean envBean = new EnvironBean();
         envBean.setEnv_name("host_env");
         envBean.setStage_name("host_stage");
-        when(hostDAO.getMainEnvIdbyHostId(hostId)).thenReturn(envBean);
+        when(hostDAO.getMainEnvByHostId(hostId)).thenReturn(envBean);
 
         AuthZResource result = sut.extractResource(context);
 
@@ -83,7 +83,7 @@ class HostPathExtractorTest extends BasePathExtractorTest {
     @Test
     void testExtractResource_sqlException() throws Exception {
         pathParameters.add("hostId", "someId");
-        when(hostDAO.getMainEnvIdbyHostId(any())).thenThrow(SQLException.class);
+        when(hostDAO.getMainEnvByHostId(any())).thenThrow(SQLException.class);
 
         assertThrows(ExtractionException.class, () -> sut.extractResource(context));
     }
