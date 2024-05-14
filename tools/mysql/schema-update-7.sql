@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 6 to version 7
+-- This script upgrade DB schema from version 6 to version 7
 
 ALTER TABLE environs MODIFY chatroom VARCHAR(128) DEFAULT NULL;
 

@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 3 to version 4
+-- This script upgrade DB schema from version 3 to version 4
 
 ALTER TABLE environs DROP COLUMN project_id;
 ALTER TABLE environs ADD COLUMN external_id CHAR(36);

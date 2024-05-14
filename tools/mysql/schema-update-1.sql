@@ -1,8 +1,8 @@
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
--- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT   
+-- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 0 to version 1
+-- This script upgrade DB schema from version 0 to version 1
 
 DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS asg_alarms;

@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 18 to version 19
+-- This script upgrade DB schema from version 18 to version 19
 
 CREATE TABLE `pindeploy` (
   `env_id` varchar(22) NOT NULL,
