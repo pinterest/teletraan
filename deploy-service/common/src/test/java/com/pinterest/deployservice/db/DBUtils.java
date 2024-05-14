@@ -39,6 +39,7 @@ public class DBUtils {
         if (dataSource == null) {
             setUpDataSource();
         }
+        runMigrations(dataSource);
         return dataSource;
     }
 
@@ -113,6 +114,5 @@ public class DBUtils {
         } else {
             dataSource = DatabaseUtil.createLocalDataSource(getContainer().getJdbcUrl());
         }
-        runMigrations(dataSource);
     }
 }

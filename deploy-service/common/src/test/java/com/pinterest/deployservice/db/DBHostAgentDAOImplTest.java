@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.db;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.pinterest.deployservice.bean.EnvironBean;
@@ -56,8 +57,10 @@ class DBHostAgentDAOImplTest {
         sut.insert(hostAgentBean);
 
         EnvironBean actualEnvironBean = sut.getMainEnvByHostId(HOST_ID);
-
         assertEquals(expectedEnvBean.getEnv_name(), actualEnvironBean.getEnv_name());
         assertEquals(expectedEnvBean.getStage_name(), actualEnvironBean.getStage_name());
+
+        EnvironBean nullEnvironBean = sut.getMainEnvByHostId("random-host-id");
+        assertNull(nullEnvironBean);
     }
 }

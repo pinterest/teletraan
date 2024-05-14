@@ -18,6 +18,7 @@ package com.pinterest.deployservice.fixture;
 import com.pinterest.deployservice.bean.AcceptanceType;
 import com.pinterest.deployservice.bean.DeployPriority;
 import com.pinterest.deployservice.bean.EnvState;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.EnvironState;
 import com.pinterest.deployservice.bean.OverridePolicy;
@@ -52,6 +53,8 @@ public class EnvironBeanFixture {
         environBean.setStuck_th(50);
         environBean.setSuccess_th(10000);
         environBean.setWatch_recipients(UUID.randomUUID().toString());
+        environBean.setIs_sox(false);
+        environBean.setStage_type(EnvType.DEFAULT);
         return environBean;
     }
 }

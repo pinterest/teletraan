@@ -70,12 +70,14 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -139,8 +141,8 @@ public class DBDAOTest {
         utilDAO = new DBUtilDAOImpl(dataSource);
     }
 
-    @AfterAll
-    public static void tearDownClass() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         DBUtils.truncateAllTables(dataSource);
     }
 
@@ -575,7 +577,7 @@ public class DBDAOTest {
         assertTrue(EqualsBuilder.reflectionEquals(envBean, envBean22));
 
         // Test Watcher Column
-        assertTrue(envBean2.getWatch_recipients().equals("watcher"));
+        assertEquals(envBean.getWatch_recipients(), envBean2.getWatch_recipients());
 
         // Test update
         EnvironBean envBean3 = new EnvironBean();
@@ -1122,35 +1124,11 @@ public class DBDAOTest {
 
     private EnvironBean genDefaultEnvBean(
             String envId, String envName, String envStage, String deployId) {
-        EnvironBean envBean = new EnvironBean();
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
         envBean.setEnv_id(envId);
         envBean.setEnv_name(envName);
         envBean.setStage_name(envStage);
-        envBean.setEnv_state(EnvState.NORMAL);
-        envBean.setMax_parallel(1);
-        envBean.setPriority(DeployPriority.NORMAL);
-        envBean.setStuck_th(100);
-
-        // To keep the precision, the default success_th value should be 10000 in DB.
-        envBean.setSuccess_th(10000);
-        envBean.setDescription("foo");
         envBean.setDeploy_id(deployId);
-        envBean.setAdv_config_id("config_id_1");
-        envBean.setSc_config_id("envvar_id_1");
-        envBean.setLast_operator("bar");
-        envBean.setLast_update(System.currentTimeMillis());
-        envBean.setAccept_type(AcceptanceType.AUTO);
-        envBean.setNotify_authors(false);
-        envBean.setWatch_recipients("watcher");
-        envBean.setMax_deploy_num(5100);
-        envBean.setMax_deploy_day(366);
-        envBean.setIs_docker(false);
-        envBean.setMax_parallel_pct(0);
-        envBean.setState(EnvironState.NORMAL);
-        envBean.setMax_parallel_rp(1);
-        envBean.setOverride_policy(OverridePolicy.OVERRIDE);
-        envBean.setAllow_private_build(false);
-        envBean.setEnsure_trusted_build(false);
         return envBean;
     }
 
