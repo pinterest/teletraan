@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 12 to version 13
+-- This script upgrade DB schema from version 12 to version 13
 
 ALTER TABLE hosts_and_agents ADD COLUMN host_name VARCHAR(64) DEFAULT NULL;
 ALTER TABLE hosts_and_agents ADD COLUMN ip VARCHAR(64) DEFAULT NULL;

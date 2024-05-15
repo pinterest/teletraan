@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.teletraan.fixture.EnvironBeanFixture;
+import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import java.io.ByteArrayInputStream;

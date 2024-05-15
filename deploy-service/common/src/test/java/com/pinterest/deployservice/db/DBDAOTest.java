@@ -16,7 +16,6 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.AcceptanceStatus;
-import com.pinterest.deployservice.bean.AcceptanceType;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentErrorBean;
 import com.pinterest.deployservice.bean.AgentState;
@@ -26,19 +25,15 @@ import com.pinterest.deployservice.bean.ConfigHistoryBean;
 import com.pinterest.deployservice.bean.DataBean;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployFilterBean;
-import com.pinterest.deployservice.bean.DeployPriority;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
-import com.pinterest.deployservice.bean.EnvState;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.EnvironState;
 import com.pinterest.deployservice.bean.GroupRolesBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.HostTagBean;
-import com.pinterest.deployservice.bean.OverridePolicy;
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.PromoteType;
 import com.pinterest.deployservice.bean.RatingBean;
@@ -70,16 +65,15 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MySQLContainer;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -115,38 +109,35 @@ public class DBDAOTest {
     private static TagDAO tagDAO;
     private static ScheduleDAO scheduleDAO;
     private static UtilDAO utilDAO;
-
-    public static final MySQLContainer mysql = DBUtils.getContainer();
+    private static BasicDataSource dataSource;
 
     @BeforeAll
     public static void setUpClass() throws Exception {
-        mysql.start();
-        BasicDataSource DATASOURCE = DatabaseUtil.createLocalDataSource(mysql.getJdbcUrl());
-        DBUtils.runMigrations(DATASOURCE);
+        dataSource = DBUtils.createTestDataSource();
 
-        buildDAO = new DBBuildDAOImpl(DATASOURCE);
-        agentDAO = new DBAgentDAOImpl(DATASOURCE);
-        agentErrorDAO = new DBAgentErrorDAOImpl(DATASOURCE);
-        dataDAO = new DBDataDAOImpl(DATASOURCE);
-        deployDAO = new DBDeployDAOImpl(DATASOURCE);
-        environDAO = new DBEnvironDAOImpl(DATASOURCE);
-        promoteDAO = new DBPromoteDAOImpl(DATASOURCE);
-        hostDAO = new DBHostDAOImpl(DATASOURCE);
-        hostTagDAO = new DBHostTagDAOImpl(DATASOURCE);
-        groupDAO = new DBGroupDAOImpl(DATASOURCE);
-        ratingDAO = new DBRatingsDAOImpl(DATASOURCE);
-        userRolesDAO = new DBUserRolesDAOImpl(DATASOURCE);
-        groupRolesDAO = new DBGroupRolesDAOImpl(DATASOURCE);
-        tokenRolesDAO = new DBTokenRolesDAOImpl(DATASOURCE);
-        configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
-        tagDAO = new DBTagDAOImpl(DATASOURCE);
-        scheduleDAO = new DBScheduleDAOImpl(DATASOURCE);
-        utilDAO = new DBUtilDAOImpl(DATASOURCE);
+        buildDAO = new DBBuildDAOImpl(dataSource);
+        agentDAO = new DBAgentDAOImpl(dataSource);
+        agentErrorDAO = new DBAgentErrorDAOImpl(dataSource);
+        dataDAO = new DBDataDAOImpl(dataSource);
+        deployDAO = new DBDeployDAOImpl(dataSource);
+        environDAO = new DBEnvironDAOImpl(dataSource);
+        promoteDAO = new DBPromoteDAOImpl(dataSource);
+        hostDAO = new DBHostDAOImpl(dataSource);
+        hostTagDAO = new DBHostTagDAOImpl(dataSource);
+        groupDAO = new DBGroupDAOImpl(dataSource);
+        ratingDAO = new DBRatingsDAOImpl(dataSource);
+        userRolesDAO = new DBUserRolesDAOImpl(dataSource);
+        groupRolesDAO = new DBGroupRolesDAOImpl(dataSource);
+        tokenRolesDAO = new DBTokenRolesDAOImpl(dataSource);
+        configHistoryDAO = new DBConfigHistoryDAOImpl(dataSource);
+        tagDAO = new DBTagDAOImpl(dataSource);
+        scheduleDAO = new DBScheduleDAOImpl(dataSource);
+        utilDAO = new DBUtilDAOImpl(dataSource);
     }
 
-    @AfterAll
-    public static void tearDownClass() throws Exception {
-        mysql.stop();
+    @AfterEach
+    void tearDown() throws Exception {
+        DBUtils.truncateAllTables(dataSource);
     }
 
     @Test
@@ -580,7 +571,7 @@ public class DBDAOTest {
         assertTrue(EqualsBuilder.reflectionEquals(envBean, envBean22));
 
         // Test Watcher Column
-        assertTrue(envBean2.getWatch_recipients().equals("watcher"));
+        assertEquals(envBean.getWatch_recipients(), envBean2.getWatch_recipients());
 
         // Test update
         EnvironBean envBean3 = new EnvironBean();
@@ -1127,35 +1118,11 @@ public class DBDAOTest {
 
     private EnvironBean genDefaultEnvBean(
             String envId, String envName, String envStage, String deployId) {
-        EnvironBean envBean = new EnvironBean();
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
         envBean.setEnv_id(envId);
         envBean.setEnv_name(envName);
         envBean.setStage_name(envStage);
-        envBean.setEnv_state(EnvState.NORMAL);
-        envBean.setMax_parallel(1);
-        envBean.setPriority(DeployPriority.NORMAL);
-        envBean.setStuck_th(100);
-
-        // To keep the precision, the default success_th value should be 10000 in DB.
-        envBean.setSuccess_th(10000);
-        envBean.setDescription("foo");
         envBean.setDeploy_id(deployId);
-        envBean.setAdv_config_id("config_id_1");
-        envBean.setSc_config_id("envvar_id_1");
-        envBean.setLast_operator("bar");
-        envBean.setLast_update(System.currentTimeMillis());
-        envBean.setAccept_type(AcceptanceType.AUTO);
-        envBean.setNotify_authors(false);
-        envBean.setWatch_recipients("watcher");
-        envBean.setMax_deploy_num(5100);
-        envBean.setMax_deploy_day(366);
-        envBean.setIs_docker(false);
-        envBean.setMax_parallel_pct(0);
-        envBean.setState(EnvironState.NORMAL);
-        envBean.setMax_parallel_rp(1);
-        envBean.setOverride_policy(OverridePolicy.OVERRIDE);
-        envBean.setAllow_private_build(false);
-        envBean.setEnsure_trusted_build(false);
         return envBean;
     }
 

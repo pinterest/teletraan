@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 2 to version 3
+-- This script upgrade DB schema from version 2 to version 3
 
 
 ALTER TABLE environs ADD COLUMN project_id INT(11);
