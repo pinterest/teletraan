@@ -210,8 +210,6 @@ public class Environs {
 
     @POST
     @Path("/pindeployPipeline/disable")
-    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void pindeployPipelineAction(@Context SecurityContext sc,
                        @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
         LOG.info("yaqin-test-1");
