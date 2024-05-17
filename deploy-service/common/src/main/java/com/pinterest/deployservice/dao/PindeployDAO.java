@@ -23,7 +23,7 @@ import com.pinterest.deployservice.bean.PindeployBean;
 public interface PindeployDAO {
     PindeployBean get(String envId) throws Exception;
 
-    void delete(String envId) throws Exception;
+    void delete(String pipeline) throws Exception;
 
     void insertOrUpdate(PindeployBean pindeployBean) throws Exception;
 }

@@ -266,32 +266,32 @@ public class EnvStages {
     }
 
     @POST
-    @Path("/pindeployPipeline/action")
+    @Path("/pindeployPipeline/enable")
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void pindeployPipelineAction(@Context SecurityContext sc,
                        @PathParam("envName") String envName,
                        @PathParam("stageName") String stageName,
-                       @NotNull @QueryParam("actionType") ActionType actionType,
                        @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
-
         PindeployBean pindeployBean = new PindeployBean();
         pindeployBean.setEnv_id(envBean.getEnv_id());
         pindeployBean.setPipeline(pipeline);
-        switch (actionType) {
-            case ENABLE:
-                pindeployBean.setIs_pindeploy(true);
-                break;
-            case DISABLE:
-                pindeployBean.setIs_pindeploy(false);
-                break;
-            default:
-                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
-        }
-        environHandler.updatePindeploy(pindeployBean);
-        LOG.info(String.format("Successfully updated pindeploy pipeline action %s for %s/%s by %s", actionType, envName, stageName, operator));
+        pindeployBean.setIs_pindeploy(true);
+        pindeployDAO.insertOrUpdate(pindeployBean);
+        LOG.info(String.format("Successfully updated pindeploy pipeline for %s/%s by %s", envName, stageName, operator));
+    }
+
+    @POST
+    @Path("/pindeployPipeline/disable")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
+    public void pindeployPipelineAction(@Context SecurityContext sc,
+                       @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        pindeployDAO.delete(pipeline);
+        LOG.info(String.format("Successfully disabled pindeploy pipeline %s by %s", pipeline, operator));
     }
 
     private void stageTypeValidate(EnvironBean origBean, EnvironBean newBean) throws Exception {
