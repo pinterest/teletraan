@@ -214,9 +214,9 @@ public class Environs {
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void pindeployPipelineAction(@Context SecurityContext sc,
                        @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
-        LOG.info(String.format("yaqin-test"));
+        LOG.info("yaqin-test-1");
         String operator = sc.getUserPrincipal().getName();
-        LOG.info(String.format("yaqin-test-2"));
+        LOG.info("yaqin-test-2");
         pindeployDAO.delete(pipeline);
         LOG.info(String.format("Successfully disabled pindeploy pipeline %s by %s", pipeline, operator));
     }
