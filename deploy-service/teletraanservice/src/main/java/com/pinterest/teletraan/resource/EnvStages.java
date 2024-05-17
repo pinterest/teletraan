@@ -283,17 +283,6 @@ public class EnvStages {
         LOG.info(String.format("Successfully updated pindeploy pipeline for %s/%s by %s", envName, stageName, operator));
     }
 
-    @POST
-    @Path("/pindeployPipeline/disable")
-    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void pindeployPipelineAction(@Context SecurityContext sc,
-                       @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
-        String operator = sc.getUserPrincipal().getName();
-        pindeployDAO.delete(pipeline);
-        LOG.info(String.format("Successfully disabled pindeploy pipeline %s by %s", pipeline, operator));
-    }
-
     private void stageTypeValidate(EnvironBean origBean, EnvironBean newBean) throws Exception {
         Map<EnvType, String> stageTypeCategory = new HashMap<>();
         stageTypeCategory.put(EnvType.DEFAULT, "PRODUCTION");

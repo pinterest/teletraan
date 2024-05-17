@@ -25,6 +25,7 @@ import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
+import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
@@ -75,12 +76,14 @@ public class Environs {
     private EnvironHandler environHandler;
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
+    private PindeployDAO pindeployDAO;
 
     public Environs(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
+        pindeployDAO = context.getPindeployDAO();
     }
 
     @GET
@@ -203,5 +206,16 @@ public class Environs {
         tagBean.setComments(description);
         tagHandler.createTag(tagBean, operator);
         LOG.info(String.format("Successfully updated actions %s for all envs by %s", actionType, operator));
+    }
+
+    @POST
+    @Path("/pindeployPipeline/disable")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
+    public void pindeployPipelineAction(@Context SecurityContext sc,
+                       @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        pindeployDAO.delete(pipeline);
+        LOG.info(String.format("Successfully disabled pindeploy pipeline %s by %s", pipeline, operator));
     }
 }
