@@ -81,9 +81,7 @@ public class Pindeploy {
     @Path("/disable")
     public void disablePindeployPipeline(@Context SecurityContext sc,
                        @NotEmpty @QueryParam("pipeline") String pipeline) throws Exception {
-        LOG.info("yaqin-test-1");
         String operator = sc.getUserPrincipal().getName();
-        LOG.info("yaqin-test-2");
         pindeployDAO.delete(pipeline);
         LOG.info(String.format("Successfully disabled pindeploy pipeline %s by %s", pipeline, operator));
     }
