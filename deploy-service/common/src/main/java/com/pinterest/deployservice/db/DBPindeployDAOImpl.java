@@ -46,8 +46,7 @@ public class DBPindeployDAOImpl implements PindeployDAO {
 
     @Override
     public void delete(String pipeline) throws Exception {
-        ResultSetHandler<PindeployBean> h = new BeanHandler<PindeployBean>(PindeployBean.class);
-        new QueryRunner(dataSource).query(DELETE_PINDEPLOY, h, pipeline);
+        new QueryRunner(dataSource).update(DELETE_PINDEPLOY, pipeline);
     }
 
     @Override
