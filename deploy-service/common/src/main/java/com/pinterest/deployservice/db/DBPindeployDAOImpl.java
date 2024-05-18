@@ -28,7 +28,7 @@ public class DBPindeployDAOImpl implements PindeployDAO {
     private static final String GET_PINDEPLOY =
         "SELECT * FROM pindeploy WHERE env_id=?";
     private static final String DELETE_PINDEPLOY =
-        "DELETE * FROM pindeploy WHERE pipeline=?";
+        "DELETE FROM pindeploy WHERE pipeline=?";
     private static final String INSERT_OR_UPDATE_PINDEPLOY =
         "INSERT INTO pindeploy SET %s ON DUPLICATE KEY UPDATE pipeline=?, is_pindeploy=?";
 
