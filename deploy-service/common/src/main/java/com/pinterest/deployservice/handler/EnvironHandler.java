@@ -336,10 +336,6 @@ public class EnvironHandler {
         }
     }
 
-    public void updatePindeploy(PindeployBean pindeployBean) throws Exception {
-        pindeployDAO.insertOrUpdate(pindeployBean);
-    }
-
     public String resume(EnvironBean envBean, String operator) throws Exception {
         envBean.setEnv_state(EnvState.NORMAL);
         updateStage(envBean, operator);

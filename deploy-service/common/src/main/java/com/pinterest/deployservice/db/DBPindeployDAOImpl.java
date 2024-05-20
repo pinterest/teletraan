@@ -28,7 +28,7 @@ public class DBPindeployDAOImpl implements PindeployDAO {
     private static final String GET_PINDEPLOY =
         "SELECT * FROM pindeploy WHERE env_id=?";
     private static final String DELETE_PINDEPLOY =
-        "DELETE * FROM pindeploy WHERE env_id=?";
+        "DELETE FROM pindeploy WHERE pipeline=?";
     private static final String INSERT_OR_UPDATE_PINDEPLOY =
         "INSERT INTO pindeploy SET %s ON DUPLICATE KEY UPDATE pipeline=?, is_pindeploy=?";
 
@@ -45,9 +45,8 @@ public class DBPindeployDAOImpl implements PindeployDAO {
     }
 
     @Override
-    public void delete(String envId) throws Exception {
-        ResultSetHandler<PindeployBean> h = new BeanHandler<PindeployBean>(PindeployBean.class);
-        new QueryRunner(dataSource).query(DELETE_PINDEPLOY, h, envId);
+    public void delete(String pipeline) throws Exception {
+        new QueryRunner(dataSource).update(DELETE_PINDEPLOY, pipeline);
     }
 
     @Override

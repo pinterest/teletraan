@@ -90,6 +90,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.jersey().register(EnvGroupRoles.class);
         environment.jersey().register(Hosts.class);
         environment.jersey().register(Systems.class);
+        environment.jersey().register(Pindeploy.class);
 
         // Support pings as well
         environment.jersey().register(Pings.class);
