@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from deploy_board.settings import CMDB_API_HOST, IS_PINTEREST, PHOBOS_URL
+from deploy_board.settings import IS_PINTEREST, PHOBOS_URL
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -26,10 +26,10 @@ import json
 import requests
 import logging
 import traceback
-from itertools import groupby
 
 from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
-                     specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
+                     specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper,
+                     hosts_helper, accounts_helper)
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
 from .helpers.exceptions import TeletraanException
@@ -1470,20 +1470,20 @@ def get_health_check_activities(request, group_name):
 def get_charts(request, group_name, type):
 
     if type == "az":    
-        return render(request, 'groups/distribution_charts.tmpl', get_host_az_dist(group_name))
+        return render(request, 'groups/distribution_charts.tmpl', get_host_az_dist(request, group_name))
     
     elif type == "ami":
         return render(request, 'groups/distribution_charts.tmpl', get_host_ami_dist(request, group_name))
     
     elif type == "host-type":
-        return render(request, 'groups/distribution_charts.tmpl', get_host_type_dist(group_name))
+        return render(request, 'groups/distribution_charts.tmpl', get_host_type_dist(request, group_name))
 
 
-def get_host_az_dist(group_name):
-    host_az_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
-            "query": "tags.Autoscaling:{} AND state:running".format(group_name),
-            "fields": "location"
-        }
+def get_host_az_dist(request, group_name):
+    aws_owner_id = accounts_helper.get_aws_owner_id_for_cluster_name(request, group_name)
+    host_az_dist = hosts_helper.query_cmdb(
+        query="tags.Autoscaling:{} AND state:running".format(group_name),
+        fields="location", account_id=aws_owner_id
     )
 
     counter = Counter([x['location'] for x in host_az_dist.json()])
@@ -1502,12 +1502,13 @@ def get_host_az_dist(group_name):
         'total': total
     }
 
-def get_host_type_dist(group_name):
-    host_type_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
-            "query": "tags.Autoscaling:{} AND state:running".format(group_name),
-            "fields": "cloud.aws"
-        }
-    )
+def get_host_type_dist(request, group_name):
+    aws_owner_id = accounts_helper.get_aws_owner_id_for_cluster_name(request, group_name)
+    host_type_dist = hosts_helper.query_cmdb(
+        query="tags.Autoscaling:{} AND state:running".format(group_name),
+        fields="cloud.aws",
+        account_id=aws_owner_id
+    );
 
     counter = Counter([x['cloud.aws']['instanceType'] for x in host_type_dist.json()])
     labels = list(counter.keys())
@@ -1526,10 +1527,12 @@ def get_host_type_dist(group_name):
     }
 
 def get_host_ami_dist(request, group_name):
-    host_ami_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
-            "query": "tags.Autoscaling:{} AND state:running".format(group_name),
-            "fields": "cloud.aws.imageId"
-        }
+    cluster_config = clusters_helper.get_cluster(request, group_name)
+    aws_owner_id = accounts_helper.get_aws_owner_id_for_cluster(request, cluster_config)
+    host_ami_dist = hosts_helper.query_cmdb(
+        query="tags.Autoscaling:{} AND state:running".format(group_name),
+        fields="cloud.aws.imageId",
+        account_id=aws_owner_id
     )
 
     counter = Counter([x['cloud.aws.imageId'] for x in host_ami_dist.json()])
@@ -1538,7 +1541,6 @@ def get_host_ami_dist(request, group_name):
     total = sum(data)
     percentages = map(lambda x: round((x / total) * 100, 1), data)
 
-    cluster_config = clusters_helper.get_cluster(request, group_name)
     current_AMI = baseimages_helper.get_by_id(request, cluster_config["baseImageId"])
     current_AMI = current_AMI["provider_name"]
 

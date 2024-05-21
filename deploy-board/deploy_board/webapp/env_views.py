@@ -23,7 +23,7 @@ from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
-from deploy_board.settings import CMDB_API_HOST, IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL, \
     IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK, STAGE_TYPE_INFO_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
@@ -39,7 +39,7 @@ import requests
 from collections import Counter
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper, \
-    accounts_helper, autoscaling_groups_helper
+    accounts_helper, autoscaling_groups_helper, hosts_helper
 from .templatetags import utils
 from .helpers.exceptions import TeletraanException
 import math
@@ -589,16 +589,17 @@ class EnvLandingView(View):
 def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env):
     try:
         group_name = get_group_name(request, env.get('envName'), env.get('stageName'), env=env)
-        host_ami_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
-                "query": "tags.Autoscaling:{} AND state:running".format(group_name),
-                "fields": "cloud.aws.imageId"
-            }
+        cluster_config = clusters_helper.get_cluster(request, group_name)
+        aws_owner_id = accounts_helper.get_aws_owner_id_for_cluster(request, cluster_config)
+        host_ami_dist = hosts_helper.query_cmdb(
+            query="tags.Autoscaling:{} AND state:running".format(group_name),
+            fields="cloud.aws.imageId",
+            account_id=aws_owner_id
         )
 
         counter = Counter([x['cloud.aws.imageId'] for x in host_ami_dist.json()])
         amis = list(counter.keys())
 
-        cluster_config = clusters_helper.get_cluster(request, group_name)
         current_AMI = baseimages_helper.get_by_id(request, cluster_config["baseImageId"])
         current_AMI = current_AMI["provider_name"]
 
