@@ -17,9 +17,8 @@ from django.http import HttpResponse
 from django.views.generic import View
 import logging
 from .common import is_agent_failed
-from .helpers import environs_helper, agents_helper, autoscaling_groups_helper
-from .helpers import environ_hosts_helper, hosts_helper
-from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
+from .helpers import environs_helper, agents_helper, autoscaling_groups_helper, environ_hosts_helper, hosts_helper, accounts_helper
+from deploy_board.settings import IS_PINTEREST, CMDB_UI_HOST, PHOBOS_URL, AWS_PRIMARY_ACCOUNT
 from datetime import datetime
 import pytz
 import requests
@@ -98,11 +97,10 @@ def _get_cloud(json_obj):
         return None
 
 
-def get_host_details(host_id):
+def get_host_details(host_id, account_id):
     if not host_id:
         return None
-    host_url = CMDB_API_HOST + CMDB_INSTANCE_URL + host_id
-    response = requests.get(host_url)
+    response = hosts_helper.get_cmdb_host_info(host_id, account_id)
 
     try:
         instance = response.json()
@@ -131,7 +129,7 @@ def get_host_details(host_id):
         host_ip = instance['config']['internal_address']
         host_name = instance['config']['name']
         if host_ip is not None:
-            phobos_link = PHOBOS_URL + host_name
+            phobos_link = PHOBOS_URL + (host_name if account_id == AWS_PRIMARY_ACCOUNT else host_ip)
             host_details['Phobos Link'] = phobos_link
     return host_details
 
@@ -147,7 +145,7 @@ class GroupHostDetailView(View):
         show_reset_all_environments = should_display_reset_all_environments(hosts)
         show_warning_message = not show_terminate
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
-        host_details = get_host_details(host_id)
+        host_details = get_host_details(host_id, account_id)
 
         return render(request, 'hosts/host_details.html', {
             'group_name': groupname,
@@ -198,7 +196,7 @@ class HostDetailView(View):
             is_agent_failed(wrapper['agent'])
         )
         
-        host_details = get_host_details(host_id)
+        host_details = get_host_details(host_id, account_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')
 

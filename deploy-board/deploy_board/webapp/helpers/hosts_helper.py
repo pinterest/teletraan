@@ -16,10 +16,17 @@
 """Collection of all hosts related calls
 """
 from deploy_board.webapp.helpers.deployclient import DeployClient
+from deploy_board.webapp.helpers.cmdbapiclient import CmdbApiClient
+from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
 deployclient = DeployClient()
-
+cmdbapi_client = CmdbApiClient()
 
 def get_hosts_by_name(request, host_name):
     return deployclient.get("/hosts/%s" % host_name, request.teletraan_user_id.token)
-    
+
+def query_cmdb(query, fields, account_id):
+    return cmdbapi_client.query(query, fields, account_id)
+
+def get_cmdb_host_info(host_id, account_id):
+    return cmdbapi_client.get_host_details(host_id, account_id)
