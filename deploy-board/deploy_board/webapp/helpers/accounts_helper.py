@@ -2,6 +2,7 @@ import logging
 
 from deploy_board.settings import DEFAULT_CELL, DEFAULT_PROVIDER
 from deploy_board.webapp.helpers.rodimus_client import RodimusClient
+from . import clusters_helper
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ def get_default_account(request, cell, provider="AWS"):
     return get_by_cell_and_id(request, cell, "default", provider)
 
 def get_aws_owner_id_for_cluster_name(request, cluster_name):
-    cluster = rodimus_client.get("/clusters/%s" % cluster_name, request.teletraan_user_id.token)
+    cluster = clusters_helper.get_cluster(request, cluster_name)
     return get_aws_owner_id_for_cluster(request, cluster)
 
 def get_aws_owner_id_for_cluster(request, cluster):
