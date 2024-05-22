@@ -13,27 +13,21 @@
 # limitations under the License.
 
 #!/usr/bin/env python3
-import commons
-
-environs_helper = commons.get_environ_helper()
-
-
-def main():
-    for x in range(1, 3):
-        name = "sample-service-%d" % x
-        stage = "canary"
-        commons.create_env(name, stage)
-        hosts = ["sample-host1", "sample-host2"]
-        environs_helper.update_env_capacity(commons.REQUEST, name, stage,
-                                            capacity_type="HOST", data=hosts)
-        stage = "prod"
-        commons.create_env(name, stage)
-        groups = ["sample-group1", "sample-group2"]
-        environs_helper.update_env_capacity(commons.REQUEST, name, stage, data=groups)
-
+from deploy_board.webapp.helpers import environs_helper
+from commons import create_env, REQUEST
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(e.message)
+    for x in range(1, 3):
+        name = f"sample-service-{x}"
+        stage = "canary"
+        try:
+            create_env(name, stage)
+            hosts = ["sample-host1", "sample-host2"]
+            environs_helper.update_env_capacity(REQUEST, name, stage,
+                                                capacity_type="HOST", data=hosts)
+            stage = "prod"
+            create_env(name, stage)
+            groups = ["sample-group1", "sample-group2"]
+            environs_helper.update_env_capacity(REQUEST, name, stage, data=groups)
+        except Exception as e:
+            print(e)
