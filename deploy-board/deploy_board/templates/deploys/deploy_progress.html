@@ -75,11 +75,11 @@
                 {% endif %}
                 {% if report.provisioningHosts %}
                     <div class="panel panel-default">
-                        <div class="panel-heading">
+                        <div class="panel-heading clearfix">
                             <h4 class="panel-title pull-left">
                                 <small>
                                     <a data-toggle="collapse"
-                                       href="#collapseNewHosts"
+                                       href="#collapseProvisioningHosts"
                                        class="deployToolTip"
                                        title="Host is new to this env.">
                                         <i class="fa fa-chevron-right" id="chevron-icon"></i>
@@ -96,16 +96,18 @@
                                 </small>
                             </span>
                         </div>
-                        <div class="row">
-                            {% for host in report.provisioningHosts %}
-                                <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
-                                   type="button"
-                                   class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
-                                   title="{{ host | hostTip }}">
-                                    <small>{{ host.hostName }}</small>
-                                    <i class="fa fa-fw {{ host | hostIcon }}"></i>
-                                </a>
-                            {% endfor %}
+                        <div id="collapseUnknownHosts" class="collapse">
+                            <div class="row">
+                                {% for host in report.provisioningHosts %}
+                                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
+                                       type="button"
+                                       class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
+                                       title="{{ host | hostTip }}">
+                                        <small>{{ host.hostName }}</small>
+                                        <i class="fa fa-fw {{ host | hostIcon }}"></i>
+                                    </a>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 {% endif %}
@@ -132,7 +134,7 @@
                                 </small>
                             </span>
                         </div>
-                        <div id="collapseUnknownHosts" class="collapse">
+                        <div id="collapseProvisioningHosts" class="collapse">
                             <div class="row">
                                 {% for host in report.missingHosts %}
                                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host }}"
