@@ -6,10 +6,7 @@
         <div class="panel panel-default">
             <div class="panel-heading clearfix">
                 <h4 class="panel-title pull-left">Hosts</h4>
-            </div>
-            <div class="panel-body">
-                {% include "deploys/deploy_stage_summary.html" with report=report build=report.currentDeployStat.build show_stopping_hosts=show_stopping_hosts %}
-                <div class="row">
+                <div class="pull-right">
                     <a type="button"
                        class="deployToolTip btn btn-xs"
                        data-toggle="tooltip"
@@ -32,6 +29,9 @@
                         <strong>Sub Account Hosts</strong>
                     </a>
                 </div>
+            </div>
+            <div class="panel-body">
+                {% include "deploys/deploy_stage_summary.html" with report=report build=report.currentDeployStat.build show_stopping_hosts=show_stopping_hosts %}
                 {% if report.firstTimeAgentStats %}
                     <div class="panel panel-default">
                         <div class="panel-heading clearfix">
