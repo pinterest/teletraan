@@ -1,7 +1,7 @@
 Django==1.11.29
 python-dateutil==2.8.2
 pytz==2014.10
-requests==2.31.0
+requests==2.32.0
 diff-match-patch==20110725.1
 oauthlib==1.0.3
 flake8==2.4.1
