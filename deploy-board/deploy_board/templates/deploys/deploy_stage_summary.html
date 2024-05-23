@@ -1,0 +1,91 @@
+{% load utils %}
+{% load static %}
+<div class="row">
+    <div class="panel panel-default table-responsive">
+        <table class="table table-striped table-condensed table-hover">
+            <thead>
+                <tr>
+                    <td class="col-lg-1 text-right"></td>
+                    {% for key, value in report.currentDeployStat.stageDistMap.items %}
+                        {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
+                            <td class="text-center">
+                                <span class="pointer-cursor deployToolTip"
+                                      data-toggle="tooltip"
+                                      title="{{ key|deployStageTip }}">
+                                    <small>{{ key }}</small>
+                                </span>
+                            </td>
+                        {% endif %}
+                    {% endfor %}
+                    <td class="col-lg-1 text-right">
+                        <span class="pointer-cursor deployToolTip" data-toggle="tooltip">
+                            <small>Total</small>
+                        </span>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="deployToolTip"
+                              data-toggle="tooltip"
+                              title="Detailed deploy steps statistics for current deploy.">
+                            <small>Current({{ build.commitShort }})</small>
+                        </span>
+                    </td>
+                    {% for key, value in report.currentDeployStat.stageDistMap.items %}
+                        {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
+                            <td class="text-center">
+                                <small>
+                                    <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts?hostStage={{ key }}"
+                                       class="deployToolTip"
+                                       data-toggle="tooltip"
+                                       title="Click to see more details">{{ value }}</a>
+                                </small>
+                            </td>
+                        {% endif %}
+                    {% endfor %}
+                    <td class="text-right">
+                        <small>
+                            <a class="deployToolTip"
+                               data-toggle="tooltip"
+                               href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts/"
+                               title="Click to see more details">{{ report.currentDeployStat.total }}</a>
+                        </small>
+                    </td>
+                </tr>
+                {% for deployStat in report.deprecatedDeployStats %}
+                    <tr>
+                        <td>
+                            <a class="deployToolTip"
+                               data-toggle="tooltip"
+                               href="/deploy/{{ deployStat.deploy.id }}"
+                               title="Detailed deploy steps statistics for previously deprecated deploy.">
+                                <small>Previous({{ deployStat.build.commitShort }})</small>
+                            </a>
+                        </td>
+                        {% for key, value in deployStat.stageDistMap.items %}
+                            {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
+                                <td class="text-right">
+                                    <small>
+                                        <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts?hostStage={{ key }}"
+                                           class="deployToolTip"
+                                           data-toggle="tooltip"
+                                           title="Click to see more details">{{ value }}</a>
+                                    </small>
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                        <td class="text-right">
+                            <small>
+                                <a class="deployToolTip"
+                                   href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts/"
+                                   title="Click to see more details">{{ deployStat.total }}</a>
+                            </small>
+                        </td>
+                    </tr>
+                </tbody>
+            {% endfor %}
+        </table>
+    </div>
+</div>
