@@ -338,11 +338,7 @@ $('#privateBldUploadBtnId button').click(function () {
 {% include "environs/site_health.tmpl" with metricsKind="service" %}
 
 {% if has_deploy %}
-    {%  if env|canResume %}
-    <div class="panel panel-danger">
-    {% else %}
-    <div class="panel panel-default">
-    {%  endif %}
+    <div class="panel {% if env|canResume %}panel-danger{% else %}panel-default{% endif %}">
         <div class="panel-heading clearfix">
             <h4 class="panel-title pull-left pointer-cursor">
                 <a data-toggle="collapse" data-target="#activeDeployId">
