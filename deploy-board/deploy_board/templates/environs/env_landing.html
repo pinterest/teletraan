@@ -27,7 +27,7 @@
 {% else %}
     {% include "feedbacks/feedback_banner.tmpl" with hidden='display: none;'%}
 {% endif %}
-{% endblock %}
+{% endblock breadcrumb-items %}
 
 
 {% block side-panel-actions %}
@@ -268,7 +268,7 @@ $('#privateBldUploadBtnId button').click(function () {
 </script>
 {% endif %}
 
-{% endblock %}
+{% endblock side-panel-actions %}
 
 {% block main %}
 
@@ -621,4 +621,4 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 {% endif %}
 
-{% endblock %}
+{% endblock main %}
