@@ -248,7 +248,7 @@ def update_deploy_progress(request, name, stage):
         "accounts": accounts,
     }
 
-    html = render_to_string('deploys/deploy_progress.tmpl', context)
+    html = render_to_string('deploys/deploy_progress.html', context)
 
     response = HttpResponse(html)
 
@@ -628,7 +628,7 @@ def _get_last_cluster_refresh_status(request, env):
         return replace_summaries["clusterRollingUpdateStatuses"][0]
     except:
         return None
-    
+
 def _is_cluster_auto_refresh_enabled(request, env):
     try:
         cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
@@ -1140,9 +1140,9 @@ def remove_stage(request, name, stage):
 
     return response
 
-def get_pipeline_url_from_build_info(build):       
+def get_pipeline_url_from_build_info(build):
     if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/[\d]*(/)?", build['publishInfo']):
-        return re.sub("/[\d]*(/)?$", '', build['publishInfo'])    
+        return re.sub("/[\d]*(/)?$", '', build['publishInfo'])
     if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/?", build['publishInfo']):
         return build['publishInfo']
     return False
@@ -1154,18 +1154,18 @@ def get_builds(request, name, stage):
     if env_promote['type'] == 'AUTO' and env_promote['predStage'] and \
             env_promote['predStage'] == environs_helper.BUILD_STAGE:
         show_lock = True
-    
+
     if 'buildName' not in env and not env['buildName']:
         html = render_to_string('builds/simple_builds.tmpl', {
             "builds": [],
-            "env": env,            
+            "env": env,
             "show_lock": show_lock,
         })
         return HttpResponse(html)
 
     current_publish_date = 0
-    build_deploy_pipeline_url = False    
-    
+    build_deploy_pipeline_url = False
+
     if 'deployId' in env and env['deployId']:
         deploy = deploys_helper.get(request, env['deployId'])
         build = builds_helper.get_build(request, deploy['buildId'])
@@ -1196,7 +1196,7 @@ def get_builds(request, name, stage):
     html = render_to_string('builds/simple_builds.tmpl', {
         "builds": new_builds,
         "build_deploy_pipeline_url" : build_deploy_pipeline_url,
-        "current_publish_date": current_publish_date,        
+        "current_publish_date": current_publish_date,
         "env": env,
         "show_lock": show_lock,
     })
