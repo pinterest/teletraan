@@ -405,7 +405,17 @@ $('#privateBldUploadBtnId button').click(function () {
                 <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
                         title="Change how the hosts are displayed"
                         data-toggle="dropdown" type="button">
-                    Display Mode <span class="caret"></span>
+                    Display Mode:
+                    {% if report.showMode == "simple" %}
+                        Simple
+                    {% elif report.showMode == "compact" %}
+                        Compact
+                    {% elif report.showMode == "complete" %}
+                        Complete
+                    {% elif report.showMode == "containerStatus" %}
+                        Health Check Status
+                    {% endif %}
+                    <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     <form id="updateModeFormId">
@@ -464,7 +474,9 @@ $('#privateBldUploadBtnId button').click(function () {
                         <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
                                 title="Change how the hosts are displayed based on Account"
                                 data-toggle="dropdown" type="button">
-                            Account <span class="caret"></span>
+                            Account:
+                            {{ report.account|capfirst }}
+                            <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                             <form id="accountFormId">
