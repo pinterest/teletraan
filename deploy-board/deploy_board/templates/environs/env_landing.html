@@ -27,7 +27,7 @@
 {% else %}
     {% include "feedbacks/feedback_banner.tmpl" with hidden='display: none;'%}
 {% endif %}
-{% endblock %}
+{% endblock breadcrumb-items %}
 
 
 {% block side-panel-actions %}
@@ -86,12 +86,6 @@
             <span class="glyphicon glyphicon-time"></span> Deploy Constraint
         </a>
     </div>
-    <!--div class="row">
-        <a href="/builds/{{ env.envName }}/{{ env.stageName }}/start_build/" type="button" class="deployToolTip btn btn-default btn-block"
-           data-toggle="tooltip" title="Create a private build for current environment">
-            <span class="glyphicon glyphicon-pencil"></span> Branch Build
-           </a>
-    </div-->
 
     {% if has_deploy %}
 	<div class="row">
@@ -274,7 +268,7 @@ $('#privateBldUploadBtnId button').click(function () {
 </script>
 {% endif %}
 
-{% endblock %}
+{% endblock side-panel-actions %}
 
 {% block main %}
 
@@ -344,11 +338,7 @@ $('#privateBldUploadBtnId button').click(function () {
 {% include "environs/site_health.tmpl" with metricsKind="service" %}
 
 {% if has_deploy %}
-    {%  if env|canResume %}
-    <div class="panel panel-danger">
-    {% else %}
-    <div class="panel panel-default">
-    {%  endif %}
+    <div class="panel {% if env|canResume %}panel-danger{% else %}panel-default{% endif %}">
         <div class="panel-heading clearfix">
             <h4 class="panel-title pull-left pointer-cursor">
                 <a data-toggle="collapse" data-target="#activeDeployId">
@@ -405,7 +395,17 @@ $('#privateBldUploadBtnId button').click(function () {
                 <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
                         title="Change how the hosts are displayed"
                         data-toggle="dropdown" type="button">
-                    Display Mode <span class="caret"></span>
+                    Display Mode:
+                    {% if report.showMode == "simple" %}
+                        Simple
+                    {% elif report.showMode == "compact" %}
+                        Compact
+                    {% elif report.showMode == "complete" %}
+                        Complete
+                    {% elif report.showMode == "containerStatus" %}
+                        Health Check Status
+                    {% endif %}
+                    <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     <form id="updateModeFormId">
@@ -464,7 +464,9 @@ $('#privateBldUploadBtnId button').click(function () {
                         <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
                                 title="Change how the hosts are displayed based on Account"
                                 data-toggle="dropdown" type="button">
-                            Account <span class="caret"></span>
+                            Account:
+                            {{ report.account|capfirst }}
+                            <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                             <form id="accountFormId">
@@ -488,15 +490,6 @@ $('#privateBldUploadBtnId button').click(function () {
                                         </label></div>
                                     </li>
                                 {% endfor %}
-                                <li>
-                                    <div class="radio"><label>&nbsp;
-                                        <input type="radio" name="account" value="others"
-                                               {% if report.account == "others" %}
-                                        checked
-                                        {% endif %}
-                                        > Others
-                                    </label></div>
-                                </li>
                             </form>
                         </ul>
                     </div>
@@ -619,4 +612,4 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 {% endif %}
 
-{% endblock %}
+{% endblock main %}
