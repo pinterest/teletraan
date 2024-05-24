@@ -65,7 +65,7 @@
                     </td>
                     {% for key, value in deployStat.stageDistMap.items %}
                         {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
-                            <td class="text-right">
+                            <td class="text-center">
                                 <small>
                                     <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts?hostStage={{ key }}"
                                        class="deployToolTip"
