@@ -88,3 +88,5 @@ bazel-testlogs
 bazel-weave
 bazel-deploy-agent
 MODULE.bazel*
+.factorypath
+.classpath
