@@ -16,10 +16,10 @@ import traceback
 import logging
 import re
 
-from boto.s3.connection import S3Connection
 from deployd.common.config import Config
 from deployd.common.status_code import Status
 from deployd.download.download_helper import DownloadHelper, DOWNLOAD_VALIDATE_METRICS
+from deployd.download.s3_client import S3Client
 from deployd.common.stats import create_sc_increment
 
 log = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class S3DownloadHelper(DownloadHelper):
         else:
             aws_access_key_id = self._config.get_aws_access_key()
             aws_secret_access_key = self._config.get_aws_access_secret()
-            self._aws_connection = S3Connection(aws_access_key_id, aws_secret_access_key, True)
+            self._aws_connection = S3Client(aws_access_key_id, aws_secret_access_key)
 
         if url:
             self._url = url
@@ -52,13 +52,13 @@ class S3DownloadHelper(DownloadHelper):
             return Status.FAILED
 
         try:
-            filekey = self._aws_connection.get_bucket(self._bucket_name).get_key(self._key)
+            filekey = self._aws_connection.get_key(self._bucket_name, self._key)
             if filekey is None:
                 log.error("s3 key {} not found".format(self._key))
                 return Status.FAILED
 
-            filekey.get_contents_to_filename(local_full_fn)
-            etag = filekey.etag
+            self._aws_connection.download_object_to_file(filekey, local_full_fn)
+            etag = self._aws_connection.get_etag(filekey)
             if "-" not in etag:
                 if etag.startswith('"') and etag.endswith('"'):
                     etag = etag[1:-1]

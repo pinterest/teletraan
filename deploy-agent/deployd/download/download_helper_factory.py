@@ -16,9 +16,9 @@ from logging import Logger, getLogger
 from typing import Optional
 
 from future.moves.urllib.parse import urlparse
-from boto.s3.connection import S3Connection
 
 from deployd.download.download_helper import DownloadHelper
+from deployd.download.s3_client import S3Client
 from deployd.download.s3_download_helper import S3DownloadHelper
 from deployd.download.http_download_helper import HTTPDownloadHelper
 from deployd.download.local_download_helper import LocalDownloadHelper
@@ -38,7 +38,7 @@ class DownloadHelperFactory(object):
             if aws_access_key_id is None or aws_secret_access_key is None:
                 log.error("aws access key id and secret access key not found")
                 return None
-            aws_conn = S3Connection(aws_access_key_id, aws_secret_access_key, True)
+            aws_conn = S3Client(aws_access_key_id, aws_secret_access_key)
             return S3DownloadHelper(local_full_fn=url, aws_connection=aws_conn, url=None, config=config)
         elif url_parse.scheme == 'file':
             return LocalDownloadHelper(url=url)
