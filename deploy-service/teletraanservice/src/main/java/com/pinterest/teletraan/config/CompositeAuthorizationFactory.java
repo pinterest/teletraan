@@ -19,11 +19,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
-import com.pinterest.teletraan.security.UserRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.BasePastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
-import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.dropwizard.auth.Authorizer;
 
 @JsonTypeName("composite")
@@ -31,6 +29,7 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
     private static final String DEFAULT_PASTIS_SERVICE_NAME = "teletraan_dev";
 
     @JsonProperty private String pastisServiceName = DEFAULT_PASTIS_SERVICE_NAME;
+    private Authorizer<TeletraanPrincipal> pastisAuthorizer;
 
     public void setPastisServiceName(String pastisServiceName) {
         this.pastisServiceName = pastisServiceName;
@@ -43,11 +42,14 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
     @Override
     public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context)
             throws Exception {
-        return (Authorizer<P>)
-                BasePastisAuthorizer.builder()
-                        .factory(context.getAuthZResourceExtractorFactory())
-                        .serviceName(pastisServiceName)
-                        .build();
+        if (pastisAuthorizer == null) {
+            pastisAuthorizer =
+                    BasePastisAuthorizer.builder()
+                            .factory(context.getAuthZResourceExtractorFactory())
+                            .serviceName(pastisServiceName)
+                            .build();
+        }
+        return (Authorizer<P>) pastisAuthorizer;
     }
 
     @Override
@@ -55,8 +57,6 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
             TeletraanServiceContext context, Class<P> principalClass) throws Exception {
         if (ServicePrincipal.class.equals(principalClass)) {
             return new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory());
-        } else if (UserPrincipal.class.equals(principalClass)) {
-            return new UserRoleAuthorizer(context, context.getAuthZResourceExtractorFactory());
         }
         return create(context);
     }
