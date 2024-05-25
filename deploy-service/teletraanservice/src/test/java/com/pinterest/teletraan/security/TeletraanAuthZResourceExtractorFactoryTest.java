@@ -121,6 +121,16 @@ class TeletraanAuthZResourceExtractorFactoryTest {
     }
 
     @Test
+    void create_shouldReturnCorrectExtractorForHostPathLocation() {
+        when(authZInfo.idLocation()).thenReturn(ResourceAuthZInfo.Location.PATH);
+        when(authZInfo.type()).thenReturn(AuthZResource.Type.HOST);
+
+        AuthZResourceExtractor extractor = extractorFactory.create(authZInfo);
+
+        assertTrue(extractor instanceof HostPathExtractor);
+    }
+
+    @Test
     void create_shouldThrowExceptionForUnsupportedLocation() {
         when(authZInfo.idLocation()).thenReturn(ResourceAuthZInfo.Location.NA);
 

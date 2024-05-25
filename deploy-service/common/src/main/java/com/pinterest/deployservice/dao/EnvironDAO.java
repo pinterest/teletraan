@@ -62,6 +62,19 @@ public interface EnvironDAO {
 
     List<EnvironBean> getEnvsByHost(String host) throws Exception;
 
+    /**
+     * Retrieves the main environment ID for the specified host ID.
+     *
+     * <p>The main environment is where the cluster that the host belongs to is created.
+     * In case such an environment does not exist, the method will attempt to retrieve the
+     * environment that matches the first group that's known to Teletraan for the specified host.
+     *
+     * @param hostId The ID of the host.
+     * @return The bean represents the main environment for the specified host ID.
+     * @throws SQLException if an error occurs while retrieving the main environment ID.
+     */
+    EnvironBean getMainEnvByHostId(String hostId) throws SQLException;
+
     List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception;
 
     List<String> getCurrentDeployIds() throws Exception;

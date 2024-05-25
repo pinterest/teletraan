@@ -16,8 +16,6 @@
 
 package com.pinterest.teletraan.resource;
 
-
-import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
@@ -28,7 +26,6 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
-import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.Api;
@@ -38,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -100,8 +98,7 @@ public class EnvHosts {
 
     @DELETE
     @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    // TODO: this allows sidecar owners to stop hosts
+    @ResourceAuthZInfo(type = AuthZResource.Type.HOST, idLocation = ResourceAuthZInfo.Location.PATH)
     public void stopServiceOnHost(@Context SecurityContext sc,
             @PathParam("envName") String envName,
             @PathParam("stageName") String stageName,
@@ -110,10 +107,12 @@ public class EnvHosts {
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        environHandler.stopServiceOnHosts(hostIds, replaceHost.or(true));
+        environHandler.ensureHostsOwnedByEnv(envBean, hostIds);
+        environHandler.stopServiceOnHosts(hostIds, replaceHost.orElse(true));
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_ACTION,
                 String.format("STOP %s", hostIds.toString()), operator);
-        LOG.info(String.format("Successfully stopped %s/%s service on hosts %s by %s", envName, stageName,
-                hostIds.toString(), operator));
+        LOG.info("Successfully stopped {}/{} service on hosts {} by {}", envName, stageName,
+                hostIds, operator);
     }
+
 }

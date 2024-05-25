@@ -30,12 +30,14 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
     private static final AuthZResourceExtractor HOTFIX_BODY_EXTRACTOR = new HotfixBodyExtractor();
     private final AuthZResourceExtractor buildPathExtractor;
     private final AuthZResourceExtractor deployPathExtractor;
+    private final AuthZResourceExtractor hostPathExtractor;
     private final AuthZResourceExtractor hotfixPathExtractor;
 
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
         buildPathExtractor = new BuildPathExtractor(serviceContext);
         deployPathExtractor = new DeployPathExtractor(serviceContext);
         hotfixPathExtractor = new HotfixPathExtractor(serviceContext);
+        hostPathExtractor = new HostPathExtractor(serviceContext);
     }
 
     @Override
@@ -53,6 +55,8 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                         return deployPathExtractor;
                     case HOTFIX:
                         return hotfixPathExtractor;
+                    case HOST:
+                        return hostPathExtractor;
                     default:
                         throw new UnsupportedResourceInfoException(authZInfo);
                 }

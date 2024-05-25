@@ -91,8 +91,8 @@ public class AuthZResource {
         DEPLOY,
         /** For hotfix related resources. */
         HOTFIX,
-        /** For Agent related resources. */
-        AGENT,
+        /** For Host related resources. */
+        HOST,
     }
 
     /**
