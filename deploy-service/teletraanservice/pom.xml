@@ -180,6 +180,9 @@
                     <excludes>
                       <exclude>com/pinterest/teletraan/config/CompositeAuthorizationFactory.java</exclude>
                     </excludes>
+                    <testExcludes>
+                      <testExclude>**/CompositeAuthorizationFactoryTest.java</testExclude>
+                    </testExcludes>
                   </configuration>
                 </plugin>
               </plugins>
