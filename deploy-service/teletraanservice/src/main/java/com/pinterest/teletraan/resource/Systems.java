@@ -18,10 +18,13 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.ChatMessageBean;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -100,6 +104,8 @@ public class Systems {
 
     @POST
     @Path("/send_chat_message")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     @ApiOperation(
         value = "Send chat message",
         notes = "Sends a chatroom message given a ChatMessageRequest to configured chat client")

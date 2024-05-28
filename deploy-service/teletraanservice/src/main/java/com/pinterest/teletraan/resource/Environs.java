@@ -181,6 +181,11 @@ public class Environs {
 
     @POST
     @Path("/actions")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
+    @ApiOperation(
+            value = "Enable/disable all environments",
+            notes = "Enable/disable all new deploy and configuration changes for every environments")
     public void action(@Context SecurityContext sc,
                        @NotNull @QueryParam("actionType") ActionType actionType,
                        @NotEmpty @QueryParam("description") String description) throws Exception {

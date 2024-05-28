@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,21 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.RatingBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.handler.RatingsHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
-
+import java.net.URI;
+import java.util.List;
+import java.util.Optional;
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.net.URI;
-import java.util.List;
 
 @PermitAll
 @Path("/v1/ratings")
@@ -35,8 +37,8 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Ratings {
-    private final static int DEFAULT_INDEX = 1;
-    private final static int DEFAULT_SIZE = 30;
+    private static final int DEFAULT_INDEX = 1;
+    private static final int DEFAULT_SIZE = 30;
     private RatingsHandler ratingsHandler;
 
     public Ratings(@Context TeletraanServiceContext context) {
@@ -44,15 +46,19 @@ public class Ratings {
     }
 
     @GET
-    public List<RatingBean> getAll(@QueryParam("pageIndex") Optional<Integer> pageIndex,
-        @QueryParam("pageSize") Optional<Integer> pageSize) throws Exception {
-        return ratingsHandler.getRatingDAO().getRatingsInfos(pageIndex.or(DEFAULT_INDEX), pageSize.or(DEFAULT_SIZE));
+    public List<RatingBean> getAll(
+            @QueryParam("pageIndex") Optional<Integer> pageIndex,
+            @QueryParam("pageSize") Optional<Integer> pageSize)
+            throws Exception {
+        return ratingsHandler
+                .getRatingDAO()
+                .getRatingsInfos(pageIndex.orElse(DEFAULT_INDEX), pageSize.orElse(DEFAULT_SIZE));
     }
 
     @POST
-    public Response create(@Valid RatingBean bean,
-                           @Context SecurityContext sc,
-                           @Context UriInfo uriInfo) throws Exception {
+    public Response create(
+            @Valid RatingBean bean, @Context SecurityContext sc, @Context UriInfo uriInfo)
+            throws Exception {
         bean.setAuthor(sc.getUserPrincipal().getName());
         bean.setTimestamp(System.currentTimeMillis());
         String id = ratingsHandler.createRating(bean);
@@ -64,12 +70,15 @@ public class Ratings {
 
     @GET
     @Path("/{userName : [a-zA-Z0-9\\-_.]+}/is_eligible")
-    public Boolean checkUserFeedbackStatus(@PathParam("userName") String userName) throws Exception {
+    public Boolean checkUserFeedbackStatus(@PathParam("userName") String userName)
+            throws Exception {
         return ratingsHandler.checkUserFeebackStatus(userName);
     }
 
     @DELETE
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
+    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void delete(@PathParam("id") String id, @Context SecurityContext sc) throws Exception {
         ratingsHandler.getRatingDAO().delete(id);
     }
