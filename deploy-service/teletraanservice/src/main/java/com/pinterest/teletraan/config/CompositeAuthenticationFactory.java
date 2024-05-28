@@ -52,7 +52,11 @@ public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
                         .setAuthorizer(context.getAuthorizationFactory().create(context))
                         .buildAuthFilter();
 
-        return new ChainedAuthFilter(Arrays.asList(createScriptTokenAuthFilter(context),
-                createOauthTokenAuthFilter(context), envoyAuthFilter, createJwtTokenAuthFilter(context)));
+        return new ChainedAuthFilter(
+                Arrays.asList(
+                        createScriptTokenAuthFilter(context),
+                        envoyAuthFilter,
+                        createOauthTokenAuthFilter(context),
+                        createJwtTokenAuthFilter(context)));
     }
 }
