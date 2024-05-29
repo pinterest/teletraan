@@ -97,8 +97,8 @@ public class EnvHosts {
     }
 
     @DELETE
-    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.HOST, idLocation = ResourceAuthZInfo.Location.PATH)
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void stopServiceOnHost(@Context SecurityContext sc,
             @PathParam("envName") String envName,
             @PathParam("stageName") String stageName,
@@ -114,5 +114,4 @@ public class EnvHosts {
         LOG.info("Successfully stopped {}/{} service on hosts {} by {}", envName, stageName,
                 hostIds, operator);
     }
-
 }
