@@ -20,10 +20,16 @@ defaults:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.12]
+        include:
+          - os-version: "ubuntu-20.04"
+            python-version: "3.6"
+          - os-version: "ubuntu-20.04"
+            python-version: "3.8"
+          - os-version: "ubuntu-24.04"
+            python-version: "3.12"
+    runs-on: ${{ matrix.os-version }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
