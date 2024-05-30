@@ -19,6 +19,7 @@ import re
 import logging
 from typing import List
 from deployd import IS_PINTEREST
+import pathlib
 
 log = logging.getLogger(__name__)
 
