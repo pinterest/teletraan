@@ -12,6 +12,5 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-python@v3
     - uses: pre-commit/action@v3.0.1
-      continue-on-error: true
       with:
         extra_args: --color=always --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
