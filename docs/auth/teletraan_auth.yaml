@@ -41,6 +41,7 @@ definitions:
       - DELETE
       - PUBLISHER
       - PINGER
+      - USE
   role:
     type: object
     description: |
@@ -80,6 +81,10 @@ definitions:
           - BASE_IMAGES
           - SECURITY_ZONE
           - IAM_ROLE
+          - DEPLOY
+          - BUILD
+          - HOTFIX
+          - HOST
       resourceName:
         type: string
         description: >
