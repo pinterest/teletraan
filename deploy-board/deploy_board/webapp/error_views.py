@@ -40,7 +40,16 @@ class ExceptionHandlerMiddleware:
         # Error is displayed as a fragment over related feature area
         if request.is_ajax():
             ajax_vars = {'success': False, 'error': str(exception)}
-            return HttpResponse(json.dumps(ajax_vars), content_type='application/javascript')
+            ret = 500
+            if isinstance(exception, IllegalArgumentException):
+                ret = 400
+            elif isinstance(exception, FailedAuthenticationException):
+                ret = 401
+            elif isinstance(exception, NotAuthorizedException):
+                ret = 403
+            elif isinstance(exception, NotFoundException):
+                ret = 404
+            return HttpResponse(json.dumps(ajax_vars), status=ret, content_type='application/javascript')
         else:
             # Not authorized
             if isinstance(exception, NotAuthorizedException):
