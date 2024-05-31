@@ -41,10 +41,12 @@ class ExceptionHandlerMiddleware:
         if request.is_ajax():
             ajax_vars = {'success': False, 'error': str(exception)}
             ret = 500
-            if isinstance(exception, NotAuthorizedException):
-                ret = 403
-            elif isinstance(exception, FailedAuthenticationException):
+            if isinstance(exception, FailedAuthenticationException):
                 ret = 401
+            elif isinstance(exception, NotAuthorizedException):
+                ret = 403
+            elif isinstance(exception, NotFoundException):
+                ret = 404
             return HttpResponse(json.dumps(ajax_vars), status=ret, content_type='application/javascript')
         else:
             # Not authorized
