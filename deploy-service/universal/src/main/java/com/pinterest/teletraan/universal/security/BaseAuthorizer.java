@@ -54,8 +54,7 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Au
 
         Object authZInfo = context.getProperty(ResourceAuthZInfo.class.getName());
         if (authZInfo == null) {
-            log.warn("ResourceAuthZInfo is required for authorization");
-            return false;
+            return authorize(principal, role, AuthZResource.UNSPECIFIED_RESOURCE, context);
         }
 
         if (!(authZInfo instanceof ResourceAuthZInfo)) {
