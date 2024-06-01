@@ -66,7 +66,7 @@ class BaseAuthorizerTest {
 
     @Test
     void testAuthorize_contextHasNoResourceAuthZInfo() {
-        assertFalse(sut.authorize(principal, TEST_ROLE, context));
+        assertTrue(sut.authorize(principal, TEST_ROLE, context));
     }
 
     @Test
