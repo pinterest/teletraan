@@ -1,8 +1,7 @@
-import mock
 import unittest
 from tests import TestCase
 
-from deployd.client.client import Client 
+from deployd.client.client import Client
 from deployd.client.base_client import BaseClient
 from deployd.common.config import Config
 

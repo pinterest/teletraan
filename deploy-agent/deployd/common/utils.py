@@ -218,7 +218,7 @@ def get_info_from_facter(keys) -> Optional[dict]:
         else:
             log.warn("Got empty output from facter by keys {}".format(keys))
             return None
-    except:
+    except Exception:
         log.exception("Failed to get info from facter by keys {}".format(keys))
         return None
 
@@ -231,17 +231,17 @@ def redeploy_check_for_container(labels, service, redeploy) -> int:
     if redeploy < max_retry:
         return redeploy + 1
     return 0
-    
+
 def redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs):
     if healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY") == "True":
         log.info(f"Auto redeployment is enabled on service {service}")
         max_retry = int(healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_MAX_RETRY", REDEPLOY_MAX_RETRY))
         if redeploy < max_retry:
             log.info(f"redeploy is {redeploy}; max retry is {max_retry}")
-            create_sc_increment(name='deployd.service_health_status', 
+            create_sc_increment(name='deployd.service_health_status',
                 tags={"status": "redeploy", "service": service, "commit": commit})
             return "redeploy-" + str(redeploy + 1)
-    create_sc_increment(name='deployd.service_health_status', 
+    create_sc_increment(name='deployd.service_health_status',
         tags={"status": "unhealthy", "service": service, "commit": commit})
     return service + ":unhealthy"
 
@@ -261,13 +261,13 @@ def redeploy_check_without_container_status(commit, service, redeploy):
         try:
             resp = requests.get(url)
             if resp.status_code >= 200 and resp.status_code < 300:
-                create_sc_increment(name='deployd.service_health_status', 
+                create_sc_increment(name='deployd.service_health_status',
                     tags={"status": "healthy", "service": service, "commit": commit})
                 return service + ":healthy"
         except requests.ConnectionError:
             return redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs)
         return redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs)
-        
+
 def get_container_health_info(commit, service, redeploy) -> Optional[str]:
     try:
         log.info(f"Get health info for service {service} with commit {commit}")
@@ -289,31 +289,31 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                                 labels = parts[2].split(',')
                                 ret = redeploy_check_for_container(labels, service, redeploy)
                                 if ret > 0:
-                                    create_sc_increment(name='deployd.service_health_status', 
+                                    create_sc_increment(name='deployd.service_health_status',
                                             tags={"status": "redeploy", "service": service, "commit": commit})
                                     return "redeploy-" + str(ret)
                             result.append(f"{name}:{status}")
-                    except:
+                    except Exception:
                         continue
             returnValue = ";".join(result) if result else None
             if returnValue and "unhealthy" in returnValue:
-                create_sc_increment(name='deployd.service_health_status', 
+                create_sc_increment(name='deployd.service_health_status',
                                             tags={"status": "unhealthy", "service": service, "commit": commit})
             elif returnValue and "unhealthy" not in returnValue:
-                create_sc_increment(name='deployd.service_health_status', 
+                create_sc_increment(name='deployd.service_health_status',
                                             tags={"status": "healthy", "service": service, "commit": commit})
             if returnValue:
                 return returnValue
         # if no check happens for the current service, check if it is a non container with healthcheck enabled
         return redeploy_check_without_container_status(commit, service, redeploy)
-    except:
+    except Exception:
         log.error(f"Failed to get container health info with commit {commit}")
         return None
 
 
 def get_telefig_version() -> Optional[str]:
     if not IS_PINTEREST:
-        return None    
+        return None
     try:
         cmd = ['configure-serviceset', '-v']
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
@@ -321,7 +321,7 @@ def get_telefig_version() -> Optional[str]:
             return output.decode().strip()
         else:
             return None
-    except:
+    except Exception:
         log.error("Error when fetching teletraan configure manager version")
         return None
 
