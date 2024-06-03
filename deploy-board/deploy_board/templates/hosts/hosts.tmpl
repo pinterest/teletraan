@@ -44,6 +44,9 @@
               <th>StartDate(-08:00)</th>
               <th>LastUpdate</th>
               <th>ErrorCode</th>
+              {% if show_protection_status %}
+              <th>Protected</th>
+              {% endif %}
           </tr>
           {% for agent in agents %}
           <tr>
@@ -57,6 +60,9 @@
                   <td>N/A</td>
                   <td>N/A</td>
                   <td>N/A</td>
+                  {% if show_protection_status %}
+                  <td>N/A</td>
+                  {% endif %}
               {% elif agent.lastErrorCode|isProvisioningHost %}
                   <td><input type="checkbox" value="{{ agent.hostId | default_if_none:'' }}"></td>
                   <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
@@ -67,6 +73,9 @@
                   <td>N/A</td>
                   <td>N/A</td>
                   <td>N/A</td>
+                  {% if show_protection_status %}
+                  <td>N/A</td>
+                  {% endif %}
               {% else %}
                   <td><input type="checkbox" value="{{ agent.hostId }}"></td>
                   <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
@@ -77,6 +86,15 @@
                   <td>{{ agent.startDate|convertTimestamp }}</td>
                   <td>{{ agent.lastUpdateDate|convertTimestamp }}</td>
                   <td>{{ agent.lastErrorCode }}</td>
+                  {% if show_protection_status %}
+                  <td>
+                    {% if agent.hostId in protected_hosts %}
+                    Protected
+                    {% else %}
+                    Not protected
+                    {% endif %}
+                  </td>
+                  {% endif %}
               {% endif %}
           </tr>
           {% endfor %}

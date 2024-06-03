@@ -1426,17 +1426,27 @@ def get_hosts(request, name, stage):
     title = "All hosts"
 
     agents_wrapper = {}
+    show_protected_hosts = request.GET.get("show_protected_hosts")
+    host_ids = []
     for agent in agents:
         if agent['deployId'] not in agents_wrapper:
             agents_wrapper[agent['deployId']] = []
         agents_wrapper[agent['deployId']].append(agent)
+        host_ids.append(agent['hostId'])
+
+    protected_hosts = []
+    if show_protected_hosts:
+        protected_hosts = hosts_helper.get_hosts_is_protected(request, host_ids)
 
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "stage": stage,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
+        "protected_hosts": protected_hosts,
+        "show_protected_hosts": show_protected_hosts
     })
 
 
