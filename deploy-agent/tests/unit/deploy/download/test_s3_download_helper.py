@@ -49,13 +49,5 @@ class TestS3DownloadHelper(unittest.TestCase):
         self.assertTrue(result)
         mock_get_s3_download_allow_list.assert_called_once()
 
-    @mock.patch('deployd.common.config.Config.get_s3_download_allow_list')
-    def test_validate_url_without_allow_list(self, mock_get_s3_download_allow_list):
-        mock_get_s3_download_allow_list.return_value = []
-        result = self.downloader.validate_source()
-
-        self.assertTrue(result)
-        mock_get_s3_download_allow_list.assert_called_once()
-
 if __name__ == '__main__':
     unittest.main()

@@ -132,7 +132,7 @@ class DeployAgent(object):
                 # for each service, we check the container health status
                 log.info(f"the current service is: {status.report.envName}")
                 try:
-                    if status.report.redeploy == None:
+                    if status.report.redeploy is None:
                         status.report.redeploy = 0
                     healthStatus = get_container_health_info(status.build_info.build_commit, status.report.envName, status.report.redeploy)
                     if healthStatus:
@@ -145,7 +145,7 @@ class DeployAgent(object):
                             status.report.containerHealthStatus = healthStatus
                             status.report.state = None
                             if "unhealthy" not in healthStatus:
-                                if status.report.wait == None or status.report.wait > 5:
+                                if status.report.wait is None or status.report.wait > 5:
                                     status.report.redeploy = 0
                                     status.report.wait = 0
                                 else:
@@ -228,7 +228,7 @@ class DeployAgent(object):
         while True:
             try:
                 self.serve_build()
-            except:
+            except Exception:
                 log.exception("Deploy Agent got exception: {}".format(traceback.format_exc()))
             finally:
                 time.sleep(self._config.get_daemon_sleep_time())

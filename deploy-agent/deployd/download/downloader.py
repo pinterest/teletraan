@@ -119,10 +119,10 @@ class Downloader(object):
             with open(extracted_file, 'w'):
                 pass
             log.info("Successfully extracted {} to {}".format(local_full_fn, working_dir))
-        except tarfile.TarError as e:
+        except tarfile.TarError:
             status = Status.FAILED
             log.exception("Failed to extract tar files")
-        except OSError as e:
+        except OSError:
             status = Status.FAILED
             log.exception("Failed to extract files. OSError:")
         except Exception:

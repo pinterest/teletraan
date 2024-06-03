@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,7 +70,7 @@ class Transformer(object):
             res = s.safe_substitute(self._dictionary)
             with open(to_path, 'w') as f:
                 f.write(res)
-        except:
+        except Exception:
             log.error('Fail to translate script {}, stacktrace: {}'.format(from_path,
                                                                            traceback.format_exc()))
 
