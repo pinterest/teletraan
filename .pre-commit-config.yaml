@@ -9,7 +9,6 @@ repos:
     hooks:
       - id: ruff
         args: [ --fix ]
-      - id: ruff-format
   - repo: https://github.com/djlint/djLint
     rev: v1.34.1
     hooks:
