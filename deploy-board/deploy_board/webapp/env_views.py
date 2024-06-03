@@ -35,7 +35,6 @@ from . import common
 from .accounts import get_accounts, get_accounts_from_deploy, create_legacy_ui_account, add_account_from_cluster, add_legacy_accounts
 import random
 import json
-import requests
 from collections import Counter
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper, \
@@ -356,7 +355,7 @@ def check_feedback_eligible(request, username):
             if num <= 10:
                 return True
         return False
-    except:
+    except Exception:
         log.error(traceback.format_exc())
         return False
 
@@ -605,13 +604,13 @@ def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, la
 
         any_host_with_outdated_ami = len(amis) > 1 or (len(amis) == 1 and amis[0] != current_AMI)
 
-        if any_host_with_outdated_ami and latest_succeeded_base_image_update_event != None:
-            if last_cluster_refresh_status == None or last_cluster_refresh_status["startTime"] == None or last_cluster_refresh_status["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
+        if any_host_with_outdated_ami and latest_succeeded_base_image_update_event is not None:
+            if last_cluster_refresh_status is None or last_cluster_refresh_status["startTime"] is None or last_cluster_refresh_status["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
                 return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing hosts.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
 
         return None
 
-    except:
+    except Exception:
         # in case of any exception, return None instead of showing the error on landing page
         return None
 
@@ -626,7 +625,7 @@ def _get_last_cluster_refresh_status(request, env):
             return None
 
         return replace_summaries["clusterRollingUpdateStatuses"][0]
-    except:
+    except Exception:
         return None
 
 def _is_cluster_auto_refresh_enabled(request, env):
@@ -635,7 +634,7 @@ def _is_cluster_auto_refresh_enabled(request, env):
         cluster_info = clusters_helper.get_cluster(request, cluster_name)
 
         return cluster_info["autoRefresh"]
-    except:
+    except Exception:
         return None
 
 
@@ -689,7 +688,7 @@ def _get_commit_info(request, commit, repo=None, branch='master'):
     try:
         commit_info = builds_helper.get_commit(request, repo, commit)
         return repo, branch, commit_info['date']
-    except:
+    except Exception:
         log.error(traceback.format_exc())
         return None, None, None
 
@@ -1024,7 +1023,7 @@ def post_create_env(request):
             if external_id:
                 try:
                     environs_helper.delete_nimbus_identifier(request, external_id)
-                except:
+                except Exception:
                     message = 'Also failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
                     log.error(message)
             raise detail
@@ -1322,7 +1321,6 @@ def rollback(request, name, stage):
     html = render_to_string("environs/env_rollback.html", {
         "envs": envs,
         "stages": stages,
-        "envs": envs,
         "env": env,
         "deploy_summaries": deploy_summaries,
         "to_deploy_id": to_deploy_id,
@@ -1368,7 +1366,6 @@ def promote(request, name, stage, deploy_id):
     html = render_to_string("environs/env_promote.html", {
         "envs": envs,
         "stages": stages,
-        "envs": envs,
         "env": env,
         "env_wrappers": env_wrappers,
         "deploy": deploy,
@@ -1806,7 +1803,7 @@ def get_deploy_schedule(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
     schedule_id = env.get('scheduleId', None)
-    if schedule_id != None:
+    if schedule_id is not None:
         schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
     else:
         schedule = None

@@ -50,7 +50,7 @@ class BaseClient(object):
                     if "access_token=" in response.text:
                         bad_text = response.text.split("access_token=")[1].split('"')[0].replace("\\", "")
                         response.text = response.text.replace(bad_text, "ACCESS_TOKEN")
-                except:
+                except Exception:
                     pass
 
             if response.status_code == 401:

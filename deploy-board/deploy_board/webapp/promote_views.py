@@ -23,7 +23,7 @@ from django.template.loader import render_to_string
 from django.views.generic import View
 from . import common
 from .helpers import environs_helper
-from .helpers.exceptions import TeletraanException, IllegalArgumentException
+from .helpers.exceptions import TeletraanException
 
 
 class EnvPromoteConfigView(View):

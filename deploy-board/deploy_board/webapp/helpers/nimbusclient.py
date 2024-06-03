@@ -2,8 +2,8 @@
 import logging
 from .decorators import singleton
 from deploy_board.settings import IS_PINTEREST, NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, NIMBUS_USE_EGRESS, NIMBUS_EGRESS_URL, TELETRAAN_PROJECT_URL_FORMAT
-from .exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
-from urllib.parse import urlparse 
+from .exceptions import TeletraanException
+from urllib.parse import urlparse
 import requests
 requests.packages.urllib3.disable_warnings()
 

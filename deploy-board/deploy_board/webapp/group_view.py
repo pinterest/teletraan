@@ -23,7 +23,6 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from collections import Counter
 import json
-import requests
 import logging
 import traceback
 
@@ -454,7 +453,7 @@ def get_policy(request, group_name):
     policies = autoscaling_groups_helper.get_policies(request, group_name)
     step_scaling_policy = None
     for policy in policies["scalingPolicies"]:
-        if policy["policyType"] == "StepScaling" and step_scaling_policy == None:
+        if policy["policyType"] == "StepScaling" and step_scaling_policy is None:
             step_scaling_policy = policy
         if policy["policyType"] in ["TargetTrackingScaling", "StepScaling"]:
             if policy["instanceWarmup"]:
@@ -465,11 +464,11 @@ def get_policy(request, group_name):
     scale_up_steps = []
     scale_down_steps = []
 
-    if step_scaling_policy != None:
+    if step_scaling_policy is not None:
         for step in step_scaling_policy["stepAdjustments"]:
-            if step["metricIntervalUpperBound"] != None and float(step["metricIntervalUpperBound"]) <= 0:
+            if step["metricIntervalUpperBound"] is not None and float(step["metricIntervalUpperBound"]) <= 0:
                 scale_down_steps.append({"upper_bound": float(step["metricIntervalUpperBound"]), "adjustment": step["scalingAdjustment"]})
-            if step["metricIntervalLowerBound"] != None and float(step["metricIntervalLowerBound"]) >= 0:
+            if step["metricIntervalLowerBound"] is not None and float(step["metricIntervalLowerBound"]) >= 0:
                 scale_up_steps.append({"lower_bound": float(step["metricIntervalLowerBound"]), "adjustment": step["scalingAdjustment"]})
 
         scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound'])
@@ -652,20 +651,20 @@ def _parse_metrics_configs(request, group_name):
             policies = autoscaling_groups_helper.get_policies(request, group_name)
 
             # Use simple scaling for custom metric
-            if page_data["fromAwsMetric_{}".format(alarm_id)][0] == False:
+            if page_data["fromAwsMetric_{}".format(alarm_id)][0] is False:
                 policy_type = "simple-scaling"
 
             if policy_type == "simple-scaling":
                 if action_type == "GROW":
-                    if policies["scaleupPolicies"] != None:
+                    if policies["scaleupPolicies"] is not None:
                         for i in policies["scaleupPolicies"]:
                             alarm_info["scalingPolicies"].append(i)
                 else:
-                    if policies["scaledownPolicies"] != None:
+                    if policies["scaledownPolicies"] is not None:
                         for i in policies["scaledownPolicies"]:
                             alarm_info["scalingPolicies"].append(i)
             else:
-                if policies["scalingPolicies"] != None:
+                if policies["scalingPolicies"] is not None:
                     for p in policies["scalingPolicies"]:
                         if p["policyType"] ==  "StepScaling":
                             alarm_info["scalingPolicies"].append(p)
@@ -690,7 +689,7 @@ def get_alarms(request, group_name):
 
     for alarm in alarms:
         alarm["scalingType"] = None
-        if alarm["scalingPolicies"] != None:
+        if alarm["scalingPolicies"] is not None:
             if len(alarm["scalingPolicies"]) > 0:
                 # we restrict alarm has only one scaling policy
                 policy = alarm["scalingPolicies"][0]
@@ -767,15 +766,15 @@ def add_alarms(request, group_name):
 
     if policy_type == "simple-scaling":
         if action_type == "grow":
-            if policies["scaleupPolicies"] != None:
+            if policies["scaleupPolicies"] is not None:
                 for i in policies["scaleupPolicies"]:
                     alarm_info["scalingPolicies"].append(i)
         else:
-            if policies["scaledownPolicies"] != None:
+            if policies["scaledownPolicies"] is not None:
                 for i in policies["scaledownPolicies"]:
                     alarm_info["scalingPolicies"].append(i)
     else:
-        if policies["scalingPolicies"] != None:
+        if policies["scalingPolicies"] is not None:
             for p in policies["scalingPolicies"]:
                 if p["policyType"] ==  "StepScaling":
                     alarm_info["scalingPolicies"].append(p)
@@ -893,7 +892,7 @@ def get_group_info(request, group_name):
             "csrf_token": get_token(request),
         })
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
-    except:
+    except Exception:
         log.error(traceback.format_exc())
 
 
@@ -966,7 +965,7 @@ def get_group_size(request, group_name):
         })
 
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
-    except:
+    except Exception:
         log.error(traceback.format_exc())
 
 
@@ -986,7 +985,7 @@ def get_scaling_activities(request, group_name):
             "activities": scaling_activities["activities"],
         })
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
-    except:
+    except Exception:
         log.error(traceback.format_exc())
 
 
@@ -1028,7 +1027,7 @@ def get_more_scaling_activities(request, group_name):
             "disableNext": disableNext,
         })
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
-    except:
+    except Exception:
         log.error(traceback.format_exc())
 
 
@@ -1380,7 +1379,7 @@ def terminate_all_hosts(request, group_name):
 
     try:
         response = autoscaling_groups_helper.terminate_all_hosts(request, group_name)
-        if response is not None and type(response) is dict:
+        if response is not None and isinstance(response, dict):
 
             success_count = 0
             failed_count = 0
@@ -1433,7 +1432,7 @@ def attach_instances(request, group_name):
         host_ids = hosts.split(',')
         autoscaling_groups_helper.hosts_action_in_group(request, group_name, host_ids, "ATTACH")
         return redirect('/groups/{}/'.format(group_name))
-    except:
+    except Exception:
         log.error(traceback.format_exc())
         return redirect('/groups/{}/'.format(group_name))
 
@@ -1469,12 +1468,12 @@ def get_health_check_activities(request, group_name):
 
 def get_charts(request, group_name, type):
 
-    if type == "az":    
+    if type == "az":
         return render(request, 'groups/distribution_charts.tmpl', get_host_az_dist(request, group_name))
-    
+
     elif type == "ami":
         return render(request, 'groups/distribution_charts.tmpl', get_host_ami_dist(request, group_name))
-    
+
     elif type == "host-type":
         return render(request, 'groups/distribution_charts.tmpl', get_host_type_dist(request, group_name))
 
@@ -1508,7 +1507,7 @@ def get_host_type_dist(request, group_name):
         query="tags.Autoscaling:{} AND state:running".format(group_name),
         fields="cloud.aws",
         account_id=aws_owner_id
-    );
+    )
 
     counter = Counter([x['cloud.aws']['instanceType'] for x in host_type_dist.json()])
     labels = list(counter.keys())
@@ -1561,7 +1560,7 @@ def get_host_ami_dist(request, group_name):
         'current_AMI': current_AMI,
         'any_host_with_outdated_ami': any_host_with_outdated_ami
     }
-    
+
 
 def get_health_check_details(request, id):
     health_check = autoscaling_groups_helper.get_health_check(request, id)
@@ -1627,7 +1626,7 @@ def add_scheduled_actions(request, group_name):
         schedule_action['capacity'] = params['capacity']
 
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
-    except:
+    except Exception:
         log.error(traceback.format_exc())
     return redirect("/groups/{}/config/".format(group_name))
 
@@ -1704,7 +1703,7 @@ def update_scheduled_actions(request, group_name):
         configs = _parse_actions_configs(request.POST, group_name)
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, configs)
         return get_scheduled_actions(request, group_name)
-    except:
+    except Exception:
         log.error(traceback.format_exc())
         return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
 

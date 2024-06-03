@@ -85,7 +85,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
             stage_with_external_id = env_stage
             break
 
-    if stage_with_external_id == None:
+    if stage_with_external_id is None:
         return None
 
     # retrieve Nimbus identifier for existing_stage
