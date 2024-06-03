@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all hosts related calls
-"""
+"""Collection of all hosts related calls"""
+
 from deploy_board.webapp.helpers.deployclient import DeployClient
 from deploy_board.webapp.helpers.cmdbapiclient import CmdbApiClient
 from deploy_board.webapp.helpers.rodimus_client import RodimusClient
