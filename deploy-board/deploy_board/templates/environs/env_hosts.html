@@ -35,6 +35,9 @@
 
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
 
+{% if show_protected_hosts is None %}
+<p><a href="/env/{{ env }}/{{stage}}/hosts/?show_protected_hosts"> <button class="btn btn-primary" >Show protected hosts</button> </a></p>
+{% endif %}
 <!-- Used for generating the Show Host Names button -->
 <div class="modal fade" id="showHosts" tabindex="-1" role="dialog" aria-labelledby="showHostsLabel">
   <div class="modal-dialog" role="document">
