@@ -1035,7 +1035,7 @@ def get_available_tag(tag):
 
 
 @register.filter("tagBuildId")
-def get_available_tag(tag):
+def get_tag_build_id(tag):
     if tag is not None:
         meta_info = tag.get("metaInfo", None)
         if meta_info is not None:
@@ -1070,7 +1070,7 @@ def convertConfigHistoryString(change):
         try:
             converted_string = ast.literal_eval(change)
             return converted_string
-        except:
+        except Exception:
             pass
     return change
 

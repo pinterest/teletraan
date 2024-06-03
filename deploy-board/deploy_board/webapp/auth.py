@@ -82,25 +82,25 @@ class OAuthExpiredTokenException(Exception):
 class OAuthHandler(object):
 
     def token_getter(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def token_setter(self, token, expires, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def state_generator(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def state_getter(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def state_setter(self, value, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def state_remove(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def token_remove(self, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class SessionOauthHandler(OAuthHandler):
@@ -210,7 +210,7 @@ class OAuth(object):
             data=str(body) if body else None,
             method='POST',
         )
-        if resp.code is 401:
+        if resp.code == 401:
             # When auth.pinadmin.com returns a 401 error. remove token and redirect to / page
             raise OAuthExpiredTokenException("Expired Token")
 

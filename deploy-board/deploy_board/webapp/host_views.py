@@ -17,7 +17,7 @@ from django.http import HttpResponse
 from django.views.generic import View
 import logging
 from .common import is_agent_failed
-from .helpers import environs_helper, agents_helper, autoscaling_groups_helper, environ_hosts_helper, hosts_helper, accounts_helper
+from .helpers import environs_helper, agents_helper, autoscaling_groups_helper, environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, CMDB_UI_HOST, PHOBOS_URL, AWS_PRIMARY_ACCOUNT
 from datetime import datetime
 import pytz
@@ -49,7 +49,7 @@ def get_agent_wrapper(request, hostname):
             agent_wrappers['sidecars'].append(agent_wrapper)
         else:
             agent_wrappers['services'].append(agent_wrapper)
-    
+
     agent_wrappers['sidecars'] = sorted(agent_wrappers['sidecars'], key=lambda x: x["agent"]['lastUpdateDate'])
     agent_wrappers['services'] = sorted(agent_wrappers['services'], key=lambda x: x["agent"]['lastUpdateDate'])
     return agent_wrappers, is_unreachable
@@ -93,7 +93,7 @@ def get_account_id(hosts):
 def _get_cloud(json_obj):
     try:
         return json_obj.get('cloud', None).get('aws', None)
-    except:
+    except Exception:
         return None
 
 
@@ -104,7 +104,7 @@ def get_host_details(host_id, account_id):
 
     try:
         instance = response.json()
-    except:
+    except Exception:
         # the host not found in CMDB
         return None
 
@@ -195,7 +195,7 @@ class HostDetailView(View):
             wrapper['env']['stageName'] == stage) or
             is_agent_failed(wrapper['agent'])
         )
-        
+
         host_details = get_host_details(host_id, account_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')

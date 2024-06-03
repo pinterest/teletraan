@@ -17,7 +17,6 @@
 """
 import logging
 from .helpers import environs_helper, deploys_helper, builds_helper, tags_helper
-from deploy_board.settings import IS_PINTEREST
 
 DEFAULT_BUILD_SIZE = 30
 DEFAULT_COMMITS_SIZE = 30
