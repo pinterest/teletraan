@@ -33,7 +33,6 @@ def get_cmdb_host_info(host_id, account_id):
     return cmdbapi_client.get_host_details(host_id, account_id)
 
 def get_hosts_is_protected(request, host_ids):
-    params = [('hostIds', host_ids)]
     return rodimus_client.post(
         "/hosts/state?actionType=PROTECTED",
         request.teletraan_user_id.token,
