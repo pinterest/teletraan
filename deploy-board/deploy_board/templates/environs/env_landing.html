@@ -335,7 +335,8 @@ $('#privateBldUploadBtnId button').click(function () {
 {% if True %}
     <div class="alert alert-warning alert-dismissible">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        Your cluster is <strong>not</strong> enabled for automatic AZ rebalancing. Consider to enable it <a href="/groups/{{ env.envName }}-{{ env.stageName }}/config" target="_blank">here</a>.
+        Your cluster is <strong>not</strong> enabled for automatic AZ rebalancing. If your service is stateless, consider enabling it <a href="/groups/{{ env.envName }}-{{ env.stageName }}/config" target="_blank">here</a>.
+        Check this <a href="/groups/{{ env.envName }}-{{ env.stageName }}/dist-charts/az/" target="_blank">chart</a> for the current hosts-AZ distribution.
     </div>
 {% endif %}
 
