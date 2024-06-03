@@ -332,6 +332,12 @@ $('#privateBldUploadBtnId button').click(function () {
     </div>
 {% endif %}
 
+{% if True %}
+    <div class="alert alert-warning alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        Your cluster is <strong>not</strong> enabled for automatic AZ rebalancing. Consider to enable it <a href="/groups/{{ env.envName }}-{{ env.stageName }}/config" target="_blank">here</a>.
+    </div>
+{% endif %}
 
 {% include "message_banner.tmpl" %}
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
