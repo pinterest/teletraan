@@ -47,7 +47,11 @@ def _get_latest_metrics(url):
     if not data_str:
         return 0
 
-    data = json.loads(data_str)
+    try:
+        data = json.loads(data_str)
+    except Exception:
+        log.warning(f"Json decode error for metrics data {data_str}")
+        return 0
     # Return the first datapoint in the datapoints list
     if data:
         try:
