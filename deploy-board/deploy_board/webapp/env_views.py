@@ -443,6 +443,8 @@ class EnvLandingView(View):
 
         cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env)
 
+        asg_suspended_processes = _get_asg_suspended_processes(request, env) or []
+
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
@@ -484,6 +486,7 @@ class EnvLandingView(View):
                 "subAccount": AWS_SUB_ACCOUNT,
                 "accounts": accounts,
                 "pindeploy_config": pindeploy_config,
+                "asg_suspended_processes": asg_suspended_processes,
             })
             showMode = 'complete'
             account = 'all'
@@ -575,6 +578,7 @@ class EnvLandingView(View):
                 "subAccount": AWS_SUB_ACCOUNT,
                 "accounts": accounts,
                 "pindeploy_config": pindeploy_config,
+                "asg_suspended_processes": asg_suspended_processes,
             }
             response = render(request, 'environs/env_landing.html', context)
 
@@ -585,6 +589,13 @@ class EnvLandingView(View):
         response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
         return response
+
+def _get_asg_suspended_processes(request, env):
+    try:
+        cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
+        return autoscaling_groups_helper.get_disabled_asg_actions(request, cluster_name)
+    except:
+        return None
 
 def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env):
     try:
