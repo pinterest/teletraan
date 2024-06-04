@@ -32,7 +32,7 @@ import logging
 
 from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper, accounts_helper
-from .helpers import clusters_helper, environs_helper, environ_hosts_helper, baseimages_helper
+from .helpers import clusters_helper, environs_helper, environ_hosts_helper
 from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 from . import common
 import traceback
@@ -197,6 +197,7 @@ class EnvCapacityAdvCreateView(View):
 
     def post(self, request, name, stage):
         ret = 200
+        exception = None
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -218,16 +219,18 @@ class EnvCapacityAdvCreateView(View):
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
             ret = 403
+            exception = e
         except Exception as e:
             log.error("Have an error {}", e)
             ret = 500
+            exception = e
         finally:
             if ret == 200:
                 return HttpResponse("{}", content_type="application/json")
             else:
                 environs_helper.remove_env_capacity(
                     request, name, stage, capacity_type="GROUP", data=cluster_name)
-                return HttpResponse(e, status=ret, content_type="application/json")
+                return HttpResponse(exception, status=ret, content_type="application/json")
 
 
 class ClusterConfigurationView(View):
@@ -1137,13 +1140,13 @@ def gen_auto_cluster_refresh_view(request, name, stage):
 
     # get default configurations for first time
     try:
-        if auto_refresh_config == None:
+        if auto_refresh_config is None:
             auto_refresh_config = clusters_helper.get_default_cluster_auto_refresh_config(request, cluster_name)
             auto_refresh_config["launchBeforeTerminate"] = True
             auto_refresh_config["config"]["minHealthyPercentage"] = 100
             auto_refresh_config["config"]["maxHealthyPercentage"] = 110
         else:
-            if auto_refresh_config["config"]["maxHealthyPercentage"] == None:
+            if auto_refresh_config["config"]["maxHealthyPercentage"] is None:
                 auto_refresh_config["terminateAndLaunch"] = True
             elif auto_refresh_config["config"]["minHealthyPercentage"] == 100:
                 auto_refresh_config["launchBeforeTerminate"] = True
@@ -1179,7 +1182,7 @@ def gen_auto_cluster_refresh_view(request, name, stage):
 
 def sanitize_slack_email_input(input):
     res = ''
-    if input == None or len(input) == 0:
+    if input is None or len(input) == 0:
         return res
 
     tokens = input.strip().split(',')
@@ -1264,7 +1267,7 @@ def submit_auto_refresh_config(request, name, stage):
             group_info["groupInfo"]["chatroom"] = slack_channels
             autoscaling_groups_helper.update_group_info(request, cluster_name, group_info["groupInfo"])
         messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
-    except IllegalArgumentException as e:
+    except IllegalArgumentException:
         log.exception("Failed to update refresh config. Some request could succeed.")
         pass
     except Exception as e:
@@ -1290,13 +1293,13 @@ def gen_replacement_config(request):
 
     if params["availabilitySettingRadio"] == "launchBeforeTerminate":
         rollingUpdateConfig["minHealthyPercentage"] = 100
-        if params["maxHealthyPercentage"] == None or len(params["maxHealthyPercentage"]) == 0:
+        if params["maxHealthyPercentage"] is None or len(params["maxHealthyPercentage"]) == 0:
             rollingUpdateConfig["maxHealthyPercentage"] = 110
         else:
             rollingUpdateConfig["maxHealthyPercentage"] = params["maxHealthyPercentage"]
     elif params["availabilitySettingRadio"] == "terminateAndLaunch":
         rollingUpdateConfig["maxHealthyPercentage"] = None
-        if params["minHealthyPercentage"] == None or len(params["minHealthyPercentage"]) == 0:
+        if params["minHealthyPercentage"] is None or len(params["minHealthyPercentage"]) == 0:
             rollingUpdateConfig["minHealthyPercentage"] = 100
         else:
             rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
@@ -1502,4 +1505,3 @@ def get_current_cluster(request, name, stage, env=None):
         cluster_name = env.get("clusterName")
         current_cluster = clusters_helper.get_cluster(request, cluster_name)
     return current_cluster
-

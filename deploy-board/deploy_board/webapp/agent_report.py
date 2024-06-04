@@ -15,10 +15,8 @@
 # -*- coding: utf-8 -*-
 """Helper functions to help generate agents views
 """
-from deploy_board.webapp.helpers import agents_helper
 from .common import is_agent_failed
 from .helpers import builds_helper, deploys_helper, environs_helper, environ_hosts_helper
-from deploy_board.settings import IS_PINTEREST
 import time
 from collections import OrderedDict
 from functools import cmp_to_key

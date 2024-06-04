@@ -549,7 +549,7 @@ $('#privateBldUploadBtnId button').click(function () {
 
 {% else %}
     <p align="center" style="padding:2%;"><i>Deploy not yet started in stage {{ env.stageName }}.</i></p>
-{% if  provisioning_hosts %}
+{% if provisioning_hosts %}
 <div class="panel panel-default table-responsive">
     <table class="table table-condensed table-hover">
         <tr>

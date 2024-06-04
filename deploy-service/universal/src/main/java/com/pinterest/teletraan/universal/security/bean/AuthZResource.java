@@ -32,7 +32,9 @@ public class AuthZResource {
     private String accountId;
 
     public static final String ALL = "*";
+    public static final String NA = "NA";
     public static final AuthZResource SYSTEM_RESOURCE = new AuthZResource(ALL, Type.SYSTEM);
+    public static final AuthZResource UNSPECIFIED_RESOURCE = new AuthZResource(NA, Type.UNSPECIFIED);
 
     public AuthZResource(@Nonnull String name, Type type) {
         this(name, type, null);
@@ -93,6 +95,8 @@ public class AuthZResource {
         HOTFIX,
         /** For Host related resources. */
         HOST,
+        /* For anything else */
+        UNSPECIFIED,
     }
 
     /**

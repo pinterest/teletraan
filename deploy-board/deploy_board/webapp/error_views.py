@@ -18,7 +18,7 @@ import json
 from django.shortcuts import render
 from deploy_board.settings import DEBUG
 from django.http import HttpResponse, HttpResponseRedirect
-from .helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
+from .helpers.exceptions import IllegalArgumentException, NotAuthorizedException, NotFoundException, FailedAuthenticationException
 
 logger = logging.getLogger(__name__)
 

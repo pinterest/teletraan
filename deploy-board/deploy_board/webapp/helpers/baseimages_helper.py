@@ -133,7 +133,7 @@ def get_latest_image_update_events(events):
         return events
 
     # Group update events batch by create_time.
-    # Events are sorted by create_time 
+    # Events are sorted by create_time
     # create_time is milisecond timestamp and gets increased by 1 per cluster.
     # The total number of clusters should not be 10K.
     lastest_timestamp = events[0]['create_time']
@@ -151,7 +151,7 @@ def get_image_update_events_by_cluster(request, cluster_name):
 
 def get_latest_succeeded_image_update_event_by_cluster(request, cluster_name):
     events = rodimus_client.get("/base_images/updates/cluster/%s" % cluster_name, request.teletraan_user_id.token)
-    events = filter(lambda x: x["state"] == "COMPLETED" and x["finish_time"] != None, events)
+    events = filter(lambda x: x["state"] == "COMPLETED" and x["finish_time"] is not None, events)
     return max(events, key=lambda x: x["finish_time"], default=None)
 
 def generate_image_update_event_status(event):

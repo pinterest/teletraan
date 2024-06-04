@@ -36,7 +36,7 @@ def get_accounts(report):
 
 def add_account_from_cluster(request, cluster, accounts):
     account_id = cluster.get("accountId")
-    account = None;
+    account = None
     if account_id is not None:
         account = accounts_helper.get_by_cell_and_id(
             request, cluster["cellName"], account_id)

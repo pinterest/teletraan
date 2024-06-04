@@ -134,7 +134,7 @@ def login_authorized(request):
             "message": str(e),
         })
 
-    except OAuthExpiredTokenException as e:
+    except OAuthExpiredTokenException:
         # When auth.pinadmin.com returns a 401 error
         logger.error(traceback.format_exc())
 

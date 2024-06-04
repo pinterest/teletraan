@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views.generic import View
 
-from .helpers import accounts_helper;
+from .helpers import accounts_helper
 
 class AccountsView(View):
     def get(self, request):

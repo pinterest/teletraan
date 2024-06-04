@@ -39,7 +39,7 @@
 
 {% block main %}
 <div id="usersConfigId" class="panel panel-default">
-    {% if pinterest and user_types != 'token_roles'  %}
+    {% if pinterest and user_types != 'token_roles' %}
         {% include "users/users_moved_message.html" %}
     {% else %}
         {% include "users/users_config.tmpl" %}

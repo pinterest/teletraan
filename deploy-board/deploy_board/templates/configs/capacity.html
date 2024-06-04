@@ -53,7 +53,7 @@
 
 {% block main %}
 
-<div id = "clusterAlert">
+<div id="clusterAlert">
     <in-rolling-alert v-show="showReplaceAlert" actionlink="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/"></in-rolling-alert>
 </div>
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
