@@ -13,4 +13,4 @@ repos:
     rev: v1.34.1
     hooks:
       - id: djlint-django
-        args: [--ignore="H031"]
+        args: ["--ignore=D004,D018,H006,H013,H014,H019,H021,H023,H025,H026,H031,T001,T002,T003"]
