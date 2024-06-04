@@ -6,9 +6,7 @@
 {% if pinterest %}
 <div class="row">
     <p>
-        {% if not instance_protected %}
-        Host is not protected.
-        {% else %}
+        {% if instance_protected %}
         Host is protected.
         {% endif %}
     </p>

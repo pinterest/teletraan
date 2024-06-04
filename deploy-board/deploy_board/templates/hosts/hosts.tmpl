@@ -45,7 +45,7 @@
               <th>LastUpdate</th>
               <th>ErrorCode</th>
               {% if show_protection_status %}
-              <th>Protected</th>
+              <th>ProtectionStatus</th>
               {% endif %}
           </tr>
           {% for agent in agents %}
@@ -90,8 +90,6 @@
                   <td>
                     {% if agent.hostId in protected_hosts %}
                     Protected
-                    {% else %}
-                    Not protected
                     {% endif %}
                   </td>
                   {% endif %}
