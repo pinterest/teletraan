@@ -17,6 +17,7 @@
 
 from deploy_board.webapp.helpers.deployclient import DeployClient
 from deploy_board.webapp.helpers.cmdbapiclient import CmdbApiClient
+from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
 deployclient = DeployClient()
 cmdbapi_client = CmdbApiClient()
