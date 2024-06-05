@@ -80,7 +80,7 @@ $('#showHosts').on('show.bs.modal', function (event) {
             <button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#showHosts" title="Show plain host names">
                 Show Hosts
             </button>
-            {% if title != "Failed Hosts" and show_protected_hosts === False %}
+            {% if title != "Failed Hosts" and show_protected_hosts == False %}
             <a class="btn btn btn-default btn-sm"  href="/env/{{ env.envName }}/{{stage}}/hosts/?show_protected_hosts">Show protected status</a>
             {% endif %}
         </div>
