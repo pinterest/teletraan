@@ -4,13 +4,13 @@
 </div>
 
 {% if pinterest %}
-<div class="row">
-    <p>
-        {% if instance_protected %}
-        Host is protected.
+        {% if instance_protected%}
+        <div class="row">
+            <div class="alert alert-info text-center">
+                Host is protected
+            </div>
+        </div>
         {% endif %}
-    </p>
-</div>
 {% if show_terminate %}
 <div class="row">
     <button id="terminateBtn" class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
