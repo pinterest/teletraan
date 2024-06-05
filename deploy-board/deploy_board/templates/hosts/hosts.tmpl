@@ -44,7 +44,7 @@
               <th>StartDate(-08:00)</th>
               <th>LastUpdate</th>
               <th>ErrorCode</th>
-              {% if show_protection_status %}
+              {% if show_protected_hosts %}
               <th>ProtectionStatus</th>
               {% endif %}
           </tr>
@@ -60,7 +60,7 @@
                   <td>N/A</td>
                   <td>N/A</td>
                   <td>N/A</td>
-                  {% if show_protection_status %}
+                  {% if show_protected_hosts %}
                   <td>N/A</td>
                   {% endif %}
               {% elif agent.lastErrorCode|isProvisioningHost %}
@@ -73,7 +73,7 @@
                   <td>N/A</td>
                   <td>N/A</td>
                   <td>N/A</td>
-                  {% if show_protection_status %}
+                  {% if show_protected_hosts %}
                   <td>N/A</td>
                   {% endif %}
               {% else %}
@@ -86,7 +86,7 @@
                   <td>{{ agent.startDate|convertTimestamp }}</td>
                   <td>{{ agent.lastUpdateDate|convertTimestamp }}</td>
                   <td>{{ agent.lastErrorCode }}</td>
-                  {% if show_protection_status %}
+                  {% if show_protected_hosts %}
                   <td>
                     {% if agent.hostId in protected_hosts %}
                     Protected

@@ -1423,7 +1423,7 @@ def get_hosts(request, name, stage):
     title = "All hosts"
 
     agents_wrapper = {}
-    show_protected_hosts = request.GET.get("show_protected_hosts")
+    show_protected_hosts = request.GET.get("show_protected_hosts") is not None
     host_ids = []
     for agent in agents:
         if agent['deployId'] not in agents_wrapper:
