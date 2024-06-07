@@ -332,6 +332,13 @@ $('#privateBldUploadBtnId button').click(function () {
     </div>
 {% endif %}
 
+{% if "AZRebalance" in asg_suspended_processes %}
+    <div class="alert alert-danger alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        Your cluster is <strong>not</strong> enabled for automatic AZ rebalancing. If your service is stateless, consider enabling it <a href="/groups/{{ env.envName }}-{{ env.stageName }}/config" target="_blank">here</a>.
+        Check this <a href="/groups/{{ env.envName }}-{{ env.stageName }}/dist-charts/az/" target="_blank">chart</a> for the current hosts-AZ distribution.
+    </div>
+{% endif %}
 
 {% include "message_banner.tmpl" %}
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
