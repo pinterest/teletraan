@@ -63,7 +63,7 @@
             totalSessions = {{ schedule.totalSessions }};
             var timesArray = cooldownTimes.split(",");
             var numbersArray = hostNumbers.split(",");
-            
+
             var i;
             for (i = 1; i<=totalSessions; i++) {
                 $("#sessionTable tr:last").before('<tr><td class="sessionNumber" id=sessionNumber'+i+'><strong>'+i+'</strong></td><td class="hostNumber"><div class="input-group"><input value='+numbersArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input value='+timesArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
@@ -101,7 +101,7 @@
         $('#sessionTable tr:last').find('.hostNumber input').val(totalAgentCount)
         $(this).closest('tr').remove();
         totalSessions = totalSessions-1;
-        counter = 1; 
+        counter = 1;
         $("#sessionTable tr").not(':first').each(function() { // renumbers the sessions
             var number = $(this).find(".sessionNumber");
             number.text(counter);
@@ -114,7 +114,7 @@
     })
 
     $("#resetEnvScheduleBtnId").click(function() {
-        $("#sessionTable tr").not(':first').not(':last').remove(); 
+        $("#sessionTable tr").not(':first').not(':last').remove();
         totalSessions = 0;
         totalAgentCount = {{ agent_count }};
         $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
@@ -126,28 +126,28 @@
         var error = false;
 
         // check if number of hosts entered doesn't exceed max
-        if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) < 0) { 
+        if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) < 0) {
             $('#errorBannerId').text("Total number of hosts exceeds number of available hosts. Please reenter host numbers.");
             $('#errorBannerId').show();
             error = true;
-        }  
-        if (error) { return; } 
+        }
+        if (error) { return; }
 
         // check for valid input values
-        $("#sessionTable input").not(":last").each(function() { 
+        $("#sessionTable input").not(":last").each(function() {
             var number = parseInt($(this).val());
             if (isNaN(number)) {
                 $(this).closest('.input-group').addClass('has-error');
                 $('#errorBannerId').text("Please make sure all fields are valid integer values.");
                 $('#errorBannerId').show();
-                error = true; 
+                error = true;
             }
         })
 
-        if (error) { return; } 
+        if (error) { return; }
 
         // check if entered session numbers doesn't exceed max parallel number
-        $("#sessionTable .hostNumber input").not(":last").each(function() { 
+        $("#sessionTable .hostNumber input").not(":last").each(function() {
             var number = parseInt($(this).val());
             var maxParallel = {{ max_parallel_number }};
             if (number > maxParallel) {
@@ -158,13 +158,13 @@
             }
         })
 
-        if (error) { return; } 
+        if (error) { return; }
 
         var schedule = '{{ env.schedule }}';
         var cooldownTimes = "";
-        var hostNumbers= ""; 
+        var hostNumbers= "";
 
-        $("#sessionTable tr").not(':first').not(':last').each(function() { 
+        $("#sessionTable tr").not(':first').not(':last').each(function() {
             var hostNumber = $(this).find(".hostNumber input").val();
             var cooldownTime = $(this).find(".cooldownTime input").val();
             if (hostNumbers == "") {
@@ -183,9 +183,9 @@
             type: 'POST',
             url: '/env/{{ env.envName }}/{{ env.stageName }}/update_schedule/',
             data: {'csrfmiddlewaretoken': '{{csrf_token}}',
-                   'cooldownTimes': cooldownTimes, 
+                   'cooldownTimes': cooldownTimes,
                    'hostNumbers': hostNumbers,
-                   'totalSessions': totalSessions}, 
+                   'totalSessions': totalSessions},
             dataType: "json",
             success: function (data) {
                 if(data != null && data.success == false) {
@@ -200,7 +200,7 @@
                 $('#errorBannerId').append(data.responseText);
                 $('#errorBannerId').show();
             }
-        }); 
+        });
     });
 
 </script>
