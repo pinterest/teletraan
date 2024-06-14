@@ -146,20 +146,6 @@
 
         if (error) { return; }
 
-        // check if entered session numbers doesn't exceed max parallel number
-        $("#sessionTable .hostNumber input").not(":last").each(function() {
-            var number = parseInt($(this).val());
-            var maxParallel = {{ max_parallel_number }};
-            if (number > maxParallel) {
-                $(this).closest('.input-group').addClass('has-error');
-                $('#errorBannerId').text("Each session's number of hosts cannot exceed maximum parallel number. Please reenter number of hosts or change the maximum parallel number in General Config.");
-                $('#errorBannerId').show();
-                error = true;
-            }
-        })
-
-        if (error) { return; }
-
         var schedule = '{{ env.schedule }}';
         var cooldownTimes = "";
         var hostNumbers= "";

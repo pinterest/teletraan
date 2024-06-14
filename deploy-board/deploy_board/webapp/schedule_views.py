@@ -43,10 +43,8 @@ class EnvScheduleView(View):
             schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
         else:
             schedule = None
-        max_parallel_number = env["maxParallel"]
         return render(request, 'configs/schedule_config.html', {
             "env": env,
             "schedule": schedule,
             "agent_count": agent_count,
-            "max_parallel_number": max_parallel_number,
         })
