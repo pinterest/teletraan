@@ -52,6 +52,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "SELECT e.* FROM environs e INNER JOIN deploys d ON e.env_id = d.env_id WHERE d.deploy_id=?";
     private static final String GET_ENV_BY_NAME =
         "SELECT * FROM environs WHERE env_name=?";
+    private static final String GET_ENV_BY_BUILD_NAME =
+        "SELECT * FROM environs WHERE build_name=?";
     private static final String GET_ENV_BY_STAGE =
         "SELECT * FROM environs WHERE env_name=? AND stage_name=?";
     private static final String GET_ENV_BY_CLUSTER =
@@ -211,6 +213,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     public List<EnvironBean> getByName(String envName) throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<EnvironBean>(EnvironBean.class);
         return new QueryRunner(dataSource).query(GET_ENV_BY_NAME, h, envName);
+    }
+
+    @Override
+    public List<EnvironBean> getByBuildName(String buildName) throws Exception {
+        ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<EnvironBean>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ENV_BY_BUILD_NAME, h, buildName);
     }
 
     @Override
