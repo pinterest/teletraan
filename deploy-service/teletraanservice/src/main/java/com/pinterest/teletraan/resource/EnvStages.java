@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -62,7 +61,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
 @Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)

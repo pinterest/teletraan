@@ -17,6 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -27,7 +28,7 @@ import io.swagger.annotations.ApiOperation;
 
 import java.util.List;
 
-import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,7 +38,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/history")
 @Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)

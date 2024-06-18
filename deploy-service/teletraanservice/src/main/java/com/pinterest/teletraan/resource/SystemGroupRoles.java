@@ -23,7 +23,6 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.Api;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -32,7 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/system/group_roles")
 @Api(tags = "System Group Roles")
 @Produces(MediaType.APPLICATION_JSON)

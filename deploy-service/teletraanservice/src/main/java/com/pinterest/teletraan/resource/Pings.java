@@ -31,7 +31,6 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -43,7 +42,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/system")
 @Api(tags = "Hosts and Systems")
 @Produces(MediaType.APPLICATION_JSON)

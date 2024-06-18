@@ -20,17 +20,18 @@ import com.codahale.metrics.annotation.Timed;
 
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.CommitBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import io.swagger.annotations.*;
 
-import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/commits")
 @Api(tags="Commits")
 @SwaggerDefinition(

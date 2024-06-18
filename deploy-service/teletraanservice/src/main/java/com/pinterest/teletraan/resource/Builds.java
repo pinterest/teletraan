@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -43,7 +42,7 @@ import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/builds")
 @Api(tags = "Builds")
 @SwaggerDefinition(

@@ -34,7 +34,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import javax.validation.constraints.NotEmpty;
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/deploys")
 @Api(tags = "Deploys")
 @Produces(MediaType.APPLICATION_JSON)

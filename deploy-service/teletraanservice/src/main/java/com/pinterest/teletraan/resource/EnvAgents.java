@@ -25,7 +25,6 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.*;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/agents")
 @Api(tags = "Agents")
 @Produces(MediaType.APPLICATION_JSON)

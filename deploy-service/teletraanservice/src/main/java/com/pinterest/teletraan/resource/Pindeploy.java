@@ -35,7 +35,6 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -45,7 +44,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/pindeploy")
 @Api(tags = "Pindeploy")
 @SwaggerDefinition(

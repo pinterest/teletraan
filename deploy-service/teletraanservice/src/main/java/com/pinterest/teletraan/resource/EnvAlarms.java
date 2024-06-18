@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -46,7 +45,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/alarms")
 @Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)

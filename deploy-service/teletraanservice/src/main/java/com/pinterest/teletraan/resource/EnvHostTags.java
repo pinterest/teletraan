@@ -18,7 +18,6 @@ import io.swagger.annotations.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -27,7 +26,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.*;
 
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/host_tags")
 @Api(tags = "Hosts Tags")
 @SwaggerDefinition(

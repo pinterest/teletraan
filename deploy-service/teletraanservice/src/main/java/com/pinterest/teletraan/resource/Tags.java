@@ -19,6 +19,7 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.handler.BuildTagHandler;
@@ -37,7 +38,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,7 +55,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.WebApplicationException;
 
-@PermitAll
+@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
 @Api(tags="Tags")
 @Path("/v1/tags")
 @Produces(MediaType.APPLICATION_JSON)
