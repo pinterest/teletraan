@@ -61,12 +61,13 @@ class PingRequest(object):
 
             # TODO: Only used for migration, should remove later
             if isinstance(report.deployStage, int):
-                ping_report["deployStage"] = DeployStage._VALUES_TO_NAMES[report.deployStage]
+                ping_report["deployStage"] = DeployStage(
+                    report.deployStage).name
             else:
                 ping_report["deployStage"] = report.deployStage
 
             if isinstance(report.status, int):
-                ping_report["agentStatus"] = AgentStatus._VALUES_TO_NAMES[report.status]
+                ping_report["agentStatus"] = AgentStatus(report.status).name
             else:
                 ping_report["agentStatus"] = report.status
 

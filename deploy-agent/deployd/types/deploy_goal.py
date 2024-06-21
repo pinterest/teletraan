@@ -39,7 +39,8 @@ class DeployGoal(object):
             self.stageType = jsonValue.get('stageType')
             # TODO: Only used for migration, should remove later
             if isinstance(jsonValue.get('deployStage'), int):
-                self.deployStage = DeployStage._VALUES_TO_NAMES[jsonValue.get('deployStage')]
+                self.deployStage = DeployStage(
+                    jsonValue.get('deployStage')).name
             else:
                 self.deployStage = jsonValue.get('deployStage')
 
