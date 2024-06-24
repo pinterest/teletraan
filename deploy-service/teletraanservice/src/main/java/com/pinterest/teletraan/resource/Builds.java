@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
- * <p>
+ * Copyright (c) 2016-2024 Pinterest, Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package com.pinterest.teletraan.resource;
 
 import com.google.common.base.Optional;
+import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
@@ -23,38 +24,34 @@ import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.TagDAO;
-import com.pinterest.deployservice.scm.SourceControlManagerProxy;
-import com.pinterest.deployservice.allowlists.Allowlist;
-import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.events.BuildEventPublisher;
+import com.pinterest.deployservice.scm.SourceControlManagerProxy;
+import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
 import io.swagger.annotations.*;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.net.URI;
+import java.util.List;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.net.URI;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/builds")
 @Api(tags = "Builds")
 @SwaggerDefinition(
         tags = {
-                @Tag(name = "Builds", description = "BUILD information APIs"),
-        }
-)
+            @Tag(name = "Builds", description = "BUILD information APIs"),
+        })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Builds {
     private static final Logger LOG = LoggerFactory.getLogger(Builds.class);
-    private final static int DEFAULT_SIZE = 100;
+    private static final int DEFAULT_SIZE = 100;
     private final BuildDAO buildDAO;
     private final DeployDAO deployDAO;
     private final TagDAO tagDAO;
@@ -73,8 +70,11 @@ public class Builds {
 
     @GET
     @Path("/names")
-    public List<String> getBuildNames(@QueryParam("filter") Optional<String> nameFilter,
-        @QueryParam("start") Optional<Integer> start, @QueryParam("size") Optional<Integer> size) throws Exception {
+    public List<String> getBuildNames(
+            @QueryParam("filter") Optional<String> nameFilter,
+            @QueryParam("start") Optional<Integer> start,
+            @QueryParam("size") Optional<Integer> size)
+            throws Exception {
         return buildDAO.getBuildNames(nameFilter.orNull(), start.or(1), size.or(DEFAULT_SIZE));
     }
 
@@ -83,9 +83,11 @@ public class Builds {
     @ApiOperation(
             value = "Get branches",
             notes = "Returns a list of the repository branches associated with a given build name",
-            response = String.class, responseContainer = "List")
+            response = String.class,
+            responseContainer = "List")
     public List<String> getBranches(
-            @ApiParam(value = "BUILD name", required = true)@PathParam("name") String buildName) throws Exception {
+            @ApiParam(value = "BUILD name", required = true) @PathParam("name") String buildName)
+            throws Exception {
         return buildDAO.getBranches(buildName);
     }
 
@@ -95,11 +97,12 @@ public class Builds {
             value = "Get build info",
             notes = "Returns a build object given a build id",
             response = BuildBean.class)
-    public BuildBean get(
-            @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
+    public BuildBean get(@ApiParam(value = "BUILD id", required = true) @PathParam("id") String id)
+            throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new WebApplicationException(String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
+            throw new WebApplicationException(
+                    String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
         }
         return buildBean;
     }
@@ -107,14 +110,16 @@ public class Builds {
     @GET
     @Path("/{id : [a-zA-Z0-9\\-_]+}/tags")
     @ApiOperation(
-        value = "Get build info with its tags",
-        notes = "Returns a build object given a build id",
-        response = BuildTagBean.class)
+            value = "Get build info with its tags",
+            notes = "Returns a build object given a build id",
+            response = BuildTagBean.class)
     public BuildTagBean getWithTag(
-        @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
+            @ApiParam(value = "BUILD id", required = true) @PathParam("id") String id)
+            throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new WebApplicationException(String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
+            throw new WebApplicationException(
+                    String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
         }
 
         BuildTagsManager manager = new BuildTagsManagerImpl(this.tagDAO);
@@ -123,15 +128,19 @@ public class Builds {
     }
 
     @GET
-    public List<BuildBean> get(@QueryParam("commit") String scmCommit,
-        @QueryParam("name") String buildName, @QueryParam("branch") String scmBranch,
-        @QueryParam("pageIndex") Optional<Integer> pageIndex,
-        @QueryParam("pageSize") Optional<Integer> pageSize, @QueryParam("before") Long before,
-        @QueryParam("after") Long after) throws Exception {
-
+    public List<BuildBean> get(
+            @QueryParam("commit") String scmCommit,
+            @QueryParam("name") String buildName,
+            @QueryParam("branch") String scmBranch,
+            @QueryParam("pageIndex") Optional<Integer> pageIndex,
+            @QueryParam("pageSize") Optional<Integer> pageSize,
+            @QueryParam("before") Long before,
+            @QueryParam("after") Long after)
+            throws Exception {
 
         if (StringUtils.isEmpty(scmCommit) && StringUtils.isEmpty(buildName)) {
-            throw new WebApplicationException("Require either commit id or build name in the request.",
+            throw new WebApplicationException(
+                    "Require either commit id or build name in the request.",
                     Response.Status.BAD_REQUEST);
         }
 
@@ -140,9 +149,11 @@ public class Builds {
 
     @GET
     @Path("/current")
-    public List<BuildBean> getCurrentBuildsWithGroupName(@QueryParam("group") String groupName) throws Exception {
+    public List<BuildBean> getCurrentBuildsWithGroupName(@QueryParam("group") String groupName)
+            throws Exception {
         if (StringUtils.isEmpty(groupName)) {
-            throw new WebApplicationException("Require group name in the request.", Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(
+                    "Require group name in the request.", Response.Status.BAD_REQUEST);
         }
         return buildDAO.getCurrentBuildsByGroupName(groupName);
     }
@@ -150,23 +161,27 @@ public class Builds {
     @GET
     @Path("/tags")
     @ApiOperation(
-        value = "Get build info along with the build tag info for a given build name",
-        notes = "Return a bean object containing the build and the build tag",
-        response = BuildTagBean.class
-    )
-    public List<BuildTagBean> getBuildsWithTags(@QueryParam("commit") String scmCommit,
-        @QueryParam("name") String buildName, @QueryParam("branch") String scmBranch,
-        @QueryParam("pageIndex") Optional<Integer> pageIndex,
-        @QueryParam("pageSize") Optional<Integer> pageSize, @QueryParam("before") Long before,
-        @QueryParam("after") Long after) throws Exception {
+            value = "Get build info along with the build tag info for a given build name",
+            notes = "Return a bean object containing the build and the build tag",
+            response = BuildTagBean.class)
+    public List<BuildTagBean> getBuildsWithTags(
+            @QueryParam("commit") String scmCommit,
+            @QueryParam("name") String buildName,
+            @QueryParam("branch") String scmBranch,
+            @QueryParam("pageIndex") Optional<Integer> pageIndex,
+            @QueryParam("pageSize") Optional<Integer> pageSize,
+            @QueryParam("before") Long before,
+            @QueryParam("after") Long after)
+            throws Exception {
 
         if (StringUtils.isEmpty(buildName) && StringUtils.isEmpty(scmCommit)) {
-            throw new WebApplicationException("Require either commit or build name in the request.",
+            throw new WebApplicationException(
+                    "Require either commit or build name in the request.",
                     Response.Status.BAD_REQUEST);
         }
 
         List<BuildBean> builds =
-            buildDAO.get(scmCommit, buildName, scmBranch, pageIndex, pageSize, before, after);
+                buildDAO.get(scmCommit, buildName, scmBranch, pageIndex, pageSize, before, after);
 
         BuildTagsManager manager = new BuildTagsManagerImpl(this.tagDAO);
         return manager.getEffectiveTagsWithBuilds(builds);
@@ -178,11 +193,14 @@ public class Builds {
             notes = "Publish a build given a build object",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
-    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD, idLocation = ResourceAuthZInfo.Location.BODY)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.BUILD,
+            idLocation = ResourceAuthZInfo.Location.BODY)
     public Response publish(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
-            @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
+            @ApiParam(value = "BUILD object", required = true) @Valid BuildBean buildBean)
+            throws Exception {
         if (StringUtils.isEmpty(buildBean.getScm())) {
             buildBean.setScm(sourceControlManagerProxy.getDefaultTypeName());
         }
@@ -192,7 +210,11 @@ public class Builds {
         }
 
         if (StringUtils.isEmpty(buildBean.getScm_info())) {
-            buildBean.setScm_info(sourceControlManagerProxy.generateCommitLink(buildBean.getScm(), buildBean.getScm_repo(), buildBean.getScm_commit()));
+            buildBean.setScm_info(
+                    sourceControlManagerProxy.generateCommitLink(
+                            buildBean.getScm(),
+                            buildBean.getScm_repo(),
+                            buildBean.getScm_commit()));
         }
 
         if (StringUtils.isEmpty(buildBean.getPublish_info())) {
@@ -212,14 +234,17 @@ public class Builds {
 
         // Check if build is approved via our allow list of URLs
         if (!Boolean.TRUE.equals(buildAllowlist.approved(buildBean.getArtifact_url()))) {
-            throw new WebApplicationException("Artifact URL points to unapproved location.",
-                    Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(
+                    "Artifact URL points to unapproved location.", Response.Status.BAD_REQUEST);
         }
 
         // Check if build SCM is approved via allow list of SCMs
         if (!Boolean.TRUE.equals(sourceControlManagerProxy.hasSCMType(buildBean.getScm()))) {
-            throw new WebApplicationException(String.format("Unsupported SCM type. %s not in list %s.",
-                    buildBean.getScm(), sourceControlManagerProxy.getSCMs()), Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(
+                    String.format(
+                            "Unsupported SCM type. %s not in list %s.",
+                            buildBean.getScm(), sourceControlManagerProxy.getSCMs()),
+                    Response.Status.BAD_REQUEST);
         }
 
         // We append commit SHA after build id to make build directory name human friendly
@@ -228,7 +253,8 @@ public class Builds {
         buildBean.setBuild_id(buildId);
 
         buildDAO.insert(buildBean);
-        LOG.info("Successfully published build {} by {}.", buildId, sc.getUserPrincipal().getName());
+        LOG.info(
+                "Successfully published build {} by {}.", buildId, sc.getUserPrincipal().getName());
 
         // publish event
         if (buildEventPublisher != null) {
@@ -241,28 +267,32 @@ public class Builds {
         return Response.created(buildUri).entity(buildBean).build();
     }
 
-
     @DELETE
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
-    @ApiOperation(
-        value = "Delete a build",
-        notes = "Deletes a build given a build id")
+    @ApiOperation(value = "Delete a build", notes = "Deletes a build given a build id")
     @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD, idLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.BUILD,
+            idLocation = ResourceAuthZInfo.Location.PATH)
     public void delete(
-        @Context SecurityContext sc,
-        @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
+            @Context SecurityContext sc,
+            @ApiParam(value = "BUILD id", required = true) @PathParam("id") String id)
+            throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new WebApplicationException(String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
+            throw new WebApplicationException(
+                    String.format("BUILD %s does not exist.", id), Response.Status.NOT_FOUND);
         }
 
         if (deployDAO.isThereADeployWithBuildId(buildBean.getBuild_id())) {
-            // When a build has been deployed (associated with a deployment), it should not be deleted.
+            // When a build has been deployed (associated with a deployment), it should not be
+            // deleted.
             // This keeps a record for what was deployed. Also, this helps avoid problem when
             // the build is currently deployed (or being actively deployed).
             throw new WebApplicationException(
-                    String.format("Build %s is currently associated with a deployment and cannot be deleted", id),
+                    String.format(
+                            "Build %s is currently associated with a deployment and cannot be deleted",
+                            id),
                     Response.Status.BAD_REQUEST);
         }
 

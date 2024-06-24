@@ -1,3 +1,18 @@
+/**
+ * Copyright (c) 2024 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.*;
@@ -10,28 +25,25 @@ import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.worker.DeployTagWorker;
 import io.swagger.annotations.*;
-import org.apache.commons.dbcp.BasicDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import java.util.ArrayList;
-import java.util.List;
-
+import org.apache.commons.dbcp.BasicDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/deploy_constraint")
 @Api(tags = "Deploy Constraints")
 @SwaggerDefinition(
-    tags = {
-        @Tag(name = "Deploy Constraints", description = "Deploy constraints related APIs"),
-    }
-)
+        tags = {
+            @Tag(name = "Deploy Constraints", description = "Deploy constraints related APIs"),
+        })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DeployConstraints {
@@ -51,12 +63,14 @@ public class DeployConstraints {
 
     @GET
     @ApiOperation(
-        value = "Get deploy constraint info",
-        notes = "Returns a deploy constraint object given a constraint id",
-        response = DeployConstraintBean.class)
-    public DeployConstraintBean get(@PathParam("envName") String envName,
-                                    @PathParam("stageName") String stageName,
-                                    @Context SecurityContext sc) throws Exception {
+            value = "Get deploy constraint info",
+            notes = "Returns a deploy constraint object given a constraint id",
+            response = DeployConstraintBean.class)
+    public DeployConstraintBean get(
+            @PathParam("envName") String envName,
+            @PathParam("stageName") String stageName,
+            @Context SecurityContext sc)
+            throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String deployConstraintId = envBean.getDeploy_constraint_id();
         if (deployConstraintId == null) {
@@ -68,12 +82,17 @@ public class DeployConstraints {
 
     @POST
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
-    public void update(@PathParam("envName") String envName,
-                       @PathParam("stageName") String stageName,
-                       @ApiParam(value = "Deploy Constraint Object to update in database", required = true)
-                       @Valid DeployConstraintBean deployConstraintBean,
-                       @Context SecurityContext sc) throws Exception {
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.ENV_STAGE,
+            idLocation = ResourceAuthZInfo.Location.PATH)
+    public void update(
+            @PathParam("envName") String envName,
+            @PathParam("stageName") String stageName,
+            @ApiParam(value = "Deploy Constraint Object to update in database", required = true)
+                    @Valid
+                    DeployConstraintBean deployConstraintBean,
+            @Context SecurityContext sc)
+            throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
         String constraintId = envBean.getDeploy_constraint_id();
@@ -88,7 +107,7 @@ public class DeployConstraints {
             updateBean.setConstraint_key(tagName);
         }
         DeployConstraintType type = deployConstraintBean.getConstraint_type();
-        if(type != null) {
+        if (type != null) {
             updateBean.setConstraint_type(type);
         } else {
             // defaults to ALL_GROUPS_IN_PARALLEL
@@ -113,21 +132,32 @@ public class DeployConstraints {
         }
 
         DatabaseUtil.transactionalUpdate(dataSource, statements);
-        LOG.info("Successfully updated deploy constraint {} for env {}/{} by {}.",
-            deployConstraintBean, envName, stageName, operator);
+        LOG.info(
+                "Successfully updated deploy constraint {} for env {}/{} by {}.",
+                deployConstraintBean,
+                envName,
+                stageName,
+                operator);
 
         Runnable worker = new DeployTagWorker(serviceContext);
         worker.run();
-        LOG.info("Successfully run DeployTagWorker for env {}/{} by {}.", envName, stageName, operator);
+        LOG.info(
+                "Successfully run DeployTagWorker for env {}/{} by {}.",
+                envName,
+                stageName,
+                operator);
     }
-
 
     @DELETE
     @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
-    public void delete(@PathParam("envName") String envName,
-                       @PathParam("stageName") String stageName,
-                       @Context SecurityContext sc) throws Exception {
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.ENV_STAGE,
+            idLocation = ResourceAuthZInfo.Location.PATH)
+    public void delete(
+            @PathParam("envName") String envName,
+            @PathParam("stageName") String stageName,
+            @Context SecurityContext sc)
+            throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
         String constraintId = envBean.getDeploy_constraint_id();
@@ -139,9 +169,12 @@ public class DeployConstraints {
             environDAO.deleteConstraint(envName, stageName);
             // remove the deploy_constraint
             deployConstraintDAO.delete(constraintId);
-            LOG.info("Successfully deleted deploy constraint {} for env {}/{} by {}.",
-                constraintId, envName, stageName, operator);
+            LOG.info(
+                    "Successfully deleted deploy constraint {} for env {}/{} by {}.",
+                    constraintId,
+                    envName,
+                    stageName,
+                    operator);
         }
     }
-
 }
