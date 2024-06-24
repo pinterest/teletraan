@@ -78,13 +78,14 @@ definitions:
           - GROUP
           - SYSTEM
           - PLACEMENTS
-          - BASE_IMAGES
+          - BASE_IMAGE
           - SECURITY_ZONE
           - IAM_ROLE
           - DEPLOY
           - BUILD
           - HOTFIX
           - HOST
+          - UNSPECIFIED
       resourceName:
         type: string
         description: >
