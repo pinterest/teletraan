@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
@@ -32,29 +33,32 @@ import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
+
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs")
 @Api(tags = "Environments")
 @SwaggerDefinition(
         tags = {
-            @Tag(name = "Environments", description = "Environment info APIs"),
-        })
+                @Tag(name = "Environments", description = "Environment info APIs"),
+        }
+)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Environs {
@@ -64,8 +68,8 @@ public class Environs {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Environs.class);
-    private static final int DEFAULT_INDEX = 1;
-    private static final int DEFAULT_SIZE = 30;
+    private final static int DEFAULT_INDEX = 1;
+    private final static int DEFAULT_SIZE = 30;
     private EnvironDAO environDAO;
     private EnvironHandler environHandler;
     private TagHandler tagHandler;
@@ -85,25 +89,22 @@ public class Environs {
             notes = "Returns an environment object given an environment id",
             response = EnvironBean.class)
     public EnvironBean get(
-            @ApiParam(value = "Environment id", required = true) @PathParam("id") String id)
-            throws Exception {
+            @ApiParam(value = "Environment id", required = true)@PathParam("id") String id) throws Exception {
         EnvironBean environBean = environDAO.getById(id);
         if (environBean == null) {
-            throw new WebApplicationException(
-                    String.format("Environment %s does not exist.", id), Response.Status.NOT_FOUND);
+            throw new WebApplicationException(String.format("Environment %s does not exist.", id),
+                    Response.Status.NOT_FOUND);
         }
         return environBean;
     }
 
     @GET
     @Path("/names")
-    public List<String> get(
-            @QueryParam("nameFilter") Optional<String> nameFilter,
-            @QueryParam("pageIndex") Optional<Integer> pageIndex,
-            @QueryParam("pageSize") Optional<Integer> pageSize)
-            throws Exception {
-        return environDAO.getAllEnvNames(
-                nameFilter.or(""), pageIndex.or(DEFAULT_INDEX), pageSize.or(DEFAULT_SIZE));
+    public List<String> get(@QueryParam("nameFilter") Optional<String> nameFilter,
+        @QueryParam("pageIndex") Optional<Integer> pageIndex,
+        @QueryParam("pageSize") Optional<Integer> pageSize) throws Exception {
+        return environDAO.getAllEnvNames(nameFilter.or(""), pageIndex.or(DEFAULT_INDEX),
+            pageSize.or(DEFAULT_SIZE));
     }
 
     @GET
@@ -117,8 +118,7 @@ public class Environs {
     @ApiOperation(
             value = "Get all sidecar environment objects",
             notes = "Returns a list of sidecar environment objects",
-            response = EnvironBean.class,
-            responseContainer = "List")
+            response = EnvironBean.class, responseContainer = "List")
     public List<EnvironBean> getAllSidecars() throws Exception {
         return environDAO.getAllSidecarEnvs();
     }
@@ -127,13 +127,10 @@ public class Environs {
     @ApiOperation(
             value = "Get all environment objects",
             notes = "Returns a list of environment objects related to the given environment name",
-            response = EnvironBean.class,
-            responseContainer = "List")
+            response = EnvironBean.class, responseContainer = "List")
     public List<EnvironBean> getAll(
-            @ApiParam(value = "Environment name", required = true) @QueryParam("envName")
-                    String envName,
-            @QueryParam("groupName") String groupName)
-            throws Exception {
+            @ApiParam(value = "Environment name", required = true)@QueryParam("envName") String envName,
+        @QueryParam("groupName") String groupName) throws Exception {
         if (!StringUtils.isEmpty(envName)) {
             return environDAO.getByName(envName);
         }
@@ -154,9 +151,7 @@ public class Environs {
     public Response create(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
-            @ApiParam(value = "Environment object to create in database", required = true) @Valid
-                    EnvironBean environBean)
-            throws Exception {
+            @ApiParam(value = "Environment object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
         try {
             environBean.validate();
         } catch (IllegalArgumentException e) {
@@ -166,8 +161,7 @@ public class Environs {
         String envName = environBean.getEnv_name();
         List<EnvironBean> environBeans = environDAO.getByName(envName);
         String id = environHandler.createEnvStage(environBean, operator);
-        if (sc.getUserPrincipal() instanceof UserPrincipal
-                && CollectionUtils.isEmpty(environBeans)) {
+        if (sc.getUserPrincipal() instanceof UserPrincipal && CollectionUtils.isEmpty(environBeans)) {
             // This is the first stage for this env, let's make operator ADMIN of this env
             UserRolesBean rolesBean = new UserRolesBean();
             rolesBean.setResource_id(environBean.getEnv_name());
@@ -190,13 +184,10 @@ public class Environs {
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     @ApiOperation(
             value = "Enable/disable all environments",
-            notes =
-                    "Enable/disable all new deploy and configuration changes for every environments")
-    public void action(
-            @Context SecurityContext sc,
-            @NotNull @QueryParam("actionType") ActionType actionType,
-            @NotEmpty @QueryParam("description") String description)
-            throws Exception {
+            notes = "Enable/disable all new deploy and configuration changes for every environments")
+    public void action(@Context SecurityContext sc,
+                       @NotNull @QueryParam("actionType") ActionType actionType,
+                       @NotEmpty @QueryParam("description") String description) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         TagBean tagBean = new TagBean();
         switch (actionType) {
@@ -215,9 +206,6 @@ public class Environs {
         tagBean.setTarget_type(TagTargetType.TELETRAAN);
         tagBean.setComments(description);
         tagHandler.createTag(tagBean, operator);
-        LOG.info(
-                String.format(
-                        "Successfully updated actions %s for all envs by %s",
-                        actionType, operator));
+        LOG.info(String.format("Successfully updated actions %s for all envs by %s", actionType, operator));
     }
 }

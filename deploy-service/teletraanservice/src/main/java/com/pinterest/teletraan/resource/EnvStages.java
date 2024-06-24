@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,31 @@
  * limitations under the License.
  */
 package com.pinterest.teletraan.resource;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.WebApplicationException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
@@ -31,31 +56,10 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
@@ -74,6 +78,7 @@ public class EnvStages {
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
 
+
     public EnvStages(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
@@ -87,30 +92,22 @@ public class EnvStages {
             notes = "Returns an environment object given environment and stage names",
             response = EnvironBean.class)
     public EnvironBean get(
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName)
-            throws Exception {
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName) throws Exception {
         return Utils.getEnvStage(environDAO, envName, stageName);
     }
 
     @PUT
     @ApiOperation(
             value = "Update an environment",
-            notes =
-                    "Update an environment given environment and stage names with a environment object")
+            notes = "Update an environment given environment and stage names with a environment object")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void update(
-            @Context SecurityContext sc,
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName,
-            @ApiParam(value = "Desired Environment object with updates", required = true)
-                    EnvironBean environBean)
-            throws Exception {
+    public void update(@Context SecurityContext sc,
+                       @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+                       @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+                       @ApiParam(value = "Desired Environment object with updates", required = true)
+                           EnvironBean environBean) throws Exception {
         final EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
         // treat null as false
         boolean originalIsSox = origBean.getIs_sox() != null && origBean.getIs_sox();
@@ -118,8 +115,7 @@ public class EnvStages {
         if (environBean.getIs_sox() == null) {
             environBean.setIs_sox(originalIsSox);
         } else if (!environBean.getIs_sox().equals(originalIsSox)) {
-            throw new WebApplicationException(
-                    "Modification of isSox flag is not allowed!", Response.Status.FORBIDDEN);
+            throw new WebApplicationException("Modification of isSox flag is not allowed!", Response.Status.FORBIDDEN);
         }
 
         String operator = sc.getUserPrincipal().getName();
@@ -139,54 +135,30 @@ public class EnvStages {
             environBean.setExternal_id(origBean.getExternal_id());
         }
         environHandler.updateStage(environBean, operator);
-        configHistoryHandler.updateConfigHistory(
-                origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
-        configHistoryHandler.updateChangeFeed(
-                Constants.CONFIG_TYPE_ENV,
-                origBean.getEnv_id(),
-                Constants.TYPE_ENV_GENERAL,
-                operator,
-                environBean.getExternal_id());
-        LOG.info(
-                "Successfully updated env {}/{} with {} by {}.",
-                envName,
-                stageName,
-                environBean,
-                operator);
+        configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, environBean.getExternal_id());
+        LOG.info("Successfully updated env {}/{} with {} by {}.",
+            envName, stageName, environBean, operator);
     }
 
     @PUT
     @Path("/is-sox/{booleanValue}")
-    @ApiOperation(value = "Update an environment/stage's isSox flag")
+    @ApiOperation(
+            value = "Update an environment/stage's isSox flag"
+    )
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM, idLocation = Location.PATH)
-    public void updateIsSox(
-            @Context SecurityContext sc,
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName,
-            @ApiParam(value = "Is sox flag", required = true) @PathParam("booleanValue")
-                    boolean isSox)
-            throws Exception {
+    public void updateIsSox(@Context SecurityContext sc,
+                       @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+                       @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+                       @ApiParam(value = "Is sox flag", required = true)@PathParam("booleanValue") boolean isSox) throws Exception {
         EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
         origBean.setIs_sox(isSox);
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateStage(origBean, operator);
-        configHistoryHandler.updateConfigHistory(
-                origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, origBean, operator);
-        configHistoryHandler.updateChangeFeed(
-                Constants.CONFIG_TYPE_ENV,
-                origBean.getEnv_id(),
-                Constants.TYPE_ENV_GENERAL,
-                operator,
-                origBean.getExternal_id());
-        LOG.info(
-                "Successfully updated env {}/{} isSox flag to {} by {}.",
-                envName,
-                stageName,
-                isSox,
-                operator);
+        configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, origBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, origBean.getExternal_id());
+        LOG.info("Successfully updated env {}/{} isSox flag to {} by {}.", envName, stageName, isSox, operator);
     }
 
     @DELETE
@@ -195,13 +167,10 @@ public class EnvStages {
             notes = "Deletes an environment given a environment and stage names")
     @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void delete(
-            @Context SecurityContext sc,
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName)
-            throws Exception {
+    public void delete(@Context SecurityContext sc,
+                       @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+                       @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName)
+                        throws Exception {
         String operator = sc.getUserPrincipal().getName();
         environHandler.deleteEnvStage(envName, stageName, operator);
         LOG.info("Successfully deleted env {}/{} by {}.", envName, stageName, operator);
@@ -209,62 +178,50 @@ public class EnvStages {
 
     @POST
     @ApiOperation(
-            value = "Sets the external_id on a stage",
-            notes = "Sets the external_id column on a stage given the environment and stage names",
-            response = EnvironBean.class)
+          value = "Sets the external_id on a stage",
+          notes = "Sets the external_id column on a stage given the environment and stage names",
+          response = EnvironBean.class
+    )
     @Path("/external_id")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-    @ResourceAuthZInfo(
-            type = AuthZResource.Type.ENV_STAGE,
-            idLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public EnvironBean setExternalId(
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName,
-            @ApiParam(value = "External id", required = true) String externalId)
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+            @ApiParam(value="External id", required = true) String externalId)
             throws Exception {
 
-        try {
-            UUID uuid = UUID.fromString(externalId);
-        } catch (Exception ex) {
-            LOG.info("Invalid UUID supplied - {}.", externalId);
-            throw new WebApplicationException(
-                    String.format(
-                            "Client supplied an invalid externalId - %s. Please retry with an externalId in the UUID format",
-                            externalId),
-                    Response.Status.BAD_REQUEST);
-        }
+       try {
+         UUID uuid = UUID.fromString(externalId);
+       } catch (Exception ex){
+         LOG.info("Invalid UUID supplied - {}.", externalId);
+         throw new WebApplicationException(String.format(
+                 "Client supplied an invalid externalId - %s. Please retry with an externalId in the UUID format",
+                 externalId), Response.Status.BAD_REQUEST);
+       }
 
-        EnvironBean originalBean = environDAO.getByStage(envName, stageName);
-        if (originalBean == null) {
-            throw new WebApplicationException(
-                    String.format("Environment %s/%s does not exist.", envName, stageName),
-                    Response.Status.NOT_FOUND);
-        }
-        environDAO.setExternalId(originalBean, externalId);
-        EnvironBean updatedBean = environDAO.getByStage(envName, stageName);
-        String newExternalId = updatedBean.getExternal_id();
+       EnvironBean originalBean = environDAO.getByStage(envName, stageName);
+       if(originalBean == null) {
+           throw new WebApplicationException(String.format("Environment %s/%s does not exist.", envName, stageName),
+                   Response.Status.NOT_FOUND);
+       }
+       environDAO.setExternalId(originalBean, externalId);
+       EnvironBean updatedBean = environDAO.getByStage(envName, stageName);
+       String newExternalId = updatedBean.getExternal_id();
 
-        LOG.info(
-                "Successfully updated Env/stage - {}/{} with externalid = {}",
-                envName,
-                stageName,
-                newExternalId);
-        return updatedBean;
+       LOG.info("Successfully updated Env/stage - {}/{} with externalid = {}", envName, stageName, newExternalId);
+       return updatedBean;
     }
 
     @POST
     @Path("/actions")
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void action(
-            @Context SecurityContext sc,
-            @PathParam("envName") String envName,
-            @PathParam("stageName") String stageName,
-            @NotNull @QueryParam("actionType") ActionType actionType,
-            @NotEmpty @QueryParam("description") String description)
-            throws Exception {
+    public void action(@Context SecurityContext sc,
+                       @PathParam("envName") String envName,
+                       @PathParam("stageName") String stageName,
+                       @NotNull @QueryParam("actionType") ActionType actionType,
+                       @NotEmpty @QueryParam("description") String description) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
 
@@ -286,10 +243,7 @@ public class EnvStages {
         tagBean.setTarget_type(TagTargetType.ENVIRONMENT);
         tagBean.setComments(description);
         tagHandler.createTag(tagBean, operator);
-        LOG.info(
-                String.format(
-                        "Successfully updated action %s for %s/%s by %s",
-                        actionType, envName, stageName, operator));
+        LOG.info(String.format("Successfully updated action %s for %s/%s by %s", actionType, envName, stageName, operator));
     }
 
     private void stageTypeValidate(EnvironBean origBean, EnvironBean newBean) throws Exception {
@@ -303,8 +257,7 @@ public class EnvStages {
         stageTypeCategory.put(EnvType.DEV, "NON-PRODUCTION");
 
         if (origBean.getStage_type() == EnvType.DEFAULT && newBean.getStage_type() == null) {
-            throw new IllegalArgumentException(
-                    "Please update the Stage Type to a value other than DEFAULT.");
+            throw new IllegalArgumentException("Please update the Stage Type to a value other than DEFAULT.");
         } else if (newBean.getStage_type() == null) {
             // Request has no intention to change stage type, so set it to the current value
             // to avoid the default value being used.
@@ -314,7 +267,7 @@ public class EnvStages {
                 && stageTypeCategory.get(newBean.getStage_type()).equals("NON-PRODUCTION")
                 && stageTypeCategory.get(origBean.getStage_type()).equals("PRODUCTION")) {
             throw new IllegalArgumentException(
-                    "Modification of Production stage type (PRODUCTION, CANARY, CONTROL) is not allowed!");
+                "Modification of Production stage type (PRODUCTION, CANARY, CONTROL) is not allowed!");
         }
     }
 }

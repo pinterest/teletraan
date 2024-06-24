@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,19 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+
+import com.google.common.base.Optional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
 import java.util.List;
+
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -52,16 +55,14 @@ public class EnvHistory {
 
     @GET
     @ApiOperation(
-            value = "Get the config history for the environment",
-            notes = "Get the config history for the environment")
-    public List<ConfigHistoryBean> get(
-            @PathParam("envName") String envName,
-            @PathParam("stageName") String stageName,
-            @QueryParam("pageIndex") Optional<Integer> pageIndex,
-            @QueryParam("pageSize") Optional<Integer> pageSize)
-            throws Exception {
+        value = "Get the config history for the environment",
+        notes = "Get the config history for the environment")
+    public List<ConfigHistoryBean> get(@PathParam("envName") String envName,
+        @PathParam("stageName") String stageName,
+        @QueryParam("pageIndex") Optional<Integer> pageIndex,
+        @QueryParam("pageSize") Optional<Integer> pageSize) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        return configHistoryDAO.getByConfigId(
-                envBean.getEnv_id(), pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
+        return configHistoryDAO.getByConfigId(envBean.getEnv_id(),
+            pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
     }
 }

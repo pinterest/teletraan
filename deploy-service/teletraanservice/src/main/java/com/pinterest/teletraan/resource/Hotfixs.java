@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,18 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
-import java.net.URI;
-import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.URI;
+import java.util.List;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/hotfixs")
@@ -57,8 +60,8 @@ public class Hotfixs {
     private HotfixBean getHotfixBean(String id) throws Exception {
         HotfixBean hotfixBean = hotfixDAO.getByHotfixId(id);
         if (hotfixBean == null) {
-            throw new WebApplicationException(
-                    String.format("Hotfix %s does not exist.", id), Response.Status.NOT_FOUND);
+            throw new WebApplicationException(String.format("Hotfix %s does not exist.", id),
+                    Response.Status.NOT_FOUND);
         }
         return hotfixBean;
     }
@@ -70,11 +73,9 @@ public class Hotfixs {
     }
 
     @GET
-    public List<HotfixBean> getAll(
-            @QueryParam("envName") String envName,
-            @QueryParam("pageIndex") Optional<Integer> pageIndex,
-            @QueryParam("pageSize") Optional<Integer> pageSize)
-            throws Exception {
+    public List<HotfixBean> getAll(@QueryParam("envName") String envName,
+        @QueryParam("pageIndex") Optional<Integer> pageIndex,
+        @QueryParam("pageSize") Optional<Integer> pageSize) throws Exception {
         return hotfixDAO.getHotfixes(envName, pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
     }
 
@@ -82,7 +83,8 @@ public class Hotfixs {
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
     @ResourceAuthZInfo(type = AuthZResource.Type.HOTFIX, idLocation = Location.PATH)
-    public void update(@PathParam("id") String id, HotfixBean hotfixBean) throws Exception {
+    public void update(@PathParam("id") String id,
+        HotfixBean hotfixBean) throws Exception {
         hotfixDAO.update(id, hotfixBean);
         LOG.info("Successfully updated hotfix {} with {}.", id, hotfixBean);
     }
@@ -99,8 +101,7 @@ public class Hotfixs {
     @POST
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.HOTFIX, idLocation = Location.BODY)
-    public Response create(
-            @Context SecurityContext sc, @Context UriInfo uriInfo, @Valid HotfixBean hotfixBean)
+    public Response create(@Context SecurityContext sc, @Context UriInfo uriInfo, @Valid HotfixBean hotfixBean)
             throws Exception {
         String hotfixId = CommonUtils.getBase64UUID();
         hotfixBean.setId(hotfixId);

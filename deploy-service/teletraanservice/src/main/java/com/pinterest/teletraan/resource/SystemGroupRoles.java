@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,16 @@ import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
-import java.util.List;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+import java.util.List;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/system/group_roles")
@@ -49,8 +51,7 @@ public class SystemGroupRoles extends GroupRoles {
 
     @GET
     @Path("/{groupName : [a-zA-Z0-9\\-_]+}")
-    public GroupRolesBean getByNameAndResource(@PathParam("groupName") String groupName)
-            throws Exception {
+    public GroupRolesBean getByNameAndResource(@PathParam("groupName") String groupName) throws Exception {
         return super.getByNameAndResource(groupName, RESOURCE_ID, RESOURCE_TYPE);
     }
 
@@ -58,8 +59,7 @@ public class SystemGroupRoles extends GroupRoles {
     @Path("/{groupName : [a-zA-Z0-9\\-_]+}")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
-    public void update(@PathParam("groupName") String groupName, GroupRolesBean bean)
-            throws Exception {
+    public void update(@PathParam("groupName") String groupName, GroupRolesBean bean) throws Exception {
         super.update(bean, groupName, RESOURCE_ID, RESOURCE_TYPE);
     }
 

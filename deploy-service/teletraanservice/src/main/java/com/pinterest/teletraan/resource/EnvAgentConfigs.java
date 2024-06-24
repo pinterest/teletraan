@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,20 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/agent_configs")
@@ -57,16 +59,11 @@ public class EnvAgentConfigs {
     @GET
     @ApiOperation(
             value = "Get agent configs",
-            notes =
-                    "Returns a name,value map of environment agent configs given an environment name and stage name",
-            response = String.class,
-            responseContainer = "Map")
+            notes = "Returns a name,value map of environment agent configs given an environment name and stage name",
+            response = String.class, responseContainer = "Map")
     public Map<String, String> get(
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName)
-            throws Exception {
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         return environHandler.getAdvancedConfigs(envBean);
     }
@@ -74,39 +71,22 @@ public class EnvAgentConfigs {
     @PUT
     @ApiOperation(
             value = "Update agent configs",
-            notes =
-                    "Updates environment agent configs given an environment name and stage name with a map of "
-                            + "name,value agent configs")
+            notes = "Updates environment agent configs given an environment name and stage name with a map of " +
+                    "name,value agent configs")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-    @ResourceAuthZInfo(
-            type = AuthZResource.Type.ENV_STAGE,
-            idLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName,
-            @ApiParam(value = "Map of configs to update with", required = true) @Valid
-                    Map<String, String> configs,
-            @Context SecurityContext sc)
-            throws Exception {
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+            @ApiParam(value = "Map of configs to update with", required = true)@Valid Map<String, String> configs,
+            @Context SecurityContext sc) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String userName = sc.getUserPrincipal().getName();
         Utils.trimMapValues(configs);
         environHandler.updateAdvancedConfigs(envBean, configs, userName);
-        configHistoryHandler.updateConfigHistory(
-                envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, configs, userName);
-        configHistoryHandler.updateChangeFeed(
-                Constants.CONFIG_TYPE_ENV,
-                envBean.getEnv_id(),
-                Constants.TYPE_ENV_ADVANCED,
-                userName,
-                envBean.getExternal_id());
-        LOG.info(
-                "Successfully updated agent config {} for env {}/{} by {}.",
-                configs,
-                envName,
-                stageName,
-                userName);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, configs, userName);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, userName, envBean.getExternal_id());
+        LOG.info("Successfully updated agent config {} for env {}/{} by {}.",
+            configs, envName, stageName, userName);
     }
 }

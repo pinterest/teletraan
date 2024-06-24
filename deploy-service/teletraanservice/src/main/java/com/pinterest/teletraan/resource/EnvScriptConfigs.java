@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,20 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/script_configs")
@@ -58,16 +60,11 @@ public class EnvScriptConfigs {
     @GET
     @ApiOperation(
             value = "Get script configs",
-            notes =
-                    "Returns name value pairs of script configs for given environment and stage names",
-            response = String.class,
-            responseContainer = "Map")
+            notes = "Returns name value pairs of script configs for given environment and stage names",
+            response = String.class, responseContainer = "Map")
     public Map<String, String> get(
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName)
-            throws Exception {
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         return environHandler.getScriptConfigs(envBean);
     }
@@ -75,38 +72,22 @@ public class EnvScriptConfigs {
     @PUT
     @ApiOperation(
             value = "Update script configs",
-            notes =
-                    "Updates script configs given environment and stage names with given name:value map of new "
-                            + "script configs",
-            response = String.class,
-            responseContainer = "Map")
+            notes = "Updates script configs given environment and stage names with given name:value map of new " +
+                    "script configs",
+            response = String.class, responseContainer = "Map")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void update(
-            @Context SecurityContext sc,
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName,
-            @ApiParam(value = "New configs to update with", required = true) @Valid
-                    Map<String, String> configs)
-            throws Exception {
+    public void update(@Context SecurityContext sc,
+                       @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+                       @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+                       @ApiParam(value = "New configs to update with", required = true)
+                           @Valid Map<String, String> configs) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateScriptConfigs(envBean, configs, operator);
-        configHistoryHandler.updateConfigHistory(
-                envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, configs, operator);
-        configHistoryHandler.updateChangeFeed(
-                Constants.CONFIG_TYPE_ENV,
-                envBean.getEnv_id(),
-                Constants.TYPE_ENV_SCRIPT,
-                operator,
-                envBean.getExternal_id());
-        LOG.info(
-                "Successfully updated script config {} for env {}/{} by {}.",
-                configs,
-                envName,
-                stageName,
-                operator);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, configs, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, operator, envBean.getExternal_id());
+        LOG.info("Successfully updated script config {} for env {}/{} by {}.",
+            configs, envName, stageName, operator);
     }
 }

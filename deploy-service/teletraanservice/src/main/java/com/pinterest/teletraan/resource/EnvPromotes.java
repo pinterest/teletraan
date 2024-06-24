@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,19 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/promotes")
@@ -60,47 +62,29 @@ public class EnvPromotes {
             value = "Get promote info",
             notes = "Returns a promote info object given environment and stage names",
             response = PromoteBean.class)
-    public PromoteBean get(
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName)
-            throws Exception {
+    public PromoteBean get(@ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+                           @ApiParam(value = "Stage name", required = true)
+                           @PathParam("stageName") String stageName) throws Exception {
         return environHandler.getEnvPromote(envName, stageName);
     }
 
     @PUT
     @ApiOperation(
             value = "Update promote info",
-            notes =
-                    "Updates promote info given environment and stage names by given promote info object")
+            notes = "Updates promote info given environment and stage names by given promote info object")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
-    public void update(
-            @Context SecurityContext sc,
-            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-                    String envName,
-            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName,
-            @ApiParam(value = "Promote object to update with", required = true) @Valid
-                    PromoteBean promoteBean)
+    public void update(@Context SecurityContext sc,
+            @ApiParam(value = "Environment name", required = true) @PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true) @PathParam("stageName") String stageName,
+            @ApiParam(value = "Promote object to update with", required = true) @Valid PromoteBean promoteBean)
             throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateEnvPromote(environBean, promoteBean, operator);
-        configHistoryHandler.updateConfigHistory(
-                environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, promoteBean, operator);
-        configHistoryHandler.updateChangeFeed(
-                Constants.CONFIG_TYPE_ENV,
-                environBean.getEnv_id(),
-                Constants.TYPE_ENV_PROMOTE,
-                operator,
-                environBean.getExternal_id());
-        LOG.info(
-                "Successfully updated promote with {} to env {}/{} by {}.",
-                promoteBean,
-                envName,
-                stageName,
-                operator);
+        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, promoteBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, operator, environBean.getExternal_id());
+        LOG.info("Successfully updated promote with {} to env {}/{} by {}.",
+            promoteBean, envName, stageName, operator);
     }
 }
