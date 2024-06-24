@@ -30,7 +30,7 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/ratings")
 @Api(tags = "Ratings")
 @Produces(MediaType.APPLICATION_JSON)

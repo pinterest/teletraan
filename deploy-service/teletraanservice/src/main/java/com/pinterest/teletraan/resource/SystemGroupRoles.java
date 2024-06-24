@@ -31,7 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/system/group_roles")
 @Api(tags = "System Group Roles")
 @Produces(MediaType.APPLICATION_JSON)

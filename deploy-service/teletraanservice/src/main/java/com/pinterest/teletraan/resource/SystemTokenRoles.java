@@ -29,7 +29,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/system/token_roles")
 @Api(tags = "Script Tokens")
 @SwaggerDefinition(

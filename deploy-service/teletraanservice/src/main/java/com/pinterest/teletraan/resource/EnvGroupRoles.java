@@ -30,7 +30,7 @@ import javax.ws.rs.core.*;
 import java.util.List;
 
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/group_roles")
 @Api(tags = "Group Roles")
 @SwaggerDefinition(

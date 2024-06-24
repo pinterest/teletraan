@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/deploy_constraint")
 @Api(tags = "Deploy Constraints")
 @SwaggerDefinition(

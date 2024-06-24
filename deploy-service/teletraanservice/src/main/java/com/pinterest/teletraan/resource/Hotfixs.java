@@ -38,7 +38,7 @@ import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.List;
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/hotfixs")
 @Api(tags = "Hotfixs")
 @Produces(MediaType.APPLICATION_JSON)

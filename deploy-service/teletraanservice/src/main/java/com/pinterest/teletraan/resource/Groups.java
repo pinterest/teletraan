@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import io.swagger.annotations.*;
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/groups")
 @Api(tags = "Hosts and Systems")
 @Produces(MediaType.APPLICATION_JSON)

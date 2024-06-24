@@ -44,7 +44,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/pindeploy")
 @Api(tags = "Pindeploy")
 @SwaggerDefinition(

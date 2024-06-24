@@ -26,7 +26,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.*;
 
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/host_tags")
 @Api(tags = "Hosts Tags")
 @SwaggerDefinition(

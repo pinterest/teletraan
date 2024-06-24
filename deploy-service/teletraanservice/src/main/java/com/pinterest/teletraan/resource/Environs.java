@@ -51,7 +51,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-@RolesAllowed({TeletraanPrincipalRole.Names.READ, TeletraanPrincipalRole.Names.READER})
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs")
 @Api(tags = "Environments")
 @SwaggerDefinition(
