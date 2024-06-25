@@ -182,7 +182,10 @@ Vue.component('data-config-field', {
     template: '<div class="form-group">\
         <label for="properties" class="control-label col-xs-3">{{name}}</label>\
         <div class="col-xs-6">\
+            <div class="input-group">\
             <input class="form-control" type="text" v-bind:value="value" v-on:input="change(name,$event.target.value)" v-bind:readonly="readonly ? true : false"></input>\
+            <span class="input-group-btn"><button v-if="name==\'pinfo_environment\'" type="button" data-toggle="tooltip" title="" class="deployToolTip btn btn-default" data-original-title="In PROD environment, only use prod for cmp_base"><span class="glyphicon glyphicon-question-sign"></span></button></span>\
+            </div>\
         </div>\
         <div class="col-xs-3">\
             <button type="button" class="delete_button btn btn-default" v-on:click="deleteConfig(name)" v-bind:disabled="readonly ? true : false">Delete</button>\
