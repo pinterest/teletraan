@@ -182,9 +182,9 @@ Vue.component('data-config-field', {
     template: '<div class="form-group">\
         <label for="properties" class="control-label col-xs-3">{{name}}</label>\
         <div class="col-xs-6">\
-            <div class="input-group">\
+            <div class="input-group col-xs-12">\
             <input class="form-control" type="text" v-bind:value="value" v-on:input="change(name,$event.target.value)" v-bind:readonly="readonly ? true : false"></input>\
-            <span class="input-group-btn"><button v-if="name==\'pinfo_environment\'" type="button" data-toggle="tooltip" title="" class="deployToolTip btn btn-default" data-original-title="In Teletraan production, please use set the pinfo_environment to \"prod\" for cmp_base clusters"><span class="glyphicon glyphicon-question-sign"></span></button></span>\
+            <span class="input-group-btn"><button v-if="name==\'pinfo_environment\'" type="button" data-toggle="tooltip" title="" class="deployToolTip btn btn-default" data-original-title="In Teletraan production, please use set the pinfo_environment to &quot;prod&quot; for cmp_base clusters"><span class="glyphicon glyphicon-question-sign"></span></button></span>\
             </div>\
         </div>\
         <div class="col-xs-3">\
