@@ -1,11 +1,13 @@
-PyYAML==5.3.1
+PyYAML==5.3.1; python_version < '3.12'
+PyYAML==6.0.1; python_version >= '3.12'
 argparse==1.2.1
 configparser==4.0.2
 lockfile==0.10.2
 pinlogger==0.53.0
 pinstatsd==1.4.6
 python-daemon==2.3.2
-requests==2.27.1
+requests==2.29.0; python_version < '3.12'
+requests==2.32.3; python_version >= '3.12'
 setuptools==59.0.1
 strictyaml==1.6.1
 zipp==1.2.0

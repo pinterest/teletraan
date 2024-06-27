@@ -24,10 +24,10 @@ console_scripts = ['deploy-agent = deployd.agent:main',
                    'deploy-stager = deployd.staging.stager:main']
 
 install_requires = [
-    "requests==2.20.0",
-    "gevent>=1.0.2,<=1.2.2; python_version < '3'",
-    "gevent>=1.0.2,<=1.5.0; python_version < '3.8'",
-    "gevent==20.12.0; python_version >= '3.8'",
+    "requests==2.29.0; python_version < '3.12'",
+    "requests==2.32.3; python_version >= '3.12'",
+    "gevent==20.12.0; python_version < '3.12'",
+    "gevent==24.2.1; python_version >= '3.12'",
     "lockfile==0.10.2",
     "boto>=2.39.0",
     "python-daemon==2.0.6",
