@@ -13,6 +13,7 @@ from __future__ import print_function
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import getpass
 import logging
 import os
 import json
@@ -188,7 +189,6 @@ class Config(object):
         return self.get_var("log_directory", "/tmp/deployd/logs")
 
     def get_user_role(self) -> str:
-        import getpass
         return self.get_var("user_role", getpass.getuser())
 
     def get_restful_service_url(self) -> str:

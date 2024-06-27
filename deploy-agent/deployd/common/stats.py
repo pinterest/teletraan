@@ -22,7 +22,7 @@ import os
 import requests
 
 if IS_PINTEREST:
-    from pinstatsd.statsd import sc, sc_v2
+    from pinstatsd.statsd import sc, sc_v2, statsd_context_timer
 else:
     class sc:
         @staticmethod
@@ -61,7 +61,6 @@ class TimingOnlyStatClient:
 
 def create_stats_timer(name, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
-        from pinstatsd.statsd import statsd_context_timer
         timer = statsd_context_timer(entry_name=name,
                                      sample_rate=sample_rate,
                                      tags=tags,
