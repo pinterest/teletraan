@@ -31,7 +31,7 @@ install_requires = [
     "lockfile==0.10.2",
     "boto3==1.34.134",
     "python-daemon==2.0.6",
-    "future==0.18.2"
+    "future==0.18.3"
 ]
 
 setup(
