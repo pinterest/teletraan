@@ -28,7 +28,7 @@ class TestS3DownloadHelper(unittest.TestCase):
         mock_aws_key.return_value = "test_key"
         mock_aws_secret.return_value= "test_secret"
         self.config = Config()
-        self.downloader = S3DownloadHelper(local_full_fn='', aws_connection=None, url="s3://bucket1/key1", config=self.config)
+        self.downloader = S3DownloadHelper(local_full_fn='', s3_client=None, url="s3://bucket1/key1", config=self.config)
 
     @mock.patch('deployd.common.config.Config.get_s3_download_allow_list')
     def test_validate_url_with_allow_list(self, mock_get_s3_download_allow_list):
