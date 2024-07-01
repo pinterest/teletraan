@@ -1181,6 +1181,13 @@ class GroupConfigView(View):
             curr_image = None
             raise TeletraanException("Group does not exist. Please create capacity from the environments page.")
 
+        if is_cmp:
+            group_name_statsboard = "cmp-{}".format(group_name)
+        else:
+            group_name_statsboard = group_name
+
+        url_group_statsboard = ("https://statsboard.pinadmin.com/d/sysmetrics/cpu?tags=host_type%3D{}"
+                                .format(group_name_statsboard))
         pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
         return render(request, 'groups/asg_config.html', {
             "asg_vm_config": asg_vm_info,
@@ -1191,7 +1198,8 @@ class GroupConfigView(View):
             "pas_config": pas_config,
             "is_cmp": is_cmp,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
-            "storage": get_messages(request)
+            "storage": get_messages(request),
+            "url_group_statsboard": url_group_statsboard
         })
 
 

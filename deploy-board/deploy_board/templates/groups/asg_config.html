@@ -42,6 +42,9 @@
 <div id="groupConfigPid" class="panel panel-default">
 {% include "groups/group_config.tmpl" with config=group_config %}
 </div>
+<p>
+    <a href="{{url_group_statsboard}}" target="_blank">Show statsboard</a>
+</p>
 
 {% if asg_vm_config.asgStatus != "UNKNOWN" %}
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2023.01.30"></script>
