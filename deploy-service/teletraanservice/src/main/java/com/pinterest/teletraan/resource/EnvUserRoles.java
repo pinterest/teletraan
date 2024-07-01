@@ -23,14 +23,13 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.*;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/user_roles")
 @Api(tags = "User Roles")
 @SwaggerDefinition(

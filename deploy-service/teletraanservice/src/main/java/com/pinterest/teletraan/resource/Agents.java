@@ -24,7 +24,6 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.*;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -34,7 +33,7 @@ import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@PermitAll
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/agents")
 @Api(tags = "Agents")
 @SwaggerDefinition(

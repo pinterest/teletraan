@@ -25,13 +25,12 @@ import io.swagger.annotations.Api;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
-@PermitAll
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/ratings")
 @Api(tags = "Ratings")
 @Produces(MediaType.APPLICATION_JSON)
