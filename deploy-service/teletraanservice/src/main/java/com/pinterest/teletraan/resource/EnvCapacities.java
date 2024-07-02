@@ -31,7 +31,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import javax.validation.constraints.NotEmpty;
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -51,7 +50,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
-@PermitAll
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/capacity")
 @Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)

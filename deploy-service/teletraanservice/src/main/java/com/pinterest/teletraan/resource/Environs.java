@@ -42,7 +42,6 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -52,7 +51,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-@PermitAll
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs")
 @Api(tags = "Environments")
 @SwaggerDefinition(

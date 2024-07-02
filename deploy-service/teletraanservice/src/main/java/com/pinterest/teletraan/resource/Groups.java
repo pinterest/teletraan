@@ -18,10 +18,11 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 
 import javax.ws.rs.*;
@@ -33,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import io.swagger.annotations.*;
 
-@PermitAll
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/groups")
 @Api(tags = "Hosts and Systems")
 @Produces(MediaType.APPLICATION_JSON)
