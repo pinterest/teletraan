@@ -51,6 +51,7 @@ class BuildBodyExtractorTest {
     void testExtractResource() throws ExtractionException, IOException {
         BuildBean buildBean = new BuildBean();
         buildBean.setBuild_name("test-build");
+        buildBean.setArtifact_url("testURL");
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         objectMapper.writeValue(out, buildBean);
@@ -62,10 +63,11 @@ class BuildBodyExtractorTest {
 
         assertEquals("test-build", resource.getName());
         assertEquals(AuthZResource.Type.BUILD, resource.getType());
+        assertEquals("testURL", resource.getAttributes().get(AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name()));
     }
 
     @Test
-    void testExtractResourceWithInvalidInput() throws IOException {
+    void testExtractResourceWithInvalidInput() {
         String invalidJson = "{ xyz }";
         InputStream inputStream = new ByteArrayInputStream(invalidJson.getBytes());
 

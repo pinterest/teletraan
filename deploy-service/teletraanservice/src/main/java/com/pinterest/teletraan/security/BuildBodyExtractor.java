@@ -16,6 +16,7 @@
 package com.pinterest.teletraan.security;
 
 import java.io.InputStream;
+import java.util.HashMap;
 
 import javax.ws.rs.container.ContainerRequestContext;
 
@@ -35,7 +36,9 @@ public class BuildBodyExtractor implements AuthZResourceExtractor {
         InputStream inputStream = request.getEntityStream();
         try {
             BuildBean buildBean = new ObjectMapper().readValue(inputStream, BuildBean.class);
-            return new AuthZResource(buildBean.getBuild_name(), AuthZResource.Type.BUILD);
+            HashMap<String, String> attributes = new HashMap<>();
+            attributes.put(AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name(), buildBean.getArtifact_url());
+            return new AuthZResource(buildBean.getBuild_name(), AuthZResource.Type.BUILD, attributes);
         } catch (Exception e) {
             throw new BeanClassExtractionException(BuildBean.class, e);
         }

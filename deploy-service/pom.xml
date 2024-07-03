@@ -58,7 +58,7 @@
             <dependency>
                 <groupId>com.pinterest.teletraan</groupId>
                 <artifactId>universal</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>2.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.pinterest.teletraan</groupId>
@@ -98,8 +98,8 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <configuration>  
-                        <skip>true</skip>  
+                    <configuration>
+                        <skip>true</skip>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -209,7 +209,7 @@
                 <!-- For non-Pinterest deployments, remove this block and use the maven-deploy-plugin instead. -->
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.0.0</version>  
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>artifactory-push-deploy</id>

@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.security;
 
+import java.util.HashMap;
+
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 
@@ -50,6 +52,9 @@ public class BuildPathExtractor implements AuthZResourceExtractor {
         if (buildBean == null) {
             throw new NotFoundException(String.format("Build %s not found", buildId));
         }
-        return new AuthZResource(buildBean.getBuild_name(), AuthZResource.Type.BUILD);
+
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put(AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name(), buildBean.getArtifact_url());
+        return new AuthZResource(buildBean.getBuild_name(), AuthZResource.Type.BUILD, attributes);
     }
 }
