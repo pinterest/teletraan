@@ -46,6 +46,9 @@ public class AuthZResourceAttributesUtils {
     @SuppressWarnings("unchecked")
     public static Map<String, String> getAuthZResourceAttributes(
             ContainerRequestContext requestContext) {
+        if (requestContext == null) {
+            return new HashMap<>();
+        }
         Object attributes = requestContext.getProperty(Constants.AUTHZ_ATTR_REQ_CXT_KEY);
         if (attributes instanceof Map<?, ?>) {
             return (Map<String, String>) attributes;
