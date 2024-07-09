@@ -23,14 +23,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
 import com.pinterest.commons.pastis.PastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 import javax.ws.rs.container.ContainerRequestContext;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,7 +50,8 @@ class BasePastisAuthorizerTest {
     private static final String SERVICE_REQUEST_TEMPLATE =
             "{\"input\":{\"principal\":{\"id\":\"%s\",\"type\":\"%s\"},\"action\":\"%s\",\"resource\":{\"name\":\"%s\",\"type\":\"%s\"}}}";
     private static final AuthZResource resource = new AuthZResource("env", "stage");
-    private static final HashMap<String, String> attributes = new HashMap<>();
+    private static final Map<String, String> attributes =
+            ImmutableMap.of("attr_key1", "attr_value1");
     private static final AuthZResource resourceWithOptionalFields =
             new AuthZResource(
                     "resourceName", AuthZResource.Type.BASE_IMAGE, ACCOUNT_ID, attributes);
@@ -58,11 +59,6 @@ class BasePastisAuthorizerTest {
     private static ContainerRequestContext context;
     private static PastisAuthorizer pastis;
     private static AuthZResourceExtractor.Factory factory;
-
-    @BeforeAll
-    public static void setUpAll() {
-        attributes.put("attr_key1", "attr_value1");
-    }
 
     @BeforeEach
     public void setUp() {

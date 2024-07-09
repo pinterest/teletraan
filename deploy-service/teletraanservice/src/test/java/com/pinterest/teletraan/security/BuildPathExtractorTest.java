@@ -76,7 +76,9 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
         assertNotNull(result);
         assertEquals("Test Build", result.getName());
         assertEquals(AuthZResource.Type.BUILD, result.getType());
-        assertEquals("testURL", result.getAttributes().get(AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name()));
+        assertEquals(
+                "testURL",
+                result.getAttributes().get(AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name()));
     }
 
     @Test

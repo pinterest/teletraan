@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AuthZResourceTest {
@@ -55,8 +56,7 @@ class AuthZResourceTest {
 
     @Test
     void constructor_withEnvNameAndStageNameAndAttributes_setsNameTypeAndAttributes() {
-        HashMap<String, String> attributes = new HashMap<>();
-        attributes.put("key1", "value1");
+        Map<String, String> attributes = ImmutableMap.of("key1", "value1");
         AuthZResource resource = new AuthZResource(ENV_NAME, STAGE_NAME, attributes);
         assertEquals("envName/stageName", resource.getName());
         assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
