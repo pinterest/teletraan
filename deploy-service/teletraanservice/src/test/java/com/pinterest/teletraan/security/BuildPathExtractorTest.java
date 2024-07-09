@@ -68,6 +68,7 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
 
         BuildBean buildBean = new BuildBean();
         buildBean.setBuild_name("Test Build");
+        buildBean.setArtifact_url("testURL");
         when(buildDAO.getById(buildId)).thenReturn(buildBean);
 
         AuthZResource result = sut.extractResource(context);
@@ -75,6 +76,9 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
         assertNotNull(result);
         assertEquals("Test Build", result.getName());
         assertEquals(AuthZResource.Type.BUILD, result.getType());
+        assertEquals(
+                "testURL",
+                result.getAttributes().get(AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name()));
     }
 
     @Test

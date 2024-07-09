@@ -11,4 +11,6 @@ input:
   resource:
     type: ENV_STAGE
     name: teletraan-prod
-
+    attributes:
+      isSox: true
+      artifactUrl: s3://teletraan-prod

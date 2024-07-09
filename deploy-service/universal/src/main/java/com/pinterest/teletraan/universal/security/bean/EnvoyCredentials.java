@@ -17,9 +17,9 @@ package com.pinterest.teletraan.universal.security.bean;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 @AllArgsConstructor
 public class EnvoyCredentials {
     String user;

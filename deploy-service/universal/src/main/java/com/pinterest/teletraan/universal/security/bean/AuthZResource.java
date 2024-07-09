@@ -17,27 +17,36 @@ package com.pinterest.teletraan.universal.security.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
 /** AuthZResource represents a resource for authorization purposes. */
-@Data
+@Value
 @AllArgsConstructor
 public class AuthZResource {
-    private @Nonnull String name;
-    private final Type type;
+    @Nonnull String name;
+    @Nonnull Type type;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String accountId;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    String accountId;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    Map<String, String> attributes;
 
     public static final String ALL = "*";
     public static final String NA = "NA";
     public static final AuthZResource SYSTEM_RESOURCE = new AuthZResource(ALL, Type.SYSTEM);
-    public static final AuthZResource UNSPECIFIED_RESOURCE = new AuthZResource(NA, Type.UNSPECIFIED);
+    public static final AuthZResource UNSPECIFIED_RESOURCE =
+            new AuthZResource(NA, Type.UNSPECIFIED);
 
     public AuthZResource(@Nonnull String name, Type type) {
-        this(name, type, null);
+        this(name, type, null, null);
+    }
+
+    public AuthZResource(@Nonnull String name, Type type, Map<String, String> attributes) {
+        this(name, type, null, attributes);
     }
 
     /**
@@ -47,11 +56,24 @@ public class AuthZResource {
      * @param stageName the name of the stage
      */
     public AuthZResource(String envName, String stageName) {
+        this(envName, stageName, null);
+    }
+
+    /**
+     * Convenient constructor for creating an ENV_STAGE resource, the most common resource type.
+     *
+     * @param envName the name of the environment
+     * @param stageName the name of the stage
+     * @param attributes the attributes of the resource
+     */
+    public AuthZResource(String envName, String stageName, Map<String, String> attributes) {
         if (envName == null) {
             throw new IllegalArgumentException("envName cannot be null");
         }
         this.name = String.format("%s/%s", envName, stageName);
         this.type = Type.ENV_STAGE;
+        this.attributes = attributes;
+        this.accountId = null;
     }
 
     /**
@@ -99,12 +121,8 @@ public class AuthZResource {
         UNSPECIFIED,
     }
 
-    /**
-     * @deprecated Use getName() instead this. It is needed for converting DB records to
-     *     AuthZResource objects.
-     */
-    @Deprecated
-    public void setId(@Nonnull String id) {
-        this.name = id;
+    public enum AttributeKeys {
+        ENV_STAGE_IS_SOX,
+        BUILD_ARTIFACT_URL,
     }
 }

@@ -91,6 +91,17 @@ definitions:
         description: >
           Name of the resource. If this is an environment, it is the name of the
           environment.
+      attributes:
+        type: object
+        description: |
+          Additional attributes of the resource
+        additionalProperties: false
+        patternProperties:
+          "^[a-zA-Z0-9_]+$":
+            type:
+              - string
+              - number
+              - boolean
     required:
       - type
       - name

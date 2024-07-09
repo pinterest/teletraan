@@ -15,16 +15,14 @@
  */
 package com.pinterest.teletraan.security;
 
-import java.io.InputStream;
-
-import javax.ws.rs.container.ContainerRequestContext;
-
-import org.glassfish.jersey.server.ContainerRequest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.io.InputStream;
+import java.util.HashMap;
+import javax.ws.rs.container.ContainerRequestContext;
+import org.glassfish.jersey.server.ContainerRequest;
 
 public class BuildBodyExtractor implements AuthZResourceExtractor {
     @Override
@@ -35,7 +33,12 @@ public class BuildBodyExtractor implements AuthZResourceExtractor {
         InputStream inputStream = request.getEntityStream();
         try {
             BuildBean buildBean = new ObjectMapper().readValue(inputStream, BuildBean.class);
-            return new AuthZResource(buildBean.getBuild_name(), AuthZResource.Type.BUILD);
+            HashMap<String, String> attributes = new HashMap<>();
+            attributes.put(
+                    AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name(),
+                    buildBean.getArtifact_url());
+            return new AuthZResource(
+                    buildBean.getBuild_name(), AuthZResource.Type.BUILD, attributes);
         } catch (Exception e) {
             throw new BeanClassExtractionException(BuildBean.class, e);
         }

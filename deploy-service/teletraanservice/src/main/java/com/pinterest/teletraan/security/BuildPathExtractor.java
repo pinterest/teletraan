@@ -15,14 +15,14 @@
  */
 package com.pinterest.teletraan.security;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.container.ContainerRequestContext;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import java.util.HashMap;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.container.ContainerRequestContext;
 
 public class BuildPathExtractor implements AuthZResourceExtractor {
     private static final String BUILD_ID = "id";
@@ -50,6 +50,10 @@ public class BuildPathExtractor implements AuthZResourceExtractor {
         if (buildBean == null) {
             throw new NotFoundException(String.format("Build %s not found", buildId));
         }
-        return new AuthZResource(buildBean.getBuild_name(), AuthZResource.Type.BUILD);
+
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put(
+                AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name(), buildBean.getArtifact_url());
+        return new AuthZResource(buildBean.getBuild_name(), AuthZResource.Type.BUILD, attributes);
     }
 }
