@@ -1,4 +1,4 @@
-Django==1.11.29
+Django==4.2.14
 python-dateutil==2.8.2
 pytz==2014.10
 requests==2.32.0
