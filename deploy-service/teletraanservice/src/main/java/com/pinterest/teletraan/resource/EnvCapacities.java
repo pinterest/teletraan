@@ -31,7 +31,6 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.security.Principal;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +48,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
@@ -114,30 +114,26 @@ public class EnvCapacities {
             @Context SecurityContext sc)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        String operator = sc.getUserPrincipal().getName();
         authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
+
+        String operator = sc.getUserPrincipal().getName();
+        String changeType;
 
         if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
             environHandler.updateGroups(envBean, names, operator);
-            configHistoryHandler.updateConfigHistory(
-                    envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, names, operator);
-            configHistoryHandler.updateChangeFeed(
-                    Constants.CONFIG_TYPE_ENV,
-                    envBean.getEnv_id(),
-                    Constants.TYPE_ENV_GROUP_CAPACITY,
-                    operator,
-                    envBean.getExternal_id());
+            changeType = Constants.TYPE_ENV_GROUP_CAPACITY;
         } else {
             environHandler.updateHosts(envBean, names, operator);
-            configHistoryHandler.updateConfigHistory(
-                    envBean.getEnv_id(), Constants.TYPE_ENV_HOST_CAPACITY, names, operator);
-            configHistoryHandler.updateChangeFeed(
-                    Constants.CONFIG_TYPE_ENV,
-                    envBean.getEnv_id(),
-                    Constants.TYPE_ENV_HOST_CAPACITY,
-                    operator,
-                    envBean.getExternal_id());
+            changeType = Constants.TYPE_ENV_HOST_CAPACITY;
         }
+
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), changeType, names, operator);
+        configHistoryHandler.updateChangeFeed(
+                Constants.CONFIG_TYPE_ENV,
+                envBean.getEnv_id(),
+                changeType,
+                operator,
+                envBean.getExternal_id());
         LOG.info(
                 "Successfully updated env {}/{} capacity config as {} by {}.",
                 envName,
@@ -244,9 +240,25 @@ public class EnvCapacities {
         if (!(principal instanceof TeletraanPrincipal)) {
             throw new UnsupportedOperationException("Only TeletraanPrincipal is allowed");
         }
-        TeletraanPrincipal p = (TeletraanPrincipal) principal;
-        TeletraanAuthorizer<TeletraanPrincipal> authorizer = authorizationFactory.create(context);
+        HashSet<AuthZResource> resources = getCapacityMainEnvironments(capacityType, capacities);
 
+        TeletraanAuthorizer<TeletraanPrincipal> authorizer = authorizationFactory.create(context);
+        for (AuthZResource resource : resources) {
+            if (!authorizer.authorize(
+                    (TeletraanPrincipal) principal,
+                    TeletraanPrincipalRole.Names.WRITE,
+                    resource,
+                    null)) {
+                throw new ForbiddenException(
+                        String.format(
+                                "Principal %s is now allowed to modify capacity owned by env %s",
+                                principal.getName(), resource.getName()));
+            }
+        }
+    }
+
+    private HashSet<AuthZResource> getCapacityMainEnvironments(
+            CapacityType capacityType, List<String> capacities) throws WebApplicationException {
         HashSet<AuthZResource> resources = new HashSet<>();
         for (String capacity : capacities) {
             EnvironBean envBean;
@@ -256,7 +268,7 @@ public class EnvCapacities {
                 } else {
                     envBean = environDAO.getMainEnvByHostName(capacity);
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 throw new InternalServerErrorException(e);
             }
 
@@ -266,14 +278,6 @@ public class EnvCapacities {
             }
             resources.add(new AuthZResource(envBean.getEnv_name(), envBean.getStage_name()));
         }
-
-        for (AuthZResource resource : resources) {
-            if (!authorizer.authorize(p, TeletraanPrincipalRole.Names.WRITE, resource, null)) {
-                throw new ForbiddenException(
-                        String.format(
-                                "Principal %s is now allowed to modify capacity owned by env %s",
-                                p.getName(), resource.getName()));
-            }
-        }
+        return resources;
     }
 }

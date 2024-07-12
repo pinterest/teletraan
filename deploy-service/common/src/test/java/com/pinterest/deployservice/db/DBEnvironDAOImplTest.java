@@ -18,8 +18,6 @@ package com.pinterest.deployservice.db;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.time.Instant;
-
 import com.pinterest.deployservice.bean.BeanUtils;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
@@ -28,6 +26,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.fixture.EnvironBeanFixture;
+import java.time.Instant;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 class DBEnvironDAOImplTest {
     private static final String HOST_ID = "host123";
+    private static final String HOST_NAME = "host456";
     private static final String TEST_CLUSTER = "test-cluster";
     private static BasicDataSource dataSource;
     private static HostAgentDAO hostAgentDAO;
@@ -61,26 +61,23 @@ class DBEnvironDAOImplTest {
 
     @Test
     void testGetMainEnvByHostId_happyPath() throws Exception {
-        EnvironBean expectedEnvBean = EnvironBeanFixture.createRandomEnvironBean();
-        expectedEnvBean.setCluster_name(TEST_CLUSTER);
-        sut.insert(expectedEnvBean);
-
-        HostAgentBean hostAgentBean = new HostAgentBean();
-        hostAgentBean.setHost_id(HOST_ID);
-        hostAgentBean.setAuto_scaling_group(TEST_CLUSTER);
-        hostAgentDAO.insert(hostAgentBean);
-
-        HostBean hostBean = BeanUtils.createHostBean(Instant.now());
-        hostBean.setHost_id(HOST_ID);
-        hostBean.setGroup_name(TEST_CLUSTER + "sidecar");
-        hostDAO.insert(hostBean);
+        EnvironBean expectedEnvBean = setupCommonEntities();
 
         EnvironBean actualEnvironBean = sut.getMainEnvByHostId(HOST_ID);
-        assertEquals(expectedEnvBean.getEnv_name(), actualEnvironBean.getEnv_name());
-        assertEquals(expectedEnvBean.getStage_name(), actualEnvironBean.getStage_name());
-        assertEquals(TEST_CLUSTER, actualEnvironBean.getCluster_name());
+        assertEnvironBean(expectedEnvBean, actualEnvironBean);
 
         EnvironBean nullEnvironBean = sut.getMainEnvByHostId("random-host-id");
+        assertNull(nullEnvironBean);
+    }
+
+    @Test
+    void testGetMainEnvByHostName_happyPath() throws Exception {
+        EnvironBean expectedEnvBean = setupCommonEntities();
+
+        EnvironBean actualEnvironBean = sut.getMainEnvByHostName(HOST_NAME);
+        assertEnvironBean(expectedEnvBean, actualEnvironBean);
+
+        EnvironBean nullEnvironBean = sut.getMainEnvByHostName("random-host-name");
         assertNull(nullEnvironBean);
     }
 
@@ -91,13 +88,24 @@ class DBEnvironDAOImplTest {
     }
 
     @Test
+    void testGetMainEnvByHostName_noHost() throws Exception {
+        EnvironBean actualEnvironBean = sut.getMainEnvByHostName(HOST_NAME);
+        assertNull(actualEnvironBean);
+    }
+
+    @Test
     void testGetMainEnvByHostId_noEnv() throws Exception {
-        HostAgentBean hostAgentBean = new HostAgentBean();
-        hostAgentBean.setHost_id(HOST_ID);
-        hostAgentBean.setAuto_scaling_group(TEST_CLUSTER);
-        hostAgentDAO.insert(hostAgentBean);
+        setUpHostAgentBean();
 
         EnvironBean actualEnvironBean = sut.getMainEnvByHostId(HOST_ID);
+        assertNull(actualEnvironBean);
+    }
+
+    @Test
+    void testGetMainEnvByHostName_noEnv() throws Exception {
+        setUpHostAgentBean();
+
+        EnvironBean actualEnvironBean = sut.getMainEnvByHostName(HOST_NAME);
         assertNull(actualEnvironBean);
     }
 
@@ -107,19 +115,56 @@ class DBEnvironDAOImplTest {
         expectedEnvBean.setCluster_name(TEST_CLUSTER);
         sut.insert(expectedEnvBean);
 
-        HostBean hostBean = BeanUtils.createHostBean(Instant.now());
-        hostBean.setHost_id(HOST_ID);
-        hostBean.setGroup_name(TEST_CLUSTER);
-        hostDAO.insert(hostBean);
-
-        HostBean hostBean2 = BeanUtils.createHostBean(Instant.now());
-        hostBean.setHost_id(HOST_ID);
-        hostBean.setGroup_name(TEST_CLUSTER + "2");
-        hostDAO.insert(hostBean2);
+        setUpHostBean(TEST_CLUSTER);
+        setUpHostBean(TEST_CLUSTER + "2");
 
         EnvironBean actualEnvironBean = sut.getMainEnvByHostId(HOST_ID);
-        assertEquals(expectedEnvBean.getEnv_name(), actualEnvironBean.getEnv_name());
-        assertEquals(expectedEnvBean.getStage_name(), actualEnvironBean.getStage_name());
-        assertEquals(TEST_CLUSTER, actualEnvironBean.getCluster_name());
+        assertEnvironBean(expectedEnvBean, actualEnvironBean);
+    }
+
+    @Test
+    void testGetMainEnvByHostName_noHostAgent() throws Exception {
+        EnvironBean expectedEnvBean = EnvironBeanFixture.createRandomEnvironBean();
+        expectedEnvBean.setCluster_name(TEST_CLUSTER);
+        sut.insert(expectedEnvBean);
+
+        setUpHostBean(TEST_CLUSTER);
+        setUpHostBean(TEST_CLUSTER + "2");
+
+        EnvironBean actualEnvironBean = sut.getMainEnvByHostName(HOST_NAME);
+        assertEnvironBean(expectedEnvBean, actualEnvironBean);
+    }
+
+    private void setUpHostAgentBean() throws Exception {
+        HostAgentBean hostAgentBean = new HostAgentBean();
+        hostAgentBean.setHost_id(HOST_ID);
+        hostAgentBean.setHost_name(HOST_NAME);
+        hostAgentBean.setAuto_scaling_group(TEST_CLUSTER);
+        hostAgentDAO.insert(hostAgentBean);
+    }
+
+    private EnvironBean setupCommonEntities() throws Exception {
+        EnvironBean expectedEnvBean = EnvironBeanFixture.createRandomEnvironBean();
+        expectedEnvBean.setCluster_name(TEST_CLUSTER);
+        sut.insert(expectedEnvBean);
+
+        setUpHostAgentBean();
+        setUpHostBean(TEST_CLUSTER + "sidecar");
+
+        return expectedEnvBean;
+    }
+
+    private void setUpHostBean(String groupName) throws Exception {
+        HostBean hostBean = BeanUtils.createHostBean(Instant.now());
+        hostBean.setHost_id(HOST_ID);
+        hostBean.setHost_name(HOST_NAME);
+        hostBean.setGroup_name(groupName);
+        hostDAO.insert(hostBean);
+    }
+
+    private void assertEnvironBean(EnvironBean expected, EnvironBean actual) {
+        assertEquals(expected.getEnv_name(), actual.getEnv_name());
+        assertEquals(expected.getStage_name(), actual.getStage_name());
+        assertEquals(expected.getCluster_name(), actual.getCluster_name());
     }
 }
