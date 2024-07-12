@@ -5,6 +5,7 @@ import com.pinterest.deployservice.bean.BuildBean;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.eventbridge.EventBridgeAsyncClient;
@@ -27,6 +28,14 @@ public class EventBridgePublisher implements BuildEventPublisher {
 
   @Override
   public void publish(BuildBean buildBean, String action) {
+
+    // The branch name is actually "master" in this case. Some legacy CI jobs still use "origin/master",
+    // which is a nonexistent branch. Make this correction so consumers of this event can process
+    // branch info properly.
+    if (StringUtils.equalsIgnoreCase("origin/master", buildBean.getScm_branch())) {
+      buildBean.setScm_branch("master");
+    }
+
     PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
         .eventBusName(eventBusName)
         .source(TELETRAAN_SOURCE)
