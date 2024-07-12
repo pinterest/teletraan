@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
@@ -35,6 +34,7 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -91,7 +91,7 @@ public class EnvCapacities {
             @QueryParam("capacityType") Optional<CapacityType> capacityType)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
             return groupDAO.getCapacityGroups(envBean.getEnv_id());
         } else {
             return groupDAO.getCapacityHosts(envBean.getEnv_id());
@@ -115,9 +115,9 @@ public class EnvCapacities {
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
-        authorize(envBean, sc.getUserPrincipal(), capacityType.or(CapacityType.GROUP), names);
+        authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
 
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
             environHandler.updateGroups(envBean, names, operator);
             configHistoryHandler.updateConfigHistory(
                     envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, names, operator);
@@ -163,8 +163,8 @@ public class EnvCapacities {
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
-        name = name.replaceAll("\"", "");
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+        name = name.replace("\"", "");
+        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
             groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
         } else {
             groupDAO.addHostCapacity(envBean.getEnv_id(), name);
@@ -194,8 +194,8 @@ public class EnvCapacities {
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
-        name = name.replaceAll("\"", "");
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+        name = name.replace("\"", "");
+        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
             LOG.info(
                     "Delete group {} from environment {} stage {} capacity",
                     name,
