@@ -238,4 +238,18 @@ public class ScriptTokenRoleAuthorizerTest {
         checkPositive(sysOperator, build, TeletraanPrincipalRole.PUBLISHER);
         checkNegative(sysReader, build, TeletraanPrincipalRole.PUBLISHER);
     }
+
+    @Test
+    public void testUnspecified() throws Exception {
+        checkPositive(sysAdmin, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+        checkPositive(sysOperator, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+        checkPositive(sysReader, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+
+        checkPositive(envAdmin, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+        checkPositive(envOperator, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+        checkPositive(envReader, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+
+        checkPositive(pinger, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+        checkPositive(publisher, AuthZResource.UNSPECIFIED_RESOURCE, TeletraanPrincipalRole.READ);
+    }
 }
