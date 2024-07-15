@@ -29,8 +29,8 @@ public class EventBridgePublisher implements BuildEventPublisher {
   @Override
   public void publish(BuildBean buildBean, String action) {
 
-    // Some legacy CI jobs still add prefix "origin/" to branch name. Remove this prefix before
-    // publishing.
+    // Some legacy CI jobs still use remote-tracking branch (with prefix "origin/" added to branch name).
+    // Remove this prefix before publishing.
     final String originPrefix = "origin/";
     if (StringUtils.startsWithIgnoreCase(buildBean.getScm_branch(), originPrefix) && !StringUtils.equalsIgnoreCase(buildBean.getScm_branch(), originPrefix)) {
       final String correctedBranch = buildBean.getScm_branch().substring(originPrefix.length());
