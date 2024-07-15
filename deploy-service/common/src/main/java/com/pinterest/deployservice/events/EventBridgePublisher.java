@@ -29,11 +29,12 @@ public class EventBridgePublisher implements BuildEventPublisher {
   @Override
   public void publish(BuildBean buildBean, String action) {
 
-    // The branch name is actually "master" in this case. Some legacy CI jobs still use "origin/master",
-    // which is a nonexistent branch. Make this correction so consumers of this event can process
-    // branch info properly.
-    if (StringUtils.equalsIgnoreCase("origin/master", buildBean.getScm_branch())) {
-      buildBean.setScm_branch("master");
+    // Some legacy CI jobs still add prefix "origin/" to branch name. Remove this prefix before
+    // publishing.
+    final String originPrefix = "origin/";
+    if (StringUtils.startsWithIgnoreCase(buildBean.getScm_branch(), originPrefix) && !StringUtils.equalsIgnoreCase(buildBean.getScm_branch(), originPrefix)) {
+      final String correctedBranch = buildBean.getScm_branch().substring(originPrefix.length());
+      buildBean.setScm_branch(correctedBranch);
     }
 
     PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
