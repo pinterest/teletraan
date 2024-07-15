@@ -47,6 +47,11 @@ public class ScriptTokenRoleAuthorizer
             return false;
         }
 
+        if (AuthZResource.Type.UNSPECIFIED.equals(requestedResource.getType())) {
+            // Always allow unspecified resources as they are READ operations
+            return true;
+        }
+
         if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())) {
             if (requestedResource.getEnvName().equals(principal.getResource().getName())) {
                 return true;
