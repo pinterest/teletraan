@@ -29,12 +29,13 @@ public class EventBridgePublisher implements BuildEventPublisher {
 
   @Override
   public void publish(BuildBean buildBean, String action) {
+    final String originalBranch = buildBean.getScm_branch();
 
     // Some legacy CI jobs still use remote-tracking branch (with prefix "origin/" added to branch name).
     // Remove this prefix before publishing.
-    if (StringUtils.startsWithIgnoreCase(buildBean.getScm_branch(), ORIGIN_PREFIX) && !StringUtils.equalsIgnoreCase(buildBean.getScm_branch(), ORIGIN_PREFIX)) {
-      final String correctedBranch = buildBean.getScm_branch().substring(ORIGIN_PREFIX.length());
-      buildBean.setScm_branch(correctedBranch);
+    if (StringUtils.startsWithIgnoreCase(originalBranch, ORIGIN_PREFIX) && !StringUtils.equalsIgnoreCase(originalBranch, ORIGIN_PREFIX)) {
+      final String localBranch = buildBean.getScm_branch().substring(ORIGIN_PREFIX.length());
+      buildBean.setScm_branch(localBranch);
     }
 
     PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
@@ -54,6 +55,9 @@ public class EventBridgePublisher implements BuildEventPublisher {
     } catch (Exception e) {
       logger.error("Failed to publish event to Event Bridge: {}", entry, e);
     }
+
+    // set branch name back to its original value in case it's expected.
+    buildBean.setScm_branch(originalBranch);
   }
 
   private String buildEventDetailJson(BuildBean buildBean, String action) {
