@@ -20,6 +20,7 @@ public class EventBridgePublisher implements BuildEventPublisher {
   private final EventBridgeAsyncClient eventBridgeAsyncClient;
   private final String eventBusName;
   private static final Logger logger = LoggerFactory.getLogger(EventBridgePublisher.class);
+  private static final String ORIGIN_PREFIX = "origin/";
 
   public EventBridgePublisher(EventBridgeAsyncClient eventBridgeAsyncClient, String eventBusName) {
     this.eventBridgeAsyncClient = eventBridgeAsyncClient;
@@ -28,12 +29,13 @@ public class EventBridgePublisher implements BuildEventPublisher {
 
   @Override
   public void publish(BuildBean buildBean, String action) {
+    final String originalBranch = buildBean.getScm_branch();
 
-    // The branch name is actually "master" in this case. Some legacy CI jobs still use "origin/master",
-    // which is a nonexistent branch. Make this correction so consumers of this event can process
-    // branch info properly.
-    if (StringUtils.equalsIgnoreCase("origin/master", buildBean.getScm_branch())) {
-      buildBean.setScm_branch("master");
+    // Some legacy CI jobs still use remote-tracking branch (with prefix "origin/" added to branch name).
+    // Remove this prefix before publishing.
+    if (StringUtils.startsWithIgnoreCase(originalBranch, ORIGIN_PREFIX) && !StringUtils.equalsIgnoreCase(originalBranch, ORIGIN_PREFIX)) {
+      final String localBranch = buildBean.getScm_branch().substring(ORIGIN_PREFIX.length());
+      buildBean.setScm_branch(localBranch);
     }
 
     PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
@@ -53,6 +55,9 @@ public class EventBridgePublisher implements BuildEventPublisher {
     } catch (Exception e) {
       logger.error("Failed to publish event to Event Bridge: {}", entry, e);
     }
+
+    // set branch name back to its original value in case it's expected.
+    buildBean.setScm_branch(originalBranch);
   }
 
   private String buildEventDetailJson(BuildBean buildBean, String action) {
