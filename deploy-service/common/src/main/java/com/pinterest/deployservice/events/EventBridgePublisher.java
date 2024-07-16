@@ -20,6 +20,7 @@ public class EventBridgePublisher implements BuildEventPublisher {
   private final EventBridgeAsyncClient eventBridgeAsyncClient;
   private final String eventBusName;
   private static final Logger logger = LoggerFactory.getLogger(EventBridgePublisher.class);
+  private static final String ORIGIN_PREFIX = "origin/";
 
   public EventBridgePublisher(EventBridgeAsyncClient eventBridgeAsyncClient, String eventBusName) {
     this.eventBridgeAsyncClient = eventBridgeAsyncClient;
@@ -31,9 +32,8 @@ public class EventBridgePublisher implements BuildEventPublisher {
 
     // Some legacy CI jobs still use remote-tracking branch (with prefix "origin/" added to branch name).
     // Remove this prefix before publishing.
-    final String originPrefix = "origin/";
-    if (StringUtils.startsWithIgnoreCase(buildBean.getScm_branch(), originPrefix) && !StringUtils.equalsIgnoreCase(buildBean.getScm_branch(), originPrefix)) {
-      final String correctedBranch = buildBean.getScm_branch().substring(originPrefix.length());
+    if (StringUtils.startsWithIgnoreCase(buildBean.getScm_branch(), ORIGIN_PREFIX) && !StringUtils.equalsIgnoreCase(buildBean.getScm_branch(), ORIGIN_PREFIX)) {
+      final String correctedBranch = buildBean.getScm_branch().substring(ORIGIN_PREFIX.length());
       buildBean.setScm_branch(correctedBranch);
     }
 
