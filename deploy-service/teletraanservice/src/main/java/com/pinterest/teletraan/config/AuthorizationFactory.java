@@ -17,16 +17,16 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
-import io.dropwizard.auth.Authorizer;
 import io.dropwizard.jackson.Discoverable;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public interface AuthorizationFactory extends Discoverable {
-    <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context)
+    <P extends TeletraanPrincipal> TeletraanAuthorizer<P> create(TeletraanServiceContext context)
             throws Exception;
 
-    default <P extends TeletraanPrincipal> Authorizer<? extends TeletraanPrincipal> create(
+    default <P extends TeletraanPrincipal> TeletraanAuthorizer<? extends TeletraanPrincipal> create(
             TeletraanServiceContext context, Class<P> principalClass) throws Exception {
         return create(context);
     }

@@ -19,7 +19,6 @@ import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.BeanCla
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
-import io.dropwizard.auth.Authorizer;
 import javax.annotation.Nullable;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -34,7 +33,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @AllArgsConstructor
 @Slf4j
-public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Authorizer<P> {
+public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
+        implements TeletraanAuthorizer<P> {
     protected final AuthZResourceExtractor.Factory extractorFactory;
 
     @Override
@@ -86,10 +86,4 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Au
             return authorize(principal, role, requestedResource, context);
         }
     }
-
-    public abstract boolean authorize(
-            P principal,
-            String role,
-            AuthZResource requestedResource,
-            @Nullable ContainerRequestContext context);
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,20 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.UpdateStatement;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Comparator;
 
 public class DBEnvironDAOImpl implements EnvironDAO {
     private static final String INSERT_ENV_TEMPLATE =
@@ -107,21 +106,37 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET cluster_name=null where env_name=? AND stage_name=?";
     private static final String GET_ENV_BY_CONSTRAINT_ID = "SELECT * FROM environs WHERE deploy_constraint_id = ?";
     private static final String DELETE_DEPLOY_CONSTRAINT =
-        "UPDATE environs SET deploy_constraint_id=null WHERE env_name=? AND stage_name=?";
-    private static final String GET_MAIN_ENV_BY_HOST_ID = "SELECT e.* " +
-            "FROM hosts_and_agents ha " +
-            "JOIN environs e ON ha.auto_scaling_group = e.cluster_name " +
-            "WHERE ha.host_id = ? " +
-            "UNION " +
-            "(SELECT e.* " +
-            "FROM hosts h " +
-            "JOIN environs e ON h.group_name = e.cluster_name " +
-            "WHERE h.host_id = ? AND NOT EXISTS ( " +
-            "    SELECT 1 " +
-            "    FROM hosts_and_agents ha " +
-            "    JOIN environs e ON ha.auto_scaling_group = e.cluster_name " +
-            "    WHERE ha.host_id = ? )" +
-            "ORDER BY h.create_date ASC LIMIT 1)";
+            "UPDATE environs SET deploy_constraint_id=null WHERE env_name=? AND stage_name=?";
+    private static final String GET_MAIN_ENV_BY_HOST_ID =
+            "SELECT e.* "
+                    + "FROM hosts_and_agents ha "
+                    + "JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "WHERE ha.host_id = ? "
+                    + "UNION "
+                    + "(SELECT e.* "
+                    + "FROM hosts h "
+                    + "JOIN environs e ON h.group_name = e.cluster_name "
+                    + "WHERE h.host_id = ? AND NOT EXISTS ( "
+                    + "    SELECT 1 "
+                    + "    FROM hosts_and_agents ha "
+                    + "    JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "    WHERE ha.host_id = ? )"
+                    + "ORDER BY h.create_date ASC LIMIT 1)";
+    private static final String GET_MAIN_ENV_BY_HOST_NAME =
+            "SELECT e.* "
+                    + "FROM hosts_and_agents ha "
+                    + "JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "WHERE ha.host_name = ? "
+                    + "UNION "
+                    + "(SELECT e.* "
+                    + "FROM hosts h "
+                    + "JOIN environs e ON h.group_name = e.cluster_name "
+                    + "WHERE h.host_name = ? AND NOT EXISTS ( "
+                    + "    SELECT 1 "
+                    + "    FROM hosts_and_agents ha "
+                    + "    JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "    WHERE ha.host_name = ? )"
+                    + "ORDER BY h.create_date ASC LIMIT 1)";
 
     private BasicDataSource dataSource;
 
@@ -267,7 +282,15 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     @Override
     public EnvironBean getMainEnvByHostId(String hostId) throws SQLException {
         ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
-        return new QueryRunner(dataSource).query(GET_MAIN_ENV_BY_HOST_ID, h, hostId, hostId, hostId);
+        return new QueryRunner(dataSource)
+                .query(GET_MAIN_ENV_BY_HOST_ID, h, hostId, hostId, hostId);
+    }
+
+    @Override
+    public EnvironBean getMainEnvByHostName(String hostName) throws SQLException {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource)
+                .query(GET_MAIN_ENV_BY_HOST_NAME, h, hostName, hostName, hostName);
     }
 
     @Override

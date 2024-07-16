@@ -20,25 +20,24 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.security.UserRoleAuthorizer;
+import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-import io.dropwizard.auth.Authorizer;
 
 @JsonTypeName("role")
 public class RoleAuthorizationFactory implements AuthorizationFactory {
-    @JsonProperty
-    private String roleCacheSpec; // Unused, for backwards compatibility
+    @JsonProperty private String roleCacheSpec; // Unused, for backwards compatibility
 
     @Override
-    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context)
-            throws Exception {
+    public <P extends TeletraanPrincipal> TeletraanAuthorizer<P> create(
+            TeletraanServiceContext context) throws Exception {
         throw new UnsupportedOperationException(
                 "RoleAuthorizationFactory does not support this method. Use create(TeletraanServiceContext, Class<P>) instead.");
     }
 
     @Override
-    public <P extends TeletraanPrincipal> Authorizer<? extends TeletraanPrincipal> create(
+    public <P extends TeletraanPrincipal> TeletraanAuthorizer<? extends TeletraanPrincipal> create(
             TeletraanServiceContext context, Class<P> principalClass) throws Exception {
         if (ServicePrincipal.class.equals(principalClass)) {
             return new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory());
