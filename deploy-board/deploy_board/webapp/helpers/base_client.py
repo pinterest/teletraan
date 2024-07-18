@@ -16,6 +16,7 @@ import requests
 from .decorators import retry
 from .exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
+from settings import UNAUTHORIZED_ERROR_TEXT
 
 DEFAULT_TIMEOUT = 30
 
@@ -59,9 +60,7 @@ class BaseClient(object):
                     "assistance. " + response.text)
 
             if response.status_code == 403:
-                raise NotAuthorizedException(
-                    "Oops! You do not have the required permissions for this action. Contact an environment ADMIN for "
-                    "assistance. " + response.text)
+                raise NotAuthorizedException(UNAUTHORIZED_ERROR_TEXT, response.text)
 
             if response.status_code == 400 or response.status_code == 422:
                 raise IllegalArgumentException(response.text)
