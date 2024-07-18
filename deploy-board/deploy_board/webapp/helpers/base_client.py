@@ -60,7 +60,7 @@ class BaseClient(object):
                     "assistance. " + response.text)
 
             if response.status_code == 403:
-                raise NotAuthorizedException(UNAUTHORIZED_ERROR_TEXT, response.text)
+                raise NotAuthorizedException(f'{UNAUTHORIZED_ERROR_TEXT}: {response.text}')
 
             if response.status_code == 400 or response.status_code == 422:
                 raise IllegalArgumentException(response.text)
