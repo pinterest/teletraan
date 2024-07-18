@@ -14,9 +14,9 @@
 import logging
 import requests
 from .decorators import retry
+from deploy_board.settings import UNAUTHORIZED_ERROR_TEXT
 from .exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
-from deploy_board.settings import UNAUTHORIZED_ERROR_TEXT
 
 DEFAULT_TIMEOUT = 30
 
