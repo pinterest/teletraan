@@ -15,16 +15,6 @@
 # -*- coding: utf-8 -*-
 """Backend server all exception
 """
-
-
-class FailedAuthenticationException(Exception):
-    pass
-
-
-class NotAuthorizedException(Exception):
-    pass
-
-
 class NotFoundException(Exception):
     pass
 
@@ -38,3 +28,12 @@ class TeletraanException(Exception):
 class IllegalArgumentException(TeletraanException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status=400)
+
+class FailedAuthenticationException(TeletraanException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message, status=401)
+
+
+class NotAuthorizedException(TeletraanException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message, status=403)

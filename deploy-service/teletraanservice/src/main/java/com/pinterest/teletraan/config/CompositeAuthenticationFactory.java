@@ -27,6 +27,7 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.CachingAuthenticator;
+import io.dropwizard.auth.JSONUnauthorizedHandler;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 import java.util.Arrays;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -50,6 +51,7 @@ public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
                 new EnvoyAuthFilter.Builder<TeletraanPrincipal>()
                         .setAuthenticator(authenticator)
                         .setAuthorizer(context.getAuthorizationFactory().create(context))
+                        .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                         .buildAuthFilter();
 
         return new ChainedAuthFilter(

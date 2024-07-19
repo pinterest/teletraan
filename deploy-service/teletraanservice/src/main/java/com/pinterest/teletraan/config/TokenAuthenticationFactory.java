@@ -31,6 +31,7 @@ import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.Authorizer;
 import io.dropwizard.auth.CachingAuthenticator;
+import io.dropwizard.auth.JSONUnauthorizedHandler;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 import java.util.Arrays;
@@ -115,6 +116,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                                         context.getAuthorizationFactory()
                                                 .create(context, ServicePrincipal.class))
                         .setPrefix("token")
+                        .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                         .buildAuthFilter();
     }
 
@@ -135,6 +137,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                                         context.getAuthorizationFactory()
                                                 .create(context, UserPrincipal.class))
                         .setPrefix("token")
+                        .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                         .buildAuthFilter();
     }
 
@@ -152,6 +155,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                         (Authorizer<UserPrincipal>) context.getAuthorizationFactory()
                                 .create(context, UserPrincipal.class))
                 .setPrefix("Bearer")
+                .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                 .buildAuthFilter();
     }
 }

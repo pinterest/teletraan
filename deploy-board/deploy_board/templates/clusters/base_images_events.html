@@ -53,7 +53,7 @@
                 globalNotificationBanner.info = "Request sent successfully";
             },
             error: function (data) { // if error occured
-                globalNotificationBanner.error = data;
+                globalNotificationBanner.error = data.responseJSON.error;
             },
         });
     });
@@ -72,7 +72,7 @@
                 globalNotificationBanner.info = "Request sent successfully";
             },
             error: function (data) { // if error occured
-                globalNotificationBanner.error = data;
+                globalNotificationBanner.error = data.responseJSON.error;
             },
         });
     });

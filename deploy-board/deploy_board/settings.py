@@ -316,6 +316,8 @@ RODIMUS_SERVICE_USE_BEARER = os.getenv("TELETRAAN_RODIMUS_SERVICE_USE_BEARER", "
 RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL = os.getenv("TELETRAAN_RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL", None)
 RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL = os.getenv("TELETRAAN_RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL", None)
 
+UNAUTHORIZED_ERROR_TEXT = "Access denied. Please check if you have the required permission in the Admin panel."
+
 if IS_PINTEREST:
     # use knox if present
     KNOX_SESSION_ID = os.getenv("KNOX_SESSION_ID")
@@ -402,3 +404,5 @@ if IS_PINTEREST:
     AWS_PRIMARY_ACCOUNT = os.getenv("AWS_PRIMARY_ACCOUNT", "998131032990")
     #Sub Account
     AWS_SUB_ACCOUNT = os.getenv("AWS_SUB_ACCOUNT", "562567494283")
+
+    UNAUTHORIZED_ERROR_TEXT = "Access denied. Please check if you have the required permissions. For details see: http://pinch.pinadmin.com/teletraan-auth-tsg"

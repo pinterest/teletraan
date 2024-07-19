@@ -365,20 +365,15 @@
                     btn.button('loading');
                 },
                 success: function (data) {
-                    if (data != null && data.success == false) {
-                        $('#errorBannerId').append(data.error);
-                        if ($('#stageTypeValueId').val() == 'DEFAULT') {
-                            $('#errorBannerId').append("<a href='{{stage_type_info_link}}'>pinch/teletraan-stagetypes</a>");
-                        }
-                        $('#errorBannerId').show();
-                    } else {
-                        $("#envConfigId").parent().html(data.html);
-                        $('#errorBannerId').empty().hide();
-                    }
+                    $("#envConfigId").parent().html(data.html);
+                    $('#errorBannerId').empty().hide();
                     btn.button('reset');
                 },
                 error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').append(data.responseJSON.error);
+                    if ($('#stageTypeValueId').val() == 'DEFAULT') {
+                        $('#errorBannerId').append("<a href='{{stage_type_info_link}}'>pinch/teletraan-stagetypes</a>");
+                    }
                     $('#errorBannerId').show();
                 }
             });
