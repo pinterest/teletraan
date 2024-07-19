@@ -129,10 +129,34 @@ class DBEnvironDAOImplTest {
         sut.insert(expectedEnvBean);
 
         setUpHostBean(TEST_CLUSTER);
-        setUpHostBean(TEST_CLUSTER + "2");
+        setUpHostBean(TEST_CLUSTER + "3");
 
         EnvironBean actualEnvironBean = sut.getMainEnvByHostName(HOST_NAME);
         assertEnvironBean(expectedEnvBean, actualEnvironBean);
+    }
+
+    @Test
+    void testGetMainEnvByHostId_noMainEnv() throws Exception {
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
+        envBean.setCluster_name(null);
+        sut.insert(envBean);
+
+        setUpHostBean(TEST_CLUSTER);
+
+        EnvironBean actualEnvironBean = sut.getMainEnvByHostId(HOST_ID);
+        assertNull(actualEnvironBean);
+    }
+
+    @Test
+    void testGetMainEnvByHostName_noMainEnv() throws Exception {
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
+        envBean.setCluster_name(null);
+        sut.insert(envBean);
+
+        setUpHostBean(TEST_CLUSTER);
+
+        EnvironBean actualEnvironBean = sut.getMainEnvByHostId(HOST_NAME);
+        assertNull(actualEnvironBean);
     }
 
     private void setUpHostAgentBean() throws Exception {

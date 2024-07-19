@@ -118,16 +118,14 @@ class EnvCapacitiesTest {
 
     @ParameterizedTest
     @MethodSource("capacityTypes")
-    void authorizeThrowsExceptionWhenNoMainEnvFound(CapacityType type) throws Exception {
+    void authorizeSucceedsWhenNoMainEnvFound(CapacityType type) throws Exception {
         EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
 
         for (String capacity : capacities) {
             when(environDAO.getMainEnvByHostName(capacity)).thenReturn(null);
             when(environDAO.getByCluster(capacity)).thenReturn(null);
         }
-        assertThrows(
-                ForbiddenException.class,
-                () -> sut.authorize(envBean, principal, type, capacities));
+        assertDoesNotThrow(() -> sut.authorize(envBean, principal, type, capacities));
     }
 
     @ParameterizedTest
