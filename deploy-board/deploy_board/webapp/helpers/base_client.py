@@ -56,11 +56,10 @@ class BaseClient(object):
 
             if response.status_code == 401:
                 raise FailedAuthenticationException(
-                    "Oops! Teletraan was unable to authenticate you. Contact an environment ADMIN for "
-                    "assistance. " + response.text)
+                    f"Oops! Teletraan was unable to authenticate you. Please re-login. Server message: {response.json()['message']}")
 
             if response.status_code == 403:
-                raise NotAuthorizedException(f'{UNAUTHORIZED_ERROR_TEXT}: {response.text}')
+                raise NotAuthorizedException(f"{UNAUTHORIZED_ERROR_TEXT}. Server message: {response.json()['message']}")
 
             if response.status_code == 400 or response.status_code == 422:
                 raise IllegalArgumentException(response.text)

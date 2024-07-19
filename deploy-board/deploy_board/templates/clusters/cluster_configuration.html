@@ -669,7 +669,7 @@
                             scope.imageNameChange(data[0]);
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = data.responseJSON.error;
                         }
                     });
 
@@ -697,7 +697,7 @@
                             capacitySetting.selectedSecurityZoneValue = data[0]?.abstract_name;
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = data.responseJSON.error;
                         }
                     });
 
@@ -719,7 +719,7 @@
                                 placements ? placements.getFullList(false, cell == initialCell ? currentPlacements : null) : null;
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = data.responseJSON.error;
                         }
                     })
                 },
@@ -747,7 +747,7 @@
                             scope.imageNameChange(imageName);
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = data.responseJSON.error;
                         }
                     });
                     // grab all the host types
@@ -777,7 +777,7 @@
                             })
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = data.responseJSON.error;
                         }
                     });
                 },
@@ -811,7 +811,7 @@
                             capacitySetting.pinImageEnabled = isPinImageEnabled(goldenImage);
                         },
                         error: function(data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = data.responseJSON.error;
                         }
                     });
                 },

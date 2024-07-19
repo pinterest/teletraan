@@ -281,7 +281,7 @@ var capacitySetting = new Vue({
                     onSuccess(data)
                 },
                 error: function(data) {
-                    globalNotificationBanner.error = data
+                    globalNotificationBanner.error = data.responseJSON.error;
                 }
             });
         },
@@ -322,7 +322,7 @@ var capacitySetting = new Vue({
                     scope.imageNameChange(data && data.length > 0 ? data[0] : null);
                 },
                 error: function (data) {
-                    globalNotificationBanner.error = data
+                    globalNotificationBanner.error = data.responseJSON.error;
                 }
             });
 
@@ -351,7 +351,7 @@ var capacitySetting = new Vue({
                     capacitySetting.selectedSecurityZoneValue = data && data.length > 0 ? data[0].abstract_name : null;
                 },
                 error: function (data) {
-                    globalNotificationBanner.error = data
+                    globalNotificationBanner.error = data.responseJSON.error;
                 }
             });
 
@@ -373,7 +373,7 @@ var capacitySetting = new Vue({
                     capacitySetting.placements = placements ? placements.getFullList(false, null) : null;
                 },
                 error: function (data) {
-                    globalNotificationBanner.error = data
+                    globalNotificationBanner.error = data.responseJSON.error;
                 }
             });
         },
@@ -400,7 +400,7 @@ var capacitySetting = new Vue({
                     scope.imageNameChange(imageName);
                 },
                 error: function (data) {
-                    globalNotificationBanner.error = data
+                    globalNotificationBanner.error = data.responseJSON.error;
                 }
             });
             // grab all the host types
@@ -424,7 +424,7 @@ var capacitySetting = new Vue({
                     })
                 },
                 error: function (data) {
-                    globalNotificationBanner.error = data
+                    globalNotificationBanner.error = data.responseJSON.error;
                 }
             });
         },
@@ -458,7 +458,7 @@ var capacitySetting = new Vue({
                     capacitySetting.pinImageEnabled = isPinImageEnabled(goldenImage);
                 },
                 error: function (data) {
-                    globalNotificationBanner.error = data
+                    globalNotificationBanner.error = data.responseJSON.error;
                 }
             });
         },

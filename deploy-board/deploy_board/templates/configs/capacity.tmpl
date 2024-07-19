@@ -107,15 +107,11 @@
                         xhr.setRequestHeader("X-CSRFToken", csrftoken);
                     },
                     success: function (data) {
-                        if(data != null && data.success == false) {
-                            globalNotificationBanner.error = data;
-                        } else {
-                            globalNotificationBanner.info = "Saved Successfully";
-                            window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
-                        }
+                        globalNotificationBanner.info = "Saved Successfully";
+                        window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
                     },
                     error: function (data) {
-                        globalNotificationBanner.error = data;
+                        globalNotificationBanner.error = data.responseJSON.error;
                     }
                 });
             },
@@ -123,4 +119,3 @@
       }
     )
 </script>
-
