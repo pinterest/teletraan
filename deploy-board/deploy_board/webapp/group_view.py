@@ -31,7 +31,7 @@ from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups
                      hosts_helper, accounts_helper)
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
-from .helpers.exceptions import TeletraanException
+from .helpers.exceptions import NotFoundException, TeletraanException
 
 log = logging.getLogger(__name__)
 
@@ -1198,6 +1198,8 @@ class GroupConfigView(View):
 class GroupDetailView(View):
     def get(self, request, group_name):
         autoscaling_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
+        if autoscaling_summary is None:
+            raise NotFoundException(f'Group {group_name} does not exist.')
         asg_status = autoscaling_summary.get("status", "UNKNOWN")
         enable_spot = autoscaling_summary.get("enableSpot", False)
         envs = environs_helper.get_all_envs_by_group(request, group_name)
