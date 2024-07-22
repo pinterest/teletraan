@@ -446,7 +446,7 @@ class EnvLandingView(View):
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
-            provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
+            provisioning_hosts = deduplicate_hosts(environ_hosts_helper.get_hosts(request, name, stage))
 
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
@@ -588,6 +588,17 @@ class EnvLandingView(View):
         response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
         return response
+
+
+def deduplicate_hosts(hosts):
+    results = []
+    seen = set()
+    for h in hosts:
+        host_id = h['hostId']
+        if host_id not in seen:
+            seen.add(host_id)
+            results.append(h)
+    return results
 
 def _get_asg_suspended_processes(request, env):
     try:
