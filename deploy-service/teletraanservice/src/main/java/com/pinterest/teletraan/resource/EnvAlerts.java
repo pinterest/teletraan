@@ -166,7 +166,7 @@ public class EnvAlerts {
                   userName));
         } catch (Exception ex) {
           LOG.error("Failed to perform action {}", ExceptionUtils.getRootCauseMessage(ex));
-          LOG.error(ExceptionUtils.getFullStackTrace(ex));
+          LOG.error(ExceptionUtils.getStackTrace(ex));
         }
       }
 

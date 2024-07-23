@@ -59,7 +59,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
                     }
                     catch (Exception ex){
                         LOG.error(ExceptionUtils.getRootCauseMessage(ex));
-                        LOG.error(ExceptionUtils.getFullStackTrace(ex));
+                        LOG.error(ExceptionUtils.getStackTrace(ex));
                     }
                     return new ArrayList<BuildTagBean>();
                 }
