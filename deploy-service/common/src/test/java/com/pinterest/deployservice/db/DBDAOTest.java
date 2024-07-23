@@ -68,7 +68,7 @@ import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.jupiter.api.AfterEach;

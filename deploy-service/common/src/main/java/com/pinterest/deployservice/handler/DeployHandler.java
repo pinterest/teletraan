@@ -59,7 +59,7 @@ import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.google.common.base.Joiner;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Interval;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;

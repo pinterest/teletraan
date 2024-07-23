@@ -21,7 +21,7 @@ import com.pinterest.deployservice.bean.WebHookBean;
 import com.pinterest.deployservice.common.HTTPClient;
 
 import com.google.common.base.Splitter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,5 +109,3 @@ public class WebhookJob implements Callable<Void> {
         return null;
     }
 }
-
-

@@ -17,8 +17,8 @@ package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
