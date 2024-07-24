@@ -25,6 +25,7 @@ import io.micrometer.core.instrument.MockClock;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.core.instrument.simple.SimpleConfig;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +48,11 @@ class PinStatsLongTaskTimerTest {
                                 id, clock, getBaseTimeUnit(), distributionStatisticConfig);
                     }
                 };
-        sut = (PinStatsLongTaskTimer) LongTaskTimer.builder("my.ltt").register(registry);
+        sut =
+                (PinStatsLongTaskTimer)
+                        LongTaskTimer.builder("my.ltt")
+                                .serviceLevelObjectives(Duration.ofSeconds(10))
+                                .register(registry);
     }
 
     @Test
@@ -70,5 +75,27 @@ class PinStatsLongTaskTimerTest {
         // Add another 5 seconds to the clock
         clock.addSeconds(5);
         assertEquals(10 * 1000, sample.duration(TimeUnit.MILLISECONDS), 0.1);
+    }
+
+    @Test
+    void testGaugeHistogram() {
+        Sample sample = sut.start();
+        sut.start();
+        clock.addSeconds(1);
+
+        // both active and within SLO
+        assertEquals(2, sut.activeTasks());
+        assertEquals(2, sut.takeSnapshot().histogramCounts()[0].count());
+
+        // 1 remains active
+        sample.stop();
+        assertEquals(1, sut.activeTasks());
+        assertEquals(1, sut.takeSnapshot().histogramCounts()[0].count());
+
+        // remaining exceeds SLO
+        clock.addSeconds(10);
+
+        assertEquals(1, sut.activeTasks());
+        assertEquals(0, sut.takeSnapshot().histogramCounts()[0].count());
     }
 }
