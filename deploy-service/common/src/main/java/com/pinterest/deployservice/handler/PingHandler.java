@@ -221,13 +221,13 @@ public class PingHandler {
         if (!isExisting) {
             // First ping
             hostAgentDAO.insert(hostAgentBean);
-            emitInfraLatency(currentTime, hostId, asg);
+            emitProvisionLatency(currentTime, hostId, asg);
         } else {
             hostAgentDAO.update(hostId, hostAgentBean);
         }
     }
 
-    void emitInfraLatency(long currentTime, String hostId, String asg) {
+    void emitProvisionLatency(long currentTime, String hostId, String asg) {
         try {
             List<HostBean> hosts = hostDAO.getHostsByHostId(hostId);
             if (hosts.size() == 0) {
@@ -236,8 +236,8 @@ public class PingHandler {
             }
             String timerName = String.format(PROVISION_LATENCY_TIMER_NAME, asg);
             HostBean initialHost = hosts.get(0);
-            long infraLatency = currentTime - initialHost.getCreate_date();
-            Metrics.timer(timerName).record(Duration.ofMillis(infraLatency));
+            long provisionLatency = currentTime - initialHost.getCreate_date();
+            Metrics.timer(timerName).record(Duration.ofMillis(provisionLatency));
         } catch (Exception e) {
             LOG.warn("Failed to emit infra latency for " + hostId, e);
         }

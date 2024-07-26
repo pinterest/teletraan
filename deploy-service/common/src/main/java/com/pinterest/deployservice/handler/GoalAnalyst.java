@@ -60,7 +60,7 @@ public class GoalAnalyst {
     private static final int HOT_FIX_PRIORITY = DeployPriority.HIGHER.getValue() - 20;
     private static final int ROLL_BACK_PRIORITY = DeployPriority.HIGHER.getValue() - 10;
     private static final String DEPLOY_LATENCY_TIMER_NAME = CUSTOM_NAME_PREFIX + "teletraan.%s.%s.deploy_latency";
-    private static final String FIRST_DEPLOY_COUNTER_NAME = "first_deploy";
+    private static final String FIRST_DEPLOY_COUNTER_NAME = CUSTOM_NAME_PREFIX + "teletraan.%s.%s.first_deploy";
 
     private String host;
     private String host_id;
@@ -399,10 +399,8 @@ public class GoalAnalyst {
             EnvironBean env = envs.get(updateBean.getEnv_id());
             Metrics.timer(String.format(DEPLOY_LATENCY_TIMER_NAME, env.getEnv_name(), env.getStage_name()))
                     .record(Duration.ofMillis(updateBean.getFirst_deploy_time() - updateBean.getStart_date()));
-            Metrics.counter(FIRST_DEPLOY_COUNTER_NAME, "success",
-                    String.valueOf(updateBean.getStatus().equals(AgentStatus.SUCCEEDED)),
-                    "env", env.getEnv_name(),
-                    "stage", env.getStage_name())
+            Metrics.counter(String.format(FIRST_DEPLOY_COUNTER_NAME, env.getEnv_name(), env.getStage_name()), "success",
+                    String.valueOf(updateBean.getStatus().equals(AgentStatus.SUCCEEDED)))
                     .increment();
         } catch (Exception ex) {
             LOG.warn("Failed to emit metrics of {}", updateBean.toString(), ex);
