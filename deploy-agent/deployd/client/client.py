@@ -3,15 +3,16 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
 import lockfile
 import logging
 import os
@@ -26,14 +27,15 @@ from deployd.common.stats import create_stats_timer, create_sc_increment
 from deployd.common import utils
 from deployd.types.ping_request import PingRequest
 from deployd import IS_PINTEREST
+from deployd.types.ping_response import PingResponse
 
 
 log = logging.getLogger(__name__)
 
 
 class Client(BaseClient):
-    def __init__(self, config=None, hostname=None, ip=None, hostgroup=None, 
-                host_id=None, use_facter=None, use_host_info=False):
+    def __init__(self, config=None, hostname=None, ip=None, hostgroup=None,
+                host_id=None, use_facter=None, use_host_info=False) -> None:
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
@@ -50,7 +52,7 @@ class Client(BaseClient):
         self._stage_type_fetched = False
         self._account_id = None
 
-    def _read_host_info(self):
+    def _read_host_info(self) -> bool:
         if self._use_facter:
             log.info("Use facter to get host info")
             name_key = self._config.get_facter_name_key()
@@ -143,13 +145,18 @@ class Client(BaseClient):
         if IS_PINTEREST and self._use_host_info is False:
             # Read new keys from facter always
             az_key = self._config.get_facter_az_key()
+            secondary_az_key = self._config.get_facter_secondary_az_key()
             asg_tag_key = self._config.get_facter_asg_tag_key()
             ec2_tags_key = self._config.get_facter_ec2_tags_key()
             stage_type_key = self._config.get_stage_type_key()
             account_id_key = self._config.get_facter_account_id_key()
             keys_to_fetch = set()
-            if not self._availability_zone and az_key:
-                keys_to_fetch.add(az_key)
+
+            if not self._availability_zone:
+                if az_key:
+                    keys_to_fetch.add(az_key)
+                if secondary_az_key:
+                    keys_to_fetch.add(secondary_az_key)
 
             if not self._autoscaling_group:
                 keys_to_fetch.add(ec2_tags_key)
@@ -166,11 +173,17 @@ class Client(BaseClient):
             if not self._availability_zone:
                 self._availability_zone = facter_data.get(az_key, None)
 
+            if not self._availability_zone:
+                self._availability_zone = facter_data.get(secondary_az_key, None)
+
             # Hosts brought up outside of ASG or Teletraan might not have ASG
             # Note: on U14, facter -p ec2_tags.Autoscaling does not work.
             # so need to read ec2_tags from facter and parse Autoscaling tag to cover this case
             if not self._autoscaling_group:
                 ec2_tags = facter_data.get(ec2_tags_key)
+                if ec2_tags:
+                    ec2_tags['availability_zone'] = self._availability_zone
+                self._ec2_tags = json.dumps(ec2_tags) if ec2_tags else None
                 self._autoscaling_group = ec2_tags.get(asg_tag_key) if ec2_tags else None
 
             if not self._stage_type and not self._stage_type_fetched:
@@ -185,8 +198,8 @@ class Client(BaseClient):
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-                 "availability_zone: {}, stage_type: {}, group: {}, account id: {}".format(self._hostname, self._ip, self._id, 
-                 self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup, self._account_id))
+                 "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {}".format(self._hostname, self._ip, self._id,
+                 self._agent_version, self._autoscaling_group, self._availability_zone, self._ec2_tags, self._stage_type, self._hostgroup, self._account_id))
 
         if not self._availability_zone:
             log.error("Fail to read host info: availablity zone")
@@ -196,7 +209,7 @@ class Client(BaseClient):
 
         return True
 
-    def send_reports(self, env_reports=None):
+    def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         try:
             if self._read_host_info():
                 reports = [status.report for status in env_reports.values()]
@@ -214,6 +227,7 @@ class Client(BaseClient):
                                         agentVersion=self._agent_version,
                                         autoscalingGroup=self._autoscaling_group,
                                         availabilityZone=self._availability_zone,
+                                        ec2Tags=self._ec2_tags,
                                         stageType=self._stage_type,
                                         accountId=self._account_id)
 
@@ -234,7 +248,7 @@ class Client(BaseClient):
             return None
 
     @retry(ExceptionToCheck=Exception, delay=1, tries=3)
-    def send_reports_internal(self, request):
+    def send_reports_internal(self, request) -> PingResponse:
         ping_service = RestfulClient(self._config)
         response = ping_service.ping(request)
         return response

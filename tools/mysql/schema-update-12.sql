@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 11 to version 12
+-- This script upgrade DB schema from version 11 to version 12
 
 CREATE TABLE IF NOT EXISTS agent_counts (
     env_id         VARCHAR(22)         NOT NULL,

@@ -26,7 +26,7 @@ import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.DeployEvent;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -417,9 +417,9 @@ public class CommonHandler {
                 String commit = buildBean.getScm_commit_7();
                 String envName = environBean.getEnv_name();
                 String stageName = environBean.getStage_name();
-                String what = String.format("%s/%s deploy initiated.", envName, stageName);
-                publisher.publishEvent(new DeployEvent(this, envName, stageName, commit, newDeployBean.getOperator()));
-                LOG.info("Successfully sent deploy event. what: {}, commit: {}", what, commit);
+                DeployEvent event = new DeployEvent(this, envName, stageName, commit, newDeployBean.getOperator());
+                publisher.publishEvent(event);
+                LOG.info("Successfully sent deploy event: {}", event);
             } catch (Exception ex) {
                 LOG.error("Failed to send deploy events.", ex);
             }

@@ -16,24 +16,40 @@ import logging
 import traceback
 import json
 from django.shortcuts import render
+from deploy_board.settings import DEBUG
 from django.http import HttpResponse, HttpResponseRedirect
-from .helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
+from .helpers.exceptions import IllegalArgumentException, NotAuthorizedException, NotFoundException, FailedAuthenticationException
 
 logger = logging.getLogger(__name__)
 
 
 # TODO so we are using this as the catch ALL, and report error, as the last resort
 # this is fine, except the exception stack trace is not particularly user-friendly
-# We should not depends on this too much, but in the code handle as much exceptino
+# We should not depends on this too much, but in the code handle as much exception
 # as we can and generate user friendly message there.
-class ExceptionHandlerMiddleware(object):
+class ExceptionHandlerMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
     def process_exception(self, request, exception):
         logger.exception('Exception thrown when handling request ' + str(request))
 
         # Error is displayed as a fragment over related feature area
         if request.is_ajax():
             ajax_vars = {'success': False, 'error': str(exception)}
-            return HttpResponse(json.dumps(ajax_vars), content_type='application/javascript')
+            ret = 500
+            if isinstance(exception, IllegalArgumentException):
+                ret = 400
+            elif isinstance(exception, FailedAuthenticationException):
+                ret = 401
+            elif isinstance(exception, NotAuthorizedException):
+                ret = 403
+            elif isinstance(exception, NotFoundException):
+                ret = 404
+            return HttpResponse(json.dumps(ajax_vars), status=ret, content_type='application/javascript')
         else:
             # Not authorized
             if isinstance(exception, NotAuthorizedException):
@@ -46,7 +62,9 @@ class ExceptionHandlerMiddleware(object):
                 request.session.flush()
                 return HttpResponseRedirect("/")
 
+            stacktrace = DEBUG and traceback.format_exc() or ""
+
             return render(request, 'error.html', {
                 'message': str(exception),
-                'stacktrace': traceback.format_exc(),
+                'stacktrace': stacktrace,
             })

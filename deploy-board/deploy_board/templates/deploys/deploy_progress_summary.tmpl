@@ -6,11 +6,20 @@
     <tr>
         <th class="col-lg-2">Build</th>
         <th class="col-lg-1">Type</th>
-        <th class="col-lg-2">State</th>
+        <th class="col-lg-1">State</th>
         <th class="col-lg-2">Progress</th>
         <th class="col-lg-1">Elapsed</th>
-        <th class="col-lg-2">Acceptance</th>
+        <th class="col-lg-1">Acceptance</th>
         <th class="col-lg-1">Operator</th>
+        {% if accounts %}
+            <th class="col-lg-1">
+                <span>Account</span>
+                <span class="ml-1 deployToolTip glyphicon glyphicon-question-sign"
+                    data-toggle="tooltip" title=""
+                    data-original-title="This is the AWS account is being used in this stage">
+                </span>
+            </th>
+        {% endif %}
         <th class="col-lg-1">Details</th>
         <th class="col-lg-1">Schedule</th>
     </tr>
@@ -66,6 +75,23 @@
         <small>{{ deploy.acceptanceStatus }}</small>
     </td>
     <td>{{ deploy.operator }}</td>
+    {% if accounts %}
+        <td>
+            {% for account in accounts %}
+                {% if account.legacy_name %}
+                <a href="#" class="deployToolTip btn btn-xs btn-default host-btn">
+                    <small>{{ account.legacy_name }}</small>
+                    <i class="fa fa-fw fa-user"></i>
+                </a>
+                {% else %}
+                <a href="/clouds/accounts/{{ account.cloudProvider }}/{{ account.cell }}/{{ account.id }}" class="deployToolTip btn btn-xs btn-default host-btn">
+                    <small>{{ account.data.ownerId }} / {{ account.name }}</small>
+                    <i class="fa fa-fw fa-user"></i>
+                </a>
+                {% endif %}
+            {% endfor %}
+        </td>
+    {% endif %}
     <td><a href="/deploy/{{ deploy.id }}">view</a></td>
     <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule">view</a></td>
   </tr>

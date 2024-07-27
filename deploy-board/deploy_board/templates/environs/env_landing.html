@@ -27,7 +27,7 @@
 {% else %}
     {% include "feedbacks/feedback_banner.tmpl" with hidden='display: none;'%}
 {% endif %}
-{% endblock %}
+{% endblock breadcrumb-items %}
 
 
 {% block side-panel-actions %}
@@ -86,12 +86,6 @@
             <span class="glyphicon glyphicon-time"></span> Deploy Constraint
         </a>
     </div>
-    <!--div class="row">
-        <a href="/builds/{{ env.envName }}/{{ env.stageName }}/start_build/" type="button" class="deployToolTip btn btn-default btn-block"
-           data-toggle="tooltip" title="Create a private build for current environment">
-            <span class="glyphicon glyphicon-pencil"></span> Branch Build
-           </a>
-    </div-->
 
     {% if has_deploy %}
 	<div class="row">
@@ -120,7 +114,7 @@
 </div>
 
 {% if pinterest %}
-<script type="text/javascript" src='{% static "js/components/sharedcomponents.js"%}?changedate=2017.1.4.140000'></script>
+<script type="text/javascript" src='{% static "js/components/sharedcomponents.js" %}?changedate=2017.1.4.140000'></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
         {% verbatim %}
@@ -130,9 +124,16 @@
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
+    {% if hasGroups %}
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-calendar" v-bind:text="scalingActivitiesText" href="/groups/{{ env.envName }}-{{ env.stageName }}/scaling_activities" title="List all scaling activities for the group in the past."></side-button>
+        <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.clusterName }}/config" title="Configure autoscaling group"></side-button>
     </div>
+    {% endif %}
+    {% if hasCluster %}
+    <div v-if="showCluster" class="row">
+        <side-button styleclass="fa fa-cog" v-bind:text="clusterSettingsText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page."></side-button>
+    </div>
+    {% endif %}
     <div v-if="!showCluster" id="groupsDiv">
     </div>
 </div>
@@ -169,12 +170,12 @@
       </div>
       <div class="modal-body">
         <p>Are you sure to pause the current deploy? <br>
-           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster. 
+           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster.
         </p>
         <div class="alert alert-danger" role="alert">
             <strong>WARNING</strong>:
             Please don't leave deployment in the PAUSED state permanently. <br>
-            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.  
+            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.
         </div>
       </div>
       <div class="modal-footer">
@@ -236,14 +237,18 @@ var capacityPanel = new Vue({
                 capacityText: function() {
                     if (this.remainingCapacity != null && this.remainingCapacity < 100) {
                         this.capacityStateStyle = "color: #d32a0e"
-                        return `Capacity (Remaining Capacity: ${this.remainingCapacity})`
+                        return `Capacity (Remaining Subnet Capacity: ${this.remainingCapacity})`
                     } else {
                         return "Capacity"
                     }
                 },
-                scalingActivitiesText: function() {
-                    return "Scaling Activities"
-                }
+                autoScalingSettingsText: function() {
+                    return "Auto Scaling Configuration"
+                },
+                clusterSettingsText: function() {
+                    return "Cluster Configuration"
+                },
+
             },
             mounted: function(){
                 if (!renderCapacity){
@@ -263,7 +268,7 @@ $('#privateBldUploadBtnId button').click(function () {
 </script>
 {% endif %}
 
-{% endblock %}
+{% endblock side-panel-actions %}
 
 {% block main %}
 
@@ -278,43 +283,61 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 {% endif %}
 
-{% if not basic_cluster_info|canReplaceCluster %}
-    <div class="alert alert-info">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
-    </div>
-    <script>
-        $(function () {
-           var isReplacing = '{{ basic_cluster_info|canReplaceCluster }}';
-           if(isReplacing == 'False') {
-                // include this tmpl, meaning a cluster replace is going-on, need to check its progress
-                // update every 1 min, and execute now
-                function setIntervalAndExecute(fn, t) {
-                    fn();
-                    return(setInterval(fn, t));
-                }
-                var replaceStartTime = new Date().getTime();
-                var replaceProgressInterval = setIntervalAndExecute(function() {
-                    if(new Date().getTime() - replaceStartTime > 1800000) {  // if more than 30 mins, clear it
-                        console.log('cleared time interval');
-                        clearInterval(replaceProgressInterval);
-                    }
-                    $('#activeClusterReplaceId').load(
-                            '/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/',
-                            function(response, status, xhr) {
-                                if(response == 'There is no on-going replacement.') {
-                                    clearInterval(replaceProgressInterval);
-                                    console.log('cleared time interval');
-                                    // hide the parent warning banner when replace finished as well
-                                    $('#activeClusterReplaceId').closest(".alert").alert('close');
-                                }
-                            }
-                    );
-                }, 60000);
-           }
-        });
-    </script>
+{% if pindeploy_config %}
+{% if pindeploy_config.isPindeploy %}
+<div class="alert alert-warning" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is managed by Pindeploy. Deployments should be done from
+    this <a href="{{ pindeploy_config.pipeline }}" target="_blank">pipeline</a>.
+    Creating a deployment from other sources will disable PinDeploy management on the pipeline.
+    Only do so in case of emergency.
+</div>
+{% endif %}
+{% endif %}
 
+{% if lastClusterRefreshStatus %}
+    {% if lastClusterRefreshStatus.status == "Pending" or lastClusterRefreshStatus.status == "InProgress" %}
+    <div class="alert alert-info alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Info!</strong> This cluster is being refreshed with {{ lastClusterRefreshStatus.percentageComplete|default_if_none:0 }}% completed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+    </div>
+    {% elif lastClusterRefreshStatus.status == "Successful" %}
+    <div class="alert alert-success alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Success!</strong> This cluster was refreshed successfully at {{ lastClusterRefreshStatus.endTime|convertTimestamp }}. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+    </div>
+    {% elif lastClusterRefreshStatus.status == "Failed" %}
+    <div class="alert alert-warning alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Warning!</strong> This cluster was failed to be refreshed (or partially refreshed). Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+    </div>
+    {% endif %}
+{% endif %}
+
+{% if is_auto_refresh_enabled == True %}
+    <div class="alert alert-success alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong><span class="glyphicon glyphicon-leaf" style="color:green;"></span> This cluster is enabled for auto refresh.</strong>
+        You can customize auto refresh configuration <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/auto_refresh" target="_blank">here</a>.
+    </div>
+{% endif %}
+
+{% if cluster_refresh_suggestion_for_golden_ami %}
+    <div class="alert alert-info alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Info!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
+        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for image update history.
+        Click <a href="/groups/{{ env.clusterName }}/host-ami-dist/" target="_blank">here</a> to see AMI(s) used by hosts.
+        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> to replace the cluster.
+    </div>
+{% endif %}
+
+{% if "AZRebalance" in asg_suspended_processes %}
+    <div class="alert alert-danger alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        Your cluster is <strong>not</strong> enabled for automatic AZ rebalancing. If your service is stateless, consider enabling it <a href="/groups/{{ env.envName }}-{{ env.stageName }}/config" target="_blank">here</a>.
+        Check this <a href="/groups/{{ env.envName }}-{{ env.stageName }}/dist-charts/az/" target="_blank">chart</a> for the current hosts-AZ distribution.
+    </div>
 {% endif %}
 
 {% include "message_banner.tmpl" %}
@@ -322,11 +345,7 @@ $('#privateBldUploadBtnId button').click(function () {
 {% include "environs/site_health.tmpl" with metricsKind="service" %}
 
 {% if has_deploy %}
-    {%  if env|canResume %}
-    <div class="panel panel-danger">
-    {% else %}
-    <div class="panel panel-default">
-    {%  endif %}
+    <div class="panel {% if env|canResume %}panel-danger{% else %}panel-default{% endif %}">
         <div class="panel-heading clearfix">
             <h4 class="panel-title pull-left pointer-cursor">
                 <a data-toggle="collapse" data-target="#activeDeployId">
@@ -383,67 +402,104 @@ $('#privateBldUploadBtnId button').click(function () {
                 <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
                         title="Change how the hosts are displayed"
                         data-toggle="dropdown" type="button">
-                    Display Mode <span class="caret"></span>
+                    Display Mode:
+                    {% if report.showMode == "simple" %}
+                        Simple
+                    {% elif report.showMode == "compact" %}
+                        Compact
+                    {% elif report.showMode == "complete" %}
+                        Complete
+                    {% elif report.showMode == "containerStatus" %}
+                        Health Check Status
+                    {% endif %}
+                    <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     <form id="updateModeFormId">
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="simple"
-                        {% if report.showMode == "simple" %}
-                        checked
-                        {% endif %}
-                        > Simple
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="compact"
-                        {% if report.showMode == "compact" %}
-                        checked
-                        {% endif %}
-                        > Compact
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="complete"
-                        {% if report.showMode == "complete" %}
-                        checked
-                        {% endif %}
-                        > Complete
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="primaryAcct"
-                        {% if report.showMode == "primaryAcct" %}
-                        checked
-                        {% endif %}
-                        > Primary Account
-                        </label></div>
-                    </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="subAcct"
-                        {% if report.showMode == "subAcct" %}
-                        checked
-                        {% endif %}
-                        > Sub Account
-                        </label></div>
-                    </li>
-                    <li role="presentation" class="divider"></li>
-                    <li>
-                        <div class="checkbox"><label>&nbsp;
-                        <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
-                        {% if report.sortByStatus == "true" %}
-                        checked
-                        {% endif %}
-                        > Sort by status
-                        </label></div>
-                    </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="simple"
+                            {% if report.showMode == "simple" %}
+                            checked
+                            {% endif %}
+                            > Simple
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="compact"
+                            {% if report.showMode == "compact" %}
+                            checked
+                            {% endif %}
+                            > Compact
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="complete"
+                            {% if report.showMode == "complete" %}
+                            checked
+                            {% endif %}
+                            > Complete
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="showMode" value="containerStatus"
+                            {% if report.showMode == "containerStatus" %}
+                            checked
+                            {% endif %}
+                            > Health Check Status
+                            </label></div>
+                        </li>
+                        <li role="presentation" class="divider"></li>
+                        <li>
+                            <div class="checkbox"><label>&nbsp;
+                            <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
+                            {% if report.sortByStatus == "true" %}
+                            checked
+                            {% endif %}
+                            > Sort by status
+                            </label></div>
+                        </li>
                     </form>
                 </ul>
+                </div>
+
+                <div class="btn-group">
+                    <div class="dropdown">
+                        <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                                title="Change how the hosts are displayed based on Account"
+                                data-toggle="dropdown" type="button">
+                            Account:
+                            {{ report.account|capfirst }}
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                            <form id="accountFormId">
+                                <li>
+                                    <div class="radio"><label>&nbsp;
+                                        <input type="radio" name="account" value="all"
+                                               {% if report.account == "all" %}
+                                        checked
+                                        {% endif %}
+                                        > All
+                                    </label></div>
+                                </li>
+                                {% for account in accounts %}
+                                    <li>
+                                        <div class="radio"><label>&nbsp;
+                                            <input type="radio" name="account" value="{{ account.data.ownerId }}"
+                                                   {% if report.account == account.data.ownerId %}
+                                                   checked
+                                                   {% endif %}
+                                            > {{ account.data.ownerId }}
+                                        </label></div>
+                                    </li>
+                                {% endfor %}
+                            </form>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -457,7 +513,7 @@ $('#privateBldUploadBtnId button').click(function () {
         </script>
         <div class="collapse in panel-body">
             <div id="activeDeployId">
-                {% include "deploys/deploy_progress.tmpl" %}
+                {% include "deploys/deploy_progress.html" %}
             </div>
             <div class="row" id="serviceAddOnsId">
                 {% include "deploys/deploy_add_ons.tmpl" %}
@@ -474,15 +530,18 @@ $('#privateBldUploadBtnId button').click(function () {
             if(new Date().getTime() - startTime > 3600000) {
                 clearInterval(interval);
             }
-            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}&sortByTag={{ report.sortByTag }}');
+            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
         }, 30000);
 
         $(".dropdown-menu li").click(function() {
-            query_string = $("#updateModeFormId").serialize();
+            query_string_account = $("#accountFormId").serialize();
+            query_string = query_string_account;
+            query_string_mode = $("#updateModeFormId").serialize();
             // we need to explicitly turn off sortByStatus
-            if (query_string.indexOf("sortByStatus") == -1) {
-                query_string += "&sortByStatus=false";
+            if (query_string_mode.indexOf("sortByStatus") == -1) {
+                query_string_mode += "&sortByStatus=false";
             }
+            query_string += "&" + query_string_mode;
             window.location ="/env/{{ env.envName }}/{{ env.stageName }}/deploy/?" + query_string;
         });
     });
@@ -490,7 +549,7 @@ $('#privateBldUploadBtnId button').click(function () {
 
 {% else %}
     <p align="center" style="padding:2%;"><i>Deploy not yet started in stage {{ env.stageName }}.</i></p>
-{% if  provisioning_hosts %}
+{% if provisioning_hosts %}
 <div class="panel panel-default table-responsive">
     <table class="table table-condensed table-hover">
         <tr>
@@ -560,4 +619,4 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 {% endif %}
 
-{% endblock %}
+{% endblock main %}

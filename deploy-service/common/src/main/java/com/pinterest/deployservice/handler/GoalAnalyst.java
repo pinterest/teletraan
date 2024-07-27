@@ -31,6 +31,8 @@ import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.AgentStatus;
 import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployConstraintBean;
+import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.DeployPriority;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.DeployType;
@@ -40,6 +42,10 @@ import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
+import com.pinterest.deployservice.dao.DeployConstraintDAO;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GoalAnalyst {
     private static final Logger LOG = LoggerFactory.getLogger(GoalAnalyst.class);
@@ -51,6 +57,11 @@ public class GoalAnalyst {
     private String host;
     private String host_id;
     private DeployDAO deployDAO;
+    private HostTagDAO hostTagDAO;
+    private DeployConstraintDAO deployConstraintDAO;
+
+
+    private String ec2Tags;
 
     // input maps, all keyed by envId
     private Map<String, EnvironBean> envs;
@@ -198,13 +209,16 @@ public class GoalAnalyst {
         }
     }
 
-    GoalAnalyst(DeployDAO deployDAO, EnvironDAO environDAO, String host, String host_id, Map<String, EnvironBean> envs, Map<String, PingReportBean> reports, Map<String, AgentBean> agents) {
+    GoalAnalyst(DeployConstraintDAO deployConstraintDAO, HostTagDAO hostTagDAO, DeployDAO deployDAO, EnvironDAO environDAO, String host, String host_id, Map<String, EnvironBean> envs, Map<String, PingReportBean> reports, Map<String, AgentBean> agents, String ec2Tags) {
         this.deployDAO = deployDAO;
         this.host = host;
         this.host_id = host_id;
         this.envs = envs;
         this.reports = reports;
         this.agents = agents;
+        this.ec2Tags = ec2Tags;
+        this.hostTagDAO = hostTagDAO;
+        this.deployConstraintDAO = deployConstraintDAO;
 
         for (Map.Entry<String, AgentBean> entry : agents.entrySet()) {
             try {
@@ -252,6 +266,10 @@ public class GoalAnalyst {
     // What the new agent state should be, if this agent is not chosen to be deploy goal
     AgentState proposeNewAgentState(PingReportBean report, AgentBean agent) {
         AgentStatus status = report.getAgentStatus();
+        if (agent != null && report.getAgentState() != null && report.getAgentState().equals("RESET_BY_SYSTEM")) {
+            agent.setState(AgentState.RESET_BY_SYSTEM);
+        }
+
         if (agent != null && agent.getState() == AgentState.STOP) {
             // agent has been explicitly STOP, do not override
             if (agent.getDeploy_stage() == DeployStage.STOPPING && FATAL_AGENT_STATUSES.contains(status)) {
@@ -270,6 +288,12 @@ public class GoalAnalyst {
             // agent has been explicitly reset by user, do not override
             // subsequent code would have to decide if need to override RESET state
             return AgentState.RESET;
+        }
+
+        if (agent != null && agent.getState() == AgentState.RESET_BY_SYSTEM) {
+            // agent has been explicitly redeployed by deployd, do not override
+            // subsequent code would have to decide if need to override RESET_BY_SYSTEM state
+            return AgentState.RESET_BY_SYSTEM;
         }
 
         if (status == AgentStatus.SUCCEEDED) {
@@ -308,7 +332,7 @@ public class GoalAnalyst {
             origBean.getLast_err_no() != null && origBean.getLast_err_no().equals(updateBean.getLast_err_no()) &&
             origBean.getState() != null && origBean.getState().equals(updateBean.getState()) && 
             origBean.getDeploy_stage() != null && origBean.getDeploy_stage().equals(updateBean.getDeploy_stage()) &&
-            origBean.getContainer_Health_Status() != null && origBean.getContainer_Health_Status().equals(updateBean.getContainer_Health_Status())) {
+            origBean.getContainer_health_status() != null && origBean.getContainer_health_status().equals(updateBean.getContainer_health_status())) {
             LOG.debug("Skip updating agent record for env_id {}, deploy_id {} on host {}",
                     origBean.getEnv_id(), origBean.getDeploy_id(), origBean.getHost_id());
             return false;
@@ -336,9 +360,9 @@ public class GoalAnalyst {
         updateBean.setStage_start_date(System.currentTimeMillis());
         updateBean.setDeploy_stage(report.getDeployStage());
         if (report.getContainerHealthStatus() == null) {
-            updateBean.setContainer_Health_Status("");
+            updateBean.setContainer_health_status("");
         } else {
-            updateBean.setContainer_Health_Status(report.getContainerHealthStatus());
+            updateBean.setContainer_health_status(report.getContainerHealthStatus());
         }
 
         if (agent == null) {
@@ -522,6 +546,34 @@ public class GoalAnalyst {
             }
         }
 
+        // update host_tags table
+        if (ec2Tags != null && env != null && env.getDeploy_constraint_id() != null) {
+            String constraintId = env.getDeploy_constraint_id();
+            DeployConstraintBean deployConstraintBean = deployConstraintDAO.getById(constraintId);
+            String tagName = deployConstraintBean.getConstraint_key();
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> tags = mapper.readValue(ec2Tags, Map.class);
+            if (tags.containsKey(tagName)) {
+                String tagValue = tags.get(tagName);
+                HostTagBean hostTagBean = hostTagDAO.get(host_id, tagName);
+                if (hostTagBean == null) {
+                    hostTagBean = new HostTagBean();
+                    hostTagBean.setHost_id(host_id);
+                    hostTagBean.setTag_name(tagName);
+                    hostTagBean.setTag_value(tagValue);
+                    hostTagBean.setEnv_id(envId);
+                    hostTagBean.setCreate_date(System.currentTimeMillis());
+                    hostTagDAO.insertOrUpdate(hostTagBean);
+                    LOG.info("Create host tags from Deployd: insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                } else if (tagValue.equals(hostTagBean.getTag_value()) == false) {
+                    hostTagBean.setTag_value(tagValue);
+                    hostTagBean.setCreate_date(System.currentTimeMillis());
+                    hostTagDAO.insertOrUpdate(hostTagBean);
+                    LOG.info("Update host tags from Deployd: update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                }      
+            }         
+        }
+
         /**
          * Case 0.1: Env has no deploy yet, do not update agent record and return immediately
          */
@@ -612,8 +664,16 @@ public class GoalAnalyst {
                 // Special case when agent state is RESET, start from beginning
                 if (updateBean.getState() == AgentState.RESET) {
                     installNewUpdateBean(env, report, agent);
-                    LOG.debug("GoalAnalyst case 1.0 - host {} work on the same deploy {}, but agent state is RESET, set env {} as a goal candidate and start from beginning.",
+                    LOG.debug("GoalAnalyst case 1.0.1 - host {} work on the same deploy {}, but agent state is RESET, set env {} as a goal candidate and start from beginning.",
                         host, env.getDeploy_id(), envId);
+                    return;
+                }
+
+                // Special case when agent state is RESET_BY_SYSTEM, start from beginning
+                if (updateBean.getState() == AgentState.RESET_BY_SYSTEM) {
+                    installNewUpdateBean(env, report, agent);
+                    LOG.debug("GoalAnalyst case 1.0.2 - host {} work on the same deploy {}, but agent state is {}, set env {} as a goal candidate and start from beginning.",
+                        host, env.getDeploy_id(), AgentState.RESET_BY_SYSTEM, envId);
                     return;
                 }
 

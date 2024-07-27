@@ -22,6 +22,7 @@
                             {% endif %}>
                             {% endfor %}
                         </select>
+                        <p><i>Note: a manual rollback will disable auto deploy and set this back to MANUAL</i></p>
                     </div>
 
                     <label for="predStageName" class="deployToolTip control-label col-xs-2"
@@ -234,7 +235,7 @@
                     btn.button('reset');
                 },
                 error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').append(`${data.status}: ${data.responseText}`);
                     $('#errorBannerId').show();
                 }
             });

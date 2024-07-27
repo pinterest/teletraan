@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,14 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
-import com.pinterest.deployservice.dao.ScheduleDAO;
-
-import com.pinterest.deployservice.bean.ScheduleState;
-
+import java.sql.SQLException;
+import java.util.*;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class EnvironHandler {
     private static final Logger LOG = LoggerFactory.getLogger(EnvironHandler.class);
@@ -41,7 +40,6 @@ public class EnvironHandler {
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
     private HostDAO hostDAO;
-    private ScheduleDAO scheduleDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
 
@@ -51,7 +49,6 @@ public class EnvironHandler {
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
-        scheduleDAO = serviceContext.getScheduleDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
     }
@@ -187,6 +184,9 @@ public class EnvironHandler {
         normalizeEnvRequest(envBean, operator);
         updateEnvBeanDefault(envBean);
         String envId = CommonUtils.getBase64UUID();
+        if (envBean.getStage_type() == EnvType.DEV) {
+            envBean.setAllow_private_build(true);
+        }
         envBean.setEnv_id(envId);
         environDAO.insert(envBean);
         return envId;
@@ -514,6 +514,32 @@ public class EnvironHandler {
     public void stopServiceOnHosts(Collection<String> hostIds, boolean replaceHost) throws Exception {
         for (String hostId : hostIds) {
             stopServiceOnHost(hostId, replaceHost);
+        }
+    }
+
+    public void ensureHostsOwnedByEnv(EnvironBean environBean, Collection<String> hostIds)
+            throws WebApplicationException {
+        for (String hostId : hostIds) {
+            try {
+                EnvironBean mainEnv = environDAO.getMainEnvByHostId(hostId);
+                if (mainEnv == null) {
+                    throw new NotFoundException(
+                            String.format(
+                                    "No main environment found for host %s, refuse to proceed",
+                                    hostId));
+                }
+                if (!mainEnv.getEnv_id().equals(environBean.getEnv_id())) {
+                    throw new ForbiddenException(
+                            String.format(
+                                    "%s/%s is not the owning environment of host %s",
+                                    environBean.getEnv_name(),
+                                    environBean.getStage_name(),
+                                    hostId));
+                }
+            } catch (SQLException e) {
+                throw new WebApplicationException(
+                        String.format("Failed to get main environment for host %s", hostId), e);
+            }
         }
     }
 }

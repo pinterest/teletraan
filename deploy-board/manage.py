@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import sys
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     #
     os.environ.setdefault("LOG_DIR", "/tmp/deploy_board")
     os.environ.setdefault("LOG_LEVEL", "DEBUG")
-
+    os.environ.setdefault("DEBUG_MODE", "ON")
     #
     # OAuth based authentication settings. By default, OAuth based authentication is disabled
     #

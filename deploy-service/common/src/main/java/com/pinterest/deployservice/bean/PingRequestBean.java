@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,12 +15,12 @@
  */
 package com.pinterest.deployservice.bean;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.validator.constraints.NotEmpty;
-
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+
+import javax.validation.constraints.NotEmpty;
+
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 public class PingRequestBean {
     @NotEmpty
@@ -33,6 +33,8 @@ public class PingRequestBean {
     private String autoscalingGroup;
 
     private String availabilityZone;
+
+    private String ec2Tags;
 
     private String agentVersion;
 
@@ -84,6 +86,14 @@ public class PingRequestBean {
         this.availabilityZone = availabilityZone;
     }
 
+    public String getEc2Tags() {
+        return ec2Tags;
+    }
+
+    public void setEc2Tags(String ec2Tags) {
+        this.ec2Tags = ec2Tags;
+    }
+
     public String getAgentVersion() {
         return agentVersion;
     }
@@ -99,7 +109,7 @@ public class PingRequestBean {
     public void setStageType(EnvType stageType) {
         this.stageType = stageType;
     }
-    
+
     public Set<String> getGroups() {
         return groups;
     }

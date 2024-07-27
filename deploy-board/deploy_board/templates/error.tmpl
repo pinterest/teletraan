@@ -1,6 +1,11 @@
 <div class="panel panel-default">
     <div class="alert alert-danger" role="alert">{{ message }}</div>
-    <div class="alert" role="alert">Sorry for the inconvenience, please contact your friendly Teletraan owners for
-        immediate assistance!</div>
-    <div class="alert alert-danger" role="alert">{{ stacktrace }}</div>
+        <div class="alert" role="alert">
+            Sorry for the inconvenience, please read the error message. If the problem persists, please contact your friendly Teletraan owners for further assistance.
+        </div>
+    <div class="alert alert-danger" role="alert">
+        <pre>
+            {{ stacktrace }}
+        </pre>
+    </div>
 </div>

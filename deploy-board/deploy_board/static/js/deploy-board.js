@@ -66,7 +66,10 @@ function getRemainingCapacity(capacityInfo, placementList) {
 }
 
 function getDefaultPlacement(capacityCreationInfo) {
-    this.capacityCreationInfo = capacityCreationInfo
+    this.capacityCreationInfo = {
+        ...this.capacityCreationInfo,
+        ...capacityCreationInfo
+    };
     var cmpPublicIPPlacements = {}
     var cmpPrivateIPPlacements = {}
     var topCmpPublicIPPlacements = []
@@ -267,6 +270,78 @@ function getDefaultPlacement(capacityCreationInfo) {
                 });
             }
             return convertToPlacementOptionsAdv(placements);
+        }
+    }
+}
+
+function getAccount(accountId) {
+    return info.accounts != null ?
+        info.accounts.find(function (o) { return o.id === accountId })
+        : null;
+}
+
+function getAccountOwnerId(accountId) {
+    const account = getAccount(accountId);
+    return account ? account.ownerId : null;
+}
+
+function getDefaultHostType(hostTypes, defaultHostType, defaultARMHostType) {
+    this.hostTypes = hostTypes;
+    this.defaultHostType = defaultHostType;
+    this.defaultARMHostType = defaultARMHostType;
+        var isProcessed = false;
+        var selected = false;
+        var lowestHostType = false;
+        this.checkIsDisabledHostType = function(item){
+            return item.retired || item.blessed_status === "DECOMMISSIONING";
+        };
+
+        var isSelected = function(item) {
+            return (
+                ("x86_64" === item.arch_name && item.abstract_name === this.defaultHostType)
+                || ("arm64" === item.arch_name && item.abstract_name === this.defaultARMHostType)
+                ) && !checkIsDisabledHostType(item);
+        }
+
+        this.options = this.hostTypes.map(function(item,idx){
+            if(isSelected(item)){
+                selected = item;
+            } else if(!checkIsDisabledHostType(item)){
+                if(lowestHostType === false){
+                    lowestHostType = item;
+                } else if (lowestHostType.core < item.core){
+                    lowestHostType = item;
+                }
+            }
+            isProcessed = true;
+            return {
+            value: item.id,
+            text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
+            isSelected: isSelected(item),
+            isDisabled: checkIsDisabledHostType(item)
+        };
+    });
+
+    return {
+        getOptions: function () {
+            return options;
+        },
+        getSelected: function () {
+            if(isProcessed === false){
+                this.getOptions();
+                isProcessed = true;
+            }
+            if(selected !== false){
+                return selected;
+            }
+            return lowestHostType;
+        },
+        isDisabledHostType: function(item){
+            return checkIsDisabledHostType(item);
+        },
+        getSelectedId: function() {
+            var selected = this.getSelected();
+            return selected != undefined ? selected.id : "";
         }
     }
 }

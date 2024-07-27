@@ -15,8 +15,10 @@
 # -*- coding: utf-8 -*-
 """Collection of all deploy related views
 """
+import logging
 from deploy_board.settings import SITE_METRICS_CONFIGS, TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
 from django.middleware.csrf import get_token
+from .accounts import get_accounts_from_deploy
 import json
 from django.shortcuts import render
 from django.views.generic import View
@@ -24,6 +26,8 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from .helpers import builds_helper, deploys_helper, environs_helper, tags_helper
 
+
+log = logging.getLogger(__name__)
 
 DEFAULT_PAGE_SIZE = 30
 DEFAULT_ONGOING_DEPLOY_SIZE = 10
@@ -142,15 +146,18 @@ def get_duplicate_commit_deploy_message(request, name, stage, buildId):
 class DeployView(View):
     def get(self, request, deploy_id):
         deploy = deploys_helper.get(request, deploy_id)
-        build = builds_helper.get_build(request, deploy['buildId'])
+        build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
         env = None
+        deploy_accounts = []
         if deploy.get('envId'):
             env = environs_helper.get(request, deploy['envId'])
+            deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
         return render(request, 'deploys/deploy_details.html', {
             "deploy": deploy,
-            "build": build,
+            "build": build_with_tag['build'],
             "csrf_token": get_token(request),
             "env": env,
+            "deploy_accounts": deploy_accounts
         })
 
 

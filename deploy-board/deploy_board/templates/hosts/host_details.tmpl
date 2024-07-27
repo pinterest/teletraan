@@ -1,6 +1,11 @@
 {% load utils %}
-<div id="hostInfo" class="panel panel-default">
+<div id="hostInfo{{agent.deployId}}" class="panel panel-default">
+    {% if host_related_sidecar %}
+    <div class="panel-heading host-related-sidecar">
+        <i class="fa fa-star"></i>
+    {% else %}
     <div class="panel-heading">
+    {% endif %}
         <strong>Environment:</strong><a href="/env/{{ env.envName }}/{{ env.stageName }}"> {{ env.envName }}/{{ env.stageName }}</a>
         <strong>Deploy:</strong><a href="/deploy/{{ agent.deployId }}"> {{ agent.deployId }}</a>
     </div>
@@ -19,7 +24,7 @@
                 <td>{{ agent.status }}</td>
             </tr>
             <tr>
-                <td>Container Health Status</td>
+                <td>Health Status</td>
                 <td>
                     {% if agent.containerHealthStatus == "" %}
                         N/A (Not Applicable)
@@ -63,8 +68,8 @@
             {% if agent|agentRetryable %}
             <button id="reset_agent_{{ env.envName }}_{{ env.stageName }}"
                     class="deployToolTip btn btn-default" data-toggle="tooltip"
-                    title="Retry the deploy on this host.">
-                <span class="glyphicon glyphicon-repeat"></span> Retry
+                    title="Restart an environment on this host.">
+                <span class="glyphicon glyphicon-repeat"></span> Restart
             </button>
             {% endif %}
             {% if agent|agentPausable %}
@@ -83,6 +88,14 @@
         </div>
     </div>
 </div>
+<style>
+    #hostInfo{{agent.deployId}}>.panel-heading.host-related-sidecar {
+        font-weight: bold;
+    }
+    #hostInfo{{agent.deployId}} {
+        scroll-margin-top: 80px;
+    }
+</style>
 <script>
     $(function () {
         $('.deployToolTip').tooltip();
@@ -93,7 +106,11 @@
                 data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
                 datatype: 'json',
                 success: function (data) {
-                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                    location.reload();
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
                 }
             });
         });
@@ -104,7 +121,11 @@
                 data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
                 datatype: 'json',
                 success: function (data) {
-                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                    location.reload();
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
                 }
             });
         });
@@ -115,7 +136,11 @@
                 data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
                 datatype: 'json',
                 success: function (data) {
-                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                    location.reload();
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
                 }
             });
         });

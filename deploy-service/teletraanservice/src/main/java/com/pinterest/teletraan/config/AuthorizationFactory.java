@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,17 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.dropwizard.jackson.Discoverable;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public interface AuthorizationFactory extends Discoverable {
-    Authorizer create(TeletraanServiceContext context) throws Exception;
+    <P extends TeletraanPrincipal> TeletraanAuthorizer<P> create(TeletraanServiceContext context)
+            throws Exception;
+
+    default <P extends TeletraanPrincipal> TeletraanAuthorizer<? extends TeletraanPrincipal> create(
+            TeletraanServiceContext context, Class<P> principalClass) throws Exception {
+        return create(context);
+    }
 }

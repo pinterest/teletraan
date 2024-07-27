@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.UpdateStatement;
-
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * A collection of methods to help interact with Environments tables
- */
+/** A collection of methods to help interact with Environments tables */
 public interface EnvironDAO {
     void insert(EnvironBean bean) throws Exception;
 
@@ -43,6 +41,8 @@ public interface EnvironDAO {
 
     EnvironBean getById(String envId) throws Exception;
 
+    EnvironBean getByDeployId(String deployId) throws SQLException;
+
     List<EnvironBean> getByName(String envName) throws Exception;
 
     EnvironBean getByStage(String envName, String envStage) throws Exception;
@@ -53,11 +53,38 @@ public interface EnvironDAO {
 
     long countTotalCapacity(String envId, String envName, String envStage) throws Exception;
 
-    List<String> getTotalCapacityHosts(String envId, String envName, String envStage) throws Exception;
+    List<String> getTotalCapacityHosts(String envId, String envName, String envStage)
+            throws Exception;
 
     Collection<String> getMissingHosts(String envId) throws Exception;
 
     List<EnvironBean> getEnvsByHost(String host) throws Exception;
+
+    /**
+     * Retrieves the main environment ID for the specified host ID.
+     *
+     * <p>The main environment is where the cluster that the host belongs to is created. In case
+     * such an environment does not exist, the method will attempt to retrieve the environment that
+     * matches the first group that's known to Teletraan for the specified host.
+     *
+     * @param hostId The ID of the host.
+     * @return The bean represents the main environment for the specified host ID.
+     * @throws SQLException if an error occurs while retrieving the main environment ID.
+     */
+    EnvironBean getMainEnvByHostId(String hostId) throws SQLException;
+
+    /**
+     * Retrieves the main environment ID for the specified host name.
+     *
+     * <p>The main environment is where the cluster that the host belongs to is created. In case
+     * such an environment does not exist, the method will attempt to retrieve the environment that
+     * matches the first group that's known to Teletraan for the specified host.
+     *
+     * @param hostName The host name.
+     * @return The bean represents the main environment for the specified host name.
+     * @throws SQLException if an error occurs while retrieving the main environment ID.
+     */
+    EnvironBean getMainEnvByHostName(String hostName) throws SQLException;
 
     List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception;
 
@@ -65,8 +92,9 @@ public interface EnvironDAO {
 
     // Return all
     List<String> getAllEnvIds() throws Exception;
-    
+
     List<EnvironBean> getAllEnvs() throws Exception;
+
     List<EnvironBean> getAllSidecarEnvs() throws Exception;
 
     void deleteSchedule(String envName, String stageName) throws Exception;

@@ -25,10 +25,11 @@ from math import trunc
 import pytz
 import logging
 from deploy_board.webapp.service_add_ons import ServiceAddOn, LogHealthReport
-from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_CODE
+from deploy_board.webapp.agent_report import DEFAULT_STALE_THRESHOLD, UNKNOWN_HOSTS_CODE, PROVISION_HOST_CODE
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
 from deploy_board.webapp.helpers.tags_helper import TagValue
+from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 import ast
 
 register = template.Library()
@@ -346,12 +347,15 @@ def deployAcceptanceTip(status):
 
 @register.filter("progressTip")
 def progressTip(deploy):
-    if deploy.get("showMode") == "subAcct":
+    if deploy.get("account") == AWS_SUB_ACCOUNT:
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["subAcctTotalHostNum"], deploy["subAcctSucHostNum"], deploy["subAcctFailHostNum"])
-    elif deploy.get("showMode") == "primaryAcct":
+    elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["primaryAcctTotalHostNum"], deploy["primaryAcctSucHostNum"], deploy["primaryAcctFailHostNum"])
+    elif deploy.get("account") == "others":
+        return "Among total %d hosts, %d are succeeded and %d are stuck" % (
+            deploy["otherAcctTotalHostNum"], deploy["otherAcctSucHostNum"], deploy["otherAcctFailHostNum"])
     else:
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["total"], deploy["successTotal"], deploy["failTotal"])
@@ -439,14 +443,18 @@ def getTotalDuration(start, end=None):
 @register.filter("successRate")
 def successRate(deploy):
     rate = 0
-    if deploy.get("showMode") == "subAcct":
+    if deploy.get("account") == AWS_SUB_ACCOUNT:
         if deploy["subAcctTotalHostNum"] != 0:
             rate = trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["subAcctSucHostNum"], deploy["subAcctTotalHostNum"])
-    elif deploy.get("showMode") == "primaryAcct":
+    elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         if deploy["primaryAcctTotalHostNum"] != 0:
             rate = trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["primaryAcctSucHostNum"], deploy["primaryAcctTotalHostNum"])
+    elif deploy.get("account") == "others":
+        if deploy["otherAcctTotalHostNum"] != 0:
+            rate = trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])
+        return "%d%% (%d/%d)" % (rate, deploy["otherAcctSucHostNum"], deploy["otherAcctTotalHostNum"])
     else:
         if deploy["total"] != 0:
             rate = trunc(deploy["successTotal"] * 100 / deploy["total"])
@@ -455,13 +463,16 @@ def successRate(deploy):
 
 @register.filter("successRatePercentage")
 def successRatePercentage(deploy):
-    if deploy.get("showMode") == "subAcct":
+    if deploy.get("account") == AWS_SUB_ACCOUNT:
         if deploy["subAcctTotalHostNum"] != 0:
             return trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
-    elif deploy.get("showMode") == "primaryAcct":
+    elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         if deploy["primaryAcctTotalHostNum"] != 0:
-            return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
-    else:     
+            return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
+    elif deploy.get("account") == "others":
+        if deploy["otherAcctTotalHostNum"] != 0:
+            return trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])
+    else:
         if deploy["total"] != 0:
             return trunc(deploy["successTotal"] * 100 / deploy["total"])
     return 0
@@ -623,10 +634,14 @@ def agentIcon(agentStats):
         return 'fa-recycle fa-spin'
 
     # normal state
-    if agent['deployStage'] == "SERVING_BUILD" and agentStats.isCurrent:
-        return 'fa-check'
-
     if agentStats.isCurrent:
+        if agent['deployStage'] == "SERVING_BUILD":
+            return 'fa-check'
+        if agentStats.isStale or (
+                agent['state']== "PROVISIONED" and
+                agent["ip"] is None
+                ):
+            return 'fa-exclamation-triangle'
         return 'fa-spinner fa-spin'
 
     return 'fa-clock-o'
@@ -642,8 +657,12 @@ def hostButton(host):
 
 @register.filter("hostIcon")
 def hostIcon(host):
-    if host['state'] == 'PROVISIONED':
-        return 'fa-refresh fa-spin'
+    if host["state"] == "PROVISIONED":
+        duration = (time.time() * 1000 - host["lastUpdateDate"]) / 1000
+        isStale = duration > DEFAULT_STALE_THRESHOLD * 3
+        if isStale and host["ip"] is None:
+            return "fa-exclamation-triangle"
+        return "fa-refresh fa-spin"
 
     if host['state'] == 'ACTIVE':
         return 'fa-check-square-o'
@@ -1016,7 +1035,7 @@ def get_available_tag(tag):
 
 
 @register.filter("tagBuildId")
-def get_available_tag(tag):
+def get_tag_build_id(tag):
     if tag is not None:
         meta_info = tag.get("metaInfo", None)
         if meta_info is not None:
@@ -1051,7 +1070,7 @@ def convertConfigHistoryString(change):
         try:
             converted_string = ast.literal_eval(change)
             return converted_string
-        except:
+        except Exception:
             pass
     return change
 

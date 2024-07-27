@@ -36,7 +36,7 @@ ACCEPTANCE_STATUS_VALUES = ['PENDING_DEPLOY', 'OUTSTANDING', 'PENDING_ACCEPT', '
                             'REJECTED',
                             'TERMINATED']
 
-AGENT_STATE_VALUES = ["NORMAL", "PAUSED_BY_SYSTEM", "PAUSED_BY_USER", "RESET", "DELETE",
+AGENT_STATE_VALUES = ["NORMAL", "PAUSED_BY_SYSTEM", "PAUSED_BY_USER", "RESET", "RESET_BY_SYSTEM", "DELETE",
                       "UNREACHABLE", "STOP"]
 
 AGENT_STATUS_VALUES = ["SUCCEEDED", "UNKNOWN", "AGENT_FAILED", "RETRYABLE_AGENT_FAILED",
@@ -54,7 +54,7 @@ OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
 DEPLOY_CONSTRAINT_TYPES = ['GROUP_BY_GROUP', 'ALL_GROUPS_IN_PARALLEL']
 
 # Fetch from backend to avoid maintainng at multiple places?
-STAGE_TYPES = ['DEFAULT', 'LATEST', 'CANARY', 'CONTROL', 'PRODUCTION']
+STAGE_TYPES = ['DEFAULT', 'LATEST', 'DEV', 'STAGING', 'CANARY', 'CONTROL', 'PRODUCTION']
 
 deployclient = DeployClient()
 
@@ -85,7 +85,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
             stage_with_external_id = env_stage
             break
 
-    if stage_with_external_id == None:
+    if stage_with_external_id is None:
         return None
 
     # retrieve Nimbus identifier for existing_stage
@@ -316,3 +316,7 @@ def reset_hosts(request, env_name, stage_name, host_ids):
     params = [("actionType", "RESET")]
     return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
                             params=params, data=host_ids)
+
+def get_env_pindeploy(request, env_name, stage_name):
+    params = [("envName", env_name), ("stageName", stage_name)]
+    return deployclient.get("/pindeploy", request.teletraan_user_id.token, params=params)

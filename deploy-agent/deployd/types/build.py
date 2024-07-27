@@ -13,9 +13,12 @@
 # limitations under the License.
 
 
+from typing import Tuple
+
+
 class Build(object):
 
-    def __init__(self, jsonValue=None):
+    def __init__(self, jsonValue=None) -> None:
         self.buildId = None
         self.buildName = None
         self.buildVersion = None
@@ -43,7 +46,7 @@ class Build(object):
             self.publishInfo = jsonValue.get('publishInfo')
             self.publishDate = jsonValue.get('publishDate')
 
-    def __key(self):
+    def __key(self) -> Tuple:
         return (self.buildId,
                 self.buildName,
                 self.buildVersion,
@@ -57,20 +60,20 @@ class Build(object):
                 self.publishInfo,
                 self.publishDate)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.__key())
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """ compare Builds """
         return isinstance(other, Build) \
             and self.__key() == other.__key()
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         """ compare Builds """
         return not (isinstance(other, Build)
                     and self.__key() == other.__key())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Build(buildId={}, buildName={}, buildVersion={}, artifactUrl={}, scm={}, " \
                "scmRepo={}, scmBranch={}, scmCommit={}, scmInfo={}, commitDate={}, publishInfo={}, " \
                "publishDate={})".format(self.buildId, self.buildName, self.buildVersion,

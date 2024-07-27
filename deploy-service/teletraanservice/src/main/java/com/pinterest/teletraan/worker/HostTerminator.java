@@ -27,9 +27,8 @@ import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
-
+import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import com.pinterest.deployservice.handler.HostHandler;
-import com.pinterest.deployservice.metrics.MeterConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,6 @@ import java.sql.Connection;
 import java.util.*;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Metrics;
 
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
@@ -59,13 +57,8 @@ public class HostTerminator implements Runnable {
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
 
-        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
-            
-        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     private void terminateHost(HostBean host) throws Exception {
@@ -78,8 +71,10 @@ public class HostTerminator implements Runnable {
         List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
         boolean stopSucceeded = true;
         for (AgentBean agentBean : agentBeans) {
-            if (agentBean.getDeploy_stage() != DeployStage.STOPPED && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
+            if (agentBean.getDeploy_stage() != DeployStage.STOPPED
+                && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
                 stopSucceeded = false;
+                break;
             }
         }
 

@@ -22,7 +22,7 @@ import com.pinterest.deployservice.db.DatabaseUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 import org.apache.commons.codec.digest.DigestUtils;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
@@ -133,17 +133,17 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
                 .put("clientCertificateKeyStorePassword", this.clientPasswd )
                 .build();
             host = this.replicaSet;
-            // we don't need the replica number in the host; 
+            // we don't need the replica number in the host;
             // if in the configuration we input the number in the replica, we have to remove it.
             if (host.length() > 3) {
                 replicaSetNumber = replicaSet.substring(replicaSet.length() - 3);
                 if (StringUtils.isNumeric(replicaSetNumber)) {
                     host = replicaSet.substring(0, replicaSet.length() - 3);
-                } 
+                }
             }  else {
                 throw new Exception(String.format("ReplicaSet is: %s which is not correct. It should be the replicaset name and replicaset number.", host));
             }
-            host += this.domainSuffix; 
+            host += this.domainSuffix;
             String userName = getUserNameFromSpiffeId(replicaSetNumber);
             return DatabaseUtil.createMysqlDataSource(host, port, userName, password, pool, proxyConnectionProps);
         } else {

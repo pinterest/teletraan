@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,11 +20,12 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.*;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/agents")
 @Api(tags = "Agents")
 @Produces(MediaType.APPLICATION_JSON)
@@ -45,7 +47,6 @@ public class EnvAgents {
     private EnvironDAO environDAO;
     private AgentDAO agentDAO;
     private AgentErrorDAO agentErrorDAO;
-    private Authorizer authorizer;
 
     public enum CountActionType {
         SERVING,
@@ -54,9 +55,8 @@ public class EnvAgents {
         FAILED_FIRST_DEPLOY
     }
 
-    public EnvAgents(TeletraanServiceContext context) {
+    public EnvAgents(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
-        authorizer = context.getAuthorizer();
         agentDAO = context.getAgentDAO();
         agentErrorDAO = context.getAgentErrorDAO();
     }
@@ -97,6 +97,8 @@ public class EnvAgents {
             value = "Update host agent",
             notes = "Updates host agent specified by given environment name, stage name, and host id with given " +
                     "agent object")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
@@ -104,7 +106,6 @@ public class EnvAgents {
             @ApiParam(value = "Host id", required = true)@PathParam("hostId") String hostId,
             @ApiParam(value = "Agent object to update with", required = true)AgentBean agentBean) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         agentDAO.update(hostId, envBean.getEnv_id(), agentBean);
         LOG.info("Successfully updated agent {} with {} in env {}/{} by {}.",
@@ -116,13 +117,14 @@ public class EnvAgents {
     @ApiOperation(
             value = "Reset failed deploys",
             notes = "Resets failing deploys given an environment name, stage name, and deploy id")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void resetFailedDeploys(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "Deploy id", required = true)@PathParam("deployId") String deployId) throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         agentDAO.resetFailedAgents(environBean.getEnv_id(), deployId);
         LOG.info("Successfully reset failed agents for deploy {} in env {}/{} by {}.",
@@ -154,7 +156,7 @@ public class EnvAgents {
                 count = agentDAO.countFailedFirstDeployingAgent(envBean.getEnv_id());
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new WebApplicationException("No action found.", Response.Status.BAD_REQUEST);
         }
         return count;
     }

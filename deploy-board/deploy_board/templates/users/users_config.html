@@ -22,15 +22,6 @@
            <i class="glyphicon glyphicon-user"></i> Users
         </a>
     </div>
-    {% if pinterest %}
-	<div class="row">
-        <a type="button" class="deployToolTip btn btn-default btn-block"
-           href="/env/{{ env_name }}/get_users_config/?user_types=group_roles"
-           data-toggle="tooltip" title="Manage LDAP group permissions">
-           <i class="glyphicon glyphicon-tag"></i> LDAP Groups
-        </a>
-    </div>
-    {% endif %}
 	<div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env_name }}/get_users_config/?user_types=token_roles"
@@ -48,6 +39,10 @@
 
 {% block main %}
 <div id="usersConfigId" class="panel panel-default">
-{% include "users/users_config.tmpl" %}
+    {% if pinterest and user_types != 'token_roles' %}
+        {% include "users/users_moved_message.html" %}
+    {% else %}
+        {% include "users/users_config.tmpl" %}
+    {% endif %}
 </div>
 {% endblock %}

@@ -10,6 +10,7 @@
         <th>State</th>
         <th>Success Rate</th>
         <th>Build</th>
+        <th>Account</th>
         <th>Operator</th>
     </tr>
     {% for deploy_summary in deploy_summaries %}
@@ -39,6 +40,19 @@
             <a href="/builds/{{ deploy_summary.build.id }}">
                 {{ deploy_summary.build|branchAndCommit }}
             </a>
+        </td>
+        <td>
+            {% for account in deploy_summary.deploy_accounts %}
+                {% if account.legacy_name %}
+                <div class="deployToolTip btn btn-xs btn-default host-btn">
+                {{ account.legacy_name }}
+                </div>
+                {% else %}
+                <a class="deployToolTip btn btn-xs btn-default host-btn" href="/clouds/accounts/{{ account.cloudProvider }}/{{ account.cell }}/{{ account.id }}">
+                    {{ account.data.ownerId }} / {{ account.name }}
+                </a>
+                {% endif %}
+            {% endfor %}
         </td>
         <td>{{ deploy_summary.deploy.operator }}</td>
     </tr>

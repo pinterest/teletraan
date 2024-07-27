@@ -1,21 +1,21 @@
 load("@rules_python//python:defs.bzl", "py_library")
 
 py_test(
-    name = "test_base_client", 
+    name = "test_base_client",
     srcs = ['unit/deploy/client/test_base_client.py'],
     deps = ["test_lib"],
     python_version = "PY3",
 )
 
 py_test(
-    name = "test_serverless_client", 
+    name = "test_serverless_client",
     srcs = ['unit/deploy/client/test_serverless_client.py'],
     deps = ["test_lib"],
     python_version = "PY3",
 )
 
 py_test(
-    name = "test_agent", 
+    name = "test_agent",
     srcs = ['unit/deploy/server/test_agent.py'],
     deps = ["test_lib"],
     python_version = "PY3",
@@ -24,6 +24,20 @@ py_test(
 py_test(
     name = "test_utils",
     srcs = ['unit/deploy/common/test_utils.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_s3_download_helper",
+    srcs = ['unit/deploy/download/test_s3_download_helper.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_http_download_helper",
+    srcs = ['unit/deploy/download/test_http_download_helper.py'],
     deps = ["test_lib"],
     python_version = "PY3",
 )

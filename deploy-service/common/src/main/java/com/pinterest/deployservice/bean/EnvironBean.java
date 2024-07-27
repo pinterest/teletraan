@@ -15,15 +15,14 @@
  */
 package com.pinterest.deployservice.bean;
 
-import com.pinterest.deployservice.common.DeployInternalException;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * Keep the bean and table in sync
@@ -207,7 +206,7 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("terminationLimit")
     private Integer termination_limit;
 
-    public void validate() throws Exception {
+    public void validate() throws IllegalArgumentException {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         String envRegEx = "^[A-Za-z0-9_\\-]*$";
         if (this.env_name != null && !this.env_name.matches(envRegEx)) {
@@ -228,6 +227,11 @@ public class EnvironBean implements Updatable, Serializable {
         String chatRegex = "^[A-Za-z0-9_ \\#\\,\\-]*$";
         if (this.chatroom != null && !this.chatroom.matches(chatRegex)) {
             throw new IllegalArgumentException(String.format("Chatroom must match regex %s", chatRegex));
+        }
+        if (this.stage_type == EnvType.DEFAULT) {
+            throw new IllegalArgumentException("DEFAULT stage type is not allowed! " +
+                        "Please select one of the following Stage Types: " +
+                        "PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV.");
         }
     }
 

@@ -14,6 +14,7 @@
 import logging
 import requests
 from .decorators import retry
+from deploy_board.settings import UNAUTHORIZED_ERROR_TEXT
 from .exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
 
@@ -50,22 +51,18 @@ class BaseClient(object):
                     if "access_token=" in response.text:
                         bad_text = response.text.split("access_token=")[1].split('"')[0].replace("\\", "")
                         response.text = response.text.replace(bad_text, "ACCESS_TOKEN")
-                except:
+                except Exception:
                     pass
 
             if response.status_code == 401:
                 raise FailedAuthenticationException(
-                    "Oops! Teletraan was unable to authenticate you. Contact an environment ADMIN for "
-                    "assistance. " + response.text)
+                    f"Oops! Teletraan was unable to authenticate you. Please re-login. Server message: {response.json()['message']}")
 
             if response.status_code == 403:
-                raise NotAuthorizedException(
-                    "Oops! You do not have the required permissions for this action. Contact an environment ADMIN for "
-                    "assistance. " + response.text)
+                raise NotAuthorizedException(f"{UNAUTHORIZED_ERROR_TEXT}. Server message: {response.json()['message']}")
 
-            if response.status_code == 400:
-                raise IllegalArgumentException(
-                    "Oops! It seems like Teletraan sent an illegal request. " + response.text)
+            if response.status_code == 400 or response.status_code == 422:
+                raise IllegalArgumentException(response.text)
 
             if response.status_code == 404:
                 log.info("Resource %s Not found" % path)

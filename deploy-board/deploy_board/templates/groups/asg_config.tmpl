@@ -70,6 +70,7 @@
     </div>
 </div>
 
+<div id="suspendedProcessesPid"></div>
 <div id="scheduledActionsPid"></div>
 <div id="scalingPolicyPid"></div>
 <div id="alarmMetricPid"></div>
@@ -102,6 +103,14 @@ function loadAsgScheduledActions() {
     });
 }
 
+function loadAsgSuspendedProcesses() {
+    $("#suspendedProcessesPid").addClass("panel panel-default");
+    var asg_suspended_processes_url = "/groups/{{ group_name }}/autoscaling/get_suspended_processes/";
+    $.get(asg_suspended_processes_url, function(response) {
+        $("#suspendedProcessesPid").html(response);
+    });
+}
+
 function loadAsgPolicy() {
     $("#scalingPolicyPid").addClass("panel panel-default");
     var asg_policy_url = "/groups/{{ group_name }}/autoscaling/get_asg_policy/";
@@ -121,6 +130,7 @@ function loadAsgAlarms() {
 function getAdvancedSetting() {
     loadAsgPolicy();
     loadAsgScheduledActions();
+    loadAsgSuspendedProcesses();
     loadAsgAlarms();
 }
 

@@ -19,13 +19,12 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.handler.BuildTagHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -38,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -52,7 +53,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.WebApplicationException;
 
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Api(tags="Tags")
 @Path("/v1/tags")
 @Produces(MediaType.APPLICATION_JSON)
@@ -67,14 +70,11 @@ public class Tags {
     private final TagDAO tagDAO;
     private final HashMap<TagTargetType, TagHandler> handlers = new HashMap<>();
 
-    public Tags(TeletraanServiceContext context)
+    public Tags(@Context TeletraanServiceContext context)
     {
         this.tagDAO = context.getTagDAO();
         this.handlers.put(TagTargetType.BUILD, new BuildTagHandler(context));
     }
-
-    @Context
-    UriInfo uriInfo;
 
     @GET
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
@@ -86,8 +86,7 @@ public class Tags {
         throws Exception {
         TagBean ret = tagDAO.getById(id);
         if (ret == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Tag %s does not exist.", id));
+            throw new WebApplicationException(String.format("Tag %s does not exist.", id), Response.Status.NOT_FOUND);
         }
         return ret;
     }
@@ -101,8 +100,9 @@ public class Tags {
     public List<TagBean> getByTargetId(@PathParam("id") String targetId) throws Exception {
 
         if (StringUtils.isEmpty(targetId)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "Require at least one of targetId, targetType, value specified in the request.");
+            throw new WebApplicationException(
+                    "Require at least one of targetId, targetType, value specified in the request.",
+                    Response.Status.BAD_REQUEST);
         }
 
         return tagDAO.getByTargetId(targetId);
@@ -116,8 +116,9 @@ public class Tags {
             response = List.class)
     public TagBean getLatestByTargetId(@PathParam("id") String targetId) throws Exception {
         if (StringUtils.isEmpty(targetId)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                    "Require at least one of targetId, targetType, value specified in the request.");
+            throw new WebApplicationException(
+                    "Require at least one of targetId, targetType, value specified in the request.",
+                    Response.Status.BAD_REQUEST);
         }
         return tagDAO.getLatestByTargetId(targetId);
     }
@@ -133,16 +134,17 @@ public class Tags {
         throws Exception {
 
         if (StringUtils.isEmpty(value)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "Require at least one of targetId, targetType, value specified in the request.");
+            throw new WebApplicationException(
+                    "Require at least one of targetId, targetType, value specified in the request.",
+                    Response.Status.BAD_REQUEST);
         }
 
         try {
             return tagDAO.getByValue(TagValue.valueOf(value.toUpperCase()));
 
         } catch (IllegalArgumentException e) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                String.format("%s is not a valid tag Value.", value));
+            throw new WebApplicationException(String.format("%s is not a valid tag Value.", value),
+                    Response.Status.BAD_REQUEST);
         }
     }
 
@@ -153,6 +155,7 @@ public class Tags {
         notes = "Create a tag on an object",
         response = Response.class)
     public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
         @ApiParam(value = "Tag object", required = true) @Valid TagBean tag) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         TagBean retEntity = new TagBean();
@@ -187,8 +190,7 @@ public class Tags {
         @ApiParam(value = "tag id", required = true) @PathParam("id") String id) throws Exception {
         TagBean tagBean = tagDAO.getById(id);
         if (tagBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Tag %s does not exist.", id));
+            throw new WebApplicationException(String.format("Tag %s does not exist.", id), Response.Status.NOT_FOUND);
         }
         tagDAO.delete(id);
         LOG.info("{} successfully deleted tag {}", sc.getUserPrincipal().getName(), id);

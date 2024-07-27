@@ -20,18 +20,18 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.views.generic import View
 
-from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
+from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL, RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK
+        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK, PUPPET_CONFIG_REPOSITORY, PUPPET_HIERA_PATHS, CONFLICTING_DEPLOY_SERVICE_WIKI_URL
 
 import json
 import logging
 
 from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
-    autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
+    autoscaling_groups_helper, groups_helper, cells_helper, arches_helper, accounts_helper
 from .helpers import clusters_helper, environs_helper, environ_hosts_helper
 from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 from . import common
@@ -50,9 +50,9 @@ class EnvCapacityBasicCreateView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
@@ -138,14 +138,17 @@ class EnvCapacityAdvCreateView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+            request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
         arches = arches_helper.get_all(request)
         base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, DEFAULT_PROVIDER, DEFAULT_CELL, DEFAULT_ARCH)
+
+        accounts = accounts_helper.get_all_accounts(request)
+        default_account = accounts_helper.get_default_account(request, DEFAULT_CELL)
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -173,7 +176,9 @@ class EnvCapacityAdvCreateView(View):
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
             'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
-            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses(),
+            'accounts': create_ui_accounts(accounts),
+            'defaultAccountId': default_account['id'] if default_account is not None else None,
         }
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
@@ -184,10 +189,15 @@ class EnvCapacityAdvCreateView(View):
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
-            'is_pinterest': IS_PINTEREST})
+            'is_pinterest': IS_PINTEREST,
+            'puppet_repository': PUPPET_CONFIG_REPOSITORY,
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS,
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
+        })
 
     def post(self, request, name, stage):
         ret = 200
+        exception = None
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -209,23 +219,25 @@ class EnvCapacityAdvCreateView(View):
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
             ret = 403
+            exception = e
         except Exception as e:
             log.error("Have an error {}", e)
             ret = 500
+            exception = e
         finally:
             if ret == 200:
                 return HttpResponse("{}", content_type="application/json")
             else:
                 environs_helper.remove_env_capacity(
                     request, name, stage, capacity_type="GROUP", data=cluster_name)
-                return HttpResponse(e, status=ret, content_type="application/json")
+                return HttpResponse(exception, status=ret, content_type="application/json")
 
 
 class ClusterConfigurationView(View):
     def get(self, request, name, stage):
 
-        cluster_name = '{}-{}'.format(name, stage)
-        current_cluster = clusters_helper.get_cluster(request, cluster_name)
+        current_cluster = get_current_cluster(request, name, stage)
+        accounts = accounts_helper.get_all_accounts(request)
         host_types = hosttypes_helper.get_by_arch(
             request, current_cluster['archName'])
         current_image = baseimages_helper.get_by_id(
@@ -239,18 +251,21 @@ class ClusterConfigurationView(View):
         cells = cells_helper.get_by_provider(request, current_cluster['provider'])
         arches = arches_helper.get_all(request)
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
-            request, current_cluster['provider'], current_cluster['cellName'])
+            request, current_cluster.get("accountId"), current_cluster['provider'], current_cluster['cellName'])
         placements = placements_helper.get_by_provider_and_cell_name(
-            request, current_cluster['provider'], current_cluster['cellName'])
+            request, current_cluster.get("accountId"), current_cluster['provider'], current_cluster['cellName'])
         base_images = get_base_image_info_by_name(
             request, current_image['abstract_name'], current_cluster['cellName'])
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, current_cluster['provider'], current_cluster['cellName'], current_cluster['archName'])
 
-        current_cluster['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(current_cluster['statefulStatus'])
+        current_cluster['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(
+            current_cluster['statefulStatus'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
+        asg_cluster = autoscaling_groups_helper.get_group_info(request, current_cluster['clusterName'])
+        current_cluster['asg_info'] = asg_cluster
 
         capacity_creation_info = {
             'environment': env,
@@ -259,6 +274,7 @@ class ClusterConfigurationView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
+            'accounts': create_ui_accounts(accounts),
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
@@ -285,7 +301,11 @@ class ClusterConfigurationView(View):
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'host_type_roadmap_link': HOST_TYPE_ROADMAP_LINK,
-            'is_pinterest': IS_PINTEREST})
+            'is_pinterest': IS_PINTEREST,
+            'puppet_repository': PUPPET_CONFIG_REPOSITORY,
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS,
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
+        })
 
     def post(self, request, name, stage):
         try:
@@ -294,8 +314,7 @@ class ClusterConfigurationView(View):
             cluster_info = json.loads(request.body)
             log.info("Update Cluster Configuration with {}", cluster_info)
 
-            cluster_name = '{}-{}'.format(name, stage)
-            current_cluster = clusters_helper.get_cluster(request, cluster_name)
+            current_cluster = get_current_cluster(request, name, stage, env=env)
             log.info("getting current Cluster Configuration is {}", current_cluster)
             if 'configs' in current_cluster and 'configs' in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
@@ -324,7 +343,7 @@ class ClusterCapacityUpdateView(View):
         log.info("Update Cluster Capacity with data {}".format(request.body))
         try:
             settings = json.loads(request.body)
-            cluster_name = '{}-{}'.format(name, stage)
+            cluster_name = get_cluster_name(request, name, stage)
             log.info("Update cluster {0} with {1}".format(
                 cluster_name, settings))
             minSize = int(settings['minsize'])
@@ -375,6 +394,7 @@ def create_base_image(request):
     base_image_info['description'] = params['description']
     base_image_info['cell_name'] = params['cellName']
     base_image_info['arch_name'] = params['archName']
+    base_image_info['basic'] = 'basic' in params and params['basic'] == "true"
     baseimages_helper.create_base_image(request, base_image_info)
     return redirect('/clouds/baseimages/')
 
@@ -389,7 +409,7 @@ def get_base_images(request):
     arches_list = arches_helper.get_all(request)
     for image in base_images:
         tags = baseimages_helper.get_image_tag_by_id(request, image['id'])
-        golden_tags = [ e['tag'] for e in tags ]
+        golden_tags = [e['tag'] for e in tags]
         image['golden_latest'] = 'GOLDEN_LATEST' in golden_tags
         image['golden_canary'] = 'GOLDEN_CANARY' in golden_tags
         image['golden_prod'] = 'GOLDEN' in golden_tags
@@ -412,14 +432,19 @@ def get_base_images_by_abstract_name(request, abstract_name):
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     arches_list = arches_helper.get_all(request)
+    for image in base_images:
+        tags = baseimages_helper.get_image_tag_by_id(request, image['id'])
+        golden_tags = [e['tag'] for e in tags]
+        image['golden_latest'] = 'GOLDEN_LATEST' in golden_tags
+        image['golden_canary'] = 'GOLDEN_CANARY' in golden_tags
+        image['golden_prod'] = 'GOLDEN' in golden_tags
+    # add current golden tag
     golden_images = {}
     for cell in cells_list:
         cell_name = cell['name']
         golden_images[cell_name] = baseimages_helper.get_current_golden_image(request, abstract_name, cell_name)
-
-    # add golden tag to images
     for image in base_images:
-        if golden_images[image['cell_name']] and image['id'] == golden_images[image['cell_name']]['id']:
+        if golden_images.get(image['cell_name']) and image['id'] == golden_images[image['cell_name']]['id']:
             image['current_golden'] = True
 
     return render(request, 'clusters/base_images.html', {
@@ -440,7 +465,7 @@ def get_base_image_events(request, image_id):
         request, image_id)
     update_events = sorted(update_events, key=lambda event: event['create_time'], reverse=True)
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
-    golden_tags = [ e['tag'] for e in tags ]
+    golden_tags = [e['tag'] for e in tags]
     golden_latest = 'GOLDEN_LATEST' in golden_tags
     golden_canary = 'GOLDEN_CANARY' in golden_tags
     golden_prod = 'GOLDEN' in golden_tags
@@ -448,8 +473,8 @@ def get_base_image_events(request, image_id):
     cancel = any(event['state'] == 'INIT' for event in update_events)
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
     progress_info = baseimages_helper.get_base_image_update_progress(latest_update_events)
-    show_promote_ui = current_image['abstract_name'].startswith('cmp')
-    cluster_statuses = [{'cluster_name': event['cluster_name'], 'status': event['status']} for event in latest_update_events]
+    cluster_statuses = [{'cluster_name': event['cluster_name'], 'status': event['status']}
+                        for event in latest_update_events]
     cluster_statuses = sorted(cluster_statuses, key=lambda event: event['status'], reverse=True)
 
     return render(request, 'clusters/base_images_events.html', {
@@ -462,7 +487,6 @@ def get_base_image_events(request, image_id):
         'golden_prod': golden_prod,
         'cancellable': cancel,
         'progress': progress_info,
-        'show_promote_ui': show_promote_ui,
     })
 
 
@@ -487,12 +511,14 @@ def get_images_by_provider_and_cell(request, provider, cell):
 
 
 def get_placements_by_provider_and_cell(request, provider, cell):
-    data = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
+    account_id = request.GET.get("accountId", None)
+    data = placements_helper.get_by_provider_and_cell_name(request, account_id, provider, cell)
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
 def get_security_zones_by_provider_and_cell(request, provider, cell):
-    data = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
+    data = securityzones_helper.get_by_provider_and_cell_name(
+        request, request.GET.get("accountId", None), provider, cell)
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
@@ -561,6 +587,38 @@ def get_base_image_info_by_name(request, name, cell):
     return baseimages_helper.get_by_name(request, name, cell)
 
 
+def create_ui_account(account, cells):
+    if account is None:
+        return None
+    ui_cells = list(map(lambda cell: {'name': cell}, cells))
+    return {
+        'id': account['id'],
+        'name': account['name'],
+        'description': account['description'],
+        'ownerId': account['data']['ownerId'],
+        'cells': ui_cells
+    }
+
+
+def create_ui_accounts(accounts):
+    if accounts is None:
+        return None
+
+    id_to_account_with_cells = {}
+    for account in accounts:
+        account_with_cells = id_to_account_with_cells.get(account['id'])
+        if account_with_cells is None:
+            account_with_cells = {'account': account, 'cells': []}
+            id_to_account_with_cells[account['id']] = account_with_cells
+        account_with_cells['cells'].append(account['cell'])
+
+    res = []
+    for account_with_cell in id_to_account_with_cells.values():
+        res.append(create_ui_account(account_with_cell['account'], account_with_cell['cells']))
+
+    return sorted(res, key=lambda r: r['name'])
+
+
 def get_base_images_by_name_json(request, name):
     cell = DEFAULT_CELL
     params = request.GET
@@ -585,6 +643,7 @@ def create_host_type(request):
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 
+
 def modify_host_type(request):
     try:
         host_type_info = json.loads(request.body)
@@ -602,6 +661,7 @@ def modify_host_type(request):
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse(json.dumps(host_type_info), content_type="application/json")
 
+
 def get_host_type_by_id(request, host_type_id):
     provider_list = baseimages_helper.get_all_providers(request)
     arches_list = arches_helper.get_all(request)
@@ -616,6 +676,7 @@ def get_host_type_by_id(request, host_type_id):
         "csrf_token": get_token(request)
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
+
 
 def get_host_types(request):
     index = int(request.GET.get('page_index', '1'))
@@ -680,6 +741,7 @@ def create_security_zone(request):
     security_zone_info['provider'] = params['provider']
     security_zone_info['description'] = params['description']
     security_zone_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
+    security_zone_info['account_id'] = params.get('accountId')
     securityzones_helper.create_security_zone(request, security_zone_info)
     return redirect('/clouds/securityzones/')
 
@@ -690,15 +752,19 @@ def get_security_zones(request):
     security_zones = securityzones_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    accounts = accounts_helper.get_all_accounts(request)
+    default_account = accounts_helper.get_default_account(request, DEFAULT_CELL)
 
     return render(request, 'clusters/security_zones.html', {
         'security_zones': security_zones,
         'provider_list': provider_list,
         'cells_list': cells_list,
+        'defaultAccountId': default_account['id'] if default_account is not None else None,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
         'disableNext': len(security_zones) < DEFAULT_PAGE_SIZE,
+        'accounts': create_ui_accounts(accounts)
     })
 
 
@@ -710,7 +776,8 @@ def get_security_zones_by_provider(request):
         curr_security_zone = params['curr_security_zone']
     cell = params.get('cell', DEFAULT_CELL)
 
-    security_zones = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
+    security_zones = securityzones_helper.get_by_provider_and_cell_name(
+        request, request.GET.get("accountId", None), provider, cell)
     contents = render_to_string("clusters/get_security_zone.tmpl", {
         'security_zones': security_zones,
         'curr_security_zone': curr_security_zone,
@@ -733,6 +800,7 @@ def create_placement(request):
     placement_info['provider'] = params['provider']
     placement_info['description'] = params['description']
     placement_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
+    placement_info['account_id'] = params.get('accountId')
     placements_helper.create_placement(request, placement_info)
     return redirect('/clouds/placements/')
 
@@ -743,15 +811,19 @@ def get_placements(request):
     placements = placements_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    accounts = accounts_helper.get_all_accounts(request)
+    default_account = accounts_helper.get_default_account(request, DEFAULT_CELL)
 
     return render(request, 'clusters/placements.html', {
         'placements': placements,
         'provider_list': provider_list,
         'cells_list': cells_list,
+        'defaultAccountId': default_account['id'] if default_account is not None else None,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
         'disableNext': len(placements) < DEFAULT_PAGE_SIZE,
+        'accounts': create_ui_accounts(accounts)
     })
 
 
@@ -764,7 +836,8 @@ def get_placements_by_provider(request):
         curr_placement = params['curr_placement']
         curr_placement_arrays = curr_placement.split(',')
 
-    placements = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
+    account_id = params.get("accountId", None)
+    placements = placements_helper.get_by_provider_and_cell_name(request, account_id, provider, cell)
     contents = render_to_string("clusters/get_placement.tmpl", {
         'placements': placements,
         'curr_placement_arrays': curr_placement_arrays,
@@ -841,11 +914,12 @@ def clone_cluster(request, src_name, src_stage):
         dest_name = params.get('new_environment', src_name)
         dest_stage = params.get('new_stage', src_stage + '_clone')
 
-        src_cluster_name = '{}-{}'.format(src_name, src_stage)
+        src_cluster_name = get_cluster_name(request, src_name, src_stage)
         dest_cluster_name = '{}-{}'.format(dest_name, dest_stage)
 
         # 0. teletraan service get src env buildName
         src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
+        dest_stage_type = src_env['stageType']
         build_name = src_env.get('buildName', None)
         external_id = environs_helper.create_identifier_for_new_stage(request, dest_name, dest_stage)
 
@@ -854,7 +928,8 @@ def clone_cluster(request, src_name, src_stage):
             'envName': dest_name,
             'stageName': dest_stage,
             'buildName': build_name,
-            'externalId': external_id
+            'externalId': external_id,
+            'stageType': dest_stage_type
         })
         log.info('clone_cluster, created a new env %s' % dest_env)
 
@@ -945,11 +1020,11 @@ def get_aws_config_name_list_by_image(image_name):
         config_map['raid_device'] = '/dev/md0'
         config_map['raid_fs'] = 'xfs'
         config_map['ebs'] = 'true'
-        config_map['ebs_size'] = 500
+        config_map['ebs_size'] = '500'
         config_map['ebs_mount'] = '/backup'
         config_map['ebs_volume_type'] = 'gp3'
         config_map['root_volume_type'] = 'gp3'
-        config_map['root_volume_size'] = 100
+        config_map['root_volume_size'] = '100'
         if image_name == DEFAULT_CMP_IMAGE or image_name == DEFAULT_CMP_ARM_IMAGE:
             config_map['pinfo_role'] = 'cmp_base'
             config_map['pinfo_team'] = 'cloudeng'
@@ -1011,17 +1086,22 @@ def enable_cluster_replacement(request, name, stage):
     clusters_helper.enable_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
+
 def gen_cluster_replacement_view(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    cluster_name = '{}-{}'.format(name, stage)
+    cluster_name = get_cluster_name(request, name, stage, env=env)
     get_cluster_replacement_body = {
-        "clusterName" : cluster_name
+        "clusterName": cluster_name
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+    cluster = clusters_helper.get_cluster(request, cluster_name)
 
     storage = get_messages(request)
 
     content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "auto_refresh_view": False,
+        "auto_refresh_enabled": cluster["autoRefresh"],
+        "cluster_last_update_time": cluster["lastUpdate"],
         "env": env,
         "env_name": name,
         "env_stage": stage,
@@ -1034,14 +1114,97 @@ def gen_cluster_replacement_view(request, name, stage):
 
     return HttpResponse(content)
 
+def gen_auto_cluster_refresh_view(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = get_cluster_name(request, name, stage, env=env)
+    get_cluster_replacement_body = {
+        "clusterName": cluster_name
+    }
+    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+    cluster = clusters_helper.get_cluster(request, cluster_name)
+    auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
+
+    emails = ''
+    slack_channels = ''
+    try:
+        group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
+        # the helper above returns a nested groupInfo object, so need to access this nested object first.
+        # avoid changing the helper to not making other changes where it's being used.
+        emails = sanitize_slack_email_input(group_info["groupInfo"]["emailRecipients"])
+        slack_channels = sanitize_slack_email_input(group_info["groupInfo"]["chatroom"])
+    except Exception:
+        log.exception('Failed to get group %s info', cluster_name)
+        messages.warning(request, "failed to retrieve group info", "cluster-replacements")
+
+    button_disabled = False
+
+    # get default configurations for first time
+    try:
+        if auto_refresh_config is None:
+            auto_refresh_config = clusters_helper.get_default_cluster_auto_refresh_config(request, cluster_name)
+            auto_refresh_config["launchBeforeTerminate"] = True
+            auto_refresh_config["config"]["minHealthyPercentage"] = 100
+            auto_refresh_config["config"]["maxHealthyPercentage"] = 110
+        else:
+            if auto_refresh_config["config"]["maxHealthyPercentage"] is None:
+                auto_refresh_config["terminateAndLaunch"] = True
+            elif auto_refresh_config["config"]["minHealthyPercentage"] == 100:
+                auto_refresh_config["launchBeforeTerminate"] = True
+            else:
+                auto_refresh_config["customMinMax"] = True
+
+    except IllegalArgumentException:
+        note = "To use auto cluster refresh, update stage type to one of these: DEV, LATEST, CANARY, CONTROL, STAGING, PRODUCTION"
+        messages.warning(request, note, "cluster-replacements")
+        button_disabled = True
+
+    storage = get_messages(request)
+
+    content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "auto_refresh_view": True,
+        "button_disabled": button_disabled,
+        "auto_refresh_config": auto_refresh_config,
+        "auto_refresh_enabled": cluster["autoRefresh"],
+        "cluster_last_update_time": cluster["lastUpdate"],
+        "env": env,
+        "env_name": name,
+        "env_stage": stage,
+        "cluster_name": cluster_name,
+        "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
+        "emails": emails,
+        "slack_channels": slack_channels,
+        "csrf_token": get_token(request),
+        "storage": storage,
+        "auto_cluster_refresh_wiki_url": RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL
+    })
+
+    return HttpResponse(content)
+
+def sanitize_slack_email_input(input):
+    res = ''
+    if input is None or len(input) == 0:
+        return res
+
+    tokens = input.strip().split(',')
+    for e in tokens:
+        e = e.strip()
+        if e:
+            if not res:
+                res = e
+            else:
+                res = res + ',' + e
+    return res
+
+
 def get_cluster_replacement_details(request, name, stage, replacement_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    cluster_name = '{}-{}'.format(name, stage)
+    cluster_name = get_cluster_name(request, name, stage, env=env)
     get_cluster_replacement_details_body = {
         "clusterName": cluster_name,
         "replacementIds": [replacement_id]
     }
-    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_details_body)
+    replace_summaries = clusters_helper.get_cluster_replacement_status(
+        request, data=get_cluster_replacement_details_body)
 
     content = render_to_string("clusters/cluster-replacement-details.tmpl", {
         "env": env,
@@ -1054,12 +1217,68 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
     })
     return HttpResponse(content)
 
+
 def start_cluster_replacement(request, name, stage):
+    cluster_name = common.get_cluster_name(request, name, stage)
+    rollingUpdateConfig = gen_replacement_config(request)
+    start_cluster_replacement = {}
+    start_cluster_replacement["clusterName"] = cluster_name
+    start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
+
+    log.info("Starting to replace cluster {0}".format(cluster_name))
+    try:
+        clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
+        messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
+    except TeletraanException as ex:
+        if "already in progress" in str(ex) and "409" in str(ex):
+            messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
+        else:
+            messages.warning(request, str(ex), "cluster-replacements")
+
+    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
+
+def submit_auto_refresh_config(request, name, stage):
     params = request.POST
     cluster_name = common.get_cluster_name(request, name, stage)
+    autoRefresh = False
+
+    if "enableAutoRefresh" in params:
+        autoRefresh = True
+
+    auto_refresh_config = {}
+    rollingUpdateConfig = gen_replacement_config(request)
+    auto_refresh_config["clusterName"] = cluster_name
+    auto_refresh_config["envName"] = cluster_name
+    auto_refresh_config["bakeTime"] = params["bakeTime"]
+    auto_refresh_config["config"] = rollingUpdateConfig
+    auto_refresh_config["type"] = "LATEST"
+
+    emails = params["emails"]
+    slack_channels = params["slack_channels"]
+
+    try:
+        clusters_helper.submit_cluster_auto_refresh_config(request, data=auto_refresh_config)
+        cluster = clusters_helper.get_cluster(request, cluster_name)
+        cluster["autoRefresh"] = autoRefresh
+        clusters_helper.update_cluster(request, cluster_name, cluster)
+        group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
+        if group_info:
+            group_info["groupInfo"]["emailRecipients"] = emails
+            group_info["groupInfo"]["chatroom"] = slack_channels
+            autoscaling_groups_helper.update_group_info(request, cluster_name, group_info["groupInfo"])
+        messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
+    except IllegalArgumentException:
+        log.exception("Failed to update refresh config. Some request could succeed.")
+        pass
+    except Exception as e:
+        messages.error(request, str(e), "cluster-replacements")
+
+    return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
+
+def gen_replacement_config(request):
+    params = request.POST
     skipMatching = False
     scaleInProtectedInstances = 'Ignore'
-
     checkpointPercentages = []
     if (params['checkpointPercentages']):
         checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
@@ -1071,29 +1290,42 @@ def start_cluster_replacement(request, name, stage):
         scaleInProtectedInstances = 'Refresh'
 
     rollingUpdateConfig = {}
-    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+
+    if params["availabilitySettingRadio"] == "launchBeforeTerminate":
+        rollingUpdateConfig["minHealthyPercentage"] = 100
+        if params["maxHealthyPercentage"] is None or len(params["maxHealthyPercentage"]) == 0:
+            rollingUpdateConfig["maxHealthyPercentage"] = 110
+        else:
+            rollingUpdateConfig["maxHealthyPercentage"] = params["maxHealthyPercentage"]
+    elif params["availabilitySettingRadio"] == "terminateAndLaunch":
+        rollingUpdateConfig["maxHealthyPercentage"] = None
+        if params["minHealthyPercentage"] is None or len(params["minHealthyPercentage"]) == 0:
+            rollingUpdateConfig["minHealthyPercentage"] = 100
+        else:
+            rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    else:
+        rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+        rollingUpdateConfig["maxHealthyPercentage"] = params["maxHealthyPercentage"]
+
     rollingUpdateConfig["skipMatching"] = skipMatching
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
     rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
+    rollingUpdateConfig["instanceWarmup"] = params["instanceWarmup"]
 
-    start_cluster_replacement = {}
-    start_cluster_replacement["clusterName"] = cluster_name
-    start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
+    return rollingUpdateConfig
 
-    log.info("Starting to replace cluster {0}".format(cluster_name))
-
+def get_auto_refresh_config(request, name, stage):
+    cluster_name = common.get_cluster_name(request, name, stage)
     try:
-        perform_cluster_replacement_action(request, name, stage, 'resume', includeMessage=False)
-        clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
-        messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
+        clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
     except TeletraanException as ex:
         if "already in progress" in str(ex) and "409" in str(ex):
             messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
         else:
             messages.warning(request, str(ex), "cluster-replacements")
 
-    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
+    return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
 
 def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1115,6 +1347,7 @@ def perform_cluster_replacement_action(request, name, stage, action, includeMess
             messages.warning(request, str(ex), "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
+
 
 def pause_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1203,11 +1436,12 @@ def get_replacement_summary(request, cluster_name, event, current_capacity):
             'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity)
         }
 
+
 class ClusterHistoriesView(View):
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
 
-        cluster_name = '{}-{}'.format(name, stage)
+        cluster_name = get_cluster_name(request, name, stage, env=env)
         page_index = request.GET.get('index')
         page_size = request.GET.get('size')
         histories = clusters_helper.get_cluster_replacement_histories(
@@ -1229,11 +1463,12 @@ class ClusterHistoriesView(View):
         }
         return render(request, 'clusters/replace_histories.html', data)
 
+
 class ClusterBaseImageHistoryView(View):
 
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
-        cluster_name = '{}-{}'.format(name, stage)
+        cluster_name = get_cluster_name(request, name, stage, env=env)
         current_cluster = clusters_helper.get_cluster(request, cluster_name)
         current_image = baseimages_helper.get_by_id(request, current_cluster['baseImageId'])
         golden_image = baseimages_helper.get_current_golden_image(
@@ -1251,3 +1486,22 @@ class ClusterBaseImageHistoryView(View):
         }
 
         return render(request, 'clusters/base_image_history.html', data)
+
+def get_cluster_name(request, name, stage, env=None):
+    cluster_name = '{}-{}'.format(name, stage)
+    current_cluster = clusters_helper.get_cluster(request, cluster_name)
+    if current_cluster is None:
+        if env is None:
+            env = environs_helper.get_env_by_stage(request, name, stage)
+        cluster_name = env.get("clusterName")
+    return cluster_name
+
+def get_current_cluster(request, name, stage, env=None):
+    cluster_name = '{}-{}'.format(name, stage)
+    current_cluster = clusters_helper.get_cluster(request, cluster_name)
+    if current_cluster is None:
+        if env is None:
+            env = environs_helper.get_env_by_stage(request, name, stage)
+        cluster_name = env.get("clusterName")
+        current_cluster = clusters_helper.get_cluster(request, cluster_name)
+    return current_cluster

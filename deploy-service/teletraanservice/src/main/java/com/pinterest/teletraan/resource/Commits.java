@@ -20,14 +20,18 @@ import com.codahale.metrics.annotation.Timed;
 
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.CommitBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import io.swagger.annotations.*;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/commits")
 @Api(tags="Commits")
 @SwaggerDefinition(
@@ -40,9 +44,9 @@ import java.util.List;
 public class Commits {
     private final static String DEFAULT_PATH = "";
     private final static int DEFAULT_SIZE = 100;
-    private SourceControlManagerProxy sourceControlManagerProxy;
+    private final SourceControlManagerProxy sourceControlManagerProxy;
 
-    public Commits(TeletraanServiceContext context) throws Exception {
+    public Commits(@Context TeletraanServiceContext context) throws Exception {
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
     }
 
@@ -55,7 +59,7 @@ public class Commits {
             notes = "Returns a commit object given a repo and commit sha",
             response = CommitBean.class)
     public CommitBean getCommit(
-            @ApiParam(value = "Commit's scm type, either github or phabricator", required = false)@PathParam("scm") String scm,
+            @ApiParam(value = "Commit's scm type, either github or phabricator")@PathParam("scm") String scm,
             @ApiParam(value = "Commit's repo", required = true)@PathParam("repo") String repo,
             @ApiParam(value = "Commit SHA", required = true)@PathParam("sha") String sha) throws Exception {
         repo = repo.replace("%2F", "/");
@@ -75,9 +79,9 @@ public class Commits {
     public List<CommitBean> getCommits(
         @QueryParam("scm") Optional<String> scm,
         @QueryParam("repo") String repo,
-        @QueryParam("startSha") String startSha, 
+        @QueryParam("startSha") String startSha,
         @QueryParam("endSha") String endSha,
-        @QueryParam("size") Optional<Integer> size, 
+        @QueryParam("size") Optional<Integer> size,
         @QueryParam("path") Optional<String> path) throws Exception {
         return sourceControlManagerProxy.getCommits(scm.or(""), repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
     }

@@ -5,9 +5,10 @@ echo Running POST_RESTART script.
 # Environment Variable defined in DeployBoard Script Config
 echo $PORT
 
-# Built in Environment Variables 
+# Built in Environment Variables
 echo $ENV_NAME
 echo $STAGE_NAME
+echo $COMPUTE_ENV_TYPE
 echo $DEPLOY_ID
 echo $DEPLOY_STEP
 echo $OPCODE

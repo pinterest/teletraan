@@ -16,7 +16,7 @@
 """Collection of all env promote config views
 """
 import json
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST, STAGE_TYPE_INFO_LINK
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
@@ -60,6 +60,7 @@ class EnvConfigView(View):
             "stages": stages,
             "show_remove": show_remove,
             "pinterest": IS_PINTEREST,
+            "stage_type_info_link": STAGE_TYPE_INFO_LINK,
         })
 
     def _set_parallel(self, data, query_dict):
@@ -81,8 +82,8 @@ class EnvConfigView(View):
             data["notifyAuthors"] = True
         else:
             data["notifyAuthors"] = False
-        if "systemPriority" in query_dict:
-            data["systemPriority"] = query_dict["systemPriority"]
+        if "syspriority" in query_dict:
+            data["systemPriority"] = query_dict["syspriority"]
         self._set_parallel(data, query_dict)
         data["priority"] = query_dict["priority"]
         data["stuckThreshold"] = int(query_dict["stuckThreshold"])
@@ -97,10 +98,12 @@ class EnvConfigView(View):
         data["groupMentionRecipients"] = query_dict["group_mention_recipients"]
         data["maxDeployNum"] = int(query_dict["maxDeployNum"])
         data["maxDeployDay"] = int(query_dict["maxDeployDay"])
-        data["maxParallelRp"] = int(query_dict["maxParallelRp"])
         data["overridePolicy"] = query_dict["overridePolicy"]
         data["stageType"] = query_dict["stageType"]
         data["terminationLimit"] = query_dict["terminationLimit"]
+
+        if data["stageType"] == "DEFAULT" and "syspriority" not in query_dict:
+            raise ValueError("Please update the Stage Type to a value other than DEFAULT. See more details at ")
 
         environs_helper.update_env_basic_config(request, name, stage, data=data)
         return self.get(request, name, stage)

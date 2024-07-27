@@ -86,6 +86,15 @@ class TestAgentHelperFunctions(tests.FileTestCase):
         self.assertFalse(Helper.get_build_id("whateverfile.tar.gz", "cmp_test")[0])
         self.assertFalse(Helper.get_build_id("cmp_test-tmp", "cmp_test")[0])
 
+    def test_get_build_name(self):
+        """
+        Test get_build_name method
+        """
+        self.assertEqual(Helper.get_build_name("cmp_test-r4TTZfrWQEmgyaYic8uU6w_8ef9007.tar.gz"),
+            "cmp_test")
+        self.assertEqual(Helper.get_build_name("cmp_test-r4TTZfrWQEmgyaYic8uU6w_8ef9007.zip"),
+            "cmp_test")
+
     def test_get_uptime(self):
         """
         Test utils.uptime()

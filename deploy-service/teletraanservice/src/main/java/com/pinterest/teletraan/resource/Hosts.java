@@ -18,15 +18,19 @@ package com.pinterest.teletraan.resource;
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.swagger.annotations.*;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -36,6 +40,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
 import java.util.List;
 
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/hosts")
 @Api(tags = "Hosts and Systems")
 @SwaggerDefinition(
@@ -50,12 +55,17 @@ public class Hosts {
     private HostDAO hostDAO;
     private EnvironHandler environHandler;
 
-    public Hosts(TeletraanServiceContext context) {
+    public Hosts(@Context TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
         environHandler = new EnvironHandler(context);
     }
 
     @POST
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
+    @ApiOperation(
+            value = "Add a host",
+            notes = "Add a host to the system. Should be only called by Rodimus that's why it requires SYSTEM permission.")
     public void addHost(@Context SecurityContext sc,
                         @Valid HostBean hostBean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
@@ -72,6 +82,8 @@ public class Hosts {
 
     @PUT
     @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.HOST, idLocation = ResourceAuthZInfo.Location.PATH)
     public void updateHost(@Context SecurityContext sc,
                            @PathParam("hostId") String hostId,
                            @Valid HostBean hostBean) throws Exception {
@@ -84,6 +96,8 @@ public class Hosts {
 
     @DELETE
     @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.HOST, idLocation = ResourceAuthZInfo.Location.PATH)
     public void stopHost(@Context SecurityContext sc,
             @PathParam("hostId") String hostId,
             @ApiParam(value = "Replace the host or not") @QueryParam("replaceHost") Optional<Boolean> replaceHost)

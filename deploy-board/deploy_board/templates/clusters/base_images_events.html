@@ -21,7 +21,6 @@
             <span class="glyphicon glyphicon-wrench"></span> Back to Base Images List
         </a>
     </div>
-    {% if show_promote_ui %}
     <div class="row">
         <button class="deployToolTip btn btn-default btn-block" id="demoteBtnId">
             <span class="glyphicon glyphicon-circle-arrow-down"></span> Demote
@@ -37,7 +36,6 @@
             <span class="glyphicon glyphicon-remove-circle"></span> Cancel
         </button>
     </div>
-    {% endif %}
     {% endif %}
 </div>
 <script>
@@ -55,7 +53,7 @@
                 globalNotificationBanner.info = "Request sent successfully";
             },
             error: function (data) { // if error occured
-                globalNotificationBanner.error = data;
+                globalNotificationBanner.error = data.responseJSON.error;
             },
         });
     });
@@ -74,7 +72,7 @@
                 globalNotificationBanner.info = "Request sent successfully";
             },
             error: function (data) { // if error occured
-                globalNotificationBanner.error = data;
+                globalNotificationBanner.error = data.responseJSON.error;
             },
         });
     });

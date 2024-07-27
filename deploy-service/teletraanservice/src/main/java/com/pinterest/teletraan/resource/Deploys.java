@@ -26,22 +26,21 @@ import com.pinterest.deployservice.bean.DeployFilterBean;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.DeployDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -54,6 +53,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.WebApplicationException;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -61,6 +61,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 
+@RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/deploys")
 @Api(tags = "Deploys")
 @SwaggerDefinition(
@@ -72,17 +73,13 @@ import io.swagger.annotations.Tag;
 @Consumes(MediaType.APPLICATION_JSON)
 public class Deploys {
     private static final Logger LOG = LoggerFactory.getLogger(Deploys.class);
-    private final static int DEFAULT_SIZE = 30;
-    private EnvironDAO environDAO;
+    private static final int DEFAULT_SIZE = 30;
     private DeployDAO deployDAO;
     private DeployHandler deployHandler;
-    private final Authorizer authorizer;
 
-    public Deploys(TeletraanServiceContext context) {
-        environDAO = context.getEnvironDAO();
+    public Deploys(@Context TeletraanServiceContext context) {
         deployDAO = context.getDeployDAO();
         deployHandler = new DeployHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -97,8 +94,8 @@ public class Deploys {
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id) throws Exception {
         DeployBean deployBean = deployDAO.getById(id);
         if (deployBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Deploy %s does not exist.", id));
+                throw new WebApplicationException(String.format("Deploy %s does not exist.", id),
+                                Response.Status.NOT_FOUND);
         }
         return deployBean;
     }
@@ -147,16 +144,15 @@ public class Deploys {
             value = "Update deploy",
             notes = "Update deploy given a deploy id and a deploy object. Current only "
                     + "acceptanceStatus and description are allowed to change.")
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.DEPLOY, idLocation = Location.PATH)
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id,
             @ApiParam(value = "Partially populated deploy object", required = true)
             DeployBean deployBean) throws Exception {
-        DeployBean originBean = Utils.getDeploy(deployDAO, id);
-        EnvironBean environBean = Utils.getEnvStage(environDAO, originBean.getEnv_id());
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
-        deployHandler.update(id, deployBean, userName);
+        deployHandler.update(id, deployBean);
         LOG.info("{} successfully updated deploy {} with {}",
             userName, id, deployBean);
     }
@@ -168,12 +164,11 @@ public class Deploys {
     @ApiOperation(
             value = "Delete deploy info",
             notes = "Delete deploy info given a deploy id")
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.DEPLOY, idLocation = Location.PATH)
     public void delete(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id) throws Exception {
-        DeployBean deployBean = Utils.getDeploy(deployDAO, id);
-        EnvironBean environBean = Utils.getEnvStage(environDAO, deployBean.getEnv_id());
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         deployDAO.delete(id);
         LOG.info("Successfully deleted deploy {} by {}", id, userName);
@@ -185,7 +180,7 @@ public class Deploys {
             value = "Get deploys per day",
             notes = "Get total numbers of deploys on the current day",
             response = Long.class)
-    public Long dailyCount() throws Exception{
+    public long dailyCount() throws Exception{
         return deployDAO.getDailyDeployCount();
     }
 }

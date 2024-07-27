@@ -66,7 +66,7 @@
                 var groups = rootVue.$refs.groupsinput.tags;
                 var image = info.basic_cluster_info ? info.basic_cluster_info.base_image_info : null;
                 if(hasCMPCluster && image && image.abstract_name && image.abstract_name.startsWith('cmp_base')) {
-                     var defaultClusterASGGroupName = '{{ env.envName }}-{{ env.stageName }}';
+                     var defaultClusterASGGroupName = '{{ cluster_name }}';
                      if(groups.indexOf(defaultClusterASGGroupName) < 0) {
                         groups.push(defaultClusterASGGroupName);
                      }
@@ -107,15 +107,11 @@
                         xhr.setRequestHeader("X-CSRFToken", csrftoken);
                     },
                     success: function (data) {
-                        if(data != null && data.success == false) {
-                            globalNotificationBanner.error = data;
-                        } else {
-                            globalNotificationBanner.info = "Saved Successfully";
-                            window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
-                        }
+                        globalNotificationBanner.info = "Saved Successfully";
+                        window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
                     },
                     error: function (data) {
-                        globalNotificationBanner.error = data;
+                        globalNotificationBanner.error = data.responseJSON.error;
                     }
                 });
             },
@@ -123,4 +119,3 @@
       }
     )
 </script>
-

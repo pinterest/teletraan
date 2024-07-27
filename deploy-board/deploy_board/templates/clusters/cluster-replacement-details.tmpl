@@ -78,6 +78,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>Max Healthy Percentage</th>
+                        <td>
+                            {% if replace_summary.rollingUpdateConfig.maxHealthyPercentage %} {{ replace_summary.rollingUpdateConfig.maxHealthyPercentage }}% {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
                         <th>Skip Matching</th>
                         <td>
                             {{ replace_summary.rollingUpdateConfig.skipMatching }}
@@ -102,6 +108,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>Instance Warmup</th>
+                        <td>
+                            {{ replace_summary.rollingUpdateConfig.instanceWarmup }} second(s)
+                        </td>
+                    </tr>
+                    <tr>
                         <th>Desired Launch Template Name</th>
                         <td>
                             {{ replace_summary.desiredClusterConfig.launchTemplateName }}
@@ -119,6 +131,39 @@
                             {{ replace_summary.desiredClusterConfig.version }}
                         </td>
                     </tr>
+                </table>
+        </div>
+    </div>
+</div>
+
+<div id="replacementAuditTrails" v-show="show" class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Activity History</h4>
+    </div>
+    <div>
+        <p><i>Only "STARTED" and "CANCELED" are recorded for each replacement task.</i></p>
+    </div>
+    <div id="replacementDetails" class="collapse in panel-body">
+        <div class="container-fluid" style="height:500px;overflow:auto;">
+            <table id="deployHistoryTableId" class="table table-condensed table-striped table-hover">
+                    <tr>
+                        <th>Action</th>
+                        <th>At</th>
+                        <th>By</th>
+                    </tr>
+                    {% for auditTrail in replace_summary.clusterReplacementAuditTrails %}
+                    <tr>
+                        <td>
+                           {{ auditTrail.action }}
+                        </td>
+                        <td>
+                           {{ auditTrail.timestamp|convertTimestamp }}
+                        </td>
+                        <td>
+                           {{ auditTrail.operator }}
+                        </td>
+                    </tr>
+                    {% endfor%}
                 </table>
         </div>
     </div>

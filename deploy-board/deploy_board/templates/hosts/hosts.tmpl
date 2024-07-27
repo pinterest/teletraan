@@ -6,27 +6,27 @@
       <strong>Deploy:</strong><a href="/deploy/{{ deployId }}"> {{ deployId }}</a>
        <div class="btn-toolbar pull-right">
           <button id="pauseButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Pause selected hosts">
           <span class="glyphicon glyphicon-pause"></span> Pause
           </button>
           <button id="resumeButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Resume selected hosts">
           <span class="glyphicon glyphicon-play"></span> Resume
           </button>
           <button id="resetButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="reset selected hosts">
-          <span class="glyphicon glyphicon-repeat"></span> Reset
+          <span class="glyphicon glyphicon-repeat"></span> Restart
           </button>
           <button id="terminateButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Soft terminate selected hosts">
           <span class="glyphicon glyphicon-off"></span> Terminate
           </button>
           <button id="forceTerminateButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Soft terminate selected hosts">
           <span class="glyphicon glyphicon-remove"></span> Force Terminate
           </button>
@@ -44,6 +44,9 @@
               <th>StartDate(-08:00)</th>
               <th>LastUpdate</th>
               <th>ErrorCode</th>
+              {% if show_protected_hosts %}
+              <th>ProtectionStatus</th>
+              {% endif %}
           </tr>
           {% for agent in agents %}
           <tr>
@@ -57,6 +60,9 @@
                   <td>N/A</td>
                   <td>N/A</td>
                   <td>N/A</td>
+                  {% if show_protected_hosts %}
+                  <td>N/A</td>
+                  {% endif %}
               {% elif agent.lastErrorCode|isProvisioningHost %}
                   <td><input type="checkbox" value="{{ agent.hostId | default_if_none:'' }}"></td>
                   <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
@@ -67,6 +73,9 @@
                   <td>N/A</td>
                   <td>N/A</td>
                   <td>N/A</td>
+                  {% if show_protected_hosts %}
+                  <td>N/A</td>
+                  {% endif %}
               {% else %}
                   <td><input type="checkbox" value="{{ agent.hostId }}"></td>
                   <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
@@ -77,6 +86,13 @@
                   <td>{{ agent.startDate|convertTimestamp }}</td>
                   <td>{{ agent.lastUpdateDate|convertTimestamp }}</td>
                   <td>{{ agent.lastErrorCode }}</td>
+                  {% if show_protected_hosts %}
+                  <td>
+                    {% if agent.hostId in protected_hosts %}
+                    Protected
+                    {% endif %}
+                  </td>
+                  {% endif %}
               {% endif %}
           </tr>
           {% endfor %}
@@ -85,17 +101,17 @@
 
 <div class="panel-footer clearfix">
     {% if is_retryable and host_ids %}
-    <div class="pull-left">
+    <div class="pull-left mr-1">
         <button id="reset_{{ deployId }}"
                 class="deployToolTip btn btn-primary" data-toggle="tooltip"
-                title="Retry the current deploy step on this host.">
-            Retry deploy on all hosts
+                title="Restart deploy on all failed hosts.">
+            Restart current deploy on all failed hosts
         </button>
     </div>
     {% endif %}
 
     {% if pinterest and host_ids %}
-    <div class="pull-left">
+    <div class="pull-left ml-1">
         <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
             data-toggle="modal" title="Terminate all failed hosts">
         <span class="glyphicon glyphicon-remove"></span> Terminate failed hosts
@@ -108,7 +124,12 @@
 
     $(function () {
         $('.deployToolTip').tooltip();
-        $('#reset_{{ deployId }}').click(function () {
+
+        $("#reset_{{ deployId }}").on("click", function() {
+            $('#resetAllFailedDeploysModal').modal();
+        });
+
+        $('#resetAllFailedDeploys').click(function () {
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_failed_hosts/{{ deployId }}/',
@@ -124,9 +145,9 @@
 
     $('#hostTable input[type="checkbox"]').click(function(){
         if ($("#hostTable input:checkbox:checked").length <= 0) {
-          $(".btn").prop("disabled", true);
+            $(".checked-hosts-btn").prop("disabled", true);
         } else {
-          $(".btn").prop("disabled", false);
+            $(".checked-hosts-btn").prop("disabled", false);
         }
 
         if ($(this).is(":checked")) {
@@ -147,9 +168,9 @@
         });
 
         if ($("#hostTable input:checkbox:checked").length <= 0) {
-            $(".btn").prop("disabled", true);
+            $(".checked-hosts-btn").prop("disabled", true);
         } else {
-            $(".btn").prop("disabled", false);
+            $(".checked-hosts-btn").prop("disabled", false);
         }
     });
 
@@ -311,6 +332,10 @@
                 <div class="modal-body">
                     <p> Are you sure to terminate the following hosts?</p>
                     <input class="form-control" name="hostIds" type="text" value="{{ host_ids }}"/>
+                     <p><input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
+                    <br><em>Note replacement will only work if the host belongs to an auto scaling group.</em>
+                    <br><em>If you choose to not replace host, it can't be guaranteed that the auto scaling group's min and max sizes will keep identical.</em>
+                    </p>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
@@ -318,6 +343,24 @@
                 </div>
                 {% csrf_token %}
             </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="resetAllFailedDeploysModal" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Restart current deploy on all failed hosts confirmation</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to restart the current deploy on all failed hosts?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-warning" id="resetAllFailedDeploys">Restart current deploy on all failed hosts</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->

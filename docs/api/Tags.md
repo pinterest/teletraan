@@ -2,7 +2,7 @@
 Tagging APIs
 
 
-<a name="create"></a>
+<a name="create_10"></a>
 #### Create a tag
 ```
 POST /v1/tags
@@ -142,7 +142,7 @@ Return a list of TagBean object with given value
 * `application/json`
 
 
-<a name="getbyid"></a>
+<a name="getbyid_2"></a>
 #### Get tags with a given id
 ```
 GET /v1/tags/{id}
@@ -177,7 +177,7 @@ Return a TagBean objects
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_12"></a>
 #### Delete a tag
 ```
 DELETE /v1/tags/{id}

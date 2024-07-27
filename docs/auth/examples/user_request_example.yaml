@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://github.com/pinterest/teletraan/blob/master/docs/auth/teletraan_auth.yaml?raw=true
+# The following is an example of a valid Teletraan & Rodimus Authorization payload
+input:
+  principal:
+    type: USER
+    id: Jane Doe
+    groups:
+      - engineer
+      - SRE
+  action: READ
+  resource:
+    type: ENV_STAGE
+    name: teletraan-prod
+    attributes:
+      isSox: true
+      artifactUrl: s3://teletraan-prod

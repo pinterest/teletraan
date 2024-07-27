@@ -2,7 +2,7 @@
 -- ALWAYS BACKUP YOUR DATA BEFORE EXECUTING THIS SCRIPT
 -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# This script upgrade DB schema from version 7 to version 8
+-- This script upgrade DB schema from version 7 to version 8
 
 ALTER TABLE environs ADD COLUMN stage_type VARCHAR(32) NOT NULL DEFAULT 'PRODUCTION';
 ALTER TABLE groups_and_envs MODIFY group_name VARCHAR(128) NOT NULL;

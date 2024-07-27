@@ -4,6 +4,13 @@
 </div>
 
 {% if pinterest %}
+        {% if instance_protected%}
+        <div class="row">
+            <div class="alert alert-info text-center">
+                Host is protected
+            </div>
+        </div>
+        {% endif %}
 {% if show_terminate %}
 <div class="row">
     <button id="terminateBtn" class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
@@ -55,7 +62,7 @@
                 try {
                     result = await $.ajax({
                         type: 'GET',
-                        url: `/groups/{{env_name}}-{{stage_name}}/hosts`,
+                        url: `/groups/{{ group_name }}/hosts`,
                         dataType: "json",
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken');
@@ -72,7 +79,7 @@
                 terminatingHostCount = data;
                 if (terminatingHostCount >= `{{termination_limit}}`) {
                     $('#terminationWarning').show();
-                } 
+                }
             });
         }
     });
@@ -80,7 +87,7 @@
 
 {% endif %}
 
-{% if hosts and show_force_terminate  %}
+{% if hosts and show_force_terminate %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#forceTerminateHost"
             data-toggle="modal" title="Directly terminate instance without running stopping script on the host.">
@@ -178,4 +185,34 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 {% endif %}
+{% endif %}
+
+{% if show_reset_all_environments %}
+<div class="row">
+    <button id="resetAllEnvironmentsBtn" class="deployToolTip btn btn-default btn-block" data-target="#resetAllEnvironments"
+            data-toggle="modal" title="Reset all environments on the host.">
+        <span class="glyphicon glyphicon-repeat"></span> Restart All Environments
+    </button>
+</div>
+
+<div class="modal fade" id="resetAllEnvironments" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="resetAllDeploysForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/reset_environments/{{ host_id }}">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host Restart All Environments Confirm</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure to restart all environments at {{ hostname }}?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning" id="resetAllDeploysBtnId">Restart All Environments</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
 {% endif %}

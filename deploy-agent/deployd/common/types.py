@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,11 +52,11 @@ class DeployType(object):
     RESTART = 'RESTART'
     STOP = 'STOP'
 
-class DeployErrorSource(object): 
+class DeployErrorSource(object):
     TELEFIG = 'TELEFIG'
     UNKNOWN = 'UNKNOWN'
 
-class DeployError(object): 
+class DeployError(object):
     TELEFIG_UNAVAILABLE = 'TELEFIG_UNAVAILABLE'
     UNKNOWN = 'UNKNOWN'
 
@@ -75,7 +75,7 @@ class OpCode(object):
 class DeployReport(object):
 
     def __init__(self, status_code=AgentStatus.UNKNOWN,
-                 error_code=0, output_msg=None, retry_times=0):
+                 error_code=0, output_msg=None, retry_times=0) -> None:
         self.status_code = status_code
         self.error_code = error_code
         self.output_msg = output_msg
@@ -91,7 +91,7 @@ class PingStatus(object):
 class BuildInfo(object):
 
     def __init__(self, commit, build_url, build_id, build_name=None,
-                 build_repo=None, build_branch=None):
+                 build_repo=None, build_branch=None) -> None:
         self.build_commit = commit
         self.build_url = build_url
         self.build_id = build_id
@@ -99,7 +99,7 @@ class BuildInfo(object):
         self.build_repo = build_repo
         self.build_branch = build_branch
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if other:
             return self.__dict__ == other.__dict__
         else:
@@ -115,7 +115,7 @@ class DeployStatus(object):
     script_variables = None
     is_docker = None
 
-    def __init__(self, response=None, json_value=None):
+    def __init__(self, response=None, json_value=None) -> None:
         if response:
             self.update_by_response(response)
         elif json_value:
@@ -128,7 +128,7 @@ class DeployStatus(object):
             self.op_code == other.op_code
 
     # update the deploy status by the current ping response from teletraan server
-    def update_by_response(self, response):
+    def update_by_response(self, response) -> None:
         deploy_goal = response.deployGoal
         self.op_code = response.opCode
         if not self.report:
@@ -141,6 +141,7 @@ class DeployStatus(object):
         self.report.envName = deploy_goal.envName
         self.report.status = AgentStatus.UNKNOWN
         self.report.stageName = deploy_goal.stageName
+        self.report.stageType = deploy_goal.stageType
         self.first_deploy = deploy_goal.firstDeploy
         self.is_docker = deploy_goal.isDocker
 
@@ -160,7 +161,7 @@ class DeployStatus(object):
             self.runtime_config = dict(deploy_goal.config)
 
     # update the env status with current deploy report
-    def update_by_deploy_report(self, deploy_report):
+    def update_by_deploy_report(self, deploy_report) -> None:
         # aborted by server happens when
         if deploy_report.status_code == AgentStatus.ABORTED_BY_SERVER:
             self.report.status = AgentStatus.UNKNOWN
@@ -173,7 +174,7 @@ class DeployStatus(object):
             self.report.errorMessage = None
         self.report.failCount = deploy_report.retry_times
 
-    def load_from_json(self, json_value):
+    def load_from_json(self, json_value) -> None:
         report = json_value.get('report')
         build_info = json_value.get('build_info')
         if report:
@@ -193,10 +194,10 @@ class DeployStatus(object):
         else:
             self.op_code = op_code
 
-    def to_json(self):
+    def to_json(self) -> dict:
         json = {}
         for key, value in self.__dict__.items():
-            if type(value) is dict:
+            if isinstance(value, dict):
                 json[key] = {k: v for k, v in value.items()}
             elif value:
                 if hasattr(value, "__dict__"):
@@ -205,7 +206,7 @@ class DeployStatus(object):
                     json[key] = value
         return json
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.to_json())
 
 

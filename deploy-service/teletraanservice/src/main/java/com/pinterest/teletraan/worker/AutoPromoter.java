@@ -27,10 +27,9 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
-import com.pinterest.deployservice.metrics.MeterConstants;
+import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Metrics;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
@@ -77,13 +76,8 @@ public class AutoPromoter implements Runnable {
         deployHandler = new DeployHandler(serviceContext);
         bufferTimeMinutes = DEFAULT_BUFFER_TIME_MINUTE;
 
-        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
-            
-        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     public AutoPromoter withBufferTimeMinutes(int bufferTime) {
@@ -109,7 +103,7 @@ public class AutoPromoter implements Runnable {
                 errorBudgetSuccess.increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
-                LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
+                LOG.error("AutoPromoter failed to process {}", envId, t);
 
                 errorBudgetFailure.increment();
             }
@@ -571,7 +565,7 @@ public class AutoPromoter implements Runnable {
                     String desc = "Auto promote build " + buildId;
                     String
                         newDeployId =
-                        deployHandler.deploy(currEnvBean, buildId, desc, AUTO_PROMOTER_NAME);
+                        deployHandler.deploy(currEnvBean, buildId, desc, null, AUTO_PROMOTER_NAME);
                     LOG.info(
                         "Auto promoted deploy {} from build {}, from stage {} to {} for env {}",
                         newDeployId, buildId, predStageName, currEnvBean.getStage_name(),
@@ -596,7 +590,7 @@ public class AutoPromoter implements Runnable {
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
-            
+
             errorBudgetFailure.increment();
         }
     }

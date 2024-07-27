@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,49 +15,27 @@
  */
 package com.pinterest.deployservice.common;
 
-import com.jayway.jsonpath.JsonPath;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-
 /**
- * Parse and return DB config info from
- * /var/config/config.services.general_mysql_databases_config & /var/config/config.services.mysql_auth
- * <p/>
- * Sample format:
- * <p/>
- * {
- * "scriptrw": {
- * "users": [
- * {
- * "enabled": true,
- * "password": "12345",
- * "username": "scriptrw"
- * },
- * {
- * "enabled": false,
- * "password": "67890",
- * "username": "scriptrw2"
- * }
- * ]
- * },
- * ....
- * {
- * "datadb001": {
- * "master": {
- * "host": "datadb001a",
- * "port": 3306
- * },
- * "slave": {
- * "host": "datadb001f",
- * "port": 3306
- * }
- * },
- * ...
+ * Parse and return DB config info from /var/config/config.services.general_mysql_databases_config &
+ * /var/config/config.services.mysql_auth
+ *
+ * <p>Sample format:
+ *
+ * <p>{ "scriptrw": { "users": [ { "enabled": true, "password": "12345", "username": "scriptrw" }, {
+ * "enabled": false, "password": "67890", "username": "scriptrw2" } ] }, .... { "datadb001": {
+ * "master": { "host": "datadb001a", "port": 3306 }, "slave": { "host": "datadb001f", "port": 3306 }
+ * }, ...
  */
 public class DBConfigReader {
-    private final static String MYSQL_GEN_ZK = "/var/config/config.services.general_mysql_databases_config";
-    private final static String AUTH_FILE = "/var/config/config.services.mysql_auth";
+    private static final String MYSQL_GEN_ZK =
+            "/var/config/config.services.general_mysql_databases_config";
+    private static final String AUTH_FILE = "/var/config/config.services.mysql_auth";
 
     private String credJson;
     private String dbJson;
@@ -73,18 +51,43 @@ public class DBConfigReader {
     }
 
     public String getHost(String replicaSetName) {
-        return JsonPath.read(dbJson, String.format("$.%s.master.host", replicaSetName));
+        JsonNode master = read(dbJson, replicaSetName);
+        return master.findPath("host").textValue();
     }
 
     public Integer getPort(String replicaSetName) {
-        return JsonPath.read(dbJson, String.format("$.%s.master.port", replicaSetName));
+        JsonNode master = read(dbJson, replicaSetName);
+        return master.findPath("port").intValue();
     }
 
     public String getUsername(String role) {
-        return JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)][0].username", role));
+        JsonNode cred = readEnabled(credJson, role);
+        return cred.findPath("username").textValue();
     }
 
     public String getPassword(String role) {
-        return JsonPath.read(credJson, String.format("$.%s.users[?(@.enabled == true)][0].password", role));
+        JsonNode cred = readEnabled(credJson, role);
+        return cred.get("password").textValue();
+    }
+
+    private JsonNode readEnabled(String jsonInput, String role) {
+        JsonNode cred = read(jsonInput, role);
+        for (JsonNode node : cred.findPath("users")) {
+            if (node.get("enabled").booleanValue()) {
+                return node;
+            }
+        }
+        throw new RuntimeException("Missing enabled user");
+    }
+
+    private JsonNode read(String jsonInput, String path) {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode actualObj = null;
+        try {
+            actualObj = mapper.readTree(jsonInput);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return actualObj.get(path);
     }
 }

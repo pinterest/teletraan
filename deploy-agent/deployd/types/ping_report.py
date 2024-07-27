@@ -18,11 +18,12 @@ from deployd.types.agent_status import AgentStatus
 
 class PingReport(object):
 
-    def __init__(self, jsonValue=None):
+    def __init__(self, jsonValue=None) -> None:
         self.deployId = None
         self.envId = None
         self.envName = None
         self.stageName = None
+        self.stageType = None
         self.deployStage = None
         self.status = None
         self.errorCode = 0
@@ -31,6 +32,9 @@ class PingReport(object):
         self.extraInfo = None
         self.deployAlias = None
         self.containerHealthStatus = None
+        self.state = None
+        self.redeploy = 0
+        self.wait = 0
 
         if jsonValue:
             self.deployId = jsonValue.get('deployId')
@@ -47,16 +51,20 @@ class PingReport(object):
 
             self.envName = jsonValue.get('envName')
             self.stageName = jsonValue.get('stageName')
+            self.stageType = jsonValue.get('stageType')
             self.errorCode = jsonValue.get('errorCode')
             self.errorMessage = jsonValue.get('errorMessage')
             self.failCount = jsonValue.get('failCount')
             self.extraInfo = jsonValue.get('extraInfo')
             self.deployAlias = jsonValue.get('deployAlias')
             self.containerHealthStatus = jsonValue.get('containerHealthStatus')
+            self.state = jsonValue.get('state')
+            self.redeploy = jsonValue.get('redeploy')
+            self.wait = jsonValue.get('wait')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "PingReport(deployId={}, envId={}, deployStage={}, status={}, " \
                "errorCode={}, errorMessage={}, failCount={}, extraInfo={}, " \
-               "deployAlias={}, containerHealthStatus={})".format(self.deployId, self.envId, self.deployStage,
+               "deployAlias={}, containerHealthStatus={}, agentState={})".format(self.deployId, self.envId, self.deployStage,
                                         self.status, self.errorCode, self.errorMessage,
-                                        self.failCount, self.extraInfo, self.deployAlias, self.containerHealthStatus)
+                                        self.failCount, self.extraInfo, self.deployAlias, self.containerHealthStatus, self.state)

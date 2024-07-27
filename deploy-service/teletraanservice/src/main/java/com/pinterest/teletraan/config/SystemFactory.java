@@ -16,7 +16,6 @@
 package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pinterest.deployservice.common.Constants;
 
 public class SystemFactory {
     private static final String DEFAULT_DASHBOARD_URL = "http://localhost:8888";
@@ -28,13 +27,16 @@ public class SystemFactory {
     private String changeFeedUrl;
 
     @JsonProperty
-    private String clientError = Constants.CLIENT_ERROR_SHORT;
-
-    @JsonProperty
-    private long agentCountCacheTtl = 10 * 1000;
+    private long agentCountCacheTtl = 10 * 1000l;
 
     @JsonProperty
     private long maxParallelThreshold = 10000;
+
+    @JsonProperty
+    private boolean aclManagementEnabled = true;
+
+    @JsonProperty
+    private String aclManagementDisabledMessage = "ACL management is disabled. Please contact your admin for modification.";
 
     public String getDashboardUrl() {
         return dashboardUrl;
@@ -52,14 +54,6 @@ public class SystemFactory {
         this.changeFeedUrl = changeFeedUrl;
     }
 
-    public String getClientError() {
-        return clientError;
-    }
-
-    public void setClientError(String clientError) {
-        this.clientError = clientError;
-    }
-
     public Long getAgentCountCacheTtl() {
         return agentCountCacheTtl;
     }
@@ -75,4 +69,21 @@ public class SystemFactory {
     public void setMaxParallelThreshold(Long maxParallelThreshold) {
         this.maxParallelThreshold = maxParallelThreshold;
     }
+
+    public boolean isAclManagementEnabled() {
+        return aclManagementEnabled;
+    }
+
+    public void setAclManagementEnabled(boolean aclManagementEnabled) {
+        this.aclManagementEnabled = aclManagementEnabled;
+    }
+
+    public String getAclManagementDisabledMessage() {
+        return aclManagementDisabledMessage;
+    }
+
+    public void setAclManagementDisabledMessage(String aclManagementDisabledMessage) {
+        this.aclManagementDisabledMessage = aclManagementDisabledMessage;
+    }
+
 }

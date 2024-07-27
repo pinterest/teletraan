@@ -119,6 +119,18 @@
                             <input class="form-control" name="description" type="text" value=""/>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Account
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="accountId" required id="account">
+                                {% for account in accounts %}
+                                    <option {% if account.id == defaultAccountId %}selected{% endif %} value="{{account.id}}" >{{ account.ownerId }} / {{ account.name }} / {{ account.description }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button id="modalConfirmBtnId" type="submit" class="btn btn-primary">Create</button>

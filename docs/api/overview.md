@@ -21,7 +21,11 @@
 * Hosts
 * Hosts Tags : Hosts Tags related APIs
 * Hosts and Systems : Host info APIs
+* Hotfixs
+* Ratings
+* Schedules
 * Script Tokens : Internal script tokens APIs
+* System Group Roles
 * Tags : Tagging APIs
 * User Roles : User Roles related APIs
 

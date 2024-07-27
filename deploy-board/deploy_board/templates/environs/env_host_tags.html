@@ -61,7 +61,7 @@
     <script>
         $(function () {
             $('#envDeployWithTagBtn').click(function () {
-                window.location = "/env/{{ env.envName }}/{{ env.stageName }}/deploy?sortByTag={{ tag_name }}";
+                window.location = "/env/{{ env.envName }}/{{ env.stageName }}/deploy";
             });
 
             $('#viewDeployConstraintModalId').on('shown.bs.modal', function() {

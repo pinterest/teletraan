@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,11 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.validator.constraints.NotEmpty;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -40,41 +42,41 @@ public class GroupRolesBean implements Updatable {
     private String resource_id;
 
     @JsonProperty("type")
-    private Resource.Type resource_type;
+    private AuthZResource.Type resource_type;
 
     @NotNull
     @JsonProperty("role")
-    private Role role;
+    private TeletraanPrincipalRole role;
 
     public String getGroup_name() {
         return group_name;
     }
 
-    public void setGroup_name(String user_name) {
-        this.group_name = user_name;
+    public void setGroup_name(String userName) {
+        this.group_name = userName;
     }
 
     public String getResource_id() {
         return resource_id;
     }
 
-    public void setResource_id(String resource_id) {
-        this.resource_id = resource_id;
+    public void setResource_id(String resourceId) {
+        this.resource_id = resourceId;
     }
 
-    public Resource.Type getResource_type() {
+    public AuthZResource.Type getResource_type() {
         return resource_type;
     }
 
-    public void setResource_type(Resource.Type resource_type) {
-        this.resource_type = resource_type;
+    public void setResource_type(AuthZResource.Type resourceType) {
+        this.resource_type = resourceType;
     }
 
-    public Role getRole() {
+    public TeletraanPrincipalRole getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(TeletraanPrincipalRole role) {
         this.role = role;
     }
 

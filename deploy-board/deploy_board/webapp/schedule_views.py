@@ -38,16 +38,13 @@ class EnvScheduleView(View):
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         agent_count = agents_helper.get_agents_total_by_env(request, env["id"])
-        schedule_id = env.get('scheduleId', None);
-        if schedule_id != None: 
+        schedule_id = env.get('scheduleId', None)
+        if schedule_id is not None:
             schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
         else:
             schedule = None
-        max_parallel_number = env["maxParallel"];
         return render(request, 'configs/schedule_config.html', {
             "env": env,
             "schedule": schedule,
             "agent_count": agent_count,
-            "max_parallel_number": max_parallel_number,
         })
-

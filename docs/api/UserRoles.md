@@ -2,7 +2,7 @@
 User Roles related APIs
 
 
-<a name="create"></a>
+<a name="create_3"></a>
 #### Create a user for an environment
 ```
 POST /v1/envs/{envName}/user_roles
@@ -38,7 +38,7 @@ Creates a new UserRoles object for a given environment name.
 * `application/json`
 
 
-<a name="getbyresource"></a>
+<a name="getbyresource_2"></a>
 #### Get all environment user roles
 ```
 GET /v1/envs/{envName}/user_roles
@@ -73,7 +73,7 @@ Returns a list of UserRoles objects for the given environment name.
 * `application/json`
 
 
-<a name="getbynameandresource"></a>
+<a name="getbynameandresource_2"></a>
 #### Get user role by user and environment name
 ```
 GET /v1/envs/{envName}/user_roles/{userName}
@@ -109,7 +109,7 @@ Returns a UserRoles object containing for given user and environment names.
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_13"></a>
 #### Update a user's environment role
 ```
 PUT /v1/envs/{envName}/user_roles/{userName}
@@ -146,7 +146,7 @@ Updates a UserRoles object for given user and environment names with given UserR
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_7"></a>
 #### Deletes a user's roles from an environment
 ```
 DELETE /v1/envs/{envName}/user_roles/{userName}
@@ -182,7 +182,7 @@ Deletes a UserRoles object by given user and environment names.
 * `application/json`
 
 
-<a name="create"></a>
+<a name="create_9"></a>
 #### Create a new system level user
 ```
 POST /v1/system/user_roles
@@ -217,7 +217,7 @@ Creates a system level user for given UserRoles object
 * `application/json`
 
 
-<a name="getbyresource"></a>
+<a name="getbyresource_5"></a>
 #### Get all system level user role objects
 ```
 GET /v1/system/user_roles
@@ -245,7 +245,7 @@ Returns a list of all system level UserRoles objects
 * `application/json`
 
 
-<a name="getbynameandresource"></a>
+<a name="getbynameandresource_5"></a>
 #### Get system level user role objects by user name
 ```
 GET /v1/system/user_roles/{userName}
@@ -280,7 +280,7 @@ Returns a system level UserRoles objects containing info for given user name
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_18"></a>
 #### Update a system level user's role
 ```
 PUT /v1/system/user_roles/{userName}
@@ -316,7 +316,7 @@ Updates a system level user's role given specified user name and replacement Use
 * `application/json`
 
 
-<a name="delete"></a>
+<a name="delete_11"></a>
 #### Delete a system level user
 ```
 DELETE /v1/system/user_roles/{userName}

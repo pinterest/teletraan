@@ -13,15 +13,16 @@
 # limitations under the License.
 
 import logging
+from typing import Generator, Optional, Union
 from deployd import __version__, IS_PINTEREST, METRIC_PORT_HEALTH, METRIC_CACHE_PATH, STATSBOARD_URL
 import timeit
 import socket
 import json
 import os
-import requests 
+import requests
 
 if IS_PINTEREST:
-    from pinstatsd.statsd import sc, sc_v2
+    from pinstatsd.statsd import sc, sc_v2, statsd_context_timer
 else:
     class sc:
         @staticmethod
@@ -53,14 +54,13 @@ class DefaultStatsdTimer(object):
 class TimingOnlyStatClient:
     """ timing only stat client in order to use caching """
     @staticmethod
-    def timing(*args, **kwargs):
+    def timing(*args, **kwargs) -> None:
         client = MetricClient()
         return client.send_context_timer(*args, **kwargs)
 
 
 def create_stats_timer(name, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
-        from pinstatsd.statsd import statsd_context_timer
         timer = statsd_context_timer(entry_name=name,
                                      sample_rate=sample_rate,
                                      tags=tags,
@@ -70,7 +70,7 @@ def create_stats_timer(name, sample_rate=1.0, tags=None):
         return DefaultStatsdTimer()
 
 
-def create_sc_timing(name, value, sample_rate=1.0, tags=None):
+def create_sc_timing(name, value, sample_rate=1.0, tags=None) -> None:
     if IS_PINTEREST:
         mtype = 'timing'
         client = MetricClient()
@@ -83,7 +83,7 @@ def create_sc_timing(name, value, sample_rate=1.0, tags=None):
         return
 
 
-def create_sc_increment(name, sample_rate=1.0, tags=None):
+def create_sc_increment(name, sample_rate=1.0, tags=None) -> None:
     if IS_PINTEREST:
         mtype = 'increment'
         client = MetricClient()
@@ -95,7 +95,7 @@ def create_sc_increment(name, sample_rate=1.0, tags=None):
         return
 
 
-def create_sc_gauge(name, value, sample_rate=1.0, tags=None):
+def create_sc_gauge(name, value, sample_rate=1.0, tags=None) -> None:
     if IS_PINTEREST:
         mtype = 'gauge'
         client = MetricClient()
@@ -107,9 +107,9 @@ def create_sc_gauge(name, value, sample_rate=1.0, tags=None):
     else:
         return
 
-def send_statsboard_metric(name, value, tags=None): 
+def send_statsboard_metric(name, value, tags=None) -> None:
     tags['host'] = socket.gethostname()
-    tags_params = [f"{tag}={tags[tag]}" for tag in tags] 
+    tags_params = [f"{tag}={tags[tag]}" for tag in tags]
     tags_str = ",".join(tags_params)
     url = (
         f"{STATSBOARD_URL}put/"
@@ -120,10 +120,10 @@ def send_statsboard_metric(name, value, tags=None):
     resp = requests.put(url)
     if resp.status_code == 200:
         log.info("Successfully send the metric to statsboard")
-    
+
 class MetricCacheConfigurationError(ValueError):
     """ Raised when MetricCache has missing configuration """
-    def __init__(self, name, value):
+    def __init__(self, name, value) -> None:
         msg = '{} is {}'.format(name, value)
         super(MetricCacheConfigurationError, self).__init__(msg)
 
@@ -132,7 +132,7 @@ class MetricCache:
     """ local cache for metrics
         creates empty cache file
     """
-    def __init__(self, path=METRIC_CACHE_PATH):
+    def __init__(self, path=METRIC_CACHE_PATH) -> None:
         if not path:
             raise MetricCacheConfigurationError('path', path)
         self.path = path
@@ -142,13 +142,13 @@ class MetricCache:
         if not self.exists():
             self.truncate()
 
-    def limit(self):
+    def limit(self) -> bool:
         """ check to see if cache file has exceeded maximum size
             return: bool
         """
         return os.path.getsize(self.path) > self.max_size
 
-    def exists(self):
+    def exists(self) -> bool:
         """ cache file exists and is read/write
             return: bool
         """
@@ -158,13 +158,13 @@ class MetricCache:
             return True
         return False
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """ check if the cache not empty
             return: bool
         """
         return not os.stat(self.path).st_size > 0
 
-    def read(self):
+    def read(self) -> Generator:
         """ read metrics from cache, then delete
             return: generator
         """
@@ -172,7 +172,7 @@ class MetricCache:
             for line in fh:
                 yield Stat(ins=line)
 
-    def write(self, output):
+    def write(self, output) -> None:
         """ write metrics to cache file respecting max cache size
             appends newline to metric
         """
@@ -183,7 +183,7 @@ class MetricCache:
         with open(self.path, 'a') as fh:
             fh.write('{}\n'.format(output))
 
-    def truncate(self):
+    def truncate(self) -> None:
         """ purge cache file """
         with open(self.path, 'w') as fh:
             fh.truncate()
@@ -194,7 +194,7 @@ class Stat:
         supports all methods for stats
     """
 
-    def __init__(self, mtype=None, name=None, value=None, sample_rate=None, tags=None, ins=None):
+    def __init__(self, mtype=None, name=None, value=None, sample_rate=None, tags=None, ins=None) -> None:
         self.mtype = mtype
         self.name = name
         self.value = value
@@ -207,7 +207,7 @@ class Stat:
             # python2 support
             self.JSONDecodeError = ValueError
 
-    def serialize(self):
+    def serialize(self) -> str:
         """ serialize for cache writing """
         obj = dict()
         obj['mtype'] = self.mtype
@@ -219,7 +219,7 @@ class Stat:
         obj['tags'] = self.tags
         return json.dumps(obj)
 
-    def _deserialize(self):
+    def _deserialize(self) -> bool:
         """ read in json, setting defaults for a stat
             return: bool
         """
@@ -233,7 +233,7 @@ class Stat:
             return True
         return False
 
-    def deserialize(self, ins=None):
+    def deserialize(self, ins=None) -> bool:
         """ attempt to deserialize
             :param: ins json as str
             return: bool, False on error
@@ -253,7 +253,7 @@ class Stat:
 
 class MetricClientConfigurationError(ValueError):
     """ Raised when MetricClient has missing configuration """
-    def __init__(self, name, value):
+    def __init__(self, name, value) -> None:
         msg = '{} is {}'.format(name, value)
         super(MetricClientConfigurationError, self).__init__(msg)
 
@@ -261,7 +261,7 @@ class MetricClientConfigurationError(ValueError):
 class MetricClient:
     """ metrics client wrapper, enables disk cache """
 
-    def __init__(self, port=METRIC_PORT_HEALTH, cache_path=METRIC_CACHE_PATH):
+    def __init__(self, port=METRIC_PORT_HEALTH, cache_path=METRIC_CACHE_PATH) -> None:
         if not port:
             raise MetricClientConfigurationError('port', port)
         self.port = port
@@ -269,7 +269,7 @@ class MetricClient:
         self.stat = None
 
     @staticmethod
-    def _add_default_tags(tags=None):
+    def _add_default_tags(tags=None) -> Optional[dict]:
         """ add default tags to stats
             :param: tags as dict
             return: dict
@@ -283,7 +283,7 @@ class MetricClient:
         return tags
 
     @staticmethod
-    def _parse_stat(mtype=None, name=None, value=None, sample_rate=None, tags=None):
+    def _parse_stat(mtype=None, name=None, value=None, sample_rate=None, tags=None) -> Stat:
         """ return Stat for given kwargs """
         return Stat(mtype=mtype,
                     name=name,
@@ -291,7 +291,7 @@ class MetricClient:
                     sample_rate=sample_rate,
                     tags=tags)
 
-    def _send_mtype(self):
+    def _send_mtype(self) -> None:
         """ send metric to sc using corrected
             calls per metric type
         """
@@ -316,14 +316,14 @@ class MetricClient:
             msg = 'encountered unsupported mtype:{} while sending name:{}, value:{}, sample_rate:{}, tags:{}'
             log.error(msg.format(self.stat.mtype, self.stat.name, self.stat.value, self.stat.sample_rate, self.stat.tags))
 
-    def _send(self):
+    def _send(self) -> None:
         """ send metric to sc """
         try:
             self._send_mtype()
         except Exception as error:
             log.error('unable to send metric: {}'.format(error))
 
-    def _flush_cache(self):
+    def _flush_cache(self) -> None:
         """ read from cache, send every metric, truncate cache """
         log.warning('flushing metrics from cache')
         for stat in self.cache.read():
@@ -336,13 +336,13 @@ class MetricClient:
         # truncate cache file after flush
         self.cache.truncate()
 
-    def send_context_timer(self, name, value, sample_rate=None, tags=None):
+    def send_context_timer(self, name, value, sample_rate=None, tags=None) -> None:
         """ convert a context_timer to timing
             for cacheability
         """
         self.send(mtype='timing', name=name, value=value, sample_rate=sample_rate, tags=tags)
 
-    def send(self, mtype=None, name=None, value=None, sample_rate=None, tags=None):
+    def send(self, mtype=None, name=None, value=None, sample_rate=None, tags=None) -> None:
         """ add default tags, send metric, write to, or flush cache
             depending on health check """
         tags = self._add_default_tags(tags)
@@ -358,7 +358,7 @@ class MetricClient:
             stat = self._parse_stat(mtype=mtype, name=name, value=value, sample_rate=sample_rate, tags=tags)
             self.cache.write(stat.serialize())
 
-    def is_healthy(self):
+    def is_healthy(self) -> bool:
         """ health-check by connecting to local IPv4 TCP listening socket
             return: bool
         """
@@ -380,13 +380,13 @@ class MetricClient:
 class TimeElapsed:
     """ keep track of elapsed time in seconds """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._time_start = self._timer()
         self._time_now = None
         self._time_elapsed = float(0)
         self._time_pause = None
 
-    def get(self):
+    def get(self) -> Union[float, int]:
         """ total elapsed running time, accuracy in seconds
             return: int
         """
@@ -397,7 +397,7 @@ class TimeElapsed:
         self._time_start = self._time_now
         return int(self._time_elapsed)
 
-    def _is_paused(self):
+    def _is_paused(self) -> bool:
         """ timer pause state
             return: bool
         """
@@ -406,13 +406,13 @@ class TimeElapsed:
         return False
 
     @staticmethod
-    def _timer():
+    def _timer() -> float:
         """ timer in seconds
             return: float
         """
         return timeit.default_timer()
 
-    def since_pause(self):
+    def since_pause(self) -> float:
         """ time elapsed since pause
             return: float
         """
@@ -420,14 +420,14 @@ class TimeElapsed:
             return float(self._timer() - self._time_pause)
         return float(0)
 
-    def pause(self):
+    def pause(self) -> None:
         """ pause timer if not paused
             return: None
         """
         if not self._is_paused():
             self._time_pause = self._timer()
 
-    def resume(self):
+    def resume(self) -> None:
         """ resume timer if paused
             return: None
         """

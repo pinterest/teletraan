@@ -184,7 +184,7 @@ Returns a list of all the deploy agent objects for a given environment name and 
 |---|---|---|
 |**Path**|**envName**  <br>*required*|string|
 |**Path**|**stageName**  <br>*required*|string|
-|**Query**|**actionType**  <br>*optional*|enum (SERVING, SERVING_AND_NORMAL, FIRST_DEPLOY, FAILED_FIRST_DEPLOY)|
+|**Query**|**actionType**  <br>*required*|enum (SERVING, SERVING_AND_NORMAL, FIRST_DEPLOY, FAILED_FIRST_DEPLOY)|
 
 
 ##### Responses
@@ -278,7 +278,7 @@ Resets failing deploys given an environment name, stage name, and deploy id
 * `application/json`
 
 
-<a name="update"></a>
+<a name="update_3"></a>
 #### Update host agent
 ```
 PUT /v1/envs/{envName}/{stageName}/agents/{hostId}

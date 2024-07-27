@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,42 @@
  */
 package com.pinterest.teletraan.config;
 
+import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.TokenAuthFilter;
-import org.hibernate.validator.constraints.NotEmpty;
-
+import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
+import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
+import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
+import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
+import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
+import io.dropwizard.auth.AuthFilter;
+import io.dropwizard.auth.Authenticator;
+import io.dropwizard.auth.Authorizer;
+import io.dropwizard.auth.CachingAuthenticator;
+import io.dropwizard.auth.JSONUnauthorizedHandler;
+import io.dropwizard.auth.chained.ChainedAuthFilter;
+import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
+import java.util.Arrays;
+import java.util.List;
+import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.container.ContainerRequestFilter;
+import org.apache.commons.lang3.StringUtils;
 
 @JsonTypeName("token")
 public class TokenAuthenticationFactory implements AuthenticationFactory {
-    @JsonProperty
-    @NotEmpty
-    private String userDataUrl;
+    @JsonProperty @NotEmpty private String userDataUrl;
 
-    @JsonProperty
-    private String groupDataUrl;
+    @JsonProperty private String groupDataUrl;
 
-    @JsonProperty
-    private String userNameKey;
+    @JsonProperty private String userNameKey;
 
-    @JsonProperty
-    private Boolean extractUserNameFromEmail;
+    @JsonProperty private Boolean extractUserNameFromEmail;
 
-    @JsonProperty
-    private String tokenCacheSpec;
+    @JsonProperty private String tokenCacheSpec;
 
     public String getUserDataUrl() {
         return userDataUrl;
@@ -81,8 +92,70 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         this.groupDataUrl = groupDataUrl;
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
-        return new TokenAuthFilter(userDataUrl, groupDataUrl, userNameKey, extractUserNameFromEmail, tokenCacheSpec, context);
+        return new ChainedAuthFilter(Arrays.asList(createScriptTokenAuthFilter(context),
+                createOauthTokenAuthFilter(context), createJwtTokenAuthFilter(context)));
+    }
+
+    @SuppressWarnings({ "unchecked" })
+    AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthFilter(
+            TeletraanServiceContext context) throws Exception {
+        Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthenticator =
+                new ScriptTokenAuthenticator<>(new TeletraanScriptTokenProvider(context));
+        if (StringUtils.isNotBlank(getTokenCacheSpec())) {
+            scriptTokenAuthenticator =
+                    new CachingAuthenticator<>(
+                            SharedMetricRegistries.getDefault(), scriptTokenAuthenticator, Caffeine.from(getTokenCacheSpec()));
+        }
+        return new OAuthCredentialAuthFilter.Builder<ScriptTokenPrincipal<ValueBasedRole>>()
+                        .setAuthenticator(scriptTokenAuthenticator)
+                        .setAuthorizer(
+                                (Authorizer<ScriptTokenPrincipal<ValueBasedRole>>)
+                                        context.getAuthorizationFactory()
+                                                .create(context, ServicePrincipal.class))
+                        .setPrefix("token")
+                        .setUnauthorizedHandler(new JSONUnauthorizedHandler())
+                        .buildAuthFilter();
+    }
+
+    // TODO: CDP-7837 remove this after all the clients are updated to use the new token scheme
+    @SuppressWarnings({ "unchecked" })
+    AuthFilter<String, UserPrincipal> createOauthTokenAuthFilter(TeletraanServiceContext context) throws Exception {
+        Authenticator<String, UserPrincipal> oauthAuthenticator =
+                new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl());
+        if (StringUtils.isNotBlank(getTokenCacheSpec())) {
+            oauthAuthenticator =
+                    new CachingAuthenticator<>(
+                        SharedMetricRegistries.getDefault(), oauthAuthenticator, Caffeine.from(getTokenCacheSpec()));
+        }
+        return new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
+                        .setAuthenticator(oauthAuthenticator)
+                        .setAuthorizer(
+                                (Authorizer<UserPrincipal>)
+                                        context.getAuthorizationFactory()
+                                                .create(context, UserPrincipal.class))
+                        .setPrefix("token")
+                        .setUnauthorizedHandler(new JSONUnauthorizedHandler())
+                        .buildAuthFilter();
+    }
+
+    @SuppressWarnings({ "unchecked" })
+    AuthFilter<String, UserPrincipal> createJwtTokenAuthFilter(TeletraanServiceContext context) throws Exception {
+        Authenticator<String, UserPrincipal> oauthJwtAuthenticator = new OAuthAuthenticator(getUserDataUrl(),
+                getGroupDataUrl());
+        if (StringUtils.isNotBlank(getTokenCacheSpec())) {
+            oauthJwtAuthenticator = new CachingAuthenticator<>(
+                SharedMetricRegistries.getDefault(), oauthJwtAuthenticator, Caffeine.from(getTokenCacheSpec()));
+        }
+        return new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
+                .setAuthenticator(oauthJwtAuthenticator)
+                .setAuthorizer(
+                        (Authorizer<UserPrincipal>) context.getAuthorizationFactory()
+                                .create(context, UserPrincipal.class))
+                .setPrefix("Bearer")
+                .setUnauthorizedHandler(new JSONUnauthorizedHandler())
+                .buildAuthFilter();
     }
 }

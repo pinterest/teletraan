@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,8 +20,6 @@ import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
-import io.dropwizard.health.conf.HealthConfiguration;
-import io.dropwizard.health.core.HealthCheckBundle;
 import io.dropwizard.setup.Bootstrap;
 
 public class TeletraanWorker extends Application<TeletraanServiceConfiguration> {
@@ -38,12 +36,6 @@ public class TeletraanWorker extends Application<TeletraanServiceConfiguration> 
                         new EnvironmentVariableSubstitutor(false)
                 )
         );
-        bootstrap.addBundle(new HealthCheckBundle<TeletraanServiceConfiguration>() {
-            @Override
-            protected HealthConfiguration getHealthConfiguration(final TeletraanServiceConfiguration configuration) {
-                return configuration.getHealthConfiguration();
-            }
-        });
     }
 
     @Override

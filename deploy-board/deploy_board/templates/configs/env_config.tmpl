@@ -101,7 +101,7 @@
                     <div class="col-xs-4">
                         <input class="form-control" name="group_mention_recipients" required="false"
                                type="text" value="{{ env.groupMentionRecipients |default_if_none:'' }}"/>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="chatRecipients" class="deployToolTip control-label col-xs-2"
@@ -211,18 +211,6 @@
                             {% endfor %}
                         </select>
                     </div>
-
-                    <label for="maxParallelRp" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Maximum number of hosts are allowed to be replaced at the same time
-                        when doing cluster upgrading">
-                        Maximum Replaceable Host
-                    </label>
-
-                    <div class="col-xs-4">
-                        <input class="form-control" name="maxParallelRp" required="true"
-                               type="number" min="1" value="{{ env.maxParallelRp }}"/>
-                    </div>
                 </div>
                 <div class="form-group">
                     <label for="overridePolicy" class="deployToolTip control-label col-xs-2"
@@ -249,16 +237,31 @@
                         Stage Type (Immutable once set off the DEFAULT type)
                     </label>
                     <div class ="col-xs-4">
-                        <select class="form-control" name="stageType">
-                            {% get_stage_types as stageTypes %}
-                            {% for stageType in stageTypes %}
-                            {% if env.stageType == stageType %}
-                            <option value="{{ stageType }}" selected="selected">{{ stageType }}</option>
-                            {% else %}
-                            <option value="{{ stageType }}">{{ stageType }}</option>
-                            {% endif %}>
-                            {% endfor %}
-                        </select>
+                        <div class="input-group">
+                            <select class="form-control" name="stageType" id="stageTypeValueId">
+                                {% get_stage_types as stageTypes %}
+                                {% for stageType in stageTypes %}
+                                {% if env.stageType == stageType %}
+                                <option value="{{ stageType }}" selected="selected">{{ stageType }}</option>
+                                {% else %}
+                                <option value="{{ stageType }}">{{ stageType }}</option>
+                                {% endif %}>
+                                {% endfor %}
+                            </select>
+                            <span class="input-group-btn">
+                                <button class="deployToolTip btn stage-type-btn-default" id="stageTypeBtnId" type="button" data-toggle="tooltip" title="click to see more information">
+                                    <span class="glyphicon glyphicon-question-sign"></span>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="col-xs-12" id="stageTypeHelpInfo" hidden="true">
+                            DEV - Used for manual testing</br>
+                            LATEST - Deploy the latest available build</br>
+                            STAGING - Deploy the latest available artifacts from master, then verify with testing (integration, stress, smoke etc)</br>
+                            CANARY - Deploy the build after tests, then verify the ACA together with the CONTROL</br>
+                            CONTROL - Deploy the build as the production, used with CANARY</br>
+                            PRODUCTION - Deploy the build to production
+                        </div>
                     </div>
                 </div>
                 {% if env.systemPriority != None %}
@@ -343,6 +346,14 @@
             $('#resetEnvConfigBtnId').removeAttr('disabled');
         });
 
+        $('#stageTypeBtnId').click(function () {
+            if ($('#stageTypeHelpInfo').is(':visible')){
+                $('#stageTypeHelpInfo').attr('hidden', 'true');
+            } else {
+                $('#stageTypeHelpInfo').removeAttr('hidden');
+            }
+        });
+
         $('#saveEnvConfigBtnId').click(function () {
             var btn = $(this);
             $.ajax({
@@ -354,17 +365,15 @@
                     btn.button('loading');
                 },
                 success: function (data) {
-                    if(data != null && data.success == false) {
-                        $('#errorBannerId').append(data.error);
-                        $('#errorBannerId').show();
-                    } else {
-                        $("#envConfigId").parent().html(data.html);
-                        $('#errorBannerId').empty().hide();
-                    }
+                    $("#envConfigId").parent().html(data.html);
+                    $('#errorBannerId').empty().hide();
                     btn.button('reset');
                 },
                 error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').append(data.responseJSON.error);
+                    if ($('#stageTypeValueId').val() == 'DEFAULT') {
+                        $('#errorBannerId').append("<a href='{{stage_type_info_link}}'>pinch/teletraan-stagetypes</a>");
+                    }
                     $('#errorBannerId').show();
                 }
             });

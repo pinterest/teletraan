@@ -5,23 +5,24 @@
 <a name="agentbean"></a>
 ### AgentBean
 
-|Name|Description|Schema|
-|---|---|---|
-|**deployId**  <br>*optional*||string|
-|**deployStage**  <br>*optional*||enum (UNKNOWN, PRE_DOWNLOAD, DOWNLOADING, POST_DOWNLOAD, STAGING, PRE_RESTART, RESTARTING, POST_RESTART, SERVING_BUILD, STOPPING, STOPPED)|
-|**envId**  <br>*optional*||string|
-|**failCount**  <br>*optional*||integer (int32)|
-|**firstDeploy**  <br>*optional*|**Default** : `false`|boolean|
-|**firstDeployDate**  <br>*optional*||integer (int64)|
-|**hostId**  <br>*optional*||string|
-|**hostName**  <br>*optional*||string|
-|**lastErrno**  <br>*optional*||integer (int32)|
-|**lastOperator**  <br>*optional*||string|
-|**lastUpdateDate**  <br>*optional*||integer (int64)|
-|**stageStartDate**  <br>*optional*||integer (int64)|
-|**startDate**  <br>*optional*||integer (int64)|
-|**state**  <br>*optional*||enum (NORMAL, PAUSED_BY_SYSTEM, PAUSED_BY_USER, RESET, DELETE, UNREACHABLE, STOP)|
-|**status**  <br>*optional*||enum (SUCCEEDED, UNKNOWN, AGENT_FAILED, RETRYABLE_AGENT_FAILED, SCRIPT_FAILED, ABORTED_BY_SERVICE, SCRIPT_TIMEOUT, TOO_MANY_RETRY, RUNTIME_MISMATCH)|
+|Name|Schema|
+|---|---|
+|**containerHealthStatus**  <br>*optional*|string|
+|**deployId**  <br>*optional*|string|
+|**deployStage**  <br>*optional*|enum (UNKNOWN, PRE_DOWNLOAD, DOWNLOADING, POST_DOWNLOAD, STAGING, PRE_RESTART, RESTARTING, POST_RESTART, SERVING_BUILD, STOPPING, STOPPED)|
+|**envId**  <br>*optional*|string|
+|**failCount**  <br>*optional*|integer (int32)|
+|**firstDeploy**  <br>*optional*|boolean|
+|**firstDeployDate**  <br>*optional*|integer (int64)|
+|**hostId**  <br>*optional*|string|
+|**hostName**  <br>*optional*|string|
+|**lastErrno**  <br>*optional*|integer (int32)|
+|**lastOperator**  <br>*optional*|string|
+|**lastUpdateDate**  <br>*optional*|integer (int64)|
+|**stageStartDate**  <br>*optional*|integer (int64)|
+|**startDate**  <br>*optional*|integer (int64)|
+|**state**  <br>*optional*|enum (NORMAL, PAUSED_BY_SYSTEM, PAUSED_BY_USER, RESET, RESET_BY_SYSTEM, DELETE, UNREACHABLE, STOP)|
+|**status**  <br>*optional*|enum (SUCCEEDED, UNKNOWN, AGENT_FAILED, RETRYABLE_AGENT_FAILED, SCRIPT_FAILED, ABORTED_BY_SERVICE, SCRIPT_TIMEOUT, TOO_MANY_RETRY, RUNTIME_MISMATCH)|
 
 
 <a name="agenterrorbean"></a>
@@ -33,6 +34,16 @@
 |**errorMessage**  <br>*optional*|string|
 |**hostId**  <br>*optional*|string|
 |**hostName**  <br>*optional*|string|
+
+
+<a name="alarmbean"></a>
+### AlarmBean
+
+|Name|Schema|
+|---|---|
+|**alarmUrl**  <br>*optional*|string|
+|**metricsUrl**  <br>*optional*|string|
+|**name**  <br>*optional*|string|
 
 
 <a name="buildbean"></a>
@@ -148,20 +159,21 @@
 <a name="deploygoalbean"></a>
 ### DeployGoalBean
 
-|Name|Description|Schema|
-|---|---|---|
-|**agentConfigs**  <br>*optional*||< string, string > map|
-|**build**  <br>*optional*||[BuildBean](#buildbean)|
-|**deployAlias**  <br>*optional*||string|
-|**deployId**  <br>*optional*||string|
-|**deployStage**  <br>*optional*||enum (UNKNOWN, PRE_DOWNLOAD, DOWNLOADING, POST_DOWNLOAD, STAGING, PRE_RESTART, RESTARTING, POST_RESTART, SERVING_BUILD, STOPPING, STOPPED)|
-|**deployType**  <br>*optional*||enum (REGULAR, HOTFIX, ROLLBACK, RESTART, STOP)|
-|**envId**  <br>*optional*||string|
-|**envName**  <br>*optional*||string|
-|**firstDeploy**  <br>*optional*|**Default** : `false`|boolean|
-|**isDocker**  <br>*optional*|**Default** : `false`|boolean|
-|**scriptVariables**  <br>*optional*||< string, string > map|
-|**stageName**  <br>*optional*||string|
+|Name|Schema|
+|---|---|
+|**agentConfigs**  <br>*optional*|< string, string > map|
+|**build**  <br>*optional*|[BuildBean](#buildbean)|
+|**deployAlias**  <br>*optional*|string|
+|**deployId**  <br>*optional*|string|
+|**deployStage**  <br>*optional*|enum (UNKNOWN, PRE_DOWNLOAD, DOWNLOADING, POST_DOWNLOAD, STAGING, PRE_RESTART, RESTARTING, POST_RESTART, SERVING_BUILD, STOPPING, STOPPED)|
+|**deployType**  <br>*optional*|enum (REGULAR, HOTFIX, ROLLBACK, RESTART, STOP)|
+|**envId**  <br>*optional*|string|
+|**envName**  <br>*optional*|string|
+|**firstDeploy**  <br>*optional*|boolean|
+|**isDocker**  <br>*optional*|boolean|
+|**scriptVariables**  <br>*optional*|< string, string > map|
+|**stageName**  <br>*optional*|string|
+|**stageType**  <br>*optional*|enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST, DEV, STAGING)|
 
 
 <a name="deployprogressbean"></a>
@@ -177,12 +189,12 @@
 <a name="deployqueryresultbean"></a>
 ### DeployQueryResultBean
 
-|Name|Description|Schema|
-|---|---|---|
-|**deployTags**  <br>*optional*||< string, [TagBean](#tagbean) > map|
-|**deploys**  <br>*optional*||< [DeployBean](#deploybean) > array|
-|**total**  <br>*optional*||integer (int64)|
-|**truncated**  <br>*optional*|**Default** : `false`|boolean|
+|Name|Schema|
+|---|---|
+|**deployTags**  <br>*optional*|< string, [TagBean](#tagbean) > map|
+|**deploys**  <br>*optional*|< [DeployBean](#deploybean) > array|
+|**total**  <br>*optional*|integer (int64)|
+|**truncated**  <br>*optional*|boolean|
 
 
 <a name="envwebhookbean"></a>
@@ -197,49 +209,51 @@
 <a name="environbean"></a>
 ### EnvironBean
 
-|Name|Description|Schema|
-|---|---|---|
-|**acceptanceType**  <br>*optional*||enum (AUTO, MANUAL)|
-|**advancedConfigId**  <br>*optional*||string|
-|**alarmConfigId**  <br>*optional*||string|
-|**allowPrivateBuild**  <br>*optional*|**Default** : `false`|boolean|
-|**branch**  <br>*optional*||string|
-|**buildName**  <br>*optional*||string|
-|**chatroom**  <br>*optional*||string|
-|**clusterName**  <br>*optional*||string|
-|**deployConstraintId**  <br>*optional*||string|
-|**deployId**  <br>*optional*||string|
-|**deployType**  <br>*optional*||enum (REGULAR, HOTFIX, ROLLBACK, RESTART, STOP)|
-|**description**  <br>*optional*||string|
-|**emailRecipients**  <br>*optional*||string|
-|**ensureTrustedBuild**  <br>*optional*|**Default** : `false`|boolean|
-|**envName**  <br>*optional*||string|
-|**envState**  <br>*optional*||enum (NORMAL, PAUSED, DISABLED)|
-|**externalId**  <br>*optional*||string|
-|**id**  <br>*optional*||string|
-|**isDocker**  <br>*optional*|**Default** : `false`|boolean|
-|**isSOX**  <br>*optional*|**Default** : `false`|boolean|
-|**lastOperator**  <br>*optional*||string|
-|**lastUpdate**  <br>*optional*||integer (int64)|
-|**maxDeployDay**  <br>*optional*||integer (int32)|
-|**maxDeployNum**  <br>*optional*||integer (int32)|
-|**maxParallel**  <br>*optional*||integer (int32)|
-|**maxParallelPct**  <br>*optional*||integer (int32)|
-|**maxParallelRp**  <br>*optional*||integer (int32)|
-|**metricsConfigId**  <br>*optional*||string|
-|**notifyAuthors**  <br>*optional*|**Default** : `false`|boolean|
-|**overridePolicy**  <br>*optional*||enum (OVERRIDE, WARN)|
-|**priority**  <br>*optional*||enum (NORMAL, HIGH, LOW, HIGHER, LOWER)|
-|**scheduleId**  <br>*optional*||string|
-|**scriptConfigId**  <br>*optional*||string|
-|**stageName**  <br>*optional*||string|
-|**stageType**  <br>*optional*||enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST)|
-|**state**  <br>*optional*||enum (NORMAL, DISABLED)|
-|**stuckThreshold**  <br>*optional*||integer (int32)|
-|**successThreshold**  <br>*optional*||integer (int32)|
-|**systemPriority**  <br>*optional*||integer (int32)|
-|**watchRecipients**  <br>*optional*||string|
-|**webhooksConfigId**  <br>*optional*||string|
+|Name|Schema|
+|---|---|
+|**acceptanceType**  <br>*optional*|enum (AUTO, MANUAL)|
+|**advancedConfigId**  <br>*optional*|string|
+|**alarmConfigId**  <br>*optional*|string|
+|**allowPrivateBuild**  <br>*optional*|boolean|
+|**branch**  <br>*optional*|string|
+|**buildName**  <br>*optional*|string|
+|**chatroom**  <br>*optional*|string|
+|**clusterName**  <br>*optional*|string|
+|**deployConstraintId**  <br>*optional*|string|
+|**deployId**  <br>*optional*|string|
+|**deployType**  <br>*optional*|enum (REGULAR, HOTFIX, ROLLBACK, RESTART, STOP)|
+|**description**  <br>*optional*|string|
+|**emailRecipients**  <br>*optional*|string|
+|**ensureTrustedBuild**  <br>*optional*|boolean|
+|**envName**  <br>*optional*|string|
+|**envState**  <br>*optional*|enum (NORMAL, PAUSED, DISABLED)|
+|**externalId**  <br>*optional*|string|
+|**groupMentionRecipients**  <br>*optional*|string|
+|**id**  <br>*optional*|string|
+|**isDocker**  <br>*optional*|boolean|
+|**isSOX**  <br>*optional*|boolean|
+|**lastOperator**  <br>*optional*|string|
+|**lastUpdate**  <br>*optional*|integer (int64)|
+|**maxDeployDay**  <br>*optional*|integer (int32)|
+|**maxDeployNum**  <br>*optional*|integer (int32)|
+|**maxParallel**  <br>*optional*|integer (int32)|
+|**maxParallelPct**  <br>*optional*|integer (int32)|
+|**maxParallelRp**  <br>*optional*|integer (int32)|
+|**metricsConfigId**  <br>*optional*|string|
+|**notifyAuthors**  <br>*optional*|boolean|
+|**overridePolicy**  <br>*optional*|enum (OVERRIDE, WARN)|
+|**priority**  <br>*optional*|enum (NORMAL, HIGH, LOW, HIGHER, LOWER)|
+|**scheduleId**  <br>*optional*|string|
+|**scriptConfigId**  <br>*optional*|string|
+|**stageName**  <br>*optional*|string|
+|**stageType**  <br>*optional*|enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST, DEV, STAGING)|
+|**state**  <br>*optional*|enum (NORMAL, DISABLED)|
+|**stuckThreshold**  <br>*optional*|integer (int32)|
+|**successThreshold**  <br>*optional*|integer (int32)|
+|**systemPriority**  <br>*optional*|integer (int32)|
+|**terminationLimit**  <br>*optional*|integer (int32)|
+|**watchRecipients**  <br>*optional*|string|
+|**webhooksConfigId**  <br>*optional*|string|
 
 
 <a name="grouprolesbean"></a>
@@ -249,24 +263,25 @@
 |---|---|
 |**name**  <br>*optional*|string|
 |**resource**  <br>*optional*|string|
-|**role**  <br>*required*|enum (READER, PINGER, PUBLISHER, OPERATOR, ADMIN)|
-|**type**  <br>*optional*|enum (ENV, GROUP, SYSTEM)|
+|**role**  <br>*required*|enum (READ, READER, PINGER, PUBLISHER, EXECUTE, WRITE, DELETE, OPERATOR, ADMIN)|
+|**type**  <br>*optional*|enum (ENV, GROUP, SYSTEM, ENV_STAGE, PLACEMENT, BASE_IMAGE, SECURITY_ZONE, IAM_ROLE, BUILD)|
 
 
 <a name="hostbean"></a>
 ### HostBean
 
-|Name|Description|Schema|
-|---|---|---|
-|**canRetire**  <br>*optional*||integer (int32)|
-|**createDate**  <br>*optional*||integer (int64)|
-|**groupName**  <br>*optional*||string|
-|**hostId**  <br>*optional*||string|
-|**hostName**  <br>*optional*||string|
-|**ip**  <br>*optional*||string|
-|**lastUpdateDate**  <br>*optional*||integer (int64)|
-|**pendingTerminate**  <br>*optional*|**Default** : `false`|boolean|
-|**state**  <br>*optional*||enum (PROVISIONED, ACTIVE, PENDING_TERMINATE, TERMINATING, TERMINATED, PENDING_TERMINATE_NO_REPLACE)|
+|Name|Schema|
+|---|---|
+|**accountId**  <br>*optional*|string|
+|**canRetire**  <br>*optional*|integer (int32)|
+|**createDate**  <br>*optional*|integer (int64)|
+|**groupName**  <br>*optional*|string|
+|**hostId**  <br>*optional*|string|
+|**hostName**  <br>*optional*|string|
+|**ip**  <br>*optional*|string|
+|**lastUpdateDate**  <br>*optional*|integer (int64)|
+|**pendingTerminate**  <br>*optional*|boolean|
+|**state**  <br>*optional*|enum (PROVISIONED, ACTIVE, PENDING_TERMINATE, TERMINATING, TERMINATED, PENDING_TERMINATE_NO_REPLACE)|
 
 
 <a name="hosttaginfo"></a>
@@ -278,6 +293,28 @@
 |**hostName**  <br>*optional*|string|
 |**tagName**  <br>*optional*|string|
 |**tagValue**  <br>*optional*|string|
+
+
+<a name="hotfixbean"></a>
+### HotfixBean
+
+|Name|Schema|
+|---|---|
+|**baseCommit**  <br>*optional*|string|
+|**baseDeployId**  <br>*optional*|string|
+|**commits**  <br>*optional*|string|
+|**envName**  <br>*optional*|string|
+|**errorMessage**  <br>*optional*|string|
+|**id**  <br>*optional*|string|
+|**jobName**  <br>*optional*|string|
+|**jobNum**  <br>*optional*|string|
+|**lastWorkedOn**  <br>*optional*|integer (int64)|
+|**operator**  <br>*optional*|string|
+|**progress**  <br>*optional*|integer (int32)|
+|**repo**  <br>*optional*|string|
+|**startDate**  <br>*optional*|integer (int64)|
+|**state**  <br>*optional*|enum (INITIAL, PUSHING, BUILDING, SUCCEEDED, FAILED, ABORTED)|
+|**timeout**  <br>*optional*|integer (int32)|
 
 
 <a name="metricsconfigbean"></a>
@@ -305,7 +342,9 @@
 
 |Name|Schema|
 |---|---|
+|**agentState**  <br>*optional*|string|
 |**agentStatus**  <br>*optional*|enum (SUCCEEDED, UNKNOWN, AGENT_FAILED, RETRYABLE_AGENT_FAILED, SCRIPT_FAILED, ABORTED_BY_SERVICE, SCRIPT_TIMEOUT, TOO_MANY_RETRY, RUNTIME_MISMATCH)|
+|**containerHealthStatus**  <br>*optional*|string|
 |**deployAlias**  <br>*optional*|string|
 |**deployId**  <br>*optional*|string|
 |**deployStage**  <br>*optional*|enum (UNKNOWN, PRE_DOWNLOAD, DOWNLOADING, POST_DOWNLOAD, STAGING, PRE_RESTART, RESTARTING, POST_RESTART, SERVING_BUILD, STOPPING, STOPPED)|
@@ -321,15 +360,17 @@
 
 |Name|Schema|
 |---|---|
+|**accountId**  <br>*optional*|string|
 |**agentVersion**  <br>*optional*|string|
 |**autoscalingGroup**  <br>*optional*|string|
 |**availabilityZone**  <br>*optional*|string|
+|**ec2Tags**  <br>*optional*|string|
 |**groups**  <br>*optional*|< string > array|
 |**hostId**  <br>*optional*|string|
 |**hostIp**  <br>*optional*|string|
 |**hostName**  <br>*optional*|string|
 |**reports**  <br>*optional*|< [PingReportBean](#pingreportbean) > array|
-|**stageType**  <br>*optional*|enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST)|
+|**stageType**  <br>*optional*|enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST, DEV, STAGING)|
 
 
 <a name="pingresponsebean"></a>
@@ -344,18 +385,44 @@
 <a name="promotebean"></a>
 ### PromoteBean
 
+|Name|Description|Schema|
+|---|---|---|
+|**delay**  <br>*optional*|**Minimum value** : `0`|integer (int32)|
+|**disablePolicy**  <br>*optional*||enum (MANUAL, AUTO)|
+|**envId**  <br>*optional*||string|
+|**failPolicy**  <br>*optional*||enum (CONTINUE, DISABLE, ROLLBACK)|
+|**lastOperator**  <br>*optional*||string|
+|**lastUpdate**  <br>*optional*||integer (int64)|
+|**predStage**  <br>*optional*||string|
+|**queueSize**  <br>*optional*|**Minimum value** : `1`  <br>**Maximum value** : `10`|integer (int32)|
+|**schedule**  <br>*optional*||string|
+|**type**  <br>*required*||enum (MANUAL, AUTO)|
+
+
+<a name="ratingbean"></a>
+### RatingBean
+
 |Name|Schema|
 |---|---|
-|**delay**  <br>*optional*|integer (int32)|
-|**disablePolicy**  <br>*optional*|enum (MANUAL, AUTO)|
-|**envId**  <br>*optional*|string|
-|**failPolicy**  <br>*optional*|enum (CONTINUE, DISABLE, ROLLBACK)|
-|**lastOperator**  <br>*optional*|string|
-|**lastUpdate**  <br>*optional*|integer (int64)|
-|**predStage**  <br>*optional*|string|
-|**queueSize**  <br>*optional*|integer (int32)|
-|**schedule**  <br>*optional*|string|
-|**type**  <br>*optional*|enum (MANUAL, AUTO)|
+|**author**  <br>*optional*|string|
+|**createDate**  <br>*optional*|integer (int64)|
+|**feedback**  <br>*optional*|string|
+|**id**  <br>*optional*|string|
+|**rating**  <br>*optional*|string|
+
+
+<a name="schedulebean"></a>
+### ScheduleBean
+
+|Name|Schema|
+|---|---|
+|**cooldownTimes**  <br>*optional*|string|
+|**currentSession**  <br>*optional*|integer (int32)|
+|**hostNumbers**  <br>*optional*|string|
+|**id**  <br>*optional*|string|
+|**state**  <br>*optional*|enum (NOT_STARTED, RUNNING, COOLING_DOWN, FINAL)|
+|**stateStartTime**  <br>*optional*|integer (int64)|
+|**totalSessions**  <br>*optional*|integer (int32)|
 
 
 <a name="tagbean"></a>
@@ -381,9 +448,9 @@
 |**expireDate**  <br>*optional*|integer (int64)|
 |**name**  <br>*optional*|string|
 |**resource**  <br>*optional*|string|
-|**role**  <br>*required*|enum (READER, PINGER, PUBLISHER, OPERATOR, ADMIN)|
+|**role**  <br>*required*|enum (READ, READER, PINGER, PUBLISHER, EXECUTE, WRITE, DELETE, OPERATOR, ADMIN)|
 |**token**  <br>*optional*|string|
-|**type**  <br>*optional*|enum (ENV, GROUP, SYSTEM)|
+|**type**  <br>*optional*|enum (ENV, GROUP, SYSTEM, ENV_STAGE, PLACEMENT, BASE_IMAGE, SECURITY_ZONE, IAM_ROLE, BUILD)|
 
 
 <a name="userrolesbean"></a>
@@ -393,8 +460,8 @@
 |---|---|
 |**name**  <br>*optional*|string|
 |**resource**  <br>*optional*|string|
-|**role**  <br>*required*|enum (READER, PINGER, PUBLISHER, OPERATOR, ADMIN)|
-|**type**  <br>*optional*|enum (ENV, GROUP, SYSTEM)|
+|**role**  <br>*required*|enum (READ, READER, PINGER, PUBLISHER, EXECUTE, WRITE, DELETE, OPERATOR, ADMIN)|
+|**type**  <br>*optional*|enum (ENV, GROUP, SYSTEM, ENV_STAGE, PLACEMENT, BASE_IMAGE, SECURITY_ZONE, IAM_ROLE, BUILD)|
 
 
 <a name="webhookbean"></a>
@@ -556,34 +623,6 @@
   limitations under the License.
 
 ### HotfixState
-
-  Copyright 2016 Pinterest, Inc.
-
- 
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-
-  you may not use this file except in compliance with the License.
-
-  You may obtain a copy of the License at
-
-   
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-     
-
-  Unless required by applicable law or agreed to in writing, software
-
-  distributed under the License is distributed on an "AS IS" BASIS,
-
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-
-  See the License for the specific language governing permissions and
-
-  limitations under the License.
-
-### Resource
 
   Copyright 2016 Pinterest, Inc.
 
@@ -953,11 +992,11 @@
 
   You may obtain a copy of the License at
 
-   
+ 
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+ 
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -1037,33 +1076,9 @@
 
        randomly choose X num of hosts from EACH group, and deploy at the same time
 
-### Role
+### TeletraanPrincipalRole
 
-  Copyright 2016 Pinterest, Inc.
-
- 
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-
-  you may not use this file except in compliance with the License.
-
-  You may obtain a copy of the License at
-
-   
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-     
-
-  Unless required by applicable law or agreed to in writing, software
-
-  distributed under the License is distributed on an "AS IS" BASIS,
-
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-
-  See the License for the specific language governing permissions and
-
-  limitations under the License.
+  Copyright (c) 2024, Pinterest Inc. All rights reserved.
 
 ### DeployPriority
 

@@ -85,4 +85,4 @@ if __name__ == "__main__":
     generate_big_docs()
     write_new_docs()
     write_enum_docs()
-    print "Finished generating API docs!"
+    print("Finished generating API docs!")

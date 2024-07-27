@@ -25,7 +25,7 @@ def get_asg_size_metric(request, cluster_name, start):
     try:
         return rodimus_client.get("/metrics/clusters/%s/size" % cluster_name, request.teletraan_user_id.token,
                                   params=params)
-    except:
+    except Exception:
         return []
 
 
@@ -33,7 +33,7 @@ def get_metric_data(request, cluster_name, metric_name, start):
     params = {"metricName": metric_name, "start": start}
     try:
         return rodimus_client.get("/metrics/clusters/%s" % cluster_name, request.teletraan_user_id.token, params=params)
-    except:
+    except Exception:
         return []
 
 
@@ -41,7 +41,7 @@ def get_latency_data(request, env_id, type, start):
     params = {"envId": env_id, "actionType": type, "start": start}
     try:
         return rodimus_client.get("/metrics/latency", request.teletraan_user_id.token, params=params)
-    except:
+    except Exception:
         return []
 
 
@@ -49,7 +49,7 @@ def get_raw_metrics(request, metric_name, start):
     params = {"metricName": metric_name, "start": start}
     try:
         return rodimus_client.get("/metrics/raw_metrics", request.teletraan_user_id.token, params=params)
-    except:
+    except Exception:
         return []
 
 
@@ -57,5 +57,5 @@ def get_pas_metrics(request, cluster_name, start, type):
     params = {"clusterName": cluster_name, "start": start, "actionType": type}
     try:
         return rodimus_client.get("/metrics/pas", request.teletraan_user_id.token, params=params)
-    except:
+    except Exception:
         return []

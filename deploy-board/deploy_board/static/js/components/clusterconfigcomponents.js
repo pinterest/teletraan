@@ -10,6 +10,21 @@ Vue.component('cloudprovider-select', {
     }
 });
 
+Vue.component('accounts-select', {
+    template: '<div v-if="accounts">\
+  <label-select label="Account" title="Account" \
+      v-bind:value="value" \
+      v-bind:selectoptions="accounts" \
+      :disabled="disabled" \
+      v-on:input="updateAccountValue"></label-select></div>',
+    props: ['accounts', 'value', 'disabled'],
+    methods: {
+        updateAccountValue: function (value) {
+            this.$emit('accountchange', value);
+        }
+    }
+});
+
 Vue.component('cell-select', {
     template: '<div>\
   <label-select label="Cell" title="Cell" \
@@ -55,7 +70,7 @@ Vue.component('baseimage-select', {
             <div class="col-xs-2">
                 <base-checkbox :checked="pinImage" :enabled="pinImageEnabled"
                     @input="pinImageClick"></base-checkbox>
-                <label for="pinImageCB" title="Check the box to select AMI manually. If unchecked, AMI will be auto-updated. If there is no Golden AMI, then only manual selection is supported.">Pin This Image</label>
+                <label for="pinImageCB" title="Check the box to select AMI manually. If unchecked, AMI will be auto-updated. If there is no Golden AMI, then only manual selection is supported.">Opt out of Golden AMI</label>
             </div>
         </div>
         <form-warning v-show="showWarning" :alert-text="warningText"></form-warning>
@@ -69,24 +84,21 @@ Vue.component('baseimage-select', {
             warningText: '',
         }
     },
-    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled'],
+    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled', 'accountOwnerId'],
     methods: {
         helpClick: function () {
             this.$emit('help-clicked')
         },
-        tryShowWarning: function (baseImageId, pinImage) {
+        tryShowWarning: function (baseImageId, pinImage, accountOwnerId) {
             if (!pinImage) {
                 this.showWarning = false;
             } else {
-                const ONE_DAY = 1000 * 60 * 60 * 24;
-                let baseImage = this.baseImages.find(i => i.value == baseImageId);
-                let age = Math.round((Date.now() - new Date(baseImage.publishDate)) / ONE_DAY);
-                if (age > 180) {
-                    this.warningText = `The base image configured is over 180 days old (${age} days). Please consider update or opt-in Auto Update (Unpin image).`;
-                    this.showWarning = true;
-                } else {
-                    this.showWarning = false;
-                }
+                const baseImage = this.baseImages.find(i => i.value === baseImageId);
+                const warnings = this.createWarningMessages(baseImage, accountOwnerId);
+                this.showWarning = warnings.length > 0;
+                this.warningText = '\n' + warnings.map(
+                    (item, index) => `${index + 1}. ${item}`
+                ).join('\n');
             }
         },
         pinImageClick: function (pin) {
@@ -96,12 +108,44 @@ Vue.component('baseimage-select', {
             } else {
                 this.showWarning = false;
             }
+        },
+
+        createWarningMessages: function(baseImage, accountOwnerId) {
+            const messages = [];
+            const oneDay = 1000 * 60 * 60 * 24;
+            const imageCreationDate = new Date(baseImage.publishDate);
+            let age = Math.round((Date.now() - imageCreationDate) / oneDay);
+            if (age > 180) {
+                messages.push(
+                    `The base image configured is over 180 days old (${age} days). ` +
+                    "Please consider update or opt-in Auto Update (Unpin image)."
+                );
+            }
+
+            const sharedImagesCreationDate = new Date("2024-03-15");
+            const primaryAccount = '998131032990';
+            if (accountOwnerId && accountOwnerId !== primaryAccount
+                && imageCreationDate < sharedImagesCreationDate) {
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                const formattedDate = sharedImagesCreationDate.toLocaleDateString('en-GB', options);
+                messages.push(
+                    "The base image has configured in primary account and may not works in " +
+                    `the sub account, please use base images after ${formattedDate} ` +
+                    "for sub accounts.");
+            }
+            return messages;
         }
     },
     watch: {
         selectedBaseImage: function (baseImageId) {
-            this.tryShowWarning(baseImageId, this.pinImage);
+            this.tryShowWarning(baseImageId, this.pinImage, this.accountOwnerId);
+        },
+        accountOwnerId: function (newAccountOwnerId) {
+            this.tryShowWarning(this.selectedBaseImage, this.pinImage, newAccountOwnerId);
         }
+    },
+    mounted() {
+        this.tryShowWarning(this.selectedBaseImage, this.pinImage, this.accountOwnerId);
     }
 });
 
@@ -138,7 +182,10 @@ Vue.component('data-config-field', {
     template: '<div class="form-group">\
         <label for="properties" class="control-label col-xs-3">{{name}}</label>\
         <div class="col-xs-6">\
+            <div class="input-group col-xs-12">\
             <input class="form-control" type="text" v-bind:value="value" v-on:input="change(name,$event.target.value)" v-bind:readonly="readonly ? true : false"></input>\
+            <span class="input-group-btn"><button v-if="name==\'pinfo_environment\'" type="button" data-toggle="tooltip" title="" class="deployToolTip btn btn-default" data-original-title="In Teletraan production, please use set the pinfo_environment to &quot;prod&quot; for cmp_base clusters"><span class="glyphicon glyphicon-question-sign"></span></button></span>\
+            </div>\
         </div>\
         <div class="col-xs-3">\
             <button type="button" class="delete_button btn btn-default" v-on:click="deleteConfig(name)" v-bind:disabled="readonly ? true : false">Delete</button>\
@@ -159,8 +206,51 @@ Vue.component('aws-user-data', {
     template: '<div class="form-group">\
     <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly" v-bind:inadvanced="inadvanced"\
      v-show="shouldShow(data.name)" v-on:change="change" v-on:deleteConfig="deleteConfig"></data-config-field>\
+     <label for="properties" class="control-label col-xs-3 g-0" style="padding-top: 0;">Puppet profile</label>\
+     <div class="col-xs-6">\
+        <a v-if="puppetFileUrl" v-bind:href="puppetFileUrl" target="_blank">{{ puppetFileUrl }}</a>\
+        <span v-else>Unable to find matching Puppet Profile from User Data</span>\
+     </div>\
   </div>',
-    props: ['alluserdata', 'inadvanced', 'showcmpgroup'],
+    props: ['alluserdata', 'inadvanced', 'showcmpgroup', 'puppetrepository', 'hierapaths'],
+    computed: {
+        puppetFileUrl: function() {
+            if (!this.hierapaths || !this.puppetrepository) {
+                return;
+            }
+            const userDataObj = this.alluserdata.reduce((acc, entry) => {
+                acc[entry.name] = entry.value;
+                return acc;
+            }, {});
+
+            // hide link for cmp_base profiles
+            if (userDataObj['pinfo_role'] === 'cmp_base') {
+                return ' ';
+            }
+            const hieraPaths = this.hierapaths.trim().split("\n").reduce(
+                (acc, line) => acc.set(line, [
+                    ...new Set(line.matchAll(/(?<=%{::)[a-z0-9_]+(?=})/gi).map(val => val[0]))
+                ]),
+                new Map()
+            );
+
+            const matchingPuppetPath = hieraPaths.keys().find(line =>
+                hieraPaths.get(line).every(variable => !!userDataObj[variable])
+            );
+            const variables = hieraPaths.get(matchingPuppetPath);
+
+            if (!matchingPuppetPath) {
+                return;
+            }
+
+            const replacedHieraPath = variables.reduce((acc, variable) =>
+                acc.replace(`%{::${variable}}`, userDataObj[variable]),
+                matchingPuppetPath
+            );
+
+            return `${this.puppetrepository}/${replacedHieraPath}.yaml`;
+        }
+    },
     methods: {
         change: function (value) {
             this.$emit("change", value)
@@ -175,7 +265,7 @@ Vue.component('aws-user-data', {
             else {
                 return !name.startsWith("pinfo_") && name != "cmp_group"
             }
-        }
+        },
     }
 });
 
@@ -310,7 +400,7 @@ Vue.component("aws-config-modal", {
                 this.selectedValue = "";
                 this.useCustomizedName = true;
             } else {
-                this.useCustomizedName = true;
+                this.useCustomizedName = false;
                 this.customizedName = "";
             }
             this.selectedOptionValue = null;
@@ -467,7 +557,7 @@ Vue.component('remaining-capacity', {
     template: '<div class="form-group">\
     <div class="col-xs-2"></div>\
     <div class="col-xs-6" v-bind:style="marginStyle">\
-        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Capacity: {{remainingcapacity}}</span>\
+        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Subnet Capacity: {{remainingcapacity}}</span>\
     </div>\
     </div>',
     props: ['title', 'remainingcapacity', 'inadvanced'],

@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.views.generic import View
 from . import common
 from .helpers import environs_helper
+from .helpers.exceptions import TeletraanException
 
 
 class EnvPromoteConfigView(View):
@@ -66,5 +67,8 @@ class EnvPromoteConfigView(View):
             data["delay"] = int(query_dict["promoteDelay"])
         if "promoteQueueSize" in query_dict:
             data["queueSize"] = int(query_dict["promoteQueueSize"])
-        environs_helper.update_env_promotes_config(request, name, stage, data=data)
+        try:
+            environs_helper.update_env_promotes_config(request, name, stage, data=data)
+        except TeletraanException as e:
+            return HttpResponse(e, status=e.status, content_type="application/json")
         return self.get(request, name, stage)

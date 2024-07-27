@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,20 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.UpdateStatement;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Comparator;
 
 public class DBEnvironDAOImpl implements EnvironDAO {
     private static final String INSERT_ENV_TEMPLATE =
@@ -47,6 +47,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET external_id=? WHERE env_name=? AND stage_name=?";
     private static final String GET_ENV_BY_ID =
         "SELECT * FROM environs WHERE env_id=?";
+    private static final String GET_ENV_BY_DEPLOY_ID =
+        "SELECT e.* FROM environs e INNER JOIN deploys d ON e.env_id = d.env_id WHERE d.deploy_id=?";
     private static final String GET_ENV_BY_NAME =
         "SELECT * FROM environs WHERE env_name=?";
     private static final String GET_ENV_BY_STAGE =
@@ -62,7 +64,7 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     private static final String GET_ENVS_BY_HOST_TMPL =
         "SELECT e.* FROM environs e " +
             "INNER JOIN hosts_and_envs he ON he.env_id = e.env_id " +
-            "WHERE he.host_name = '%s'";
+            "WHERE he.host_name = ?";
     private static final String GET_ENVS_BY_GROUPS_TMPL =
             "SELECT e.* FROM environs e " +
             "INNER JOIN groups_and_envs ge ON ge.env_id = e.env_id " +
@@ -104,7 +106,37 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET cluster_name=null where env_name=? AND stage_name=?";
     private static final String GET_ENV_BY_CONSTRAINT_ID = "SELECT * FROM environs WHERE deploy_constraint_id = ?";
     private static final String DELETE_DEPLOY_CONSTRAINT =
-        "UPDATE environs SET deploy_constraint_id=null WHERE env_name=? AND stage_name=?";
+            "UPDATE environs SET deploy_constraint_id=null WHERE env_name=? AND stage_name=?";
+    private static final String GET_MAIN_ENV_BY_HOST_ID =
+            "SELECT e.* "
+                    + "FROM hosts_and_agents ha "
+                    + "JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "WHERE ha.host_id = ? "
+                    + "UNION "
+                    + "(SELECT e.* "
+                    + "FROM hosts h "
+                    + "JOIN environs e ON h.group_name = e.cluster_name "
+                    + "WHERE h.host_id = ? AND NOT EXISTS ( "
+                    + "    SELECT 1 "
+                    + "    FROM hosts_and_agents ha "
+                    + "    JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "    WHERE ha.host_id = ? )"
+                    + "ORDER BY h.create_date ASC LIMIT 1)";
+    private static final String GET_MAIN_ENV_BY_HOST_NAME =
+            "SELECT e.* "
+                    + "FROM hosts_and_agents ha "
+                    + "JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "WHERE ha.host_name = ? "
+                    + "UNION "
+                    + "(SELECT e.* "
+                    + "FROM hosts h "
+                    + "JOIN environs e ON h.group_name = e.cluster_name "
+                    + "WHERE h.host_name = ? AND NOT EXISTS ( "
+                    + "    SELECT 1 "
+                    + "    FROM hosts_and_agents ha "
+                    + "    JOIN environs e ON ha.auto_scaling_group = e.cluster_name "
+                    + "    WHERE ha.host_name = ? )"
+                    + "ORDER BY h.create_date ASC LIMIT 1)";
 
     private BasicDataSource dataSource;
 
@@ -180,8 +212,14 @@ public class DBEnvironDAOImpl implements EnvironDAO {
 
     @Override
     public EnvironBean getById(String envId) throws Exception {
-        ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
         return new QueryRunner(dataSource).query(GET_ENV_BY_ID, h, envId);
+    }
+
+    @Override
+    public EnvironBean getByDeployId(String deployId) throws SQLException {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ENV_BY_DEPLOY_ID, h, deployId);
     }
 
     @Override
@@ -235,18 +273,34 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     @Override
     public List<EnvironBean> getEnvsByHost(String host) throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<EnvironBean>(EnvironBean.class);
-        List<EnvironBean> hostEnvs = new QueryRunner(dataSource).query(String.format(GET_ENVS_BY_HOST_TMPL, host), h);
-        Set<EnvironBean> envSet = new TreeSet<EnvironBean>((EnvironBean e1, EnvironBean e2) ->e1.getEnv_id().compareTo(e2.getEnv_id()));
+        List<EnvironBean> hostEnvs = new QueryRunner(dataSource).query(GET_ENVS_BY_HOST_TMPL, h, host);
+        Set<EnvironBean> envSet = new TreeSet<EnvironBean>(Comparator.comparing(EnvironBean::getEnv_id));
         envSet.addAll(hostEnvs);
         return new ArrayList<EnvironBean>(envSet);
     }
 
     @Override
+    public EnvironBean getMainEnvByHostId(String hostId) throws SQLException {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource)
+                .query(GET_MAIN_ENV_BY_HOST_ID, h, hostId, hostId, hostId);
+    }
+
+    @Override
+    public EnvironBean getMainEnvByHostName(String hostName) throws SQLException {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource)
+                .query(GET_MAIN_ENV_BY_HOST_NAME, h, hostName, hostName, hostName);
+    }
+
+    @Override
     public List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<>(EnvironBean.class);
-        String groupStr = QueryUtils.genStringGroupClause(groups);
-        List<EnvironBean> groupEnvs = new QueryRunner(dataSource).query(String.format(GET_ENVS_BY_GROUPS_TMPL, groupStr), h);
-        Set<EnvironBean> envSet = new TreeSet<EnvironBean>((EnvironBean e1, EnvironBean e2) ->e1.getEnv_id().compareTo(e2.getEnv_id()));
+        List<EnvironBean> groupEnvs = new QueryRunner(dataSource).query(
+                String.format(GET_ENVS_BY_GROUPS_TMPL, QueryUtils.genStringPlaceholderList(groups.size())),
+                h,
+                groups.toArray());
+        Set<EnvironBean> envSet = new TreeSet<EnvironBean>(Comparator.comparing(EnvironBean::getEnv_id));
         envSet.addAll(groupEnvs);
         return new ArrayList<EnvironBean>(envSet);
     }

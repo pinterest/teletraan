@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.BuildTagBean;
@@ -25,6 +26,7 @@ import com.pinterest.deployservice.bean.DeployFilterBean;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvWebHookBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
@@ -53,10 +55,9 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
-import com.pinterest.deployservice.allowlists.Allowlist;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Interval;
@@ -65,9 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +74,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.WebApplicationException;
 
 public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
@@ -88,33 +89,43 @@ public class DeployHandler implements DeployHandlerInterface{
         + "\"nimbus_uuid\":\"%s\"}";
     private static final String COMPARE_DEPLOY_URL = "https://deploy.pinadmin.com/env/%s/%s/compare_deploys_2/?chkbox_1=%s&chkbox_2=%s";
 
-    private DeployDAO deployDAO;
-    private EnvironDAO environDAO;
-    private BuildDAO buildDAO;
-    private PromoteDAO promoteDAO;
-    private AgentDAO agentDAO;
-    private ScheduleDAO scheduleDAO;
-    private TagDAO tagDAO;
-    private BasicDataSource dataSource;
-    private CommonHandler commonHandler;
-    private DataHandler dataHandler;
-    private SourceControlManagerProxy sourceControlManagerProxy;
-    private ExecutorService jobPool;
-    private String deployBoardUrlPrefix;
-    private String changeFeedUrl;
-    private BuildTagsManager buildTagsManager;
-    private Allowlist buildAllowlist;
+    static final String ERROR_EMPTY_BUILD_ID = "Build id can not be empty.";
+    static final String ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG = "Build name (%s) does not match stage config (%s).";
+    static final String ERROR_NON_PRIVATE_UNTRUSTED_LOCATION = "Non-private build url points to an untrusted location (%s)."
+            + " Please Contact #teletraan to ensure the build artifact is published to a trusted url.";
+    static final String ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD = "This stage does not allow deploying a private build. "
+            + "Please Contact #teletraan to allow your stage for deploying private build.";
+    static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE = "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.";
+    static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE = "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.";
 
+    private final DeployDAO deployDAO;
+    private final EnvironDAO environDAO;
+    private final BuildDAO buildDAO;
+    private final PromoteDAO promoteDAO;
+    private final AgentDAO agentDAO;
+    private final ScheduleDAO scheduleDAO;
+    private final TagDAO tagDAO;
+    private final BasicDataSource dataSource;
+    private final CommonHandler commonHandler;
+    private final DataHandler dataHandler;
+    private final SourceControlManagerProxy sourceControlManagerProxy;
+    private final ExecutorService jobPool;
+    private final String deployBoardUrlPrefix;
+    private final String changeFeedUrl;
+    private final BuildTagsManager buildTagsManager;
+    private final Allowlist buildAllowlist;
+    private final ConfigHistoryHandler configHistoryHandler;
+    static final String PRIVATE_BUILD_SCM_BRANCH = "private";
 
     private final class NotifyJob implements Callable<Void> {
-        private EnvironBean envBean;
-        private DeployBean newDeployBean;
-        private DeployBean oldDeployBean;
-        private HTTPClient httpClient;
-        private CommonHandler commonHandler;
-        private String deployBoardUrlPrefix;
-        private String changeFeedUrl;
-        private final int RETRIES = 3;
+        private final EnvironBean envBean;
+        private final DeployBean newDeployBean;
+        private final DeployBean oldDeployBean;
+        private final HTTPClient httpClient;
+        private final CommonHandler commonHandler;
+        private final String deployBoardUrlPrefix;
+        private final String changeFeedUrl;
+        private static final int RETRIES = 3;
 
         public NotifyJob(EnvironBean envBean, DeployBean newDeployBean,
             DeployBean oldDeployBean, CommonHandler commonHandler,
@@ -175,8 +186,8 @@ public class DeployHandler implements DeployHandlerInterface{
         }
 
         public Void call() {
-            String additonalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
-            sendStartDeployMessage(additonalMessage);
+            String additionalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
+            sendStartDeployMessage(additionalMessage);
             LOG.info("Successfully send deploy start message for deploy {}", newDeployBean.getDeploy_id());
 
             if (!StringUtils.isEmpty(changeFeedUrl)) {
@@ -205,6 +216,7 @@ public class DeployHandler implements DeployHandlerInterface{
         changeFeedUrl = serviceContext.getChangeFeedUrl();
         buildTagsManager = new BuildTagsManagerImpl(tagDAO);
         buildAllowlist = serviceContext.getBuildAllowlist();
+        configHistoryHandler = new ConfigHistoryHandler(serviceContext);
     }
 
     private String generateMentions(EnvironBean envBean, DeployBean newDeployBean, DeployBean oldDeployBean) {
@@ -241,7 +253,7 @@ public class DeployHandler implements DeployHandlerInterface{
 
             Set<String> authors = new HashSet<>();
             for (CommitBean commit : commits) {
-                if (commit.getAuthor().toLowerCase().equals("unknown")) {
+                if (commit.getAuthor().equalsIgnoreCase("unknown")) {
                     // ignore unknown authors
                     continue;
                 }
@@ -288,6 +300,7 @@ public class DeployHandler implements DeployHandlerInterface{
         EnvironBean updateEnvBean = new EnvironBean();
         updateEnvBean.setDeploy_id(deployId);
         updateEnvBean.setDeploy_type(deployBean.getDeploy_type());
+        updateEnvBean.setStage_type(envBean.getStage_type());
 
         statements.add(environDAO.genUpdateStatement(envBean.getEnv_id(), updateEnvBean));
 
@@ -365,6 +378,7 @@ public class DeployHandler implements DeployHandlerInterface{
             updateBean.setLast_operator(operator);
             updateBean.setLast_update(System.currentTimeMillis());
             promoteDAO.update(envBean.getEnv_id(), updateBean);
+            configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, updateBean, "auto-deploy");
             LOG.info("Disable auto promote for env {} due to the manual deploy by {}", envBean, operator);
         } catch (Exception e) {
             LOG.error("Failed to disable auto promote env {}", envBean, e);
@@ -379,40 +393,60 @@ public class DeployHandler implements DeployHandlerInterface{
         5. no private build for sox env
         6. only sox build can be deployed for sox env
     */
-    private void validateBuild(EnvironBean envBean, String buildId) throws Exception {
+    protected void validateBuild(EnvironBean envBean, String buildId) throws Exception {
         if(StringUtils.isEmpty(buildId)) {
-            throw new DeployInternalException("Build id can not be empty.");
+            throw new WebApplicationException(ERROR_EMPTY_BUILD_ID, Response.Status.BAD_REQUEST);
         }
         BuildBean buildBean = buildDAO.getById(buildId);
-        
+
         // check build name must match stage config
         if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new DeployInternalException("Build name (%s) does not match stage config (%s).", 
+            throw new DeployInternalException(ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
                     buildBean.getBuild_name(), envBean.getBuild_name());
         }
+
+        if(envBean.getStage_type() != EnvType.DEV &&
+                buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())
+                && isPrivateBuild(buildBean)){
+            buildBean.setScm_branch(PRIVATE_BUILD_SCM_BRANCH);
+        }
+
         // only allow a non-private deploy if the build is from a trusted artifact url
-        if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
+        if(envBean.getEnsure_trusted_build() && !isPrivateBuild(buildBean) &&
             buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
-            throw new DeployInternalException("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
-                    buildBean.getArtifact_url());
+            throw new WebApplicationException(String.format(
+                    ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
+                    buildBean.getArtifact_url()), Response.Status.BAD_REQUEST);
         }
         // if the stage is not allowed (allow_private_build)
-        if(! envBean.getAllow_private_build()) {
+        if(!envBean.getAllow_private_build()) {
             // only allow deploy if it is not private build
-            if (buildBean.getScm_branch().equals("private")) {
-                throw new DeployInternalException("This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.");
+            if (isPrivateBuild(buildBean)) {
+                throw new WebApplicationException(
+                        ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD,
+                        Response.Status.BAD_REQUEST);
             }
         }
         // disallow sox deploy if the build artifact is private
-        if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
-            throw new DeployInternalException("This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
+        if(envBean.getIs_sox() && isPrivateBuild(buildBean)) {
+            throw new WebApplicationException(
+                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE,
+                    Response.Status.BAD_REQUEST);
         }
         // disallow sox deploy if the build artifact is not from a sox source url
-        if(envBean.getIs_sox() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
-            throw new DeployInternalException("This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
+        if(envBean.getIs_sox() && buildAllowlist != null && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
+            throw new WebApplicationException(
+                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE,
+                    Response.Status.BAD_REQUEST);
         }
     }
-    public String deploy(EnvironBean envBean, String buildId, String desc, String operator) throws Exception {
+
+    private boolean isPrivateBuild(BuildBean buildBean) {
+        return buildBean.getScm_branch() == null
+                || buildBean.getScm_branch().toLowerCase().startsWith(PRIVATE_BUILD_SCM_BRANCH);
+    }
+
+    public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
         validateBuild(envBean, buildId);
 
         DeployBean deployBean = new DeployBean();
@@ -422,13 +456,30 @@ public class DeployHandler implements DeployHandlerInterface{
         deployBean.setDeploy_type(DeployType.REGULAR);
         deployBean.setOperator(operator);
 
+        // compare the current stage_type and the delivery_type
+        // When the delivery_type is different with stage_type and stage_type is not DEFAULT, we log the deployment API call;
+        // When the delivery_type is different with stage_type and stage_type is DEFAULT, we update the stage_type;
+        if (StringUtils.isNotBlank(deliveryType) && !envBean.getStage_type().toString().equals(deliveryType)) {
+            if (envBean.getStage_type() != EnvType.DEFAULT) {
+                String errorMessage = String.format(
+                        "The delivery type %s is different with the stage type %s for %s/%s",
+                        deliveryType, envBean.getStage_type(), envBean.getEnv_name(), envBean.getStage_name());
+                LOG.error(errorMessage);
+                throw new WebApplicationException(errorMessage, Response.Status.CONFLICT);
+            } else {
+                EnvType type = EnvType.valueOf(deliveryType);
+                envBean.setStage_type(type);
+                LOG.info("The stage type is updated from {} to {} for env {}", envBean.getStage_type(), type, envBean.getEnv_id());
+            }
+        }
+
         disableAutoPromote(envBean, operator, false);
         resetSchedule(envBean);
 
         return internalDeploy(envBean, deployBean);
     }
 
-    public void update(String deployId, DeployBean updateBean, String operator) throws Exception {
+    public void update(String deployId, DeployBean updateBean) throws Exception {
         updateBean.setLast_update(System.currentTimeMillis());
         // TODO use oldStatus to do atomic update status or state
         deployDAO.update(deployId, updateBean);
@@ -441,7 +492,7 @@ public class DeployHandler implements DeployHandlerInterface{
             throw new DeployInternalException(String.format("Can not promote to a disabled env %s/%s",
                     envBean.getEnv_name(), envBean.getStage_name()));
         }
-     
+
         DeployBean fromDeployBean = getDeploySafely(fromDeployId);
 
         validateBuild(envBean, fromDeployBean.getBuild_id());
@@ -463,12 +514,12 @@ public class DeployHandler implements DeployHandlerInterface{
         int index = 1;
         int size = 100;
         DeployFilterBean filterBean = new DeployFilterBean();
-        filterBean.setEnvIds(Arrays.asList(envBean.getEnv_id()));
+        filterBean.setEnvIds(Collections.singletonList(envBean.getEnv_id()));
         filterBean.setPageIndex(index);
         filterBean.setPageSize(size);
         int maxPages = 50; //This makes us check at most 5000 deploys
-        int tocheckPages = maxPages;
-        while (tocheckPages-- > 0) {
+        int toCheckPages = maxPages;
+        while (toCheckPages-- > 0) {
             DeployQueryFilter filter = new DeployQueryFilter(filterBean);
             DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filter);
             if (resultBean.getTotal() < 1) {
@@ -537,7 +588,7 @@ public class DeployHandler implements DeployHandlerInterface{
             updateScheduleBean.setState(ScheduleState.RUNNING);
             updateScheduleBean.setCurrent_session(1);
             updateScheduleBean.setState_start_time(System.currentTimeMillis());
-            scheduleDAO.update(updateScheduleBean, scheduleId);   
+            scheduleDAO.update(updateScheduleBean, scheduleId);
         }
     }
 
@@ -546,7 +597,7 @@ public class DeployHandler implements DeployHandlerInterface{
             interval.getStart().toString(ISODateTimeFormat.dateTime()),
             interval.getEnd().toString(ISODateTimeFormat.dateTime()),
             envId);
-        List<DeployBean> taggedGoodDeploys = new ArrayList<DeployBean>();
+        List<DeployBean> taggedGoodDeploys = new ArrayList<>();
 
         List<DeployBean> availableDeploys = deployDAO.getAcceptedDeploys(envId, interval, size);
 
@@ -555,7 +606,7 @@ public class DeployHandler implements DeployHandlerInterface{
         }
 
         if(!availableDeploys.isEmpty()) {
-            Map<String, DeployBean> buildId2DeployBean = new HashMap<String, DeployBean>();
+            Map<String, DeployBean> buildId2DeployBean = new HashMap<>();
             for(DeployBean deployBean: availableDeploys) {
                 String buildId = deployBean.getBuild_id();
                 if(StringUtils.isNotEmpty(buildId)) {
@@ -576,12 +627,7 @@ public class DeployHandler implements DeployHandlerInterface{
         }
         // should order deploy bean by start date desc
         if(taggedGoodDeploys.size() > 0) {
-            Collections.sort(taggedGoodDeploys, new Comparator<DeployBean>() {
-                @Override
-                public int compare(final DeployBean d1, final DeployBean d2) {
-                    return Long.compare(d2.getStart_date(), d1.getStart_date());
-                }
-            });
+            taggedGoodDeploys.sort((d1, d2) -> Long.compare(d2.getStart_date(), d1.getStart_date()));
             LOG.info("Env {} the first deploy candidate is {}", envId, taggedGoodDeploys.get(0).getBuild_id());
         }
         return taggedGoodDeploys;

@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,11 +15,21 @@
  */
 package com.pinterest.deployservice.bean;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-
 import java.io.Serializable;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.quartz.CronExpression;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pinterest.deployservice.common.Constants;
+
+import io.dropwizard.validation.ValidationMethod;
 /**
  * Keep the bean and table in sync
  * <p>
@@ -47,16 +57,19 @@ public class PromoteBean implements Updatable, Serializable {
     @JsonProperty("lastUpdate")
     private Long last_update;
 
+    @NotNull
     private PromoteType type;
 
     @JsonProperty("predStage")
     private String pred_stage;
 
+    @Min(1) @Max(Constants.DEFAULT_MAX_PROMOTE_QUEUE_SIZE)
     @JsonProperty("queueSize")
     private Integer queue_size;
 
     private String schedule;
 
+    @Min(0)
     private Integer delay;
 
     @JsonProperty("disablePolicy")
@@ -164,5 +177,23 @@ public class PromoteBean implements Updatable, Serializable {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @ValidationMethod(message = "schedule must be a valid cron expression")
+    @JsonIgnore
+    public boolean isScheduleValid() {
+        if (type != PromoteType.AUTO) {
+            return true;
+        }
+        if (StringUtils.isBlank(schedule)) {
+            return true;
+        }
+
+        try {
+            new CronExpression(schedule);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

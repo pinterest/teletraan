@@ -16,6 +16,7 @@
 """Collection of all env related views
 """
 import functools
+import re
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -23,18 +24,22 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
-from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK
+from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL, \
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK, STAGE_TYPE_INFO_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
-from django.conf import settings
+from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 from . import agent_report
 from . import service_add_ons
 from . import common
+from .accounts import get_accounts, get_accounts_from_deploy, create_legacy_ui_account, add_account_from_cluster, add_legacy_accounts
 import random
 import json
+from collections import Counter
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper, hosttypes_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper, \
+    accounts_helper, autoscaling_groups_helper, hosts_helper
+from .templatetags import utils
 from .helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
@@ -45,9 +50,6 @@ from diff_match_patch import diff_match_patch
 import traceback
 import logging
 
-if IS_PINTEREST:
-    from .helpers import autoscaling_groups_helper
-
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
 DEFAULT_TOTAL_PAGES = 7
@@ -57,6 +59,7 @@ DEFAULT_ROLLBACK_DEPLOY_NUM = 6
 
 STATUS_COOKIE_NAME = 'sort-by-status'
 MODE_COOKIE_NAME = 'show-mode'
+ACCOUNT_COOKIE_NAME = 'account'
 
 log = logging.getLogger(__name__)
 
@@ -109,12 +112,15 @@ def _fetch_param_with_cookie(request, param_name, cookie_name, default):
     saved_value = request.COOKIES.get(cookie_name, default)
     return request.GET.get(param_name, saved_value)
 
+
 def logging_status(request, name, stage):
 
     env = environs_helper.get_env_by_stage(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
@@ -131,15 +137,19 @@ def logging_status(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
 
 def check_logging_status(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     progress = deploys_helper.update_progress(request, name, stage)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
@@ -162,69 +172,92 @@ def check_logging_status(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
 
 def update_deploy_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     progress = deploys_helper.update_progress(request, name, stage)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
     report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
 
     report.showMode = showMode
+    report.account = account
     report.sortByStatus = sortByStatus
 
     # Get the host number for subAcct and primaryAcct
-    report.currentDeployStat.deploy["showMode"] = showMode
+    report.currentDeployStat.deploy["account"] = account
     report.currentDeployStat.deploy["subAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["subAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["subAcctFailHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
-    if showMode == "subAcct":
+    report.currentDeployStat.deploy["otherAcctTotalHostNum"] = 0
+    report.currentDeployStat.deploy["otherAcctSucHostNum"] = 0
+    report.currentDeployStat.deploy["otherAcctFailHostNum"] = 0
+
+    if account == AWS_SUB_ACCOUNT:
         for agentStat in report.agentStats:
-            if agentStat.agent["accountId"] and agentStat.agent["accountId"] != "998131032990" and agentStat.agent["accountId"] != "null":
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
                 report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
                 if agentStat.agent["status"] == "SUCCEEDED":
                     report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
-    elif showMode == "primaryAcct":
+    elif account == AWS_PRIMARY_ACCOUNT:
         for agentStat in report.agentStats:
-            if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+            if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == AWS_PRIMARY_ACCOUNT or agentStat.agent["accountId"] == "null":
                 report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
                 if agentStat.agent["status"] == "SUCCEEDED":
                     report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
-    
+    elif account == "others":
+        for agentStat in report.agentStats:
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] != AWS_PRIMARY_ACCOUNT and agentStat.agent["accountId"] != AWS_SUB_ACCOUNT and agentStat.agent["accountId"] != "null":
+                report.currentDeployStat.deploy["otherAcctTotalHostNum"] += 1
+                if agentStat.agent["status"] == "SUCCEEDED":
+                    report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
+                else:
+                    report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
+
+    accounts = []
+    cluster = clusters_helper.get_cluster(request, env.get('clusterName'))
+    if cluster is not None:
+        add_account_from_cluster(request, cluster, accounts)
+    add_legacy_accounts(accounts, report)
+
     context = {
         "report": report,
         "env": env,
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-        "pinterest": IS_PINTEREST
+        "pinterest": IS_PINTEREST,
+        "primaryAccount": AWS_PRIMARY_ACCOUNT,
+        "subAccount": AWS_SUB_ACCOUNT,
+        "accounts": accounts,
     }
-    sortByTag = _fetch_param_with_cookie(
-        request, 'sortByTag', MODE_COOKIE_NAME, None)
-    if sortByTag:
-        report.sortByTag = sortByTag
-        context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
 
-    html = render_to_string('deploys/deploy_progress.tmpl', context)
+    html = render_to_string('deploys/deploy_progress.html', context)
 
     response = HttpResponse(html)
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
 
 def update_service_add_ons(request, name, stage):
     serviceAddOns = []
@@ -261,6 +294,7 @@ def update_service_add_ons(request, name, stage):
     response = HttpResponse(html)
     return response
 
+
 def removeEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
         cookie = request.COOKIES[ENV_COOKIE_NAME]
@@ -276,6 +310,7 @@ def removeEnvCookie(request, name):
         return ','.join(names)
     else:
         return ""
+
 
 def genEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
@@ -320,7 +355,7 @@ def check_feedback_eligible(request, username):
             if num <= 10:
                 return True
         return False
-    except:
+    except Exception:
         log.error(traceback.format_exc())
         return False
 
@@ -358,6 +393,12 @@ class EnvLandingView(View):
                 stage_with_external_id = env_stage
                 break
 
+        if env["stageType"] == "DEFAULT" and env["systemPriority"] is None:
+            stageTypeWikiInfo = {}
+            stageTypeWikiInfo['link'] = STAGE_TYPE_INFO_LINK
+            stageTypeWikiInfo['text'] = "pinch/teletraan-stagetypes"
+            messages.add_message(request, messages.ERROR, "Please update the Stage Type to a value other than DEFAULT. See more details at ", stageTypeWikiInfo)
+
         if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
             try:
                 existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
@@ -377,24 +418,35 @@ class EnvLandingView(View):
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
                 messages.add_message(request, messages.ERROR, detail)
-
+        accounts = []
         if IS_PINTEREST:
+            pindeploy_config = environs_helper.get_env_pindeploy(request, env['envName'], env['stageName'])
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
             placements = None
             remaining_capacity = None
             if capacity_info['cluster']:
+                add_account_from_cluster(request, basic_cluster_info, accounts)
+                account_id = basic_cluster_info.get("accountId")
                 placements = placements_helper.get_simplified_by_ids(
-                        request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+                        request, account_id, basic_cluster_info['placement'],
+                    basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
                 host_type = hosttypes_helper.get_by_id(request, basic_cluster_info['hostType'])
                 host_type_blessed_status = host_type['blessed_status']
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
+        last_cluster_refresh_status = _get_last_cluster_refresh_status(request, env)
+        latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
+        is_auto_refresh_enabled = _is_cluster_auto_refresh_enabled(request, env)
+
+        cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env)
+
+        asg_suspended_processes = _get_asg_suspended_processes(request, env) or []
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
-            provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
+            provisioning_hosts = deduplicate_hosts(environ_hosts_helper.get_hosts(request, name, stage))
 
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
@@ -424,45 +476,73 @@ class EnvLandingView(View):
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
+                "lastClusterRefreshStatus": last_cluster_refresh_status,
+                "is_auto_refresh_enabled": is_auto_refresh_enabled,
+                "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
+                "hasGroups": bool(capacity_info.get("groups")),
+                "hasCluster": bool(capacity_info.get("cluster")),
+                "primaryAccount": AWS_PRIMARY_ACCOUNT,
+                "subAccount": AWS_SUB_ACCOUNT,
+                "accounts": accounts,
+                "pindeploy_config": pindeploy_config,
+                "asg_suspended_processes": asg_suspended_processes,
             })
             showMode = 'complete'
+            account = 'all'
             sortByStatus = 'true'
         else:
             # Get deploy progress
             progress = deploys_helper.update_progress(request, name, stage)
             showMode = _fetch_param_with_cookie(
                 request, 'showMode', MODE_COOKIE_NAME, 'complete')
+            account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
             sortByStatus = _fetch_param_with_cookie(
                 request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
+            report.account = account
             report.sortByStatus = sortByStatus
 
             # Get the host number for subAcct and primaryAcct
-            report.currentDeployStat.deploy["showMode"] = showMode
+            report.currentDeployStat.deploy["account"] = account
             report.currentDeployStat.deploy["subAcctTotalHostNum"] = 0
             report.currentDeployStat.deploy["subAcctSucHostNum"] = 0
             report.currentDeployStat.deploy["subAcctFailHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
-            if showMode == "subAcct":
+            report.currentDeployStat.deploy["otherAcctTotalHostNum"] = 0
+            report.currentDeployStat.deploy["otherAcctSucHostNum"] = 0
+            report.currentDeployStat.deploy["otherAcctFailHostNum"] = 0
+
+            if account == AWS_SUB_ACCOUNT:
                 for agentStat in report.agentStats:
-                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] != "998131032990" and agentStat.agent["accountId"] != "null":
+                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
                         report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
                         if agentStat.agent["status"] == "SUCCEEDED":
                             report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
-            elif showMode == "primaryAcct":
+            elif account == AWS_PRIMARY_ACCOUNT:
                 for agentStat in report.agentStats:
-                    if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+                    if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == AWS_PRIMARY_ACCOUNT or agentStat.agent["accountId"] == "null":
                         report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
                         if agentStat.agent["status"] == "SUCCEEDED":
                             report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
-            
+            elif account == "others":
+                for agentStat in report.agentStats:
+                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] != AWS_PRIMARY_ACCOUNT and agentStat.agent["accountId"] != AWS_SUB_ACCOUNT and agentStat.agent["accountId"] != "null":
+                        report.currentDeployStat.deploy["otherAcctTotalHostNum"] += 1
+                        if agentStat.agent["status"] == "SUCCEEDED":
+                            report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
+                        else:
+                            report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
+
+            add_legacy_accounts(accounts, report)
+
             context = {
                 "envs": envs,
                 "env": env,
@@ -488,19 +568,96 @@ class EnvLandingView(View):
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
+                "lastClusterRefreshStatus": last_cluster_refresh_status,
+                "is_auto_refresh_enabled": is_auto_refresh_enabled,
+                "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
+                "hasGroups": bool(capacity_info.get("groups")),
+                "hasCluster": bool(capacity_info.get("cluster")),
+                "primaryAccount": AWS_PRIMARY_ACCOUNT,
+                "subAccount": AWS_SUB_ACCOUNT,
+                "accounts": accounts,
+                "pindeploy_config": pindeploy_config,
+                "asg_suspended_processes": asg_suspended_processes,
             }
-            sortByTag = request.GET.get('sortByTag', None)
-            if sortByTag:
-                report.sortByTag = sortByTag
-                context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
             response = render(request, 'environs/env_landing.html', context)
 
         # save preferences
         response.set_cookie(ENV_COOKIE_NAME, genEnvCookie(request, name))
         response.set_cookie(MODE_COOKIE_NAME, showMode)
+        response.set_cookie(ACCOUNT_COOKIE_NAME, account)
         response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
         return response
+
+
+def deduplicate_hosts(hosts):
+    results = []
+    seen = set()
+    for h in hosts:
+        host_id = h['hostId']
+        if host_id not in seen:
+            seen.add(host_id)
+            results.append(h)
+    return results
+
+def _get_asg_suspended_processes(request, env):
+    try:
+        cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
+        return autoscaling_groups_helper.get_disabled_asg_actions(request, cluster_name)
+    except Exception:
+        return None
+
+def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env):
+    try:
+        group_name = get_group_name(request, env.get('envName'), env.get('stageName'), env=env)
+        cluster_config = clusters_helper.get_cluster(request, group_name)
+        aws_owner_id = accounts_helper.get_aws_owner_id_for_cluster(request, cluster_config)
+        host_ami_dist = hosts_helper.query_cmdb(
+            query="tags.Autoscaling:{} AND state:running".format(group_name),
+            fields="cloud.aws.imageId",
+            account_id=aws_owner_id
+        )
+
+        counter = Counter([x['cloud.aws.imageId'] for x in host_ami_dist.json()])
+        amis = list(counter.keys())
+
+        current_AMI = baseimages_helper.get_by_id(request, cluster_config["baseImageId"])
+        current_AMI = current_AMI["provider_name"]
+
+        any_host_with_outdated_ami = len(amis) > 1 or (len(amis) == 1 and amis[0] != current_AMI)
+
+        if any_host_with_outdated_ami and latest_succeeded_base_image_update_event is not None:
+            if last_cluster_refresh_status is None or last_cluster_refresh_status["startTime"] is None or last_cluster_refresh_status["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
+                return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing hosts.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
+
+        return None
+
+    except Exception:
+        # in case of any exception, return None instead of showing the error on landing page
+        return None
+
+
+def _get_last_cluster_refresh_status(request, env):
+    try:
+        cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
+        replace_summaries = clusters_helper.get_cluster_replacement_status(
+            request, data={"clusterName": cluster_name})
+
+        if len(replace_summaries["clusterRollingUpdateStatuses"]) == 0:
+            return None
+
+        return replace_summaries["clusterRollingUpdateStatuses"][0]
+    except Exception:
+        return None
+
+def _is_cluster_auto_refresh_enabled(request, env):
+    try:
+        cluster_name = get_cluster_name(request, env.get('envName'), env.get('stageName'), env=env)
+        cluster_info = clusters_helper.get_cluster(request, cluster_name)
+
+        return cluster_info["autoRefresh"]
+    except Exception:
+        return None
 
 
 def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToShow):
@@ -508,7 +665,7 @@ def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToSho
     if totalItems <= 0:
         return list(range(0)), 0, 0
 
-    halfPagesToShow = totalPagesToShow / 2
+    halfPagesToShow = totalPagesToShow // 2
     startPageIndex = thisPageIndex - halfPagesToShow
     if startPageIndex <= 0:
         startPageIndex = 1
@@ -553,7 +710,7 @@ def _get_commit_info(request, commit, repo=None, branch='master'):
     try:
         commit_info = builds_helper.get_commit(request, repo, commit)
         return repo, branch, commit_info['date']
-    except:
+    except Exception:
         log.error(traceback.format_exc())
         return None, None, None
 
@@ -634,17 +791,40 @@ def _gen_deploy_query_filter(request, from_date, from_time, to_date, to_time, si
 
 def _gen_deploy_summary(request, deploys, for_env=None):
     deploy_summaries = []
+    accounts = {}
     for deploy in deploys:
         if for_env:
             env = for_env
         else:
             env = environs_helper.get(request, deploy['envId'])
         build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
+        account = None
+        if env and env.get("clusterName") is not None:
+            cluster = clusters_helper.get_cluster(request, env["clusterName"])
+            provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
+            account_key = (provider, cell, id)
+            if account_key in accounts:
+                account = accounts[account_key]
+            else:
+                account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
+                if account is None:
+                    account = accounts_helper.get_default_account(request, cell, provider)
+                accounts[account_key] = account
+        deploy_accounts = []
+        if account is None and env and deploy and build_with_tag:
+            # terraform deploy, get information from deploy report
+            progress = deploys_helper.update_progress(request, env["envName"], env["stageName"])
+            report = agent_report.gen_report(request, env, progress, deploy=deploy, build_info=build_with_tag)
+            deploy_accounts = [create_legacy_ui_account(account) for account in get_accounts(report)]
+        elif account:
+            deploy_accounts = [account]
+
         summary = {}
         summary['deploy'] = deploy
         summary['env'] = env
         summary['build'] = build_with_tag['build']
         summary['buildTag'] = build_with_tag['tag']
+        summary['deploy_accounts'] = deploy_accounts
         deploy_summaries.append(summary)
     return deploy_summaries
 
@@ -847,6 +1027,7 @@ def post_create_env(request):
     data = request.POST
     env_name = data["env_name"]
     stage_name = data["stage_name"]
+    stage_type = data.get("stageType")
     clone_env_name = data.get("clone_env_name")
     clone_stage_name = data.get("clone_stage_name")
     description = data.get('description')
@@ -856,7 +1037,7 @@ def post_create_env(request):
         try:
             external_id = environs_helper.create_identifier_for_new_stage(request, env_name, stage_name)
             common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
-                                        clone_stage_name, description, external_id)
+                                        clone_stage_name, stage_type, description, external_id)
         except TeletraanException as detail:
             message = 'Failed to create identifier for {}/{}: {}'.format(env_name, stage_name, detail)
             log.error(message)
@@ -864,7 +1045,7 @@ def post_create_env(request):
             if external_id:
                 try:
                     environs_helper.delete_nimbus_identifier(request, external_id)
-                except:
+                except Exception:
                     message = 'Also failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
                     log.error(message)
             raise detail
@@ -893,17 +1074,20 @@ class EnvNewDeployView(View):
             "current_build": current_build,
             "pageIndex": 1,
             "pageSize": common.DEFAULT_BUILD_SIZE,
+            "stage_type_info_link": STAGE_TYPE_INFO_LINK,
         })
 
     def post(self, request, name, stage):
         common.deploy(request, name, stage)
         return redirect('/env/%s/%s/deploy/' % (name, stage))
 
+
 def post_add_stage(request, name):
     """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
     # TODO how to validate stage name
     data = request.POST
     stage = data.get("stage")
+    stage_type = data.get("stageType")
     from_stage = data.get("from_stage")
     description = data.get("description")
 
@@ -916,7 +1100,7 @@ def post_add_stage(request, name):
     if from_stage:
         try:
             external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
-            common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
+            common.clone_from_stage_name(request, name, stage, name, from_stage, stage_type, description, external_id)
         except TeletraanException as detail:
             message = 'Failed to create stage {}/{}: {}'.format(name, stage, detail)
             log.error(message)
@@ -931,7 +1115,7 @@ def post_add_stage(request, name):
     else:
         try:
             external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
-            common.create_simple_stage(request,name, stage, description, external_id)
+            common.create_simple_stage(request, name, stage, stage_type, description, external_id)
         except TeletraanException as detail:
             message = 'Failed to create stage {}, Error Message: {}'.format(stage, detail)
             log.error(message)
@@ -945,6 +1129,7 @@ def post_add_stage(request, name):
                     messages.add_message(request, messages.ERROR, message)
 
     return redirect('/env/' + name + '/' + stage + '/config/')
+
 
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???
@@ -976,6 +1161,12 @@ def remove_stage(request, name, stage):
 
     return response
 
+def get_pipeline_url_from_build_info(build):
+    if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/[\d]*(/)?", build['publishInfo']):
+        return re.sub("/[\d]*(/)?$", '', build['publishInfo'])
+    if build['publishInfo'] and re.findall("https://[\w\d\-\.]*/job/[\w\d\-\.]*/?", build['publishInfo']):
+        return build['publishInfo']
+    return False
 
 def get_builds(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -994,10 +1185,24 @@ def get_builds(request, name, stage):
         return HttpResponse(html)
 
     current_publish_date = 0
+    build_deploy_pipeline_url = False
+
     if 'deployId' in env and env['deployId']:
         deploy = deploys_helper.get(request, env['deployId'])
         build = builds_helper.get_build(request, deploy['buildId'])
         current_publish_date = build['publishDate']
+        build_deploy_pipeline_url = get_pipeline_url_from_build_info(build)
+
+    if not build_deploy_pipeline_url:
+        result = deploys_helper.get_all(request, envId=env['id'], pageIndex=1,
+                                    pageSize=DEFAULT_ROLLBACK_DEPLOY_NUM)
+        deploys = result.get("deploys")
+        for deploy in deploys:
+            if deploy['buildId'] :
+                build = builds_helper.get_build(request, deploy['buildId'])
+                build_deploy_pipeline_url = get_pipeline_url_from_build_info(build)
+                if build_deploy_pipeline_url:
+                    break
 
     # return only the new builds
     index = int(request.GET.get('page_index', '1'))
@@ -1011,11 +1216,13 @@ def get_builds(request, name, stage):
 
     html = render_to_string('builds/simple_builds.tmpl', {
         "builds": new_builds,
+        "build_deploy_pipeline_url" : build_deploy_pipeline_url,
         "current_publish_date": current_publish_date,
         "env": env,
         "show_lock": show_lock,
     })
     return HttpResponse(html)
+
 
 def get_groups(request, name, stage):
     groups = common.get_env_groups(request, name, stage)
@@ -1136,7 +1343,6 @@ def rollback(request, name, stage):
     html = render_to_string("environs/env_rollback.html", {
         "envs": envs,
         "stages": stages,
-        "envs": envs,
         "env": env,
         "deploy_summaries": deploy_summaries,
         "to_deploy_id": to_deploy_id,
@@ -1151,13 +1357,15 @@ def rollback(request, name, stage):
 
 def get_deploy(request, name, stage, deploy_id):
     deploy = deploys_helper.get(request, deploy_id)
-    build = builds_helper.get_build(request, deploy['buildId'])
+    build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
     env = environs_helper.get_env_by_stage(request, name, stage)
+    deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
     return render(request, 'environs/env_deploy_details.html', {
         "deploy": deploy,
         "csrf_token": get_token(request),
-        "build": build,
+        "build": build_with_tag["build"],
         "env": env,
+        "deploy_accounts": deploy_accounts
     })
 
 
@@ -1180,7 +1388,6 @@ def promote(request, name, stage, deploy_id):
     html = render_to_string("environs/env_promote.html", {
         "envs": envs,
         "stages": stages,
-        "envs": envs,
         "env": env,
         "env_wrappers": env_wrappers,
         "deploy": deploy,
@@ -1234,21 +1441,31 @@ def get_hosts(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
     if agents:
-        sorted(agents, key=lambda x:x['hostName'])
+        sorted(agents, key=lambda x: x['hostName'])
     title = "All hosts"
 
     agents_wrapper = {}
+    show_protected_hosts = request.GET.get("show_protected_hosts") is not None
+    host_ids = []
     for agent in agents:
         if agent['deployId'] not in agents_wrapper:
             agents_wrapper[agent['deployId']] = []
         agents_wrapper[agent['deployId']].append(agent)
+        host_ids.append(agent['hostId'])
+
+    protected_hosts = []
+    if show_protected_hosts:
+        protected_hosts = hosts_helper.get_hosts_is_protected(request, host_ids)
 
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "stage": stage,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
+        "protected_hosts": protected_hosts,
+        "show_protected_hosts": show_protected_hosts
     })
 
 
@@ -1287,6 +1504,11 @@ def reset_deploy(request, name, stage, host_id):
     agents_helper.retry_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
+# retry all deploys for this host
+def reset_all_environments(request, name, stage, host_id):
+    agents_helper.reset_all_environments(request, host_id)
+    return redirect('/env/{}/{}/'.format(name, stage))
+
 
 # pause deploy for this this env, this host
 def pause_deploy(request, name, stage, host_id):
@@ -1294,11 +1516,15 @@ def pause_deploy(request, name, stage, host_id):
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
 # resume deploy stage for this env, this host
+
+
 def resume_deploy(request, name, stage, host_id):
     agents_helper.resume_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
 # pause hosts for this env and stage
+
+
 def pause_hosts(request, name, stage):
     post_params = request.POST
     host_ids = None
@@ -1309,6 +1535,8 @@ def pause_hosts(request, name, stage):
     return redirect('/env/{}/{}/'.format(name, stage))
 
 # resume hosts for this env and stage
+
+
 def resume_hosts(request, name, stage):
     post_params = request.POST
     host_ids = None
@@ -1319,6 +1547,8 @@ def resume_hosts(request, name, stage):
     return redirect('/env/{}/{}/'.format(name, stage))
 
 # reset hosts for this env and stage
+
+
 def reset_hosts(request, name, stage):
     post_params = request.POST
     host_ids = None
@@ -1412,7 +1642,7 @@ def get_sub_account_hosts(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
     if agents:
-        sorted(agents, key=lambda x:x['hostName'])
+        sorted(agents, key=lambda x: x['hostName'])
     title = "Sub Account Hosts"
 
     # construct a map between host_id and account_id
@@ -1423,8 +1653,8 @@ def get_sub_account_hosts(request, name, stage):
 
     agents_wrapper = {}
     for agent in agents:
-        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == "998131032990":
-            continue 
+        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == AWS_PRIMARY_ACCOUNT:
+            continue
         if agent['deployId'] not in agents_wrapper:
             agents_wrapper[agent['deployId']] = []
         agents_wrapper[agent['deployId']].append(agent)
@@ -1462,7 +1692,6 @@ def get_pred_deploys(request, name, stage):
                 deploy = deploys_helper.get(request, env['deployId'])
                 build = builds_helper.get_build(request, deploy['buildId'])
                 current_startDate = build['publishDate']
-
 
     deploy_wrappers = []
     for deploy in deploys:
@@ -1547,7 +1776,7 @@ def get_env_config_history(request, name, stage):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
-    
+
     excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'configs/config_history.html', {
@@ -1559,7 +1788,7 @@ def get_env_config_history(request, name, stage):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
-        "excludedTypes": excludedTypes 
+        "excludedTypes": excludedTypes
     })
 
 
@@ -1601,11 +1830,12 @@ def show_config_comparison(request, name, stage):
         "newChange": new_change,
     })
 
+
 def get_deploy_schedule(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
-    schedule_id = env.get('scheduleId', None);
-    if schedule_id != None:
+    schedule_id = env.get('scheduleId', None)
+    if schedule_id is not None:
         schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
     else:
         schedule = None
@@ -1616,6 +1846,7 @@ def get_deploy_schedule(request, name, stage):
         "schedule": schedule,
         "agent_number": agent_number,
     })
+
 
 class GenerateDiff(diff_match_patch):
     def old_content(self, diffs):
@@ -1761,12 +1992,14 @@ def compare_deploys_2(request, name, stage):
         "diffUrl": diffUrl,
     })
 
+
 def get_tag_message(request):
     envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
     html = render_to_string('environs/tag_message.tmpl', {
         'envs_tag': envs_tag,
     })
     return HttpResponse(html)
+
 
 def update_schedule(request, name, stage):
     post_params = request.POST
@@ -1777,12 +2010,31 @@ def update_schedule(request, name, stage):
     schedules_helper.update_schedule(request, name, stage, data)
     return HttpResponse(json.dumps(''))
 
+
 def delete_schedule(request, name, stage):
     schedules_helper.delete_schedule(request, name, stage)
     return HttpResponse(json.dumps(''))
+
 
 def override_session(request, name, stage):
     session_num = request.GET.get('session_num')
     schedules_helper.override_session(request, name, stage, session_num)
     return HttpResponse(json.dumps(''))
 
+def get_cluster_name(request, name, stage, env=None):
+    cluster_name = '{}-{}'.format(name, stage)
+    current_cluster = clusters_helper.get_cluster(request, cluster_name)
+    if current_cluster is None:
+        if env is None:
+            env = environs_helper.get_env_by_stage(request, name, stage)
+        cluster_name = env.get("clusterName")
+    return cluster_name
+
+def get_group_name(request, name, stage, env=None):
+    group_name = '{}-{}'.format(name, stage)
+    current_group = autoscaling_groups_helper.get_group_info(request, group_name)
+    if current_group is None:
+        if env is None:
+            env = environs_helper.get_env_by_stage(request, name, stage)
+        group_name = env.get("groupName")
+    return group_name

@@ -2,17 +2,20 @@
 {% load static %}
 <div class="panel-body table-responsive">
     <table id="baseImageEventsTableId" class="table table-condensed table-striped table-hover">
-        <tr>
-            <th></th>
-            <th class="col-lg-2">Cluster Name</th>
-            <th class="col-lg-2">From Image</th>
-            <th class="col-lg-2">To Image</th>
-            <th class="col-lg-1">Status</th>
-            <th class="col-lg-2">Create Time</th>
-            <th class="col-lg-2">Start Time</th>
-            <th class="col-lg-2">Finish Time</th>
-            <th class="col-lg-2">Error Message</th>
-        </tr>
+        <thead>
+            <tr>
+                <th></th>
+                <th class="col-lg-2">Cluster Name</th>
+                <th class="col-lg-2">From Image</th>
+                <th class="col-lg-2">To Image</th>
+                <th class="col-lg-1">Status</th>
+                <th class="col-lg-2">Create Time</th>
+                <th class="col-lg-2">Start Time</th>
+                <th class="col-lg-2">Finish Time</th>
+                <th class="col-lg-2">Error Message</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for base_images_event in base_images_events %}
         <tr>
             <td>
@@ -41,6 +44,7 @@
             <td> {{ base_images_event.error_message }} </td>
         </tr>
         {% endfor %}
+        </tbody>
     </table>
     <div class="panel-footer clearfix">
         <div class="pull-left">
@@ -71,9 +75,21 @@
         </div>
     </div>
 </div>
-
+<style>
+    #baseImageEventsTableId.dataTable.table-condensed .sorting:after,
+    #baseImageEventsTableId.dataTable.table-condensed .sorting_asc:after,
+    #baseImageEventsTableId.dataTable.table-condensed .sorting_desc:after {
+        top: auto;
+    }
+</style>
 <script>
     var current_cluster_info = {{current_cluster|safe}};
+    $('#baseImageEventsTableId').dataTable({
+        columnDefs: [{targets: [0, 4, 8], sortable: false}],
+        order:[5, 'desc'], // order by create time desc
+        pageLength: 25,
+        autoWidth: false
+    });
     $(function () {
         $('#rollbackItButton').click(function () {
             $('#rollbackConfirm').modal()

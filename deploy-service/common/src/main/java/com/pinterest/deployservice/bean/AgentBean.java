@@ -211,11 +211,11 @@ public class AgentBean implements Updatable {
         this.stage_start_date = stage_start_date;
     }
 
-    public String getContainer_Health_Status() {
+    public String getContainer_health_status() {
         return container_health_status;
     }
 
-    public void setContainer_Health_Status(String container_health_status) {
+    public void setContainer_health_status(String container_health_status) {
         this.container_health_status = container_health_status;
     }
 

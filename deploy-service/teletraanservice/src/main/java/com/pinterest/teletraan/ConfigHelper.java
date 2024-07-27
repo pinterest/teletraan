@@ -16,6 +16,30 @@
 package com.pinterest.teletraan;
 
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.TriggerBuilder;
+import org.quartz.impl.StdSchedulerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
@@ -40,6 +64,7 @@ import com.pinterest.deployservice.db.DBTagDAOImpl;
 import com.pinterest.deployservice.db.DBTokenRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUserRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUtilDAOImpl;
+import com.pinterest.deployservice.db.DBPindeployDAOImpl;
 import com.pinterest.deployservice.events.EventBridgePublisher;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
@@ -52,6 +77,7 @@ import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
+import com.pinterest.teletraan.security.TeletraanAuthZResourceExtractorFactory;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
 import com.pinterest.teletraan.worker.AgentJanitor;
 import com.pinterest.teletraan.worker.AutoPromoter;
@@ -60,32 +86,9 @@ import com.pinterest.teletraan.worker.DeployJanitor;
 import com.pinterest.teletraan.worker.DeployTagWorker;
 import com.pinterest.teletraan.worker.HostTerminator;
 import com.pinterest.teletraan.worker.HotfixStateTransitioner;
+import com.pinterest.teletraan.worker.MetricsEmitter;
 import com.pinterest.teletraan.worker.SimpleAgentJanitor;
 import com.pinterest.teletraan.worker.StateTransitioner;
-
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.dbcp.BasicDataSource;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.TriggerBuilder;
-import org.quartz.impl.StdSchedulerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class ConfigHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHelper.class);
@@ -116,6 +119,7 @@ public class ConfigHelper {
         context.setPromoteDAO(new DBPromoteDAOImpl(dataSource));
 
         context.setDataDAO(new DBDataDAOImpl(dataSource));
+        context.setPindeployDAO(new DBPindeployDAOImpl(dataSource));
         context.setUtilDAO(new DBUtilDAOImpl(dataSource));
 
         context.setConfigHistoryDAO(new DBConfigHistoryDAOImpl(dataSource));
@@ -132,7 +136,8 @@ public class ConfigHelper {
         context.setScheduleDAO(new DBScheduleDAOImpl(dataSource));
 
         // Inject proper implementation based on config
-        context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
+        context.setAuthorizationFactory(configuration.getAuthorizationFactory());
+        context.setAuthZResourceExtractorFactory(new TeletraanAuthZResourceExtractorFactory(context));
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
@@ -200,6 +205,11 @@ public class ConfigHelper {
 
         if (configuration.getAwsFactory() != null) {
             context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
+
+        }
+
+        if (configuration.getAccountAllowList() != null) {
+            context.setAccountAllowList(configuration.getAccountAllowList());
         }
 
         /**
@@ -219,6 +229,10 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
+
+        context.setAclManagementEnabled(configuration.getSystemFactory().isAclManagementEnabled());
+        context.setAclManagementDisabledMessage(configuration.getSystemFactory().getAclManagementDisabledMessage());
+
         // Only applies to Teletraan agent service
         context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
         context.setMaxParallelThreshold(configuration.getSystemFactory().getMaxParallelThreshold());
@@ -339,6 +353,12 @@ public class ConfigHelper {
                 LOG.info("Scheduled HostTerminator.");
             }
 
+            if (workerName.equalsIgnoreCase(MetricsEmitter.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new MetricsEmitter(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled MetricsEmitter.");
+            }
         }
     }
 }

@@ -17,7 +17,6 @@
 """
 import logging
 from .helpers import environs_helper, deploys_helper, builds_helper, tags_helper
-from deploy_board.settings import IS_PINTEREST
 
 DEFAULT_BUILD_SIZE = 30
 DEFAULT_COMMITS_SIZE = 30
@@ -157,7 +156,7 @@ def promote(request, name, stage):
 
 
 def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_stage_name,
-                          description, external_id):
+                           stage_type, description, external_id):
     from_stage = environs_helper.get_env_by_stage(request, from_env_name, from_stage_name)
     agent_configs = environs_helper.get_env_agent_config(request, from_env_name, from_stage_name)
     script_configs = environs_helper.get_env_script_config(request, from_env_name, from_stage_name)
@@ -187,7 +186,7 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
     new_data['maxDeployNum'] = from_stage['maxDeployNum']
     new_data['maxDeployDay'] = from_stage['maxDeployDay']
     new_data['overridePolicy'] = from_stage['overridePolicy']
-    new_data['stageType'] = DEFAULT_STAGE_TYPE
+    new_data['stageType'] = stage_type
     new_data['externalId'] = external_id
 
     new_stage = environs_helper.create_env(request, new_data)
@@ -209,14 +208,14 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
     return new_stage
 
 
-def create_simple_stage(request, env_name, stage_name, description, external_id):
+def create_simple_stage(request, env_name, stage_name, stage_type, description, external_id):
     """ Create a new stage that does not require cloning an existing stage. Here, "simple" means that it does not require cloning."""
     data = {}
     data['envName'] = env_name
     data['stageName'] = stage_name
     data['description'] = description
     data['externalId'] = external_id
-    data["stageType"] = DEFAULT_STAGE_TYPE
+    data["stageType"] = stage_type
     return environs_helper.create_env(request, data)
 
 

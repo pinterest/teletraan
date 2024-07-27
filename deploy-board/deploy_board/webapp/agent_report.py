@@ -17,7 +17,6 @@
 """
 from .common import is_agent_failed
 from .helpers import builds_helper, deploys_helper, environs_helper, environ_hosts_helper
-from deploy_board.settings import IS_PINTEREST
 import time
 from collections import OrderedDict
 from functools import cmp_to_key
@@ -42,7 +41,6 @@ class AgentStatistics(object):
         self.agent = agent
         self.isCurrent = isCurrent
         self.isStale = isStale
-
 
 class DeployStatistics(object):
     def __init__(self, deploy=None, build=None, stageDistMap=None, stateDistMap=None, buildTag=None):
@@ -108,7 +106,7 @@ def addToEnvReport(request, deployStats, agent, env):
     if duration >= DEFAULT_STALE_THRESHOLD:
         isStale = True
 
-    return AgentStatistics(agent=agent, isCurrent=isCurrent, isStale=isStale)
+    return AgentStatistics(agent, isCurrent, isStale)
 
 
 def _compare_agent_status(agentStats1, agentStats2):
@@ -132,15 +130,17 @@ def _compare_agent_status(agentStats1, agentStats2):
     return 0
 
 
-def gen_report(request, env, progress, sortByStatus="false"):
+def gen_report(request, env, progress, sortByStatus="false", deploy=None, build_info=None):
     agentStats = []
     firstTimeAgentStats = []
     deployStats = {}
     deprecatedDeployStats = []
 
     # always set the current
-    deploy = deploys_helper.get(request, env['deployId'])
-    build_info = builds_helper.get_build_and_tag(request, deploy["buildId"])
+    if deploy is None:
+        deploy = deploys_helper.get(request, env['deployId'])
+    if build_info is None:
+        build_info = builds_helper.get_build_and_tag(request, deploy["buildId"])
     stageDistMap = genStageDistMap()
     stateDistMap = genStateDistMap()
     currentDeployStat = DeployStatistics(deploy=deploy, build=build_info['build'], stageDistMap=stageDistMap,

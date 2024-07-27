@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 class gpgHelper(object):
 
     @staticmethod
-    def decryptFile(source, destination):
+    def decryptFile(source, destination) -> int:
         download_cmd = ['gpg', '--batch', '--yes', '--output', destination, '--decrypt', source]
         log.info('Running command: {}'.format(' '.join(download_cmd)))
         error_code = Status.SUCCEEDED

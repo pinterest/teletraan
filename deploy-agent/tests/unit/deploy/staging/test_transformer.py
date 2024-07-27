@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -100,7 +100,6 @@ class TransformTest(unittest.TestCase):
         transformer.transform_scripts(self.template_dir, self.template_dir, self.script_dir)
 
         fn1 = os.path.join(self.script_dir, 'test1')
-        fn2 = os.path.join(self.script_dir, 'test2')
 
         value1 = "foo-foo-foo"
         values = {

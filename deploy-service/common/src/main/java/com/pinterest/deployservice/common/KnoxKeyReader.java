@@ -15,36 +15,68 @@
  */
 package com.pinterest.deployservice.common;
 
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 public class KnoxKeyReader implements KeyReader {
-
     private static final Logger LOG = LoggerFactory.getLogger(KnoxKeyReader.class);
+    private static final String defaultKeyContent = "defaultKeyContent";
 
-    private String testKey = "key";
-
+    private String knoxKeyId;
     private KnoxKeyManager knoxManager;
 
-    public void init(String key) {
+    private final LoadingCache<String, Optional<String>> knoxCache;
+
+    public KnoxKeyReader() {
+        knoxCache = CacheBuilder.newBuilder()
+                .maximumSize(1)
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .build(
+                        new CacheLoader<String, Optional<String>>() {
+                            @Override
+                            public Optional<String> load(String key) throws Exception {
+                                return Optional.fromNullable(getKeyInternal());
+                            }
+                        });
+    }
+
+    void setKnoxManager(KnoxKeyManager knoxManager) {
+        this.knoxManager = knoxManager;
+    }
+
+    public void init(String keyID) {
         if (knoxManager == null) {
             knoxManager = new KnoxKeyManager();
-            knoxManager.init(key);
+            knoxManager.init(keyID);
+            knoxKeyId = keyID;
         }
     }
 
     public String getKey() {
-        if (knoxManager == null) {
-            LOG.error("Using default key since knoxManager is null");
-            return testKey;
-        }
         try {
-            String knoxKey = knoxManager.getKey();
-            return knoxKey;
+            return knoxCache.get(knoxKeyId).orNull();
         } catch (Exception e) {
-            LOG.error("Using default key due to exception :" + e.getMessage());
-            return testKey;
+            LOG.warn("Using default key due to exception", e);
+            return defaultKeyContent;
         }
+    }
+
+    private String getKeyInternal() {
+        if (knoxManager == null) {
+            LOG.warn("Using default key since knoxManager is null");
+            return defaultKeyContent;
+        }
+        String key = knoxManager.getKey();
+        if (key != null) {
+            return key.trim();
+        }
+        return key;
     }
 }

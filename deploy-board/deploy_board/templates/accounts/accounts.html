@@ -1,0 +1,42 @@
+{% extends 'accounts/accounts_base.html' %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li class="active">Accounts</li>
+</ul>
+{% endblock %}
+
+{% block main %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Account Details</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        <table class="table table-striped table-bordered table-condensed table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th class="col-lg-2">Owner ID <span class="deployToolTip glyphicon glyphicon-question-sign" data-toggle="tooltip" title="External ID used by cloud provider. For example, AWS account ID"></span></th>
+                    <th class="col-lg-2">Name</th>
+                    <th class="col-lg-2">Cell</th>
+                    <th class="col-lg-2">Provider</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    <td>{{ account.id }}</td>
+                    <td>{{ account.data.ownerId }}</td>
+                    <td>{{ account.name }}</td>
+                    <td>{{ account.cell }}</td>
+                    <td>{{ account.cloudProvider }}</td>
+                    <td><a href="/clouds/accounts/{{account.cloudProvider}}/{{account.cell}}/{{account.id}}">Details</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

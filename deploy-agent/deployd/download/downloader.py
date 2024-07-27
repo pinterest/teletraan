@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 class Downloader(object):
 
-    def __init__(self, config, build, url, env_name):
+    def __init__(self, config, build, url, env_name) -> None:
         self._matcher = re.compile(r'^.*?[.](?P<ext>tar\.gz|tar\.bz2|\w+)$')
         self._base_dir = config.get_builds_directory()
         self._build_name = env_name
@@ -39,15 +39,15 @@ class Downloader(object):
         self._url = url
         self._config = config
 
-    def _get_inner_extension(self, url):
+    def _get_inner_extension(self, url) -> str:
         outerExtension = self._get_extension(url)
         inverseExtLen = (len(outerExtension) * -1) - 1
         return self._get_extension(url[:inverseExtLen])
 
-    def _get_extension(self, url):
+    def _get_extension(self, url) -> str:
         return self._matcher.match(url).group('ext')
 
-    def download(self):
+    def download(self) -> int:
         extension = self._get_extension(self._url.lower())
         local_fn = u'{}-{}.{}'.format(self._build_name, self._build, extension)
         local_full_fn = os.path.join(self._base_dir, local_fn)
@@ -119,10 +119,10 @@ class Downloader(object):
             with open(extracted_file, 'w'):
                 pass
             log.info("Successfully extracted {} to {}".format(local_full_fn, working_dir))
-        except tarfile.TarError as e:
+        except tarfile.TarError:
             status = Status.FAILED
             log.exception("Failed to extract tar files")
-        except OSError as e:
+        except OSError:
             status = Status.FAILED
             log.exception("Failed to extract files. OSError:")
         except Exception:

@@ -7,7 +7,12 @@
     <li><a href="/">Home</a></li>
     <li><a href="/envs">Environments</a></li>
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
-    <li class="active">Cluster Replacement</li>
+    {% if auto_refresh_view %}
+        <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements">Cluster Replacement</a></li>
+        <li class="active"><b>Auto Refresh</b></li>
+    {% else %}
+        <li class="active"><b>Cluster Replacement</b></li>
+    {% endif %}
 </ul>
 {% endblock %}
 
@@ -35,14 +40,27 @@
         </a>
     </div>
     <div class="row">
-        <a href="/groups/{{ env_name }}-{{ env_stage }}/scaling_activities/" target="_blank"
+        <a href="/groups/{{ cluster_name }}/scaling_activities/" target="_blank"
             type="button" class="btn btn-default btn-block">
-            <span"></span> Show Replacement Activities
+            <span class="glyphicon glyphicon-list"></span> Show Replacement Activities
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-leaf" style="color:green;"></span> Set up Auto Refresh
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-home"></span> Cluster Replacement Home
         </a>
     </div>
 </div>
 
 <div>
+    {% if not auto_refresh_view %}
     <h4>Tips</h4>
     <ul>
         <li>Make sure your current service deployment (if you have one) can be deployed successfully. Any agent/service deployment failure will result in a failed replacement health check.</li>
@@ -51,7 +69,8 @@
         <li>Only one replacement task can be in-progress. You must wait for an in-progress one to finish (or be canceled) before you can start a new one.</li>
         <li>If the goal is to replace instances to match the latest cluster configuration, you should skip replacing (checked by default) matching instances to avoid unnecessary work.</li>
         <li>If replacement fails, see "Reason" for details. After addressing the root cause, you can replace your cluster again, and only the remaining instances will be replaced (assume Skip Matching is checked).</li>
-    </ul> 
+    </ul>
+    {% endif%}
 </div>
 {% endblock %}
 
@@ -81,118 +100,445 @@
     {% endif %}
 {% endfor %}
 
+<style>
+    .popup-description{
+        display: none;
+    }
+      
+    [type="radio"]:checked ~ label ~ .popup-description{
+        display: block;
+    }
+
+    fieldset {
+        margin: 8px;
+        border: 1px solid silver;
+        padding: 8px;    
+        border-radius: 4px;
+    }
+    
+    legend {
+        padding: 2px;    
+    }
+</style>
+
 <!-- class="glyphicon glyphicon-question-sign" -->
 <div id="clusterReplacementPanelId"class="panel panel-default">
     <panel-heading title="Cluster Replacement" target="#clusterReplacementConfigId" initcollapse="false"></panel-heading>
     <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Replacement Configuration
-        </h4>
+        {% with replace_summaries|first as latest %}
+        <p>
+            <span>Auto refresh is</span>
+            {% if auto_refresh_enabled %}
+                <span style="color:green;"><b>ON</b></span>
+            {% else %}
+                <span style="color:gray;"><b>OFF</b></span>
+            {% endif %}
+        </p>
+        <p>
+            <span>The cluster</span>
+            {% if cluster_last_update_time <= latest.startTime and latest.status == "Successful" %}
+                <span>is</span>
+                <span style="color:green;"><b>UP-TO-DATE</b></span>
+            {% else %}
+                <span style="color:red;"><b>may need to be refreshed</b></span>
+                <span class="glyphicon glyphicon-warning-sign"></span>
+                <span>(This <i>suggestion</i> is based on the last time cluster configuration was changed/updated vs. the last time cluster refresh was started and its status. It may be <i>inaccurate</i>
+                    in case where the last configuration change was <i>not</i> related to host/instance configurations. In this case, if the cluster is indeed up to date, refreshing (skip matching) it
+                    will result in a no-op, and it will complete after few seconds. And the cluster will be up to date.)
+                </span>
+            {% endif %}
+        </p>
+        <p>The last cluster configurations updated at: {{ cluster_last_update_time|convertTimestamp }}</p>
+        <p>The last cluster refresh started at: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</p>
+        {% endwith %}
+    </div>
+    <div class="panel-heading clearfix">
+        {% if auto_refresh_view %}
+        <h4 class="panel-title pull-left">Auto Refresh Configuration <sup><a href="{{ auto_cluster_refresh_wiki_url }}" target="_blank">What is auto refresh?</a></sup> </h4>
+        {% else %}
+            <h4 class="panel-title pull-left">Replacement Configuration <sup><a href="{{ cluster_replacement_wiki_url }}" target="_blank">Understand configurations</a></sup></h4>
+        {% endif %}
     </div>
     <div id="clusterReplacementConfigId" class="collapse in panel-body">
-        <a href="{{ cluster_replacement_wiki_url }}" target="_blank"> Hover on each configuration to see usage info or click on me to read more in details.</a>
+        <script>
+        function isValidPercentage(percentage) {
+            return percentage > 0 && percentage <= 100;
+        }
+
+        function validateCheckpointPercentages() {
+            const checkpointPercentagesElement = document.getElementById("checkpointPercentages");
+            const checkpointPercentagesRaw = checkpointPercentagesElement.value;
+
+            if (checkpointPercentagesRaw.trim().length === 0 ) {
+                checkpointPercentagesElement.setCustomValidity('');
+                return;
+            }
+
+            const constraint = new RegExp("^(\\s)*[0-9]{1,3}((\\s)*,(\\s)*[0-9]{1,3}(\\s)*)*$");
+
+            if (!constraint.test(checkpointPercentagesRaw)) {
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be numbers from 1 to 100 and separated by ,');
+                return;
+            }
+            else {
+                checkpointPercentagesElement.setCustomValidity('');
+            }
+
+            const checkpointPercentages = checkpointPercentagesElement.value.split(',').reduce( (acc, p) => acc.concat(+p), []);
+
+            for (let i = 0; i < checkpointPercentages.length - 1; i++) {
+                if (!isValidPercentage(checkpointPercentages[i])) {
+                    checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                    return;
+                }
+
+                if (checkpointPercentages[i] >= checkpointPercentages[i + 1]) {
+                    checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be a strictly increasing sequence');
+                    return;
+                }
+            }
+
+            if (checkpointPercentages.length > 0) {
+                if (!isValidPercentage(checkpointPercentages[checkpointPercentages.length - 1])) {
+                    checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                    return;
+                }
+            }
+
+            checkpointPercentagesElement.setCustomValidity('');
+        }
+
+        function handleAvailabilitySettingRadioClick(myRadio) {
+            var isAutoRefresh = "{{ auto_refresh_view }}";
+            setDefaultValues(myRadio, isAutoRefresh);
+        }
+            
+        function setDefaultValues(availabilitySetting, isAutoRefresh) {
+            if (availabilitySetting.value == "terminateAndLaunch") {
+                document.getElementById("minHealthyPercentageBlock").style.display="block";
+                document.getElementById("maxHealthyPercentageBlock").style.display="none";
+                
+                document.getElementById("maxHealthyPercentage").value="";
+
+                if (isAutoRefresh == "False") {
+                    document.getElementById("minHealthyPercentage").value = "90";                    
+                }
+                else {
+                    if ("{{ auto_refresh_config.config.minHealthyPercentage }}" === "None") {
+                        document.getElementById("minHealthyPercentage").value = "90";
+                    }
+                }
+            }
+            else if (availabilitySetting.value == "launchBeforeTerminate") {
+                document.getElementById("maxHealthyPercentageBlock").style.display="block";
+                document.getElementById("minHealthyPercentageBlock").style.display="none";
+                
+                document.getElementById("minHealthyPercentage").value="100";
+
+                if (isAutoRefresh == "False") {
+                    document.getElementById("maxHealthyPercentage").value = "110";
+                }
+                else {
+                    if ("{{ auto_refresh_config.config.maxHealthyPercentage }}" === "None") {
+                        document.getElementById("maxHealthyPercentage").value = "110";
+                    }
+                }
+            }
+            else {
+                document.getElementById("minHealthyPercentageBlock").style.display="block";
+                document.getElementById("maxHealthyPercentageBlock").style.display="block";
+                
+                if (isAutoRefresh == "False") {
+                    document.getElementById("minHealthyPercentage").value = "90";
+                    document.getElementById("maxHealthyPercentage").value = "110";
+                }
+                else {
+                    if ("{{ auto_refresh_config.config.minHealthyPercentage }}" === "None") {
+                        document.getElementById("minHealthyPercentage").value = "90";
+                    }
+
+                    if ("{{ auto_refresh_config.config.maxHealthyPercentage }}" === "None") {
+                        document.getElementById("maxHealthyPercentage").value = "110";
+                    }
+                }
+            }
+        }
+        </script>
+        {% if auto_refresh_view %}
+        <div class="container-fluid">
+            <input type="hidden" id="buttonDisabled" name="buttonDisabled" value="{{ button_disabled }}">
+            <form id="clusterAutoRefreshFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh/config/submit">
+                <div>
+                    <label class="switch" data-toggle="tooltip" title="Enable auto refresh.">
+                        Enable auto refresh
+                        <input type="checkbox" id="enableAutoRefresh" name="enableAutoRefresh" {% if auto_refresh_enabled %} checked {% endif %}>
+                        <div class="slider round"></div>
+                    </label>
+                    <p><i>If enabled, the cluster will automatically be refreshed (not necessarily immediately) after cluster configurations change.</i></p>
+                </div>
+
+                <fieldset>
+                    <div>
+                        <div>
+                            <h4>Availability Setting <em style="color:blue;">(**New**)</em></h4>
+                            
+                            <div>
+                                <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate" {% if auto_refresh_config.launchBeforeTerminate %} checked {% endif %}>
+                                <label for="availabilitySettingRadio">Launch before Terminate <em style="color:blue;">(New - Prioritize availability - Recommended for stateless services)</em></label>
+                                <p class="popup-description">
+                                    A new host must be provisioned first with successful deployments <em><b>***before***</b></em> an existing host can be terminated. Use this to ensure availability will not be affected during replacement, even when there is on-going deployment. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted. 
+                                </p>
+                            </div>
+    
+                            <div>
+                                <input type="radio" id="terminateAndLaunch" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="terminateAndLaunch" {% if auto_refresh_config.terminateAndLaunch %} checked {% endif %}>
+                                <label for="availabilitySettingRadio">Terminate and Launch (Legacy)</label>
+                                <p class="popup-description">
+                                    New hosts are provisioned <em><b>***at the same time***</b></em> your existing hosts are terminated. Availability may be affected! Outage may occur if there is only 1 host! Use this if cluster size during replacement exceeding the current capacity may cause issue to your service (probably stateful). This is the legacy behavior and <b>***not***</b> recommended.
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <input type="radio" id="customMinMax" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="custom" {% if auto_refresh_config.customMinMax %} checked {% endif %}>
+                                <label for="availabilitySettingRadio">Custom</label>
+                                <p class="popup-description">
+                                    This option lets you set up a custom minimum and maximum range for the amount of capacity that you want available when replacing instances.
+                                </p>
+                            </div>
+                        </div>
+    
+                        <div style="padding-top: 20px;"></div>
+    
+                        <div id="minHealthyPercentageBlock">
+                            <label for="minHealthyPercentage" data-toggle="tooltip"
+                            title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
+                            <span class="fa fa-check"></span> Minimum healthy percentage:
+                            </label>
+                            <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value={% if auto_refresh_config.config.minHealthyPercentage %}{{ auto_refresh_config.config.minHealthyPercentage }}{% endif %}>
+                        </div>
+    
+                        <div id="maxHealthyPercentageBlock">
+                            <label for="maxHealthyPercentage" data-toggle="tooltip"
+                            title="The maximum percentage of the group that can be in service and healthy, or pending, to support your workload when replacing instances. The value is expressed as a percentage of the desired capacity of the Auto Scaling group. Value range is 100 to 200. Use 100 to launch/replace 1 instance at time">
+                            <span class="fa fa-check"></span> Maximum healthy percentage:
+                            </label>
+                            <input type="number" id="maxHealthyPercentage" name="maxHealthyPercentage" min="100" max="200" value={% if auto_refresh_config.config.maxHealthyPercentage %}{{ auto_refresh_config.config.maxHealthyPercentage }}{% endif %}>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div style="padding-top: 20px;">
+                    <label for="checkpointPercentages" data-toggle="tooltip"
+                        title="Replacement will pause when replacement progress reaches the defined checkpoint percentages before continuing. E.g with 25, 100, the replacement will pause when completion reaches 25% and 100%. Note that the replacement will stop at the last checkpoint. If the last checkpoint is not 100, then it will be a partial replacement.">
+                        <span class="fa fa-bell"></span> Checkpoint percentages:
+                    </label>
+                    <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" value={% if auto_refresh_config.config.checkpointPercentages %}{{ auto_refresh_config.config.checkpointPercentages|join:"," }}{% endif %}>
+
+                    <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
+                        <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
+                    </label>
+                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value={% if auto_refresh_config.config.checkpointDelay %}{{ auto_refresh_config.config.checkpointDelay }}{% endif %}>
+                </div>
+
+                <div style="padding-top: 20px;">
+                    <label class="switch" data-toggle="tooltip" title="Skip replacing instances that already use the latest launch template." >
+                        Skip matching launch template
+                        <input type="checkbox" id="skipMatching" name="skipMatching" {% if auto_refresh_config.config.skipMatching %} checked {% endif %}>
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+
+                <div style="padding-top: 20px;">
+                    <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
+                        Replace protected instances
+                        <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances" {% if auto_refresh_config.config.scaleInProtectedInstances == "Refresh" %} checked {% endif %}>
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+
+                <div style="padding-top: 20px;">
+                    <label for="instanceWarmup" data-toggle="tooltip" title="Extra delay to wait for instance to warm up.">
+                        <span class="fa fa-clock-o"></span> Instance warmup (seconds):
+                    </label>
+                    <input type="number" id="instanceWarmup" name="instanceWarmup" min="0" value={% if auto_refresh_config.config.instanceWarmup %}{{ auto_refresh_config.config.instanceWarmup }}{% else %}0{% endif %}>
+                </div>
+
+                <div style="padding-top: 20px;">
+                    <div>
+                        <label for="bakeTime" data-toggle="tooltip" title="Hour(s) to wait after cluster refreshed successfully before refreshing clusters in the next stage">
+                            <span class="fa fa-clock-o"></span> Bake time:
+                        </label>
+                        <p><i>Hour(s) to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
+                    </div>
+                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={% if auto_refresh_config.bakeTime %}{{ auto_refresh_config.bakeTime }}{% else %}2{% endif %}> hour(s)
+                </div>
+
+                <div style="padding-top: 20px;">
+                    <p><i>It's <b>strongly</b> recommended to subscribe to email or Slack notification to be informed about cluster refresh status.</i></p>
+                    <label for="emails" data-toggle="tooltip"
+                            title="Emails to receive notifications.">
+                            <span class="fa fa-bell"></span> Emails:
+                    </label>
+                    <input type="email" multiple id="emails" name="emails" maxlength="200" size="50" placeholder="emails separated by ," value={{ emails }} >
+
+                    <label for="slack_channels" data-toggle="tooltip"
+                            title="Slack channels to receive notifications.">
+                            <span class="fa fa-bell"></span> Slack channels:
+                    </label>
+                    <input type="text" id="slack_channels" name="slack_channels" pattern="[A-Za-z0-9_\-]+(\s*,\s*[A-Za-z0-9_\-]+)*" maxlength="200" size="50" placeholder="slack channels separated by ," value={{ slack_channels }}>
+                </div>
+
+                <div class="pull-left" style="padding-top: 20px;">
+                    <button type="submit" id="updateAutoRefreshConfigBtnId" class="btn"
+                            data-toggle="modal"
+                            title="Update auto refresh configurations">
+                            Update
+                    </button>
+                </div>
+
+                {% csrf_token %}
+            </form>
+
+            <script>
+                const updateClusterAutoRefreshConfigBtnElement = document.getElementById("updateAutoRefreshConfigBtnId");
+                const buttonDisabled = document.getElementById("buttonDisabled").value;
+                updateClusterAutoRefreshConfigBtnElement.addEventListener("click", validateCheckpointPercentages);
+
+                if (buttonDisabled == "True") {
+                    updateClusterAutoRefreshConfigBtnElement.disabled = true
+                }
+                else {
+                    updateClusterAutoRefreshConfigBtnElement.disabled = false
+                }
+            </script>
+        </div>
+        {% else %}
         <div class="container-fluid">
             <form id="clusterReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/start_replacement/">
+                <fieldset>
                 <div>
-                    <label for="minHealthyPercentage" data-toggle="tooltip"
+                    <div>
+                        <h4>Availability Setting <em style="color:blue;">(**New**)</em></h4>
+                        
+                        <div>
+                            <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate" checked="checked">
+                            <label for="availabilitySettingRadio">Launch before Terminate <em style="color:blue;">(New - Prioritize availability - Recommended for stateless services)</em></label>
+                            <p class="popup-description">
+                                A new host must be provisioned first with successful deployments <em><b>***before***</b></em> an existing host can be terminated. Use this to ensure availability will not be affected during replacement, even when there is on-going deployment. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted. 
+                            </p>
+                        </div>
+
+                        <div>
+                            <input type="radio" id="terminateAndLaunch" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="terminateAndLaunch">
+                            <label for="availabilitySettingRadio">Terminate and Launch (Legacy)</label>
+                            <p class="popup-description">
+                                New hosts are provisioned <em><b>***at the same time***</b></em> your existing hosts are terminated. Availability may be affected! Outage may occur if there is only 1 host! Use this if cluster size during replacement exceeding the current capacity may cause issue to your service (probably stateful). This is the legacy behavior and <b>***not***</b> recommended.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <input type="radio" id="customMinMax" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="customMinMax">
+                            <label for="availabilitySettingRadio">Custom</label>
+                            <p class="popup-description">
+                                This option lets you set up a custom minimum and maximum range for the amount of capacity that you want available when replacing instances.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="padding-top: 20px;"></div>
+
+                    <div id="minHealthyPercentageBlock">
+                        <label for="minHealthyPercentage" data-toggle="tooltip"
                         title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
                         <span class="fa fa-check"></span> Minimum healthy percentage:
-                    </label>
-                    <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
+                        </label>
+                        <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
+                    </div>
 
+                    <div id="maxHealthyPercentageBlock">
+                        <label for="maxHealthyPercentage" data-toggle="tooltip"
+                        title="The maximum percentage of the group that can be in service and healthy, or pending, to support your workload when replacing instances. The value is expressed as a percentage of the desired capacity of the Auto Scaling group. Value range is 100 to 200. Use 100 to launch/replace 1 instance at time">
+                        <span class="fa fa-check"></span> Maximum healthy percentage:
+                        </label>
+                        <input type="number" id="maxHealthyPercentage" name="maxHealthyPercentage" min="100" max="200">
+                        <p>Example: with 110% max, new hosts equal up to 10% of the cluster will be launched first. After the new hosts are launched and deployed successfully, up to 10% of the original existing hosts will be terminated. For example, the current capacity is 2 hosts, then with 110% max, 1 host will be launched first. The total capacity is now 3.
+                            After the new host is deployed successfully, one of the original 2 hosts will be terminated. This repeats until the original 2 hosts are replaced with 2 new hosts. During the replacement, 100% of the original capacity (2 hosts) are ensured to be available - hence availability is prioritized.
+                            If a new host fails deployment, it will be terminated and will not be put into service. Note that similar to minimum healthy percentage, if it's too small, then 1 host will be launched. Use 100% to ensure that only 1 host will be launched at a time.
+                        </p>
+                    </div>
+                </div>
+                </fieldset>
+
+                <div style="padding-top: 20px;">
                     <label for="checkpointPercentages" data-toggle="tooltip"
                         title="Replacement will pause when replacement progress reaches the defined checkpoint percentages before continuing. E.g with 25, 100, the replacement will pause when completion reaches 25% and 100%. Note that the replacement will stop at the last checkpoint. If the last checkpoint is not 100, then it will be a partial replacement.">
                         <span class="fa fa-bell"></span> Checkpoint percentages:
                     </label>
                     <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" placeholder="e.g. 25, 50, 100">
-                    
+
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
                         <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
-                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value="3600">
+                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value="3600">
                 </div>
-                
-                <div>
+
+                <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Skip replacing instances that already use the latest launch template." >
                         Skip matching launch template
                         <input type="checkbox" id="skipMatching" name="skipMatching" checked>
                         <div class="slider round"></div>
                     </label>
                 </div>
-                
-                <div>
+
+                <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
                         Replace protected instances
                         <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances">
                         <div class="slider round"></div>
                     </label>
                 </div>
-                
-                <div class="pull-right">
+
+                <div style="padding-top: 20px;">
+                    <label for="instanceWarmup" data-toggle="tooltip" title="Extra delay to wait for instance to warm up.">
+                        <span class="fa fa-clock-o"></span> Instance warmup (seconds):
+                    </label>
+                    <input type="number" id="instanceWarmup" name="instanceWarmup" min="0" value="0">
+                </div>
+
+                <div class="pull-left" style="padding-top: 20px;">
+                    <p style="color:red;">Note: hosts that are running with latest cluster configurations (AMI, host type, etc.) won't be replaced. If you want to replace them anyway, please uncheck <b>Skip matching launch template</b></p>
+
                     <button type="submit" id="startReplacementBtnId" class="btn"
                             data-toggle="modal"
                             title="Start cluster replacement">
-                            <span class="glyphicon glyphicon-play"></span> Start
+                            <span class="glyphicon glyphicon-refresh"></span> Start
                     </button>
                 </div>
+
                 {% csrf_token %}
             </form>
+
+            <script>
+                const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
+                startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
+            </script>
         </div>
+        {% endif %}
+        <script>
+            var availabilitySettings = document.getElementsByName("availabilitySettingRadio");
+
+            var isAutoRefresh = "{{ auto_refresh_view }}";
+            for (let i = 0; i < availabilitySettings.length; i++) {
+                if (availabilitySettings[i].checked) {
+                    setDefaultValues(availabilitySettings[i], isAutoRefresh);
+                }
+            }
+        </script>
     </div>
 </div>
 
-<script>
-    function isValidPercentage(percentage) {
-        return percentage > 0 && percentage <= 100;
-    }
-
-    function validateCheckpointPercentages() {
-        const checkpointPercentagesElement = document.getElementById("checkpointPercentages");
-        const checkpointPercentagesRaw = checkpointPercentagesElement.value;
-
-        if (checkpointPercentagesRaw.trim().length === 0 ) {
-            checkpointPercentagesElement.setCustomValidity('');
-            return;
-        }
-
-        const constraint = new RegExp("^(\\s)*[0-9]{1,3}((\\s)*,(\\s)*[0-9]{1,3}(\\s)*)*$");
-
-        if (!constraint.test(checkpointPercentagesRaw)) {
-            checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be numbers from 1 to 100 and separated by ,');
-            return;
-        }
-        else {
-            checkpointPercentagesElement.setCustomValidity('');
-        }
-        
-        const checkpointPercentages = checkpointPercentagesElement.value.split(',').reduce( (acc, p) => acc.concat(+p), []);
-
-        for (let i = 0; i < checkpointPercentages.length - 1; i++) {
-            if (!isValidPercentage(checkpointPercentages[i])) {
-                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
-                return;
-            }
-
-            if (checkpointPercentages[i] >= checkpointPercentages[i + 1]) {
-                checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be a strictly increasing sequence');
-                return;
-            }
-        }
-
-        if (checkpointPercentages.length > 0) {
-            if (!isValidPercentage(checkpointPercentages[checkpointPercentages.length - 1])) {
-                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
-                return;
-            }
-        }
-
-        checkpointPercentagesElement.setCustomValidity('');
-    }
-
-    const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
-    startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
-</script>
-
-<div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
+{% if not auto_refresh_view %}
+    <div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Replacement Status</h4>
         <div class="pull-right">
@@ -213,31 +559,34 @@
                         <th>Remaining</th>
                         <th>Status</th>
                         <th>Reason</th>
+                        <th>Last Action</th>
+                        <th>At</th>
+                        <th>By</th>
                     </tr>
                     {% for replace_summary in replace_summaries %}
                     <tr>
                         <td>
-                            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ replace_summary.id }}/details/" target="_blank">{{ replace_summary.id }}</a>
+                            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ replace_summary.id }}/details/" target="_blank">{{ replace_summary.id | truncatechars:10 }}</a>
                         </td>
                         <td>
                             {% if replace_summary.startTime %}
                                 {{ replace_summary.startTime|convertTimestamp }}
+                            {% else %}
+                                _
                             {% endif %}
                         </td>
                         <td>
                             {% if replace_summary.endTime %}
                                 {{ replace_summary.endTime|convertTimestamp }}
+                             {% else %}
+                                _
                             {% endif %}
                         </td>
                         <td>
-                            {% if replace_summary.percentageComplete %}
-                                {{ replace_summary.percentageComplete }}%
-                            {% endif %}
+                            {{ replace_summary.percentageComplete|default_if_none:0 }}%
                         </td>
                         <td>
-                            {% if replace_summary.instancesToUpdate %}
-                                {{ replace_summary.instancesToUpdate }}
-                            {% endif %}
+                            {{ replace_summary.instancesToUpdate|default_if_none:0 }}
                         </td>
                         <td>
                             <span class="replaceToolTip pointer-cursor {{ replace_summary.status|replaceStatusIcon }}">
@@ -249,11 +598,33 @@
                                 {{ replace_summary.statusReason }}
                             {% endif %}
                         </td>
+                        <td>
+                            {% if replace_summary.clusterReplacementAuditTrails %}
+                                {% with replace_summary.clusterReplacementAuditTrails|first as latest %}
+                                    {{ latest.action }}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if replace_summary.clusterReplacementAuditTrails %}
+                                {% with replace_summary.clusterReplacementAuditTrails|first as latest %}
+                                    {{ latest.timestamp|convertTimestamp }}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if replace_summary.clusterReplacementAuditTrails %}
+                                {% with replace_summary.clusterReplacementAuditTrails|first as latest %}
+                                    {{ latest.operator }}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor%}
                 </table>
         </div>
     </div>
 </div>
+{% endif %}
 
 {% endblock %}

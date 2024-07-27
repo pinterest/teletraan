@@ -61,7 +61,7 @@
             <th>Date</th>
         </tr>
         {% for rating in ratings %}
-            {%  if rating.feedback != "" or rating.rating != "-1" %}
+            {% if rating.feedback != "" or rating.rating != "-1" %}
                 <tr>
                     <td>{{ rating.feedback }}</td>
                     <td>

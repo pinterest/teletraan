@@ -83,6 +83,24 @@
             {% include "builds/build_details.tmpl" %}
         </td>
     </tr>
+    {% if deploy_accounts %}
+    <tr>
+        <td>Account</td>
+        <td>
+            {% for account in deploy_accounts %}
+                {% if account.legacy_name %}
+                <div class="deployToolTip btn btn-xs btn-default host-btn">
+                {{ account.legacy_name }}
+                </div>
+                {% else %}
+                <a class="deployToolTip btn btn-xs btn-default host-btn" href="/clouds/accounts/{{ account.cloudProvider }}/{{ account.cell }}/{{ account.id }}">
+                    {{ account.data.ownerId }} / {{ account.name }}
+                </a>
+                {% endif %}
+            {% endfor %}
+        </td>
+    </tr>
+    {% endif %}
 </table>
 <script>
     $.fn.editable.defaults.mode = 'popup';

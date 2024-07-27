@@ -159,7 +159,7 @@ Vue.component('label-select', {
   template: '<div v-bind:class="formStyle">\
   <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">{{label}}</label>\
   <div v-bind:class="width"><div v-bind:class="groupStyle">\
-  <select class="form-control" v-on:change="updateValue($event.target.value)" required="true">\
+  <select :disabled="disabled" class="form-control" v-on:change="updateValue($event.target.value)" required="true">\
   <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option></select>\
   <span v-if="showhelp" class="input-group-btn">\
     <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" title="click to see more information" v-on:click="helpClick">\
@@ -167,7 +167,7 @@ Vue.component('label-select', {
     </button>\
   </span></div>\
   </div></div>',
-  props: ['label', 'title', 'selectoptions', 'showhelp', 'small'],
+  props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'disabled'],
   data: function () {
     return {
       width: this.small ? 'col-xs-4' : 'col-xs-10',
@@ -344,3 +344,24 @@ Vue.component("help-table", {
     </div></div>',
     props: ['dismissible', 'alertText']
   })
+
+
+/**
+ * pinfo warning banner
+ */
+Vue.component('deployservice-warning-banner', {
+    template: `<div v-if="hasPotentialConflicts" id="deployServiceBanner" class="alert alert-warning" role="alert" align="center">
+    This cluster has userdata which defines a ‘deploy_service’ value and a pinfo_role that isn’t ‘cmp_base’. 
+    Please double check to make sure that this does not conflict with your Puppet server configuration. 
+    <a target="_blank" :href="deployservicewikiurl">Instructions here.</a>
+    </div>`,
+    props: ['alluserdata', 'deployservicewikiurl'],
+    computed: {
+        hasPotentialConflicts: function() {
+            const externalFacts = this.alluserdata?.find(field => field.name == 'external_facts')?.value ?? "";
+            containsDeployService = /['"]deploy_service['"]:/.test(externalFacts);
+            const pinfoRole = this.alluserdata?.find(field => field.name === 'pinfo_role');
+            return pinfoRole?.value !== 'cmp_base' && containsDeployService;
+        },
+    }
+});

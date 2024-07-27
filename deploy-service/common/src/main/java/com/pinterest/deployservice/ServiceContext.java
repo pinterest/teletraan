@@ -16,6 +16,14 @@
 package com.pinterest.deployservice;
 
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+
+import org.apache.commons.dbcp.BasicDataSource;
+
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
@@ -35,6 +43,7 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.dao.RatingDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
@@ -48,11 +57,6 @@ import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
-
-import org.apache.commons.dbcp.BasicDataSource;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 public class ServiceContext {
     private BasicDataSource dataSource;
@@ -79,6 +83,7 @@ public class ServiceContext {
     private ScheduleDAO scheduleDAO;
     private HostTagDAO hostTagDAO;
     private DeployConstraintDAO deployConstraintDAO;
+    private PindeployDAO pindeployDAO;
 
     private Allowlist buildAllowlist;
 
@@ -102,6 +107,7 @@ public class ServiceContext {
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
     private BuildEventPublisher buildEventPublisher;
+    private Set<String> accountAllowList;
 
     // Publishers & Listeners
     private AppEventPublisher appEventPublisher;
@@ -208,6 +214,14 @@ public class ServiceContext {
 
     public void setHostDAO(HostDAO hostDAO) {
         this.hostDAO = hostDAO;
+    }
+
+    public PindeployDAO getPindeployDAO() {
+        return pindeployDAO;
+    }
+
+    public void setPindeployDAO(PindeployDAO pindeployDAO) {
+        this.pindeployDAO = pindeployDAO;
     }
 
     public HostAgentDAO getHostAgentDAO() {
@@ -347,7 +361,6 @@ public class ServiceContext {
         this.rodimusManager = rodimusManager;
     }
 
-
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         this.buildCacheEnabled = buildCacheEnabled;
     }
@@ -468,5 +481,13 @@ public class ServiceContext {
     public void setBuildEventPublisher(
         BuildEventPublisher buildEventPublisher) {
         this.buildEventPublisher = buildEventPublisher;
+    }
+
+    public Set<String> getAccountAllowList() { 
+        return accountAllowList;
+    }
+
+    public void setAccountAllowList(Collection<String> accountAllowList) {
+        this.accountAllowList = new HashSet<String>(accountAllowList);
     }
 }

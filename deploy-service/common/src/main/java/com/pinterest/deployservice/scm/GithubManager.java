@@ -19,42 +19,42 @@ import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.common.EncryptionUtils;
 import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.KnoxKeyReader;
+
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-
-import org.kohsuke.github.GitHubBuilder;
-
 import org.kohsuke.github.GHAppInstallation;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.WebApplicationException;
 
 public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
     private final static String UNKNOWN_LOGIN = "UNKNOWN";
-    private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 mins
-    private String apiPrefix;
-    private String urlPrefix;
-    private String githubAppId;
-    private String githubAppPrivateKeyKnox;
-    private String githubAppOrganization;
-    private String token;
+    private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 minutes
+    private final String apiPrefix;
+    private final String urlPrefix;
+    private final String githubAppId;
+    private final String githubAppPrivateKeyKnox;
+    private final String githubAppOrganization;
+    private final String token;
 
-    public Map<String, String> headers = new HashMap<String, String>();
+    public Map<String, String> headers = new HashMap<>();
 
-    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String typeName, String apiPrefix, String urlPrefix) throws Exception {
+    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String typeName, String apiPrefix, String urlPrefix) {
         this.typeName = typeName;
         this.apiPrefix = apiPrefix;
         this.urlPrefix = urlPrefix;
@@ -65,7 +65,7 @@ public class GithubManager extends BaseManager {
     }
 
     private void setHeaders() throws Exception {
-        // if token is specified, use token auth, otherwise, use github app auth
+        // if token is specified, use token auth, otherwise, use GitHub app auth
         if (StringUtils.isEmpty(this.token))
         {
             try {
@@ -78,15 +78,15 @@ public class GithubManager extends BaseManager {
                     throw new IllegalArgumentException("Failed to get Github Knox key");
                 }
 
-                // generate jwt token by signing with github app id and private key
+                // generate jwt token by signing with GitHub app id and private key
                 String jwtToken = EncryptionUtils.createGithubJWT(this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
 
                 // get installation token using the jwt token
                 GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
                 GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
-                GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();    
+                GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();
 
-                // always use the newly created github app token as the token will expire
+                // always use the newly created GitHub app token as the token will expire
                 this.headers.put("Authorization", String.format("Token %s", appInstallationToken.getToken()));
             } catch (Exception e) {
                 // e.printStackTrace();
@@ -173,7 +173,18 @@ public class GithubManager extends BaseManager {
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
         setHeaders();
-        String jsonPayload = httpClient.get(url, null, null, headers, 1);
+        String jsonPayload;
+        try {
+            jsonPayload = httpClient.get(url, null, null, headers, 1);
+        }
+        catch (IOException e) {
+            // an IOException (and its subclasses) in this case indicates that the commit hash is not found in the repo.
+            // e.g. java.io.IOException: Server returned HTTP response code: 422
+            LOG.warn("GitHub commit hash {} is not found in repo {}.", sha, repo);
+            throw new WebApplicationException(String.format("Commit hash %s is not found in repo %s", sha, repo),
+                    Response.Status.NOT_FOUND);
+        }
+
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>
             jsonMap =
@@ -189,13 +200,13 @@ public class GithubManager extends BaseManager {
         String url = String.format("%s/repos/%s/commits", apiPrefix, repo);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("sha", startSha);
         params.put("path", path);
 
         setHeaders();
         String jsonPayload = httpClient.get(url, null, params, headers, 1);
-        Queue<CommitBean> CommitBeans = new LinkedList<CommitBean>();
+        Queue<CommitBean> CommitBeans = new LinkedList<>();
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>[]
             jsonMaps =

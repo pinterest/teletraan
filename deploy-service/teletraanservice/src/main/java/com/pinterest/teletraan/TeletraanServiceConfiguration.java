@@ -15,7 +15,14 @@
  */
 package com.pinterest.teletraan;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.config.AnonymousAuthenticationFactory;
+import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.config.AwsFactory;
@@ -26,8 +33,6 @@ import com.pinterest.teletraan.config.DefaultChatFactory;
 import com.pinterest.teletraan.config.DefaultEmailFactory;
 import com.pinterest.teletraan.config.DefaultHostGroupFactory;
 import com.pinterest.teletraan.config.EmailFactory;
-import com.pinterest.teletraan.config.EmbeddedDataSourceFactory;
-import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
 import com.pinterest.teletraan.config.HostGroupFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
@@ -38,13 +43,7 @@ import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.SystemFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
-import io.dropwizard.health.conf.HealthConfiguration;
-
-import java.util.Collections;
-import java.util.List;
-import javax.validation.Valid;
 
 public class TeletraanServiceConfiguration extends Configuration {
     @Valid
@@ -116,16 +115,14 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("pingrequestvalidators")
     private List<String> pingRequestValidators;
 
-    @JsonProperty("health")
-    private HealthConfiguration healthConfiguration = new HealthConfiguration();
-
     @Valid
     private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
 
+    @Valid
+    @JsonProperty("accountAllowList")
+    private List<String> accountAllowList;
+
     public DataSourceFactory getDataSourceFactory() {
-        if (dataSourceFactory == null) {
-            return new EmbeddedDataSourceFactory();
-        }
         return dataSourceFactory;
     }
 
@@ -285,14 +282,6 @@ public class TeletraanServiceConfiguration extends Configuration {
         this.defaultScmTypeName = defaultScmTypeName;
     }
 
-    public HealthConfiguration getHealthConfiguration() {
-        return healthConfiguration;
-    }
-
-    public void setHealthConfiguration(final HealthConfiguration healthConfiguration) {
-        this.healthConfiguration = healthConfiguration;
-    }
-
     public AwsFactory getAwsFactory() {
         return awsFactory;
     }
@@ -309,5 +298,9 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("metrics")
     public void setMetricsFactory(MicrometerMetricsFactory metrics) {
         this.metricsFactory = metrics;
+    }
+
+    public List<String> getAccountAllowList() {
+        return accountAllowList;
     }
 }

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from deploy_board.settings import IS_PINTEREST, SERVICE_RATELIMIT_CONFIG_URL, \
+from deploy_board.settings import SERVICE_RATELIMIT_CONFIG_URL, \
                                   STATSBOARD_API_FORMAT, RATELIMIT_ENABLED_METRIC_FORMAT, \
                                   ENABLING_SERVICE_RATELIMIT_URL, KAFKA_MSGS_DELIVERED_METRIC, \
                                   STATSBOARD_HUB_URL_ENDPOINT_FORMAT, STATSBOARD_HOST_TYPE_API_FORMAT
@@ -300,7 +300,7 @@ def getRatelimitingReport(serviceName, agentStats):
                 totalHostsOn += 1
             else:
                 totalHostsOff += 1
-    except:
+    except Exception:
         # In any error we abstain from making a claim, including request timeouts.
         return RateLimitingReport(state=ServiceAddOn.UNKNOWN)
 
@@ -367,7 +367,7 @@ def getLatestLogUnixTime(topics, lognames, hostsOnStage, commonHostPrefix):
                 if dataPoints[k][1] > 0:
                     earliestMessages.append(dataPoints[k])
                     break
-    except:
+    except Exception:
         return None
 
     if not statsboardDataConsistent(statsboardData, hostsOnStage):
@@ -448,7 +448,7 @@ def getDashboardReport(env, stage, metricsDashboardUrl, isSidecar):
                 hostType = getStatsboardHostType(env, stage)
                 if hostType is None:
                     state = ServiceAddOn.UNKNOWN
-            except:
+            except Exception:
                 state = ServiceAddOn.UNKNOWN
     return DashboardStateReport(state=state, hostType=hostType)
 

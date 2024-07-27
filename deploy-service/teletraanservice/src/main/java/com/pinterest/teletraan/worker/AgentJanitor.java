@@ -32,8 +32,8 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.metrics.MeterConstants;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
@@ -67,16 +67,9 @@ public class AgentJanitor extends SimpleAgentJanitor {
         maxLaunchLatencyThreshold = TimeUnit.SECONDS.toMillis(maxLaunchLatencyThresholdSeconds);
         unreachableHostsCount = Metrics.gauge("unreachable_hosts", new AtomicInteger(0));
         staleHostsCount = Metrics.gauge("stale_hosts", new AtomicInteger(0));
-        
-        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
-                MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
 
-        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
-                MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     @Override
@@ -122,26 +115,35 @@ public class AgentJanitor extends SimpleAgentJanitor {
         }
 
         if (janitorStartTime - hostAgentBean.getLast_update() >= absoluteThreshold) {
+            LOG.debug("exceeded absolute stale threshold ({}) for host ({})", absoluteThreshold, hostAgentBean);
             return true;
         }
 
         HostBean hostBean;
         try {
-            hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
+            List<HostBean> hostBeans = hostDAO.getHostsByHostId(hostAgentBean.getHost_id());
+            if (hostBeans.isEmpty()) {
+                // Usually the host being checked is not terminated. However there might be some
+                // synchronization latency.
+                // Mark it as not stale and we will handle it in the next run.
+                return false;
+            }
+            hostBean = hostBeans.get(0);
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
             errorBudgetFailure.increment();
-
             return false;
         }
 
         Long launchGracePeriod = getInstanceLaunchGracePeriod(hostAgentBean.getAuto_scaling_group());
         if ((hostBean.getState() == HostState.PROVISIONED)
                 && (janitorStartTime - hostAgentBean.getLast_update() >= launchGracePeriod)) {
+            LOG.debug("exceeded launch grace period ({}) for provisioned host ({})", launchGracePeriod, hostAgentBean);
             return true;
         }
         if (hostBean.getState() != HostState.TERMINATING && !hostBean.isPendingTerminate() &&
                 (janitorStartTime - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
+            LOG.debug("exceeded max stale threshold ({}) for host ({})", maxStaleHostThreshold, hostAgentBean);
             return true;
         }
         return false;

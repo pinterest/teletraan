@@ -3,15 +3,13 @@
 {% load static %}
 
 {% block navbar-items %}
+<li><a href="/clouds/accounts">Accounts</a></li>
 <li><a href="/envs">Environments</a></li>
 <li><a href="/builds">Builds</a></li>
 {% endblock %}
 
 
-
 {% block main %}
-{% include "environs/site_health.tmpl" with metricsKind="site" %}
-
 <div class="panel panel-default">
     {% include "panel_heading.tmpl" with panel_title="Ongoing Deployments" panel_body_id="onGoingDeployId" direction="down" %}
     <div id="onGoingDeployId" class="collapse in panel-body table-responsive">
