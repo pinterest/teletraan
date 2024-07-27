@@ -312,7 +312,7 @@ public class CommonHandler {
         newDeployBean.setLast_update(System.currentTimeMillis());
 
         //The maximum sucThreshold is 10000 to keep precision.
-        if (succeeded * 10000 >= sucThreshold * total) {
+        if (succeeded * 10000 >= sucThreshold * total && succeeded > 0) {
             LOG.debug("Propose deploy {} as SUCCEEDING since {} agents are succeeded.", deployId, succeeded);
             if (deployBean.getSuc_date() == null) {
                 newDeployBean.setSuc_date(System.currentTimeMillis());
