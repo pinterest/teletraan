@@ -1,4 +1,3 @@
- {% if envs|length < 11 %}
 <ul class="nav nav-tabs">
     {% for stage in envs %}
     <li {% if stage.stageName == env.stageName %}class="active"{% endif %}>
@@ -7,17 +6,3 @@
     </li>
     {% endfor %}
 </ul>
-{% else %}
-<h2>{{env.stageName}}</h2>
-<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#clusterlist">Show all clusterlist</button>
-  <div id="clusterlist" class="collapse">
-  <ul class="nav nav-tabs">
-    {% for stage in envs %}
-    <li {% if stage.stageName == env.stageName %}class="active"{% endif %}>
-    <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
-       href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
-    </li>
-    {% endfor %}
-</ul>
-  </div>
-{% endif %}
