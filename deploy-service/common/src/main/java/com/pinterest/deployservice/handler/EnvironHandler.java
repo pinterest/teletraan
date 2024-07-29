@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,15 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
-import com.pinterest.deployservice.dao.ScheduleDAO;
-
-
+import java.sql.SQLException;
+import java.util.*;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
-import java.util.*;
-
-import javax.ws.rs.NotAllowedException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.WebApplicationException;
 
 public class EnvironHandler {
     private static final Logger LOG = LoggerFactory.getLogger(EnvironHandler.class);
@@ -46,8 +40,6 @@ public class EnvironHandler {
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
     private HostDAO hostDAO;
-    private PindeployDAO pindeployDAO;
-    private ScheduleDAO scheduleDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
 
@@ -57,8 +49,6 @@ public class EnvironHandler {
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
-        pindeployDAO = serviceContext.getPindeployDAO();
-        scheduleDAO = serviceContext.getScheduleDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
     }
@@ -534,15 +524,21 @@ public class EnvironHandler {
                 EnvironBean mainEnv = environDAO.getMainEnvByHostId(hostId);
                 if (mainEnv == null) {
                     throw new NotFoundException(
-                            String.format("No main environment found for host %s, refuse to proceed", hostId));
+                            String.format(
+                                    "No main environment found for host %s, refuse to proceed",
+                                    hostId));
                 }
                 if (!mainEnv.getEnv_id().equals(environBean.getEnv_id())) {
-                    throw new NotAllowedException(String.format("%s/%s is not the owning environment of host %s",
-                            environBean.getEnv_name(), environBean.getStage_name(), hostId));
+                    throw new ForbiddenException(
+                            String.format(
+                                    "%s/%s is not the owning environment of host %s",
+                                    environBean.getEnv_name(),
+                                    environBean.getStage_name(),
+                                    hostId));
                 }
             } catch (SQLException e) {
-                throw new WebApplicationException(String.format("Failed to get main environment for host %s", hostId),
-                        e);
+                throw new WebApplicationException(
+                        String.format("Failed to get main environment for host %s", hostId), e);
             }
         }
     }

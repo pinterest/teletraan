@@ -231,8 +231,7 @@ public class EnvCapacities {
             CapacityType capacityType,
             List<String> capacities)
             throws Exception {
-        if (targetEnvironBean.getSystem_priority() != null
-                && targetEnvironBean.getSystem_priority() > 0) {
+        if (isSidecarEnvironment(targetEnvironBean)) {
             // Allow sidecars to add capacity
             return;
         }
@@ -272,12 +271,16 @@ public class EnvCapacities {
                 throw new InternalServerErrorException(e);
             }
 
-            if (envBean == null) {
-                throw new ForbiddenException(
-                        "Failed to get the main environment with capacity name: " + capacity);
+            if (envBean != null) {
+                resources.add(new AuthZResource(envBean.getEnv_name(), envBean.getStage_name()));
+            } else {
+                LOG.info("Failed to find main environment for capacity {}, skip authorization", capacity);
             }
-            resources.add(new AuthZResource(envBean.getEnv_name(), envBean.getStage_name()));
         }
         return resources;
+    }
+
+    private boolean isSidecarEnvironment(EnvironBean environBean) {
+        return environBean.getSystem_priority() != null && environBean.getSystem_priority() > 0;
     }
 }
