@@ -32,7 +32,7 @@ import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.format.ISODateTimeFormat;

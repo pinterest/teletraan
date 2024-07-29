@@ -27,8 +27,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
                     }
                     catch (Exception ex){
                         LOG.error(ExceptionUtils.getRootCauseMessage(ex));
-                        LOG.error(ExceptionUtils.getFullStackTrace(ex));
+                        LOG.error(ExceptionUtils.getStackTrace(ex));
                     }
                     return new ArrayList<BuildTagBean>();
                 }

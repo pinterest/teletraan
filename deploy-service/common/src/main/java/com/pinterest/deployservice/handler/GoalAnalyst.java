@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -320,17 +320,17 @@ public class GoalAnalyst {
     }
 
     boolean shouldUpdateAgentRecord(AgentBean origBean, AgentBean updateBean) {
-        
+
         if (origBean == null || updateBean == null) {
             return true;
         }
-        if (origBean.getHost_id() != null && origBean.getHost_id().equals(host_id) && 
+        if (origBean.getHost_id() != null && origBean.getHost_id().equals(host_id) &&
             origBean.getDeploy_id() != null && origBean.getDeploy_id().equals(updateBean.getDeploy_id()) &&
-            origBean.getEnv_id() != null && origBean.getEnv_id().equals(updateBean.getEnv_id()) && 
+            origBean.getEnv_id() != null && origBean.getEnv_id().equals(updateBean.getEnv_id()) &&
             origBean.getFail_count() != null && origBean.getFail_count().equals(updateBean.getFail_count()) &&
-            origBean.getStatus() != null && origBean.getStatus().equals(updateBean.getStatus()) && 
+            origBean.getStatus() != null && origBean.getStatus().equals(updateBean.getStatus()) &&
             origBean.getLast_err_no() != null && origBean.getLast_err_no().equals(updateBean.getLast_err_no()) &&
-            origBean.getState() != null && origBean.getState().equals(updateBean.getState()) && 
+            origBean.getState() != null && origBean.getState().equals(updateBean.getState()) &&
             origBean.getDeploy_stage() != null && origBean.getDeploy_stage().equals(updateBean.getDeploy_stage()) &&
             origBean.getContainer_health_status() != null && origBean.getContainer_health_status().equals(updateBean.getContainer_health_status())) {
             LOG.debug("Skip updating agent record for env_id {}, deploy_id {} on host {}",
@@ -570,8 +570,8 @@ public class GoalAnalyst {
                     hostTagBean.setCreate_date(System.currentTimeMillis());
                     hostTagDAO.insertOrUpdate(hostTagBean);
                     LOG.info("Update host tags from Deployd: update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
-                }      
-            }         
+                }
+            }
         }
 
         /**

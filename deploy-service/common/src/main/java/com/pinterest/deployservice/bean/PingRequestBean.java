@@ -20,7 +20,7 @@ import java.util.Set;
 
 import javax.validation.constraints.NotEmpty;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 public class PingRequestBean {
     @NotEmpty

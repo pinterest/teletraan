@@ -18,7 +18,7 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import javax.annotation.Nonnull;
 import javax.validation.constraints.NotEmpty;
