@@ -47,4 +47,9 @@ public class DefaultRodimusManager implements RodimusManager {
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
         return new HashMap<>();
     }
+
+    @Override
+    public Long getClusterCapacity(String clusterName) throws Exception {
+        return null;
+    }
 }

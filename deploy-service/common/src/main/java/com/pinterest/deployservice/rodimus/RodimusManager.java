@@ -31,4 +31,6 @@ public interface RodimusManager {
     Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception;
 
     Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception;
+
+    Long getClusterCapacity(String clusterName) throws Exception;
 }

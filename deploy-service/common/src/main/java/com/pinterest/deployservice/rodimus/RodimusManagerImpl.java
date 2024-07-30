@@ -179,4 +179,27 @@ public class RodimusManagerImpl implements RodimusManager {
         }.getType());
     } // getEc2Tags
 
+    @Override
+    public Long getClusterCapacity(String clusterName) throws Exception {
+        String url = String.format("%s/v1/groups/%s", rodimusUrl, clusterName);
+        String res = callHttpClient(Verb.GET, url, null);
+
+        JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
+        if (jsonObject == null || jsonObject.isJsonNull()) {
+            return null;
+        }
+
+        JsonObject launchInfo = jsonObject.getAsJsonObject("launchInfo");
+        if (launchInfo == null || launchInfo.isJsonNull()) {
+            return null;
+        }
+
+        JsonPrimitive capacity = launchInfo.getAsJsonPrimitive("minSize");
+        if (capacity == null || capacity.isJsonNull()) {
+            return null;
+        }
+
+        return capacity.getAsLong();
+    } // getClusterCapacity
+
 } // class RodimusManagerImpl
