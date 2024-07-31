@@ -16,7 +16,7 @@ from logging import Logger, getLogger
 from typing import Optional
 
 import boto3
-from future.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 
 from deployd.download.download_helper import DownloadHelper
 from deployd.download.s3_download_helper import S3DownloadHelper

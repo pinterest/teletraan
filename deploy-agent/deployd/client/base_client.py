@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABCMeta, abstractmethod
-from future.utils import with_metaclass
+from abc import ABC, abstractmethod
 
 
-class BaseClient(with_metaclass(ABCMeta, object)):
+class BaseClient(ABC):
     """This class plays a role as an interface defining methods for agent to
     communicate with teletraan service.
     """

@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import unittest
-from abc import ABCMeta, abstractmethod
-from future.utils import with_metaclass
+from abc import ABC, abstractmethod
 from tests import TestCase
 
 from deployd.client.base_client import BaseClient
@@ -34,7 +33,7 @@ class TestBaseClient(TestCase):
         """
         Make sure that new changes to base client extend the original class
         """
-        class OldBaseClient(with_metaclass(ABCMeta, object)):
+        class OldBaseClient(ABC):
             @abstractmethod
             def send_reports(self, env_reports=None):
                 pass
