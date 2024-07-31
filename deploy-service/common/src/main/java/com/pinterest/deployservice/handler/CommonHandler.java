@@ -316,7 +316,13 @@ public class CommonHandler {
         newDeployBean.setLast_update(System.currentTimeMillis());
 
         String cluster = envBean.getEnv_name() + "-" + envBean.getStage_name();
-        Long capacity = rodimusManager.getClusterCapacity(cluster);
+        Long capacity = null;
+        try {
+             capacity = rodimusManager.getClusterCapacity(cluster);
+        } catch (Exception ex) {
+            LOG.error("Yaqin Debug: Failed to get capacity for cluster {}, exception: {}", cluster, ex);
+        }
+       
         LOG.debug("Yaqin Debug: The capacity for cluster {} is {}", cluster, capacity);
 
         //The maximum sucThreshold is 10000 to keep precision.
