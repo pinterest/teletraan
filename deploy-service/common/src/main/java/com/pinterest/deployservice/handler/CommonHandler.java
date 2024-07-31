@@ -322,7 +322,6 @@ public class CommonHandler {
         } catch (Exception ex) {
             LOG.error("Yaqin Debug: Failed to get capacity for cluster {}, exception: {}", cluster, ex);
         }
-       
         LOG.debug("Yaqin Debug: The capacity for cluster {} is {}", cluster, capacity);
 
         //The maximum sucThreshold is 10000 to keep precision.
