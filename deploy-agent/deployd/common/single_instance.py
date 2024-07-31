@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 # Copyright 2016 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +15,8 @@ from __future__ import absolute_import
 import logging
 import os
 import stat
-import errno
 import fcntl
 from . import utils
-from future.utils import PY3
 import tempfile
 log = logging.getLogger(__name__)
 LOCKFILE_DIR = '/var/lock'
@@ -32,12 +28,12 @@ class SingleInstance(object):
         appname = 'deploy-agent'
         lockfile_name = '.{}.lock'.format(appname)
         self._create_lock_dir()
-        # Backward compatibility as old deploy agent versions use lock file in /tmp. 
-        # Use the old lock file if it exists 
+        # Backward compatibility as old deploy agent versions use lock file in /tmp.
+        # Use the old lock file if it exists
         tmp_lockfile_path = os.path.join(tempfile.gettempdir(), lockfile_name)
         if os.path.exists(tmp_lockfile_path):
             lockfile_path = tmp_lockfile_path
-        else: 
+        else:
             lockfile_path = os.path.join(LOCKFILE_DIR, lockfile_name)
         lockfile_flags = os.O_WRONLY | os.O_CREAT
         # This is 0o222, i.e. 146, --w--w--w-
@@ -61,12 +57,4 @@ class SingleInstance(object):
             utils.exit_abruptly(1)
 
     def _create_lock_dir(self) -> None:
-        if PY3:
-            os.makedirs(LOCKFILE_DIR, exist_ok=True)
-        else:
-            # Need to handle the case when lock dir exists in py2
-            try:
-                os.makedirs(LOCKFILE_DIR)  # py2
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
+        os.makedirs(LOCKFILE_DIR, exist_ok=True)
