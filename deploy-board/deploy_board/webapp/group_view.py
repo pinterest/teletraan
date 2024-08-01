@@ -25,6 +25,7 @@ from collections import Counter
 import json
 import logging
 import traceback
+import urllib.parse
 
 from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
                      specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper,
@@ -32,6 +33,7 @@ from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
 from .helpers.exceptions import NotFoundException, TeletraanException
+from .templatetags.utils import itemToComparator
 
 log = logging.getLogger(__name__)
 
@@ -682,6 +684,11 @@ def _parse_metrics_configs(request, group_name):
 
     return configs
 
+def _construct_alarm_preview_url(metric, comparator, threshold, evaluation_time):
+    encoded_url = urllib.parse.quote(
+        f'{{"forms":[{{"metric":"{ metric }"}}],"crit":"(d{itemToComparator(comparator)}{threshold}).for({evaluation_time}m)"}}'
+    )
+    return 'https://statsboard.pinadmin.com/build3?settings=' + encoded_url
 
 def get_alarms(request, group_name):
     comparators = autoscaling_groups_helper.Comparator
@@ -694,6 +701,9 @@ def get_alarms(request, group_name):
                 # we restrict alarm has only one scaling policy
                 policy = alarm["scalingPolicies"][0]
                 alarm["scalingType"] = policy["policyType"]
+        if not alarm["fromAwsMetric"]:
+            alarm["previewUrl"] = _construct_alarm_preview_url(alarm["metricSource"], alarm["comparator"], alarm["threshold"], alarm["evaluationTime"])
+        alarm['cwLink'] = f'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarmsV2:alarm/{alarm["groupName"]}-alarm-{alarm["alarmId"]}'
 
     aws_metric_names = [
         "CPUUtilization",
