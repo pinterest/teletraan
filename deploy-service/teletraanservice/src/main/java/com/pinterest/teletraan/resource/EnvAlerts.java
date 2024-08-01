@@ -37,8 +37,8 @@ import com.google.common.collect.ImmutableMap;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +166,7 @@ public class EnvAlerts {
                   userName));
         } catch (Exception ex) {
           LOG.error("Failed to perform action {}", ExceptionUtils.getRootCauseMessage(ex));
-          LOG.error(ExceptionUtils.getFullStackTrace(ex));
+          LOG.error(ExceptionUtils.getStackTrace(ex));
         }
       }
 

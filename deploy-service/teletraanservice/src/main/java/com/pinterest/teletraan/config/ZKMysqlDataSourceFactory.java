@@ -26,7 +26,7 @@ import javax.validation.constraints.NotEmpty;
 import org.apache.commons.codec.digest.DigestUtils;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @JsonTypeName("zkmysql")
 public class ZKMysqlDataSourceFactory implements DataSourceFactory {

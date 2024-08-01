@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,8 +21,6 @@ import stat
 import time
 import traceback
 from typing import Tuple
-
-from future.utils import PY3
 
 from deployd.common.types import DeployReport, PingStatus, PRE_STAGE_STEPS, AgentStatus
 
@@ -111,14 +109,11 @@ class Executor(object):
 
                         # sleep some seconds before next poll
                         sleep_time = self._get_sleep_interval(start, self.PROCESS_POLL_INTERVAL)
-                        if PY3:
-                            # Wait up to sleep_time for the process to terminate (new in Python 3.3)
-                            try:
-                                process.wait(sleep_time)
-                            except subprocess.TimeoutExpired:
-                                pass
-                        else:
-                            time.sleep(sleep_time)
+                        # Wait up to sleep_time for the process to terminate (new in Python 3.3)
+                        try:
+                            process.wait(sleep_time)
+                        except subprocess.TimeoutExpired:
+                            pass
 
                     # finish executing sub process
                     deploy_report.error_code = process.returncode
@@ -202,14 +197,7 @@ class Executor(object):
         try:
             log.info('Gracefully shutdown currently running process with timeout {}'.format(self.TERMINATE_TIMEOUT))
             os.killpg(process.pid, signal.SIGTERM)
-            if PY3:
-                process.wait(self.TERMINATE_TIMEOUT)
-            else:
-                start_time = datetime.datetime.now()
-                while process.poll() is None:
-                    if (datetime.datetime.now() - start_time).seconds > self.TERMINATE_TIMEOUT:
-                        raise Exception('Timed out while waiting for the process to shutdown')
-                    time.sleep(min(self.PROCESS_POLL_INTERVAL, self.TERMINATE_TIMEOUT))
+            process.wait(self.TERMINATE_TIMEOUT)
         except Exception as e:
             log.debug('Failed to gracefully shutdown: {}'.format(e))
             Executor._kill_process(process)

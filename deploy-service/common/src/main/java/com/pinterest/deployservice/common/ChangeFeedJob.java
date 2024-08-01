@@ -15,7 +15,7 @@
  */
 package com.pinterest.deployservice.common;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
@@ -162,7 +162,7 @@ public final class ChangeFeedJob implements Callable<Void> {
             if (oriObj == null || curObj == null) {
                 return null;
             }
-            
+
             String configChange = getConfigChangeMessage(oriObj, curObj);
             if ((configChange == null) || StringUtils.isEmpty(configChange)) {
                 return null;

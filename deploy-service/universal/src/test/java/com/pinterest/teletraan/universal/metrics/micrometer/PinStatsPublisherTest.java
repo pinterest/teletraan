@@ -23,6 +23,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.LongTaskTimer;
+import io.micrometer.core.instrument.LongTaskTimer.Sample;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Meter.Type;
 import io.micrometer.core.instrument.MockClock;
@@ -32,7 +33,9 @@ import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,17 +101,16 @@ class PinStatsPublisherTest {
         clock.add(config.step());
 
         publisher.writeTimer(timer).forEach(LOG::debug);
+        Supplier<Stream<String>> stream = () -> publisher.writeTimer(timer);
 
         assertTrue(
-                publisher
-                        .writeTimer(timer)
+                stream.get()
                         .anyMatch(
                                 t ->
                                         t.equals(
                                                 "put mm.timers.my_timer_duration_seconds.bucket 60001 1 le=1.0\n")));
         assertTrue(
-                publisher
-                        .writeTimer(timer)
+                stream.get()
                         .anyMatch(
                                 t ->
                                         t.equals(
@@ -116,31 +118,71 @@ class PinStatsPublisherTest {
     }
 
     @Test
-    void longTaskTimer() {
-        LongTaskTimer timer = LongTaskTimer.builder("my.timer").tags(tags).register(meterRegistry);
+    void writeLongTaskTimer() {
+        LongTaskTimer timer =
+                LongTaskTimer.builder("my.timer")
+                        .tags(tags)
+                        .serviceLevelObjectives(Duration.ofSeconds(5))
+                        .register(meterRegistry);
+        Sample s1 = timer.start();
+        timer.start();
+
+        clock.addSeconds(5);
+        s1.stop();
         publisher.writeLongTaskTimer(timer).forEach(LOG::debug);
+        Supplier<Stream<String>> stream = () -> publisher.writeLongTaskTimer(timer);
 
         assertTrue(
-                publisher
-                        .writeLongTaskTimer(timer)
+                stream.get()
                         .anyMatch(
                                 t ->
                                         t.equals(
-                                                "put mm.my_timer_duration_seconds.active_count 1 0 tag=value\n")));
+                                                "put mm.my_timer_duration_seconds.bucket 5001 1 le=5.0 tag=value\n")));
         assertTrue(
-                publisher
-                        .writeLongTaskTimer(timer)
+                stream.get()
                         .anyMatch(
                                 t ->
                                         t.equals(
-                                                "put mm.my_timer_duration_seconds.duration_sum 1 0 tag=value\n")));
+                                                "put mm.my_timer_duration_seconds.bucket 5001 1 le=+Inf tag=value\n")));
+
+        clock.addSeconds(1);
+
         assertTrue(
-                publisher
-                        .writeLongTaskTimer(timer)
+                stream.get()
                         .anyMatch(
                                 t ->
                                         t.equals(
-                                                "put mm.my_timer_duration_seconds.max 1 0 tag=value\n")));
+                                                "put mm.my_timer_duration_seconds.active_count 6001 1 tag=value\n")));
+        assertTrue(
+                stream.get()
+                        .anyMatch(
+                                t ->
+                                        t.equals(
+                                                "put mm.my_timer_duration_seconds.duration_sum 6001 6 tag=value\n")));
+        assertTrue(
+                stream.get()
+                        .anyMatch(
+                                t ->
+                                        t.equals(
+                                                "put mm.my_timer_duration_seconds.max 6001 6 tag=value\n")));
+        assertTrue(
+                stream.get()
+                        .anyMatch(
+                                t ->
+                                        t.equals(
+                                                "put mm.my_timer_duration_seconds.max 6001 6 tag=value\n")));
+        assertTrue(
+                stream.get()
+                        .anyMatch(
+                                t ->
+                                        t.equals(
+                                                "put mm.my_timer_duration_seconds.bucket 6001 0 le=5.0 tag=value\n")));
+        assertTrue(
+                stream.get()
+                        .anyMatch(
+                                t ->
+                                        t.equals(
+                                                "put mm.my_timer_duration_seconds.bucket 6001 1 le=+Inf tag=value\n")));
     }
 
     @Test

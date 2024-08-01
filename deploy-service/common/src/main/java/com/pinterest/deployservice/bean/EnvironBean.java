@@ -17,8 +17,8 @@ package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
@@ -273,7 +273,7 @@ public class EnvironBean implements Updatable, Serializable {
 
     public void setDescription(String description) {
         // Escape user input which could contain injected Javascript
-        this.description = StringEscapeUtils.escapeHtml(description);
+        this.description = StringEscapeUtils.escapeHtml4(description);
     }
 
     public String getBuild_name() {
