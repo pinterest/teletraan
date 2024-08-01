@@ -36,8 +36,8 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                     <div class="col-xs-10">
                         <input class="form-control" name="metricsUrl_{{ alarm.alarmId }}" required="true"
                                 type="text" v-model="metrics"/>
-                        <a href="{{ alarm.cwLink }}" target="_blank">CloudWatch alarm link (fore reference only)</a>
-                        <a href="{{ alarm.previewUrl }}" target="_blank" v-show="showPreviewUrl"> | Custom metric source link (fore reference only)</a>
+                        <a href="{{ alarm.cwLink }}" target="_blank">CloudWatch alarm link (for reference only)</a>
+                        <a href="{{ alarm.previewUrl }}" target="_blank" v-show="showPreviewUrl"> | Custom metric source link (for reference only)</a>
                     </div>
                 </div>
 
