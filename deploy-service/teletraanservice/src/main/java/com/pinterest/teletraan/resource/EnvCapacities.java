@@ -250,7 +250,7 @@ public class EnvCapacities {
                     null)) {
                 throw new ForbiddenException(
                         String.format(
-                                "Principal %s is now allowed to modify capacity owned by env %s",
+                                "Principal %s is not allowed to modify capacity owned by env %s",
                                 principal.getName(), resource.getName()));
             }
         }
