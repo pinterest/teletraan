@@ -703,7 +703,7 @@ def get_alarms(request, group_name):
                 alarm["scalingType"] = policy["policyType"]
         if not alarm["fromAwsMetric"]:
             alarm["previewUrl"] = _construct_alarm_preview_url(alarm["metricSource"], alarm["comparator"], alarm["threshold"], alarm["evaluationTime"])
-        alarm['cwLink'] = f'https://console.aws.amazon.com/cloudwatch/home?alarmsV2:alarm/{alarm["groupName"]}-alarm-{alarm["alarmId"]}'
+        alarm['cwLink'] = f'https://console.aws.amazon.com/cloudwatch/home?#alarmsV2:alarm/{alarm["groupName"]}-alarm-{alarm["alarmId"]}'
 
     aws_metric_names = [
         "CPUUtilization",
