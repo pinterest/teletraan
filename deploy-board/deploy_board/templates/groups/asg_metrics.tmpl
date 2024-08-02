@@ -36,6 +36,8 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                     <div class="col-xs-10">
                         <input class="form-control" name="metricsUrl_{{ alarm.alarmId }}" required="true"
                                 type="text" v-model="metrics"/>
+                        <a href="{{ alarm.cwLink }}" target="_blank">CloudWatch alarm link (for reference only)</a>
+                        <a href="{{ alarm.previewUrl }}" target="_blank" v-show="showPreviewUrl"> | Custom metric source link (for reference only)</a>
                     </div>
                 </div>
 
@@ -91,7 +93,7 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <form-warning v-show="showWarning" :alert-text="warning"></form-warning>
             </fieldset>
             {% csrf_token %}
@@ -128,6 +130,7 @@ let alarmVue = new Vue({
         showWarning: false,
         warning: ALARM_WARNING_TEXT,
         threshold: {{ alarm.threshold }},
+        showPreviewUrl: "{{ alarm.previewUrl }}" != "" ? true : false,
     },
     methods: {
         showWarningIfNeeded: function() {
