@@ -18,31 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/*
- * spotless:off
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE agents (
- * host_id        VARCHAR(64)         NOT NULL,
- * host_name      VARCHAR(64)         NOT NULL,
- * env_id         VARCHAR(22)         NOT NULL,
- * deploy_id      VARCHAR(22)         NOT NULL,
- * deploy_stage   VARCHAR(32)         NOT NULL,
- * state          VARCHAR(32)         NOT NULL,
- * status         VARCHAR(32)         NOT NULL,
- * start_date     BIGINT              NOT NULL,
- * last_update    BIGINT              NOT NULL,
- * last_operator  VARCHAR(64)         NOT NULL,
- * last_err_no    INT                 NOT NULL DEFAULT 0,
- * fail_count     INT                 NOT NULL DEFAULT 0,
- * first_deploy   TINYINT(1)          NOT NULL DEFAULT 0,
- * first_deploy_time     BIGINT              NOT NULL,
- * stage_start_date     BIGINT              NOT NULL,
- * container_health_status VARCHAR(32) NOT NULL DEFAULT "",
- * PRIMARY KEY    (host_id, env_id)
- * );
- * spotless:on
- */
 public class AgentBean implements Updatable {
 
     @JsonProperty("hostId")

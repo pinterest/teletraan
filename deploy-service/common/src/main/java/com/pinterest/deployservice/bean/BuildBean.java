@@ -19,15 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotEmpty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- *
- * <p>CREATE TABLE builds ( build_id VARCHAR(30) NOT NULL, build_name VARCHAR(64) NOT NULL,
- * artifact_url VARCHAR(512) NOT NULL, scm VARCHAR(64), scm_repo VARCHAR(64) NOT NULL, scm_branch
- * VARCHAR(64) NOT NULL, scm_commit_7 VARCHAR(7) NOT NULL, scm_commit VARCHAR(64) NOT NULL,
- * commit_date BIGINT NOT NULL, publish_info VARCHAR(512) NOT NULL, publish_date BIGINT NOT NULL,
- * publisher VARCHAR(64), scm_info VARCHAR(512), PRIMARY KEY (build_id) );
- */
 public class BuildBean implements Updatable {
     @JsonProperty("id")
     private String build_id;

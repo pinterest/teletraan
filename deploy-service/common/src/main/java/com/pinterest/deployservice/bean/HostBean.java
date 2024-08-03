@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE hosts (
- * host_id         VARCHAR(64)         NOT NULL,
- * host_name       VARCHAR(64),
- * group_name      VARCHAR(64)         NOT NULL,
- * ip              VARCHAR(64),
- * create_date     BIGINT              NOT NULL,
- * last_update     BIGINT              NOT NULL,
- * state           VARCHAR(32)         NOT NULL,
- * can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
- * account_id      VARCHAR(64),
- * PRIMARY KEY    (host_name, group_name)
- * );
- */
 public class HostBean implements Updatable {
     @JsonProperty("hostName")
     private String host_name;
@@ -67,7 +51,6 @@ public class HostBean implements Updatable {
     // NEW(0) = the default value upon a host is launched, means cannot retire
     // TO_BE_REPLACED(1) = marked by cluster replace event to be replaced
     // HEALTH_CHECK(2) = host only launch for health check purpose and not to be replaced/retired
-
 
     public String getHost_name() {
         return host_name;
@@ -142,7 +125,8 @@ public class HostBean implements Updatable {
     }
 
     public Boolean isPendingTerminate() {
-        return this.state == HostState.PENDING_TERMINATE || this.state == HostState.PENDING_TERMINATE_NO_REPLACE;
+        return this.state == HostState.PENDING_TERMINATE
+                || this.state == HostState.PENDING_TERMINATE_NO_REPLACE;
     }
 
     @Override
@@ -160,15 +144,15 @@ public class HostBean implements Updatable {
         return clause;
     }
 
-    public final static String UPDATE_CLAUSE =
-        "host_name=VALUES(host_name)," +
-            "group_name=VALUES(group_name)," +
-            "ip=VALUES(ip)," +
-            "host_id=VALUES(host_id)," +
-            "create_date=VALUES(create_date)," +
-            "last_update=VALUES(last_update)," +
-            "state=VALUES(state)," +
-            "can_retire=VALUES(can_retire)";
+    public static final String UPDATE_CLAUSE =
+            "host_name=VALUES(host_name),"
+                    + "group_name=VALUES(group_name),"
+                    + "ip=VALUES(ip),"
+                    + "host_id=VALUES(host_id),"
+                    + "create_date=VALUES(create_date),"
+                    + "last_update=VALUES(last_update),"
+                    + "state=VALUES(state),"
+                    + "can_retire=VALUES(can_retire)";
 
     @Override
     public String toString() {

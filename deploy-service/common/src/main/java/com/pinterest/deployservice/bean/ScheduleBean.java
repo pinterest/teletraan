@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE IF NOT EXISTS schedules (
- *    id                  VARCHAR(22)     NOT NULL,
- *    total_sessions      INT             NOT NULL,
- *    cooldown_times      VARCHAR(32)     NOT NULL,
- *    host_numbers        VARCHAR(32)     NOT NULL,
- *    current_session     INT             NOT NULL,
- *    state               VARCHAR(32)     NOT NULL,
- *    state_start_time    BIGINT          NOT NULL,
- *    PRIMARY KEY (id)
- * ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
- * );
- */
 public class ScheduleBean implements Updatable {
 
     @JsonProperty("id")
@@ -93,13 +78,13 @@ public class ScheduleBean implements Updatable {
     }
 
     public void setCurrent_session(Integer current_session) {
-        //Do validation here, user input may mess it up. If we get wrong data, UI will crash
+        // Do validation here, user input may mess it up. If we get wrong data, UI will crash
 
-        if (this.getTotal_sessions() != null && current_session > this.getTotal_sessions()){
-            throw new IllegalArgumentException(String.format("Current session %s cannot be bigger than total_session %s ",
-                        current_session,
-                this.getTotal_sessions()
-            ));
+        if (this.getTotal_sessions() != null && current_session > this.getTotal_sessions()) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Current session %s cannot be bigger than total_session %s ",
+                            current_session, this.getTotal_sessions()));
         }
         this.current_session = current_session;
     }
@@ -133,14 +118,14 @@ public class ScheduleBean implements Updatable {
         return clause;
     }
 
-    public final static String UPDATE_CLAUSE =
-        "id=VALUES(id)," +
-            "total_sessions=VALUES(total_sessions)," +
-            "cooldown_times=VALUES(cooldown_times)," +
-            "host_numbers=VALUES(host_numbers)," +
-            "current_session=VALUES(current_session)," +
-            "state=VALUES(state)," +
-            "state_start_time=VALUES(state_start_time)";
+    public static final String UPDATE_CLAUSE =
+            "id=VALUES(id),"
+                    + "total_sessions=VALUES(total_sessions),"
+                    + "cooldown_times=VALUES(cooldown_times),"
+                    + "host_numbers=VALUES(host_numbers),"
+                    + "current_session=VALUES(current_session),"
+                    + "state=VALUES(state),"
+                    + "state_start_time=VALUES(state_start_time)";
 
     @Override
     public String toString() {

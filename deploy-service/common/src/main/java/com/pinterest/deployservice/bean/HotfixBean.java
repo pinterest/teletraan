@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,9 @@
  */
 package com.pinterest.deployservice.bean;
 
-import javax.validation.constraints.NotEmpty;
-
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE hotfixes (
- * id              VARCHAR(22)     NOT NULL,
- * env_name        VARCHAR(64)     NOT NULL,
- * state           VARCHAR(32)     NOT NULL,
- * operator        VARCHAR(32)     NOT NULL,
- * job_num         VARCHAR(32),
- * job_name        VARCHAR(64)     NOT NULL,
- * base_deploy     VARCHAR(22)     NOT NULL,
- * base_commit     VARCHAR(64),
- * repo            VARCHAR(64)     NOT NULL,
- * commits         VARCHAR(2048)   NOT NULL,
- * timeout         INT             NOT NULL,
- * start_time      BIGINT          NOT NULL,
- * progress        INT             NOT NULL,
- * error_message   VARCHAR(2048),
- * last_worked_on  BIGINT          NOT NULL,
- * PRIMARY KEY    (id)
- * );
- */
+import javax.validation.constraints.NotEmpty;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 public class HotfixBean implements Updatable {
     private String id;
@@ -68,8 +43,7 @@ public class HotfixBean implements Updatable {
 
     private String repo;
 
-    @NotEmpty
-    private String commits;
+    @NotEmpty private String commits;
 
     private Integer timeout;
 

@@ -18,18 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/*
- * spotless:off
- * Keep the bean and table in sync
- * <p/>
- * CREATE TABLE agent_errors (
- * host_name   VARCHAR(64)         NOT NULL,
- * env_id      VARCHAR(22)         NOT NULL,
- * error_msg   TEXT                NOT NULL,
- * PRIMARY KEY (host_name, env_id)
- * );
- * spotless:on
- */
 public class AgentErrorBean implements Updatable {
     @JsonProperty("hostId")
     private String host_id;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE host_and_agents (
- * host_id         VARCHAR(64)         NOT NULL,
- * host_name       VARCHAR(64),
- * ip              VARCHAR(64),
- * create_date     BIGINT              NOT NULL,
- * last_update     BIGINT              NOT NULL,
- * agent_version   VARCHAR(64),
- * auto_scaling_group VARCHAR(128)     DEFAULT NULL,
- * PRIMARY KEY    host_id
- * );
- */
 public class HostAgentBean implements Updatable {
     @JsonProperty("hostName")
     private String host_name;
@@ -123,13 +109,13 @@ public class HostAgentBean implements Updatable {
         return clause;
     }
 
-    public final static String UPDATE_CLAUSE =
-        "host_name=VALUES(host_name)," +
-        "ip=VALUES(ip)," +
-        "host_id=VALUES(host_id)," +
-        "last_update=VALUES(last_update)," +
-        "agent_version=VALUES(agent_version)," +
-        "auto_scaling_group=VALUES(auto_scaling_group)";
+    public static final String UPDATE_CLAUSE =
+            "host_name=VALUES(host_name),"
+                    + "ip=VALUES(ip),"
+                    + "host_id=VALUES(host_id),"
+                    + "last_update=VALUES(last_update),"
+                    + "agent_version=VALUES(agent_version),"
+                    + "auto_scaling_group=VALUES(auto_scaling_group)";
 
     @Override
     public String toString() {

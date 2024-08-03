@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,11 @@ package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
 import javax.annotation.Nonnull;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * create table tokens_and_roles (
- * script_name   VARCHAR(64)   NOT NULL,
- * resource_id   VARCHAR(64)   NOT NULL,
- * resource_type VARCHAR(16)   NOT NULL,
- * token         VARCHAR(22)   NOT NULL,
- * role          VARCHAR(22)   NOT NULL,
- * expire_date BIGINT          NOT NULL,
- * PRIMARY KEY (resource_id, resource_type, script_name)
- * );
- */
 public class TokenRolesBean implements Updatable {
 
     @NotEmpty

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,10 @@ package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * create table users_and_roles (
- * user_name     VARCHAR(64)     NOT NULL,
- * resource_id   VARCHAR(64)     NOT NULL,
- * resource_type VARCHAR(16)     NOT NULL,
- * role          VARCHAR(22)     NOT NULL,
- * PRIMARY KEY (resource_id, resource_type, user_name)
- * );
- */
 public class UserRolesBean implements Updatable {
 
     @NotEmpty
@@ -81,10 +70,10 @@ public class UserRolesBean implements Updatable {
     }
 
     public static final String UPDATE_CLAUSE =
-            "user_name=VALUES(user_name)," +
-                    "resource_id=VALUES(resource_id)," +
-                    "resource_type=VALUES(resource_type)," +
-                    "role=VALUES(role)";
+            "user_name=VALUES(user_name),"
+                    + "resource_id=VALUES(resource_id),"
+                    + "resource_type=VALUES(resource_type),"
+                    + "role=VALUES(role)";
 
     @Override
     public SetClause genSetClause() {

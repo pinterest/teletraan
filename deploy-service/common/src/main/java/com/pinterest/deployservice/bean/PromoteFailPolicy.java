@@ -16,16 +16,10 @@
 package com.pinterest.deployservice.bean;
 
 public enum PromoteFailPolicy {
-    /**
-     * Failed deploy is ignored, deploy will still be automatically promoted
-     */
+    /** Failed deploy is ignored, deploy will still be automatically promoted */
     CONTINUE,
-    /**
-     * Auto prmote is disabled, leave the failed deploy in place
-     */
+    /** Auto prmote is disabled, leave the failed deploy in place */
     DISABLE,
-    /**
-     * Failed deploy is automatically rolled back, auto promote is disabled
-     */
+    /** Failed deploy is automatically rolled back, auto promote is disabled */
     ROLLBACK
 }

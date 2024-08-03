@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
- * <p>
+ * Copyright (c) 2016-2024 Pinterest, Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,62 +16,12 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.io.Serializable;
+import javax.validation.constraints.NotEmpty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.validator.constraints.Range;
 
-import java.io.Serializable;
-import javax.validation.constraints.NotEmpty;
-
-/**
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE environs (
- * env_id        VARCHAR(22)         NOT NULL,
- * env_name      VARCHAR(64)         NOT NULL,
- * stage_name    VARCHAR(64)         NOT NULL,
- * env_state     VARCHAR(32)         NOT NULL,
- * description   VARCHAR(1024),
- * build_name    VARCHAR(64),
- * branch        VARCHAR(64),
- * chatroom      VARCHAR(128),
- * deploy_id     VARCHAR(22),
- * deploy_type   VARCHAR(32),
- * max_parallel  INT                 NOT NULL,
- * priority      VARCHAR(16)         NOT NULL,
- * system_priority  INT,
- * stuck_th      INT                 NOT NULL,
- * success_th    INT                 NOT NULL,
- * adv_config_id VARCHAR(22),
- * sc_config_id  VARCHAR(22),
- * last_operator VARCHAR(64)         NOT NULL,
- * last_update   BIGINT              NOT NULL,
- * acc_type      VARCHAR(32)         NOT NULL,
- * email_recipients VARCHAR(1024),
- * watch_recipients VARCHAR(1024),
- * group_mention_recipients VARCHAR(1024),
- * metrics_config_id VARCHAR(22),
- * alarm_config_id     VARCHAR(22),
- * webhooks_config_id  VARCHAR(22),
- * max_deploy_num      INT           NOT NULL,
- * max_deploy_day      INT           NOT NULL,
- * is_docker           TINYINT(1)    DEFAULT 0,
- * max_parallel_pct    TINYINT(1)    NOT NULL DEFAULT 0,
- * state               VARCHAR(32)         NOT NULL,
- * cluster_name        VARCHAR(128)
- * max_parallel_rp     INT           NOT NULL DEFAULT 1,
- * schedule_id         VARCHAR(22)   DEFAULT NULL,
- * deploy_constraint_id VARCHAR(22)   DEFAULT NULL,
- * external_id CHAR(36),
- * allow_private_build TINYINT(1)    DEFAULT 0,
- * ensure_trusted_build TINYINT(1)    DEFAULT 0,
- * stage_type VARCHAR(32) NOT NULL DEFAULT PRODUCTION,
- * is_sox TINYINT(1) NOT NULL DEFAULT 0,
- * <p>
- * PRIMARY KEY   (env_id)
- * );
- */
 public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("id")
     private String env_id;
@@ -210,28 +160,34 @@ public class EnvironBean implements Updatable, Serializable {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         String envRegEx = "^[A-Za-z0-9_\\-]*$";
         if (this.env_name != null && !this.env_name.matches(envRegEx)) {
-            throw new IllegalArgumentException(String.format("Environment name must match regex %s", envRegEx));
+            throw new IllegalArgumentException(
+                    String.format("Environment name must match regex %s", envRegEx));
         }
         String stageRegEx = "^[A-Za-z0-9_\\-]*$";
         if (this.stage_name != null && !this.stage_name.matches(stageRegEx)) {
-            throw new IllegalArgumentException(String.format("Stage name must match regex %s", stageRegEx));
+            throw new IllegalArgumentException(
+                    String.format("Stage name must match regex %s", stageRegEx));
         }
         String buildRegEx = "^[A-Za-z0-9_\\.\\/\\-]*$";
         if (this.build_name != null && !this.build_name.matches(buildRegEx)) {
-            throw new IllegalArgumentException(String.format("Build name must match regex %s", buildRegEx));
+            throw new IllegalArgumentException(
+                    String.format("Build name must match regex %s", buildRegEx));
         }
         String branchRegEx = "^[A-Za-z0-9_\\:\\.\\,\\/\\-]*$";
         if (this.branch != null && !this.branch.matches(branchRegEx)) {
-            throw new IllegalArgumentException(String.format("Branch name must match regex %s", branchRegEx));
+            throw new IllegalArgumentException(
+                    String.format("Branch name must match regex %s", branchRegEx));
         }
         String chatRegex = "^[A-Za-z0-9_ \\#\\,\\-]*$";
         if (this.chatroom != null && !this.chatroom.matches(chatRegex)) {
-            throw new IllegalArgumentException(String.format("Chatroom must match regex %s", chatRegex));
+            throw new IllegalArgumentException(
+                    String.format("Chatroom must match regex %s", chatRegex));
         }
         if (this.stage_type == EnvType.DEFAULT) {
-            throw new IllegalArgumentException("DEFAULT stage type is not allowed! " +
-                        "Please select one of the following Stage Types: " +
-                        "PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV.");
+            throw new IllegalArgumentException(
+                    "DEFAULT stage type is not allowed! "
+                            + "Please select one of the following Stage Types: "
+                            + "PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV.");
         }
     }
 
@@ -633,5 +589,4 @@ public class EnvironBean implements Updatable, Serializable {
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
-
 }

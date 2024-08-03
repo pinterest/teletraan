@@ -18,20 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/*
- * spotless:off
- * Keep the bean and table in sync
- * <p/>
- * CREATE TABLE agent_count (
- * env_id   VARCHAR(22)    NOT NULL,
- * deploy_id VARCHAR(22)    NOT NULL,
- * existingCount    INT            NOT NULL DEFAULT 0,
- * activeCount    INT            NOT NULL DEFAULT 0,
- * last_refresh    BIGINT              NOT NULL,
- * PRIMARY KEY (env_id)
- * );
- * spotless:on
- */
 public class AgentCountBean implements Updatable {
     @JsonProperty("envId")
     private String env_id;
