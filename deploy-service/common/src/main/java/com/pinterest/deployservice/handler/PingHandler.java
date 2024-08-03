@@ -528,7 +528,7 @@ public class PingHandler {
                         hostId,
                         totalActiveAgentsWithHostTag,
                         maxParallelWithHostTag,
-                        deployConstraintBean.toString());
+                        deployConstraintBean);
                 return false;
             }
             if (deployConstraintBean.getConstraint_type() == DeployConstraintType.GROUP_BY_GROUP) {
@@ -601,7 +601,7 @@ public class PingHandler {
 
         if (schedule.getState() == ScheduleState.COOLING_DOWN) {
             LOG.debug(
-                    "Env {} is currently cooling down. Host {} will wait until the cooling down period is over.",
+                    "Env {} is currently cooling down. Hosts will wait until the cooling down period is over.",
                     env.getEnv_id());
             return false;
         } else {
@@ -707,7 +707,7 @@ public class PingHandler {
     PingRequestBean normalizePingRequest(PingRequestBean pingRequest) throws Exception {
         String hostId = pingRequest.getHostId();
         if (StringUtils.isEmpty(hostId)) {
-            LOG.error("Missing host id in request: ", pingRequest);
+            LOG.error("Missing host id in request: {}", pingRequest);
             throw new DeployInternalException("Missing host id in PingReqest");
         }
 

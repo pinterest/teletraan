@@ -150,7 +150,7 @@ public class AutoPromoter implements Runnable {
             LOG.info(
                     "Auto deploy due time is {} for check time {} for Environment {}",
                     autoDeployDueDate.toString(ISODateTimeFormat.dateTime()),
-                    checkTime.toString(),
+                    checkTime,
                     currEnvBean.getEnv_name());
 
             if (!autoDeployDueDate.isAfterNow()) {
@@ -310,10 +310,7 @@ public class AutoPromoter implements Runnable {
 
         PromoteResult result =
                 computePromoteBuildResult(currEnvBean, currDeployBean, size, promoteBean);
-        LOG.info(
-                "Promote result {} for env {}",
-                result.getResult().toString(),
-                currEnvBean.getEnv_name());
+        LOG.info("Promote result {} for env {}", result.getResult(), currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteBuild
                 && StringUtils.isNotEmpty(result.getPromotedBuild())) {
             safePromote(
@@ -407,10 +404,7 @@ public class AutoPromoter implements Runnable {
             throws Exception {
         PromoteResult result =
                 computePromoteDeployResult(currEnvBean, currDeployBean, size, promoteBean);
-        LOG.info(
-                "Promote result {} for env {}",
-                result.getResult().toString(),
-                currEnvBean.getEnv_name());
+        LOG.info("Promote result {} for env {}", result.getResult(), currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteDeploy
                 && result.getPredDeployInfo() != null) {
             safePromote(
@@ -533,8 +527,8 @@ public class AutoPromoter implements Runnable {
                 availableBuilds.size(),
                 buildName,
                 scmBranch,
-                interval.getStart().toString(),
-                interval.getEnd().toString());
+                interval.getStart(),
+                interval.getEnd());
         if (!availableBuilds.isEmpty()) {
             List<BuildTagBean> buildTagBeanList =
                     buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);

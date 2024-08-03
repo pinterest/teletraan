@@ -155,12 +155,10 @@ public class Tags {
         String operator = sc.getUserPrincipal().getName();
         TagBean retEntity = new TagBean();
         if (handlers.containsKey(tag.getTarget_type())) {
-            LOG.debug("Found handler for target type {}", tag.getTarget_type().toString());
+            LOG.debug("Found handler for target type {}", tag.getTarget_type());
             retEntity = handlers.get(tag.getTarget_type()).createTag(tag, operator);
         } else {
-            LOG.debug(
-                    "No handler found for target type {}. Use default",
-                    tag.getTarget_type().toString());
+            LOG.debug("No handler found for target type {}. Use default", tag.getTarget_type());
             // Default logic. Ideally each type should write its own handler.
             // At current time, ignore the target id object existence test. The
             // handler should do that.

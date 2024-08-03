@@ -132,7 +132,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
             if (tagBuild.getScm_commit().equals(build.getScm_commit())) {
                 // Tag is on the exact commit
                 LOG.debug(
-                        "Found tag on the exact commit {}",
+                        "Found tag {} on the exact commit {}",
                         tags.get(i).getTag().getValue(),
                         tagBuild.getScm_commit());
                 ret = tags.get(i).getTag();
