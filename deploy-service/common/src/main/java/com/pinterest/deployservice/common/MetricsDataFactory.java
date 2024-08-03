@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,21 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.pinterest.deployservice.bean.MetricsConfigBean;
 import com.pinterest.deployservice.bean.MetricsSpecBean;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
- * Class for converting deploy metrics data into JsonObjects and Strings to be used with the Data table.
+ * Class for converting deploy metrics data into JsonObjects and Strings to be used with the Data
+ * table.
  */
 public class MetricsDataFactory implements PersistableJSONFactory<List<MetricsConfigBean>> {
     private static final Logger LOG = LoggerFactory.getLogger(MetricsDataFactory.class);
 
-    /**
-     * Convert this.URLs to a JSON string.
-     */
+    /** Convert this.URLs to a JSON string. */
     public String toJson(List<MetricsConfigBean> configs) {
         JsonObject json = new JsonObject();
         JsonArray arrayOfUrlJson = new JsonArray();
@@ -59,7 +57,6 @@ public class MetricsDataFactory implements PersistableJSONFactory<List<MetricsCo
             // Add array of URL's metrics json data under specs key
             urlJson.add("specs", arrayOfSpecJson);
             arrayOfUrlJson.add(urlJson);
-
         }
         // Add json array of each url under urlMetricsData key
         json.add("urlMetricsData", arrayOfUrlJson);
@@ -67,9 +64,7 @@ public class MetricsDataFactory implements PersistableJSONFactory<List<MetricsCo
         return json.toString();
     }
 
-    /**
-     * Takes a JSON string and returns a corresponding JsonObject.
-     */
+    /** Takes a JSON string and returns a corresponding JsonObject. */
     public List<MetricsConfigBean> fromJson(String payload) {
         if (StringUtils.isEmpty(payload)) {
             return Collections.emptyList();

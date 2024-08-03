@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
  */
 package com.pinterest.deployservice.chat;
 
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HipChatManager implements ChatManager {
     private static final Logger LOG = LoggerFactory.getLogger(HipChatManager.class);
@@ -75,7 +74,8 @@ public class HipChatManager implements ChatManager {
                 connection = (HttpURLConnection) requestUrl.openConnection();
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                connection.setRequestProperty("Content-Length", Integer.toString(paramsToSend.getBytes().length));
+                connection.setRequestProperty(
+                        "Content-Length", Integer.toString(paramsToSend.getBytes().length));
                 connection.setRequestProperty("Content-Language", "en-US");
                 output = new DataOutputStream(connection.getOutputStream());
                 output.writeBytes(paramsToSend);
@@ -95,7 +95,7 @@ public class HipChatManager implements ChatManager {
 
     @Override
     public void sendToUser(String from, String user, String message, String color)
-        throws Exception {
+            throws Exception {
         LOG.info("HipChatManager sendToUser not implemented yet!");
     }
 }

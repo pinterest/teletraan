@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 package com.pinterest.deployservice.common;
 
-
 import com.pinterest.deployservice.handler.CommonHandler;
+import java.util.concurrent.Callable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Callable;
 
 public final class NotificationJob implements Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationJob.class);
@@ -31,7 +29,12 @@ public final class NotificationJob implements Callable<Void> {
     private String chatrooms;
     private CommonHandler commonHandler;
 
-    public NotificationJob(String message, String subject, String recipients, String chatrooms, CommonHandler commonHandler) {
+    public NotificationJob(
+            String message,
+            String subject,
+            String recipients,
+            String chatrooms,
+            CommonHandler commonHandler) {
         this.message = message;
         this.subject = subject;
         this.recipients = recipients;
@@ -48,7 +51,8 @@ public final class NotificationJob implements Callable<Void> {
 
             if (!StringUtils.isEmpty(chatrooms)) {
                 LOG.info(String.format("Send message to %s", chatrooms));
-                commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", "");
+                commonHandler.sendChatMessage(
+                        Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", "");
             }
         } catch (Throwable t) {
             LOG.error(String.format("%s: Failed to send notifications.", subject), t);

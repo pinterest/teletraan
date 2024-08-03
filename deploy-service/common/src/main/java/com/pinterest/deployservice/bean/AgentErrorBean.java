@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
+/*
+ * spotless:off
  * Keep the bean and table in sync
  * <p/>
  * CREATE TABLE agent_errors (
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
  * error_msg   TEXT                NOT NULL,
  * PRIMARY KEY (host_name, env_id)
  * );
+ * spotless:on
  */
 public class AgentErrorBean implements Updatable {
     @JsonProperty("hostId")
@@ -41,9 +43,13 @@ public class AgentErrorBean implements Updatable {
     @JsonProperty("errorMessage")
     private String error_msg;
 
-    public String getHost_id() { return host_id; }
+    public String getHost_id() {
+        return host_id;
+    }
 
-    public void setHost_id(String host_id) { this.host_id = host_id; }
+    public void setHost_id(String host_id) {
+        this.host_id = host_id;
+    }
 
     public String getHost_name() {
         return host_name;

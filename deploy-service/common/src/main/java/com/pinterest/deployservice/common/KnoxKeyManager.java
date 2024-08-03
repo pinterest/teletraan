@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Pinterest, Inc.
+ * Copyright (c) 2021 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,9 @@ package com.pinterest.deployservice.common;
 import com.pinterest.deployservice.knox.CommandLineKnox;
 import com.pinterest.deployservice.knox.FileSystemKnox;
 import com.pinterest.deployservice.knox.Knox;
-
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-
 
 public class KnoxKeyManager {
     private final Logger LOG = LoggerFactory.getLogger(KnoxKeyManager.class);
@@ -43,8 +40,7 @@ public class KnoxKeyManager {
             while (!file.exists() && System.currentTimeMillis() - startTime < 5000) {
                 try {
                     Thread.sleep(100);
-                }
-                catch (InterruptedException ignore) {
+                } catch (InterruptedException ignore) {
                 }
             }
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.pinterest.deployservice.bean.EnvWebHookBean;
 import com.pinterest.deployservice.bean.WebHookBean;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
-/**
- * Serialize and deserialize EnvWebHookBean to and from a JSON string
- */
+/** Serialize and deserialize EnvWebHookBean to and from a JSON string */
 public class WebhookDataFactory implements PersistableJSONFactory<EnvWebHookBean> {
     private static final Logger LOG = LoggerFactory.getLogger(WebhookDataFactory.class);
     private static final String METHOD = "method";
@@ -67,9 +63,7 @@ public class WebhookDataFactory implements PersistableJSONFactory<EnvWebHookBean
         hook.setBody(getString(hookObj, BODY));
     }
 
-    /**
-     * Convert an EnvWebHookBean object into a JSON string
-     */
+    /** Convert an EnvWebHookBean object into a JSON string */
     public String toJson(EnvWebHookBean envWebhooks) {
         JsonObject json = new JsonObject();
         JsonArray arrayOfPreHookJson = new JsonArray();
@@ -91,7 +85,6 @@ public class WebhookDataFactory implements PersistableJSONFactory<EnvWebHookBean
                 JsonObject hookJson = new JsonObject();
                 addProperties(hookJson, hook);
                 arrayOfPostHookJson.add(hookJson);
-
             }
         }
 
@@ -100,9 +93,7 @@ public class WebhookDataFactory implements PersistableJSONFactory<EnvWebHookBean
         return json.toString();
     }
 
-    /**
-     * Take a JSON string and convert into an EnvWebHookBean object
-     */
+    /** Take a JSON string and convert into an EnvWebHookBean object */
     public EnvWebHookBean fromJson(String json) {
         EnvWebHookBean EnvWebHookBean = new EnvWebHookBean();
         if (StringUtils.isEmpty(json)) {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
+/*
+ * spotless:off
  * Keep the bean and table in sync
  * <p/>
  * CREATE TABLE agent_count (
@@ -29,6 +30,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
  * last_refresh    BIGINT              NOT NULL,
  * PRIMARY KEY (env_id)
  * );
+ * spotless:on
  */
 public class AgentCountBean implements Updatable {
     @JsonProperty("envId")
@@ -97,12 +99,12 @@ public class AgentCountBean implements Updatable {
         return clause;
     }
 
-    public final static String UPDATE_CLAUSE =
-        "env_id=VALUES(env_id)," +
-        "deploy_id=VALUES(deploy_id)," +
-        "existing_count=VALUES(existing_count)," +
-        "active_count=VALUES(active_count)," +
-        "last_refresh=CASE WHEN last_refresh IS NOT NULL THEN VALUES(last_refresh) ELSE last_refresh END";
+    public static final String UPDATE_CLAUSE =
+            "env_id=VALUES(env_id),"
+                    + "deploy_id=VALUES(deploy_id),"
+                    + "existing_count=VALUES(existing_count),"
+                    + "active_count=VALUES(active_count),"
+                    + "last_refresh=CASE WHEN last_refresh IS NOT NULL THEN VALUES(last_refresh) ELSE last_refresh END";
 
     @Override
     public String toString() {

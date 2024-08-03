@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class DefaultChatManager implements ChatManager {
 
     @Override
     public void sendToUser(String from, String user, String message, String color)
-        throws Exception {
+            throws Exception {
         LOG.info("DefaultChatManager!");
     }
 }

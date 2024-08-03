@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,11 @@ package com.pinterest.deployservice.common;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
-
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.text.SimpleDateFormat;
 
 public class CommonUtils {
     /**
@@ -66,7 +65,9 @@ public class CommonUtils {
     public static Map<String, String> encodeScript(Map<String, String> data) throws Exception {
         Map<String, String> encoded = new HashMap<String, String>(data.size());
         for (Map.Entry<String, String> entry : data.entrySet()) {
-            encoded.put(entry.getKey(), Base64.encodeBase64URLSafeString(entry.getValue().getBytes("UTF8")));
+            encoded.put(
+                    entry.getKey(),
+                    Base64.encodeBase64URLSafeString(entry.getValue().getBytes("UTF8")));
         }
         return encoded;
     }
@@ -74,16 +75,17 @@ public class CommonUtils {
     public static Map<String, String> decodeScript(Map<String, String> data) throws Exception {
         Map<String, String> decoded = new HashMap<String, String>(data.size());
         for (Map.Entry<String, String> entry : data.entrySet()) {
-            decoded.put(entry.getKey(), new String(Base64.decodeBase64(entry.getValue().getBytes("UTF8")), "UTF8"));
+            decoded.put(
+                    entry.getKey(),
+                    new String(Base64.decodeBase64(entry.getValue().getBytes("UTF8")), "UTF8"));
         }
         return decoded;
     }
 
     public static String determineScm(String repo) {
-        if(repo.contains("/")) {
+        if (repo.contains("/")) {
             return "Github";
-        }
-        else {
+        } else {
             return "Phabricator";
         }
     }

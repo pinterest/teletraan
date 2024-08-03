@@ -16,28 +16,16 @@
 package com.pinterest.deployservice.bean;
 
 public enum AcceptanceStatus {
-    /**
-     * Deploy has not completed yet
-     */
+    /** Deploy has not completed yet */
     PENDING_DEPLOY,
-    /**
-     * Deploy is waiting to be tested
-     */
+    /** Deploy is waiting to be tested */
     OUTSTANDING,
-    /**
-     * Deploy is being tested
-     */
+    /** Deploy is being tested */
     PENDING_ACCEPT,
-    /**
-     * Deploy is accepted
-     */
+    /** Deploy is accepted */
     ACCEPTED,
-    /**
-     * Deploy is rejected
-     */
+    /** Deploy is rejected */
     REJECTED,
-    /**
-     * Deploy becomes inactive before accepted or rejected
-     */
+    /** Deploy becomes inactive before accepted or rejected */
     TERMINATED
 }

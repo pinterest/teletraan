@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,26 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
 import java.util.List;
 
 public interface TokenRolesDAO {
     void insert(TokenRolesBean bean) throws Exception;
 
-    void delete(String scriptName, String resourceId, AuthZResource.Type resourceType) throws Exception;
+    void delete(String scriptName, String resourceId, AuthZResource.Type resourceType)
+            throws Exception;
 
-    void update(TokenRolesBean bean, String scriptName, String resourceId, AuthZResource.Type resourceType)
+    void update(
+            TokenRolesBean bean,
+            String scriptName,
+            String resourceId,
+            AuthZResource.Type resourceType)
             throws Exception;
 
     TokenRolesBean getByToken(String token) throws Exception;
 
-    TokenRolesBean getByNameAndResource(String scriptName, String resourceId, AuthZResource.Type resourceType)
-            throws Exception;
+    TokenRolesBean getByNameAndResource(
+            String scriptName, String resourceId, AuthZResource.Type resourceType) throws Exception;
 
-    List<TokenRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType) throws Exception;
+    List<TokenRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType)
+            throws Exception;
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2023 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,13 @@
  */
 package com.pinterest.deployservice.chat;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.slack.api.Slack;
+import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import com.slack.api.methods.response.users.UsersLookupByEmailResponse;
-import com.slack.api.methods.SlackApiException;
-
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SlackChatManager implements ChatManager {
     private static final Logger LOG = LoggerFactory.getLogger(SlackChatManager.class);
@@ -46,15 +42,18 @@ public class SlackChatManager implements ChatManager {
         LOG.debug("slack post message: " + msg);
         for (int i = 0; i < TOTAL_RETRY; i++) {
             try {
-                ChatPostMessageResponse
-                    response = slack.methods(this.token).chatPostMessage(req -> req
-                    .channel(channel)
-                    .text(msg)
-                );
+                ChatPostMessageResponse response =
+                        slack.methods(this.token)
+                                .chatPostMessage(req -> req.channel(channel).text(msg));
                 if (response.isOk()) {
                     return;
                 } else {
-                    LOG.warn("Failed to send Slack message to " + channel + " (" + response.getError() + ")");
+                    LOG.warn(
+                            "Failed to send Slack message to "
+                                    + channel
+                                    + " ("
+                                    + response.getError()
+                                    + ")");
                 }
             } catch (Exception e) {
                 LOG.warn("Received exception from slack: " + e.getMessage());
@@ -67,10 +66,8 @@ public class SlackChatManager implements ChatManager {
     private String getUserIdFromEmail(String userHandle) {
         try {
             String email = userHandle.trim() + "@" + this.domain;
-            UsersLookupByEmailResponse
-                response = slack.methods(this.token).usersLookupByEmail(req ->
-                req.email(email)
-            );
+            UsersLookupByEmailResponse response =
+                    slack.methods(this.token).usersLookupByEmail(req -> req.email(email));
             if (response.isOk()) {
                 return response.getUser().getId();
             } else {
@@ -97,9 +94,13 @@ public class SlackChatManager implements ChatManager {
 
     // need to retrieve the user's id to send it as the channel parameter
     @Override
-    public void sendToUser(String from, String user, String message, String color) throws Exception {
+    public void sendToUser(String from, String user, String message, String color)
+            throws Exception {
         if (user == null) {
-            LOG.warn(String.format("Unable to send message %s: User information was not provided", message));
+            LOG.warn(
+                    String.format(
+                            "Unable to send message %s: User information was not provided",
+                            message));
             return;
         }
         try {
@@ -110,6 +111,5 @@ public class SlackChatManager implements ChatManager {
         } catch (Exception e) {
             LOG.warn("Received exception while notifying slack user: " + e.getMessage());
         }
-
     }
 }

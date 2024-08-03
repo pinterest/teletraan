@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2018 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@ package com.pinterest.deployservice.dao;
 import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.HostTagInfo;
 import com.pinterest.deployservice.bean.UpdateStatement;
-
 import java.util.List;
-
 
 public interface HostTagDAO {
     void insertOrUpdate(HostTagBean hostTagBean) throws Exception;
@@ -41,7 +39,9 @@ public interface HostTagDAO {
 
     List<HostTagInfo> getHostsByEnvId(String envId) throws Exception;
 
-    long countHostsByEnvIdAndTags(String envId, String tagName, List<String> tagValues) throws Exception;
+    long countHostsByEnvIdAndTags(String envId, String tagName, List<String> tagValues)
+            throws Exception;
 
-    List<String> getAllPrerequisiteTagValuesByEnvIdAndTagName(String envId, String tagName, String tagValue) throws Exception;
+    List<String> getAllPrerequisiteTagValuesByEnvIdAndTagName(
+            String envId, String tagName, String tagValue) throws Exception;
 }

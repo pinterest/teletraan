@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,20 +17,15 @@ package com.pinterest.deployservice.dao;
 
 import java.sql.Connection;
 
-/**
- * A collection of methods using database
- */
+/** A collection of methods using database */
 public interface UtilDAO {
 
     /**
-     * Given an arbitrary but unique id, use a connection to grab a DB lock.
-     * Return this connection if succeeds. The caller would have to hold on
-     * this connection, and close it in the end
+     * Given an arbitrary but unique id, use a connection to grab a DB lock. Return this connection
+     * if succeeds. The caller would have to hold on this connection, and close it in the end
      */
     Connection getLock(String id);
 
-    /**
-     * Release lock based on the id and connection
-     */
+    /** Release lock based on the id and connection */
     void releaseLock(String id, Connection connection);
 }

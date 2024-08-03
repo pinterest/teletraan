@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2017 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
-
 import java.util.List;
 
 public interface TagDAO {
@@ -33,10 +31,10 @@ public interface TagDAO {
     List<TagBean> getByTargetId(String target_id) throws Exception;
 
     List<TagBean> getByTargetIdAndType(String target_name, TagTargetType target_type)
-        throws Exception;
+            throws Exception;
 
-    List<TagBean> getLatestByTargetIdAndType(String target_name, TagTargetType target_type,
-                                             int size) throws Exception;
+    List<TagBean> getLatestByTargetIdAndType(
+            String target_name, TagTargetType target_type, int size) throws Exception;
 
     List<TagBean> getByValue(TagValue value) throws Exception;
 

@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.buildtags;
 
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.BuildTagBean;
 import com.pinterest.deployservice.bean.TagBean;
-
 import java.util.List;
 
 public interface BuildTagsManager {
     List<BuildTagBean> getEffectiveTagsWithBuilds(List<BuildBean> builds) throws Exception;
-    TagBean getEffectiveBuildTag(BuildBean build) throws  Exception;
+
+    TagBean getEffectiveBuildTag(BuildBean build) throws Exception;
 }

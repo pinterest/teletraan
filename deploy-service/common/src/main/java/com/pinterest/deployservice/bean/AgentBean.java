@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
+/*
+ * spotless:off
  * Keep the bean and table in sync
  * <p>
  * CREATE TABLE agents (
@@ -40,6 +41,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
  * container_health_status VARCHAR(32) NOT NULL DEFAULT "",
  * PRIMARY KEY    (host_id, env_id)
  * );
+ * spotless:on
  */
 public class AgentBean implements Updatable {
 
@@ -241,22 +243,22 @@ public class AgentBean implements Updatable {
         return clause;
     }
 
-    public final static String UPDATE_CLAUSE =
-        "host_id=VALUES(host_id)," +
-            "host_name=VALUES(host_name),"+
-            "deploy_id=VALUES(deploy_id)," +
-            "deploy_stage=VALUES(deploy_stage)," +
-            "start_date=VALUES(start_date)," +
-            "last_update=VALUES(last_update)," +
-            "last_operator=VALUES(last_operator)," +
-            "state=VALUES(state)," +
-            "status=VALUES(status)," +
-            "fail_count=VALUES(fail_count)," +
-            "last_err_no=VALUES(last_err_no)," +
-            "first_deploy=VALUES(first_deploy)," +
-            "first_deploy_time=CASE WHEN first_deploy_time IS NULL THEN VALUES(first_deploy_time) ELSE first_deploy_time END," +
-            "stage_start_date=VALUES(stage_start_date)," +
-            "container_health_status=VALUES(container_health_status)";
+    public static final String UPDATE_CLAUSE =
+            "host_id=VALUES(host_id),"
+                    + "host_name=VALUES(host_name),"
+                    + "deploy_id=VALUES(deploy_id),"
+                    + "deploy_stage=VALUES(deploy_stage),"
+                    + "start_date=VALUES(start_date),"
+                    + "last_update=VALUES(last_update),"
+                    + "last_operator=VALUES(last_operator),"
+                    + "state=VALUES(state),"
+                    + "status=VALUES(status),"
+                    + "fail_count=VALUES(fail_count),"
+                    + "last_err_no=VALUES(last_err_no),"
+                    + "first_deploy=VALUES(first_deploy),"
+                    + "first_deploy_time=CASE WHEN first_deploy_time IS NULL THEN VALUES(first_deploy_time) ELSE first_deploy_time END,"
+                    + "stage_start_date=VALUES(stage_start_date),"
+                    + "container_health_status=VALUES(container_health_status)";
 
     @Override
     public String toString() {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,24 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.GroupRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
 import java.util.List;
 
 public interface GroupRolesDAO {
     void insert(GroupRolesBean bean) throws Exception;
 
-    void delete(String groupName, String resourceId, AuthZResource.Type resourceType) throws Exception;
-
-    void update(GroupRolesBean bean, String groupName, String resourceId, AuthZResource.Type resourceType)
+    void delete(String groupName, String resourceId, AuthZResource.Type resourceType)
             throws Exception;
 
-    GroupRolesBean getByNameAndResource(String groupName, String resourceId, AuthZResource.Type resourceType)
+    void update(
+            GroupRolesBean bean,
+            String groupName,
+            String resourceId,
+            AuthZResource.Type resourceType)
             throws Exception;
 
-    List<GroupRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType) throws Exception;
+    GroupRolesBean getByNameAndResource(
+            String groupName, String resourceId, AuthZResource.Type resourceType) throws Exception;
+
+    List<GroupRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType)
+            throws Exception;
 }
