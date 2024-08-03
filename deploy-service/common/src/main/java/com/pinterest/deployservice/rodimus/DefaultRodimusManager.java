@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,20 @@
  */
 package com.pinterest.deployservice.rodimus;
 
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 public class DefaultRodimusManager implements RodimusManager {
 
     @Override
-    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception {
-    }
+    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds)
+            throws Exception {}
 
     @Override
-    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds, Boolean replaceHost)
-            throws Exception {
-    }
+    public void terminateHostsByClusterName(
+            String clusterName, Collection<String> hostIds, Boolean replaceHost) throws Exception {}
 
     @Override
     public Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception {
@@ -44,7 +41,8 @@ public class DefaultRodimusManager implements RodimusManager {
     }
 
     @Override
-    public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
+    public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds)
+            throws Exception {
         return new HashMap<>();
     }
 }

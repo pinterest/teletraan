@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,38 @@ package com.pinterest.deployservice.scm;
 
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.common.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class BaseManager implements SourceControlManager {
     private static final Logger LOG = LoggerFactory.getLogger(BaseManager.class);
     // Max allowed commits to return
-    private final static String DEFAULT_PATH = "";
-    private final static int MAX_COMMITS = 500;
-    
+    private static final String DEFAULT_PATH = "";
+    private static final int MAX_COMMITS = 500;
+
     protected String typeName;
-    
+
     public String getTypeName() {
         return typeName;
     }
 
-    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception {
-      return getCommits(repo, sha, keepHead, DEFAULT_PATH);
+    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead)
+            throws Exception {
+        return getCommits(repo, sha, keepHead, DEFAULT_PATH);
     }
 
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception {
-      return getCommits(repo, startSha, endSha, size, DEFAULT_PATH);
+    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size)
+            throws Exception {
+        return getCommits(repo, startSha, endSha, size, DEFAULT_PATH);
     }
 
     @Override
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Exception {
+    public List<CommitBean> getCommits(
+            String repo, String startSha, String endSha, int size, String path) throws Exception {
         if (size == 0) {
             size = MAX_COMMITS;
         }
@@ -98,7 +100,8 @@ public abstract class BaseManager implements SourceControlManager {
             CommitBean referenceCommit = referenceCommits.peek();
 
             // We find the endSha, or reach the endSha Date, let us return
-            if (commit.getSha().equals(referenceCommit.getSha()) || commit.getDate() <= referenceCommit.getDate()) {
+            if (commit.getSha().equals(referenceCommit.getSha())
+                    || commit.getDate() <= referenceCommit.getDate()) {
                 return fullCommits;
             }
 
@@ -114,7 +117,12 @@ public abstract class BaseManager implements SourceControlManager {
         }
 
         if (fullCommits.size() >= MAX_COMMITS) {
-            LOG.warn("Exceeded max commits for repo={}, startSha={}, endSha={}, path={}", repo, startSha, endSha, path);
+            LOG.warn(
+                    "Exceeded max commits for repo={}, startSha={}, endSha={}, path={}",
+                    repo,
+                    startSha,
+                    endSha,
+                    path);
         }
 
         return fullCommits;

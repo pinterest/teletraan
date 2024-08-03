@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.bean.TagBean;
 
-import javax.ws.rs.core.SecurityContext;
-
-/**
- * An common handler class for handling different type of tags
- */
+/** An common handler class for handling different type of tags */
 public abstract class TagHandler {
     public abstract TagBean createTag(TagBean tag, String operator) throws Exception;
 }

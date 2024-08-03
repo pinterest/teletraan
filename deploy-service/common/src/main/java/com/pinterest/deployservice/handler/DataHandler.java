@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,14 @@ import com.pinterest.deployservice.bean.DataBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.PersistableJSONFactory;
 import com.pinterest.deployservice.dao.DataDAO;
-
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collections;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public class DataHandler {
-    /**
-     * TODO we should save everything in json format, and get rid of STRING AND MAP
-     * But the migration would be hard though
+    /*
+     * TODO we should save everything in json format, and get rid of STRING AND MAP But the
+     * migration would be hard though
      */
     public enum DataType {
         MAP, // TODO do not use this, deprecated
@@ -61,7 +59,8 @@ public class DataHandler {
         updateData(id, CommonUtils.encodeData(data), operator);
     }
 
-    public <T> T getDataById(String id, Class<? extends PersistableJSONFactory<T>> clazz) throws Exception {
+    public <T> T getDataById(String id, Class<? extends PersistableJSONFactory<T>> clazz)
+            throws Exception {
         PersistableJSONFactory<T> factory = clazz.newInstance();
         if (StringUtils.isEmpty(id)) {
             return factory.fromJson(null);
@@ -73,12 +72,16 @@ public class DataHandler {
         return factory.fromJson(dataBean.getData());
     }
 
-    public <T> String insertData(T data, Class<? extends PersistableJSONFactory<T>> clazz, String operator) throws Exception {
+    public <T> String insertData(
+            T data, Class<? extends PersistableJSONFactory<T>> clazz, String operator)
+            throws Exception {
         PersistableJSONFactory<T> factory = clazz.newInstance();
         return insertData(factory.toJson(data), DataType.JSON, operator);
     }
 
-    public <T> void insertOrUpdateData(String id, T data, Class<? extends PersistableJSONFactory<T>> clazz, String operator) throws Exception {
+    public <T> void insertOrUpdateData(
+            String id, T data, Class<? extends PersistableJSONFactory<T>> clazz, String operator)
+            throws Exception {
         PersistableJSONFactory<T> factory = clazz.newInstance();
         DataBean dataBean = new DataBean();
         dataBean.setData(factory.toJson(data));
@@ -89,7 +92,9 @@ public class DataHandler {
         dataDAO.insertOrUpdate(id, dataBean);
     }
 
-    public <T> void updateData(String id, T data, Class<? extends PersistableJSONFactory<T>> clazz, String operator) throws Exception {
+    public <T> void updateData(
+            String id, T data, Class<? extends PersistableJSONFactory<T>> clazz, String operator)
+            throws Exception {
         PersistableJSONFactory<T> factory = clazz.newInstance();
         updateData(id, factory.toJson(data), operator);
     }

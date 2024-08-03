@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
@@ -27,7 +26,6 @@ import com.pinterest.deployservice.dao.TagDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class BuildTagHandler extends TagHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuildTagHandler.class);
@@ -39,7 +37,8 @@ public class BuildTagHandler extends TagHandler {
         this.buildDAO = context.getBuildDAO();
     }
 
-    @Override public TagBean createTag(TagBean tag, String operator) throws Exception {
+    @Override
+    public TagBean createTag(TagBean tag, String operator) throws Exception {
         BuildBean build = this.buildDAO.getById(tag.getTarget_id());
         if (build != null) {
             tag.setTarget_id(build.getBuild_name());
@@ -50,8 +49,12 @@ public class BuildTagHandler extends TagHandler {
             tag.setCreated_date(System.currentTimeMillis());
 
             tagDAO.insert(tag);
-            LOG.info("Successfully tagged {} on build {} by {}. Tag id is {}", tag.getValue(),
-                tag.getTarget_id(), tag.getOperator(), tag.getId());
+            LOG.info(
+                    "Successfully tagged {} on build {} by {}. Tag id is {}",
+                    tag.getValue(),
+                    tag.getTarget_id(),
+                    tag.getOperator(),
+                    tag.getId());
 
             return tagDAO.getById(tag.getId());
         } else {

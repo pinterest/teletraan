@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2017 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,18 +15,14 @@
  */
 package com.pinterest.deployservice.group;
 
-import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.common.CommonUtils;
-import com.pinterest.deployservice.common.HTTPClient;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.common.CommonUtils;
+import com.pinterest.deployservice.common.HTTPClient;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,13 +30,15 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CMDBHostGroupManager implements HostGroupManager {
     private static int TOTAL_RETRY = 10;
     private static final Logger LOG = LoggerFactory.getLogger(CMDBHostGroupManager.class);
     private String cmdbServer = null;
     private Gson gson = new Gson();
+
     public CMDBHostGroupManager(String cmdbServer) {
         this.cmdbServer = cmdbServer;
     }
@@ -51,7 +49,10 @@ public class CMDBHostGroupManager implements HostGroupManager {
         String url = String.format("%s/v2/query", cmdbServer);
 
         // construct data
-        String query = String.format("state:running AND (facts.deploy_service:\"%s\" facts.puppet_groups:\"%s\")", groupName, groupName);
+        String query =
+                String.format(
+                        "state:running AND (facts.deploy_service:\"%s\" facts.puppet_groups:\"%s\")",
+                        groupName, groupName);
         Map<String, String> data = new HashMap<>();
         data.put("query", query);
         data.put("fields", "id,state,config.name,config.internal_address,created_time");
@@ -91,7 +92,10 @@ public class CMDBHostGroupManager implements HostGroupManager {
         String url = String.format("%s/v2/query", cmdbServer);
 
         // construct data
-        String query = String.format("state:running AND (facts.deploy_service:\"%s\" facts.puppet_groups:\"%s\")", groupName, groupName);
+        String query =
+                String.format(
+                        "state:running AND (facts.deploy_service:\"%s\" facts.puppet_groups:\"%s\")",
+                        groupName, groupName);
         Map<String, String> data = new HashMap<>();
         data.put("query", query);
         data.put("fields", "state,id,location,created_time");
@@ -121,12 +125,14 @@ public class CMDBHostGroupManager implements HostGroupManager {
             }
         }
 
-        Collections.sort(results, new Comparator<Pair<Long, String>>() {
-            @Override
-            public int compare(Pair<Long, String> o1, Pair<Long, String> o2) {
-                return o2.getKey().compareTo(o1.getKey());
-            }
-        });
+        Collections.sort(
+                results,
+                new Comparator<Pair<Long, String>>() {
+                    @Override
+                    public int compare(Pair<Long, String> o1, Pair<Long, String> o2) {
+                        return o2.getKey().compareTo(o1.getKey());
+                    }
+                });
 
         return results.get(0).getValue();
     }
@@ -153,8 +159,9 @@ public class CMDBHostGroupManager implements HostGroupManager {
                 sb.append("&");
             }
 
-            sb.append(String.format("%s=%s", entry.getKey(),
-                URLEncoder.encode(entry.getValue(), "UTF-8")));
+            sb.append(
+                    String.format(
+                            "%s=%s", entry.getKey(), URLEncoder.encode(entry.getValue(), "UTF-8")));
         }
         return sb.toString();
     }

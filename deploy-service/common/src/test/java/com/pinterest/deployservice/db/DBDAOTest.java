@@ -15,6 +15,12 @@
  */
 package com.pinterest.deployservice.db;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentErrorBean;
@@ -67,14 +73,6 @@ import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,12 +81,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class DBDAOTest {
     private static BuildDAO buildDAO;
@@ -280,7 +279,9 @@ public class DBDAOTest {
         assertEquals(beans.size(), 1);
         assertEquals(beans.get(0).getDeploy_id(), "d-5");
 
-        assertEquals(envBean1.getEnv_id(), environDAO.getByDeployId(deployBean1.getDeploy_id()).getEnv_id());
+        assertEquals(
+                envBean1.getEnv_id(),
+                environDAO.getByDeployId(deployBean1.getDeploy_id()).getEnv_id());
 
         buildDAO.delete("bbb-1");
         buildDAO.delete("bbb-2");
@@ -361,13 +362,15 @@ public class DBDAOTest {
     public void testDeployAcceptedDelayed() throws Exception {
         long sucDate = System.currentTimeMillis();
         Interval interval = new Interval(sucDate - 1000, sucDate + 1000);
-        DeployBean deployBean = genDefaultDeployBean("d-1", "env-1", "bbb-1", 1000, DeployState.SUCCEEDED);
+        DeployBean deployBean =
+                genDefaultDeployBean("d-1", "env-1", "bbb-1", 1000, DeployState.SUCCEEDED);
         deployBean.setAcc_status(AcceptanceStatus.ACCEPTED);
         deployBean.setStart_date(sucDate);
         deployBean.setSuc_date(sucDate);
         deployDAO.insert(deployBean);
-        List<DeployBean> acceptedDeploysDelayed = deployDAO.getAcceptedDeploysDelayed(deployBean.getEnv_id(), interval);
-        assertEquals(1, acceptedDeploysDelayed.size() );
+        List<DeployBean> acceptedDeploysDelayed =
+                deployDAO.getAcceptedDeploysDelayed(deployBean.getEnv_id(), interval);
+        assertEquals(1, acceptedDeploysDelayed.size());
         assertEquals(deployBean.getDeploy_id(), acceptedDeploysDelayed.get(0).getDeploy_id());
     }
 
@@ -436,17 +439,16 @@ public class DBDAOTest {
         hostTagBean.setTag_value("value-2");
         hostTagDAO.insertOrUpdate(hostTagBean);
 
-        AgentBean
-            agentBean1 =
-            genDefaultAgentBean("h5", "host-1", "e-2", "d-1", DeployStage.SERVING_BUILD);
-        AgentBean
-            agentBean2 =
-            genDefaultAgentBean("h6", "host-2", "e-2", "d-1", DeployStage.SERVING_BUILD);
+        AgentBean agentBean1 =
+                genDefaultAgentBean("h5", "host-1", "e-2", "d-1", DeployStage.SERVING_BUILD);
+        AgentBean agentBean2 =
+                genDefaultAgentBean("h6", "host-2", "e-2", "d-1", DeployStage.SERVING_BUILD);
 
         agentDAO.insertOrUpdate(agentBean1);
         agentDAO.insertOrUpdate(agentBean2);
         List<String> values = Arrays.asList("value-1", "value-2");
-        long count = agentDAO.countFinishedAgentsByDeployWithHostTags("e-2", "d-1", "tag-1", values);
+        long count =
+                agentDAO.countFinishedAgentsByDeployWithHostTags("e-2", "d-1", "tag-1", values);
         assertEquals(2L, count);
     }
 
@@ -966,9 +968,8 @@ public class DBDAOTest {
         bean.setResource_type(AuthZResource.Type.ENV);
         bean.setRole(TeletraanPrincipalRole.ADMIN);
         userRolesDAO.insert(bean);
-        UserRolesBean
-            bean2 =
-            userRolesDAO.getByNameAndResource("test", "envTest", AuthZResource.Type.ENV);
+        UserRolesBean bean2 =
+                userRolesDAO.getByNameAndResource("test", "envTest", AuthZResource.Type.ENV);
         assertEquals(bean2.getRole(), TeletraanPrincipalRole.ADMIN);
     }
 
@@ -980,9 +981,8 @@ public class DBDAOTest {
         bean.setResource_type(AuthZResource.Type.ENV);
         bean.setRole(TeletraanPrincipalRole.ADMIN);
         groupRolesDAO.insert(bean);
-        GroupRolesBean
-            bean2 =
-            groupRolesDAO.getByNameAndResource("group", "123", AuthZResource.Type.ENV);
+        GroupRolesBean bean2 =
+                groupRolesDAO.getByNameAndResource("group", "123", AuthZResource.Type.ENV);
         assertEquals(bean2.getRole(), TeletraanPrincipalRole.ADMIN);
     }
 
@@ -996,9 +996,8 @@ public class DBDAOTest {
         bean.setRole(TeletraanPrincipalRole.ADMIN);
         bean.setExpire_date(System.currentTimeMillis());
         tokenRolesDAO.insert(bean);
-        TokenRolesBean
-            bean2 =
-            tokenRolesDAO.getByNameAndResource("test", "envTest", AuthZResource.Type.ENV);
+        TokenRolesBean bean2 =
+                tokenRolesDAO.getByNameAndResource("test", "envTest", AuthZResource.Type.ENV);
         assertEquals(bean2.getRole(), TeletraanPrincipalRole.ADMIN);
     }
 

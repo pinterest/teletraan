@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,17 +19,15 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.RatingBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.RatingDAO;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
-/**
- * Handler for user ratings and feedback
- */
+/** Handler for user ratings and feedback */
 public class RatingsHandler {
     private static final Logger LOG = LoggerFactory.getLogger(RatingsHandler.class);
-    private static final long TIME_BETWEEN_USER_FEEDBACK = (86400000L * 90L); // # Milliseconds in 90 days
+    private static final long TIME_BETWEEN_USER_FEEDBACK =
+            (86400000L * 90L); // # Milliseconds in 90 days
     private RatingDAO ratingDAO;
 
     public RatingsHandler(ServiceContext serviceContext) {

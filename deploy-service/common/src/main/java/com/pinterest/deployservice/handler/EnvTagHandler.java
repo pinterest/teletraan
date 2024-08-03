@@ -1,11 +1,11 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.handler;
-
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TagDAO;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +41,10 @@ public class EnvTagHandler extends TagHandler {
         tagBean.setOperator(operator);
         tagBean.setCreated_date(System.currentTimeMillis());
         tagDAO.insert(tagBean);
-        LOG.info(String.format("Successfully tagged %s on Env %s by %s. Tag id is %s",
-                tagBean.getValue(), tagBean.getTarget_id(), operator, tagBean.getId()));
+        LOG.info(
+                String.format(
+                        "Successfully tagged %s on Env %s by %s. Tag id is %s",
+                        tagBean.getValue(), tagBean.getTarget_id(), operator, tagBean.getId()));
         return tagDAO.getById(tagBean.getId());
     }
 }
