@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,30 +24,25 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.swagger.annotations.*;
-
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-
-import java.util.Collection;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/hosts")
 @Api(tags = "Hosts and Systems")
 @SwaggerDefinition(
         tags = {
-                @Tag(name = "Hosts and Systems", description = "Host info APIs"),
-        }
-)
+            @Tag(name = "Hosts and Systems", description = "Host info APIs"),
+        })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Hosts {
@@ -65,9 +60,9 @@ public class Hosts {
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     @ApiOperation(
             value = "Add a host",
-            notes = "Add a host to the system. Should be only called by Rodimus that's why it requires SYSTEM permission.")
-    public void addHost(@Context SecurityContext sc,
-                        @Valid HostBean hostBean) throws Exception {
+            notes =
+                    "Add a host to the system. Should be only called by Rodimus that's why it requires SYSTEM permission.")
+    public void addHost(@Context SecurityContext sc, @Valid HostBean hostBean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         hostBean.setLast_update(System.currentTimeMillis());
         if (hostBean.getCreate_date() == null) {
@@ -77,30 +72,38 @@ public class Hosts {
             hostBean.setState(HostState.PROVISIONED);
         }
         hostDAO.insert(hostBean);
-        LOG.info(String.format("Successfully added one host by %s: %s", operator, hostBean.toString()));
+        LOG.info(
+                String.format(
+                        "Successfully added one host by %s: %s", operator, hostBean.toString()));
     }
 
     @PUT
     @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.HOST, idLocation = ResourceAuthZInfo.Location.PATH)
-    public void updateHost(@Context SecurityContext sc,
-                           @PathParam("hostId") String hostId,
-                           @Valid HostBean hostBean) throws Exception {
+    public void updateHost(
+            @Context SecurityContext sc,
+            @PathParam("hostId") String hostId,
+            @Valid HostBean hostBean)
+            throws Exception {
         String operator = sc.getUserPrincipal().getName();
         hostBean.setHost_id(hostId);
         hostBean.setLast_update(System.currentTimeMillis());
         hostDAO.updateHostById(hostId, hostBean);
-        LOG.info(String.format("Successfully updated one host by %s: %s", operator, hostBean.toString()));
+        LOG.info(
+                String.format(
+                        "Successfully updated one host by %s: %s", operator, hostBean.toString()));
     }
 
     @DELETE
     @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(type = AuthZResource.Type.HOST, idLocation = ResourceAuthZInfo.Location.PATH)
-    public void stopHost(@Context SecurityContext sc,
+    public void stopHost(
+            @Context SecurityContext sc,
             @PathParam("hostId") String hostId,
-            @ApiParam(value = "Replace the host or not") @QueryParam("replaceHost") Optional<Boolean> replaceHost)
+            @ApiParam(value = "Replace the host or not") @QueryParam("replaceHost")
+                    Optional<Boolean> replaceHost)
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
         environHandler.stopServiceOnHost(hostId, replaceHost.or(true));
@@ -112,9 +115,11 @@ public class Hosts {
     @ApiOperation(
             value = "Get host info objects by host name",
             notes = "Returns a list of host info objects given a host name",
-            response = HostBean.class, responseContainer = "List")
+            response = HostBean.class,
+            responseContainer = "List")
     public List<HostBean> get(
-            @ApiParam(value = "Host name", required = true)@PathParam("hostName") String hostName) throws Exception {
+            @ApiParam(value = "Host name", required = true) @PathParam("hostName") String hostName)
+            throws Exception {
         return hostDAO.getHosts(hostName);
     }
 

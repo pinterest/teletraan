@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,14 @@ import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-
+import java.util.List;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.List;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/token_roles")
@@ -47,11 +45,13 @@ public class EnvTokenRoles extends TokenRoles {
     @ApiOperation(
             value = "Get environment TokenRoles objects",
             notes = "Returns all the TokenRoles objects for a given environment.",
-            response = TokenRolesBean.class, responseContainer = "List")
+            response = TokenRolesBean.class,
+            responseContainer = "List")
     @RolesAllowed(TeletraanPrincipalRole.Names.READ)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public List<TokenRolesBean> getByResource(
-            @ApiParam(value = "Environment name.", required = true) @PathParam("envName") String envName)
+            @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
+                    String envName)
             throws Exception {
         return super.getByResource(envName, RESOURCE_TYPE);
     }
@@ -65,8 +65,11 @@ public class EnvTokenRoles extends TokenRoles {
     @RolesAllowed(TeletraanPrincipalRole.Names.READ)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public TokenRolesBean getByNameAndResource(
-            @ApiParam(value = "Environment name.", required = true) @PathParam("envName") String envName,
-            @ApiParam(value = "Script name.", required = true) @PathParam("scriptName") String scriptName) throws Exception {
+            @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
+                    String envName,
+            @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")
+                    String scriptName)
+            throws Exception {
         return super.getByNameAndResource(scriptName, envName, RESOURCE_TYPE);
     }
 
@@ -74,24 +77,34 @@ public class EnvTokenRoles extends TokenRoles {
     @Path("/{scriptName : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Update an envrionment's script token",
-            notes = "Update a specific environment script token given environment and script names.")
+            notes =
+                    "Update a specific environment script token given environment and script names.")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
-    public void update(@ApiParam(value = "Environment name.", required = true) @PathParam("envName") String envName,
-            @ApiParam(value = "Script name.", required = true)@PathParam("scriptName") String scriptName, TokenRolesBean bean) throws Exception {
+    public void update(
+            @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
+                    String envName,
+            @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")
+                    String scriptName,
+            TokenRolesBean bean)
+            throws Exception {
         super.update(bean, scriptName, envName, RESOURCE_TYPE);
     }
 
     @POST
     @ApiOperation(
             value = "Create an environment script token",
-            notes = "Creates an environment script token with given environment name and TokenRoles object.",
+            notes =
+                    "Creates an environment script token with given environment name and TokenRoles object.",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
-    public Response create(@Context UriInfo uriInfo,
-            @ApiParam(value = "Environment name.", required = true) @PathParam("envName") String envName,
-            @ApiParam(value = "TokenRolesBean object.", required = true)@Valid TokenRolesBean bean) throws Exception {
+    public Response create(
+            @Context UriInfo uriInfo,
+            @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
+                    String envName,
+            @ApiParam(value = "TokenRolesBean object.", required = true) @Valid TokenRolesBean bean)
+            throws Exception {
         return super.create(uriInfo, bean, envName, RESOURCE_TYPE);
     }
 
@@ -102,8 +115,12 @@ public class EnvTokenRoles extends TokenRoles {
             notes = "Deletes a script token by given environment and script name.")
     @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
-    public void delete(@ApiParam(value = "Environment name.", required = true) @PathParam("envName") String envName,
-            @ApiParam(value = "Script name.", required = true)@PathParam("scriptName") String scriptName) throws Exception {
+    public void delete(
+            @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
+                    String envName,
+            @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")
+                    String scriptName)
+            throws Exception {
         super.delete(scriptName, envName, RESOURCE_TYPE);
     }
 }
