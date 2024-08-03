@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -315,6 +315,7 @@ public class GoalAnalystTest {
 
         AgentBean agent = genDefaultAgent();
         agent.setFirst_deploy(true);
+        agent.setStart_date(0L);
         agents.put(agent.getEnv_id(), agent);
         GoalAnalyst analyst = new GoalAnalyst(null, null, null, null, "foo", "id-1", envs, reports, agents, null);
         analyst.analysis();
@@ -348,6 +349,7 @@ public class GoalAnalystTest {
 
         AgentBean agent = genDefaultAgent();
         agent.setFirst_deploy(true);
+        agent.setStart_date(0L);
         agents.put(agent.getEnv_id(), agent);
         GoalAnalyst analyst = new GoalAnalyst(null, null, null, null, "foo", "id-1", envs, reports, agents, null);
         analyst.analysis();

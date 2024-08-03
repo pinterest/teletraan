@@ -15,6 +15,9 @@
  */
 package com.pinterest.deployservice.handler;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +46,9 @@ import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
+
+import io.micrometer.core.instrument.Metrics;
+
 import com.pinterest.deployservice.dao.DeployConstraintDAO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,6 +59,8 @@ public class GoalAnalyst {
     // Notice hotfix and rollback priority should still lower than system service priority
     private static final int HOT_FIX_PRIORITY = DeployPriority.HIGHER.getValue() - 20;
     private static final int ROLL_BACK_PRIORITY = DeployPriority.HIGHER.getValue() - 10;
+    private static final String DEPLOY_LATENCY_TIMER_NAME = CUSTOM_NAME_PREFIX + "teletraan.%s.%s.deploy_latency";
+    private static final String FIRST_DEPLOY_COUNTER_NAME = CUSTOM_NAME_PREFIX + "teletraan.%s.%s.first_deploy";
 
     private String host;
     private String host_id;
@@ -346,18 +354,19 @@ public class GoalAnalyst {
     // We populate all the fields, since this could be used for insertOrUpdate as well
     AgentBean genUpdateBeanByReport(PingReportBean report, AgentBean agent) {
         // We generate complete bean in case we need to insertOrUpdate it into agents table
+        long currentTime = System.currentTimeMillis();
         AgentBean updateBean = new AgentBean();
         updateBean.setHost_name(host);
         updateBean.setHost_id(host_id);
         updateBean.setDeploy_id(report.getDeployId());
         updateBean.setEnv_id(report.getEnvId());
-        updateBean.setLast_update(System.currentTimeMillis());
+        updateBean.setLast_update(currentTime);
         updateBean.setLast_operator(Constants.SYSTEM_OPERATOR);
         updateBean.setFail_count(report.getFailCount());
         updateBean.setStatus(report.getAgentStatus());
         updateBean.setLast_err_no(report.getErrorCode());
         updateBean.setState(proposeNewAgentState(report, agent));
-        updateBean.setStage_start_date(System.currentTimeMillis());
+        updateBean.setStage_start_date(currentTime);
         updateBean.setDeploy_stage(report.getDeployStage());
         if (report.getContainerHealthStatus() == null) {
             updateBean.setContainer_health_status("");
@@ -368,20 +377,34 @@ public class GoalAnalyst {
         if (agent == null) {
             // if agent is missing in agent table, treat it as not first_deploy.
             updateBean.setFirst_deploy(false);
-            updateBean.setStart_date(System.currentTimeMillis());
+            updateBean.setStart_date(currentTime);
         } else {
             updateBean.setFirst_deploy(agent.getFirst_deploy());
             updateBean.setStart_date(agent.getStart_date());
         }
 
-        if (report.getDeployStage() == DeployStage.SERVING_BUILD) {
+        if (report.getDeployStage() == DeployStage.SERVING_BUILD && updateBean.getFirst_deploy()) {
             // turn off first deploy flag
             updateBean.setFirst_deploy(false);
-            updateBean.setFirst_deploy_time(System.currentTimeMillis());
+            updateBean.setFirst_deploy_time(currentTime);
+            emitMetrics(updateBean);
         }
 
         // TODO record error message as well if errorCode != 0
         return updateBean;
+    }
+
+    private void emitMetrics(AgentBean updateBean) {
+        try {
+            EnvironBean env = envs.get(updateBean.getEnv_id());
+            Metrics.timer(String.format(DEPLOY_LATENCY_TIMER_NAME, env.getEnv_name(), env.getStage_name()))
+                    .record(Duration.ofMillis(updateBean.getFirst_deploy_time() - updateBean.getStart_date()));
+            Metrics.counter(String.format(FIRST_DEPLOY_COUNTER_NAME, env.getEnv_name(), env.getStage_name()), "success",
+                    String.valueOf(updateBean.getStatus().equals(AgentStatus.SUCCEEDED)))
+                    .increment();
+        } catch (Exception ex) {
+            LOG.warn("Failed to emit metrics of {}", updateBean.toString(), ex);
+        }
     }
 
     // Generate new agent bean based on the report & current agent record,

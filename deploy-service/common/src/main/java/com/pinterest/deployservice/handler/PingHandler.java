@@ -15,7 +15,10 @@
  */
 package com.pinterest.deployservice.handler;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import java.sql.Connection;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +55,7 @@ import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.OpCode;
@@ -80,6 +84,8 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 
+import io.micrometer.core.instrument.Metrics;
+
 /**
  * This is where we handle agent ping and return deploy goal!
  */
@@ -88,7 +94,7 @@ public class PingHandler {
     private static final PingResponseBean NOOP;
     private static final Set<String> EMPTY_GROUPS;
     private static final String PINTEREST_MAIN_AWS_ACCOUNT = "998131032990";
-    //private static final long AGENT_COUNT_CACHE_TTL = 5 * 1000;
+    private static final String PROVISION_LATENCY_TIMER_NAME = CUSTOM_NAME_PREFIX + "teletraan.%s.provision_latency";
 
     static {
         NOOP = new PingResponseBean();
@@ -198,24 +204,42 @@ public class PingHandler {
 
     void updateHostStatus(String hostId, String hostName, String hostIp, String agentVersion, String asg) throws Exception {
         HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
-        long current_time = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
         boolean isExisting = true;
         if (hostAgentBean == null) {
             hostAgentBean = new HostAgentBean();
             hostAgentBean.setHost_id(hostId);
-            hostAgentBean.setCreate_date(current_time);
+            hostAgentBean.setCreate_date(currentTime);
             isExisting = false;
         }
         hostAgentBean.setHost_name(hostName);
         hostAgentBean.setIp(hostIp);
-        hostAgentBean.setLast_update(current_time);
+        hostAgentBean.setLast_update(currentTime);
         hostAgentBean.setAgent_Version(agentVersion);
         hostAgentBean.setAuto_scaling_group(asg);
 
         if (!isExisting) {
+            // First ping
             hostAgentDAO.insert(hostAgentBean);
+            emitProvisionLatency(currentTime, hostId, asg);
         } else {
             hostAgentDAO.update(hostId, hostAgentBean);
+        }
+    }
+
+    void emitProvisionLatency(long currentTime, String hostId, String asg) {
+        try {
+            List<HostBean> hosts = hostDAO.getHostsByHostId(hostId);
+            if (hosts.size() == 0) {
+                LOG.warn("No host found for hostId {}, skip", hostId);
+                return;
+            }
+            String timerName = String.format(PROVISION_LATENCY_TIMER_NAME, asg);
+            HostBean initialHost = hosts.get(0);
+            long provisionLatency = currentTime - initialHost.getCreate_date();
+            Metrics.timer(timerName).record(Duration.ofMillis(provisionLatency));
+        } catch (Exception e) {
+            LOG.warn("Failed to emit infra latency for " + hostId, e);
         }
     }
 

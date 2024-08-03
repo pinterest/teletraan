@@ -51,7 +51,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_GROUP_SIZE = "SELECT COUNT(host_id) FROM hosts WHERE group_name=?";
     private static final String GET_ALL_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? AND state!='TERMINATING'";
     private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts WHERE host_name=?";
-    private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts WHERE host_id=?";
+    private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts WHERE host_id=? ORDER BY create_date";
     private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?, ?) GROUP BY host_id ORDER BY last_update";
     private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
     private static final String GET_STALE_AGENTLESS_HOST_IDS = "SELECT DISTINCT hosts.host_id FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE hosts.last_update < ? AND hosts_and_agents.host_id IS NULL ORDER BY hosts.last_update DESC LIMIT ?";
