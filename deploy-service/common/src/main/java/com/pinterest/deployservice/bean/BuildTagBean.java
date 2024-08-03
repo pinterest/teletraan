@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.bean;
-
 
 /**
  * A wrapper class combining build and tag. It serves two purpose:
- * 1. An in memory representation of a Tagging build.
- * 2. The return result for the service endpoing /tags/builds. That is identical to /builds
- * but put the tagging info on the builds
+ *
+ * <p>1. An in memory representation of a Tagging build.
+ *
+ * <p>2. The return result for the service endpoing /tags/builds. That is identical to /builds but
+ * put the tagging info on the builds
  */
 public class BuildTagBean {
     private TagBean tag;

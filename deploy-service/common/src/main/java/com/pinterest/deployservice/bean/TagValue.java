@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.bean;
 
-
 public enum TagValue {
-    BAD_BUILD, //This tag means the build is known bad
-    GOOD_BUILD, //This tag means the build is known good
+    BAD_BUILD, // This tag means the build is known bad
+    GOOD_BUILD, // This tag means the build is known good
     ENABLE_ENV,
     DISABLE_ENV
 }
