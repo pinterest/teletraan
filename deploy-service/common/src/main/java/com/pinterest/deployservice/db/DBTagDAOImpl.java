@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2017 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.db;
 
+import com.google.common.base.Preconditions;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.dao.TagDAO;
-
-import com.google.common.base.Preconditions;
+import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-
-import java.util.List;
-
 
 public class DBTagDAOImpl implements TagDAO {
 
@@ -41,20 +37,20 @@ public class DBTagDAOImpl implements TagDAO {
     private static final String GET_TAG_BY_ID_TEMPLATE = "SELECT * FROM tags WHERE id =?";
 
     private static final String GET_TAG_BY_TARGET_ID_TEMPLATE =
-        "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC";
+            "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC";
 
     private static final String GET_TAG_BY_VALUE = "SELECT * FROM tags WHERE value=?";
 
     private static final String GET_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE =
-        "SELECT * FROM tags WHERE target_id=? AND "
-            + " target_type=? ORDER BY created_date DESC";
+            "SELECT * FROM tags WHERE target_id=? AND "
+                    + " target_type=? ORDER BY created_date DESC";
 
     private static final String GET_LATEST_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE =
-        "SELECT * FROM tags WHERE target_id=? AND "
-            + " target_type=? ORDER BY created_date DESC LIMIT ?";
+            "SELECT * FROM tags WHERE target_id=? AND "
+                    + " target_type=? ORDER BY created_date DESC LIMIT ?";
 
     private static final String GET_LATEST_TAG_BY_TARGET_ID =
-        "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC LIMIT 0,1";
+            "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC LIMIT 0,1";
 
     private BasicDataSource basicDataSource;
 
@@ -75,7 +71,7 @@ public class DBTagDAOImpl implements TagDAO {
     @Override
     public TagBean getById(String id) throws Exception {
         return new QueryRunner(basicDataSource)
-            .query(GET_TAG_BY_ID_TEMPLATE, new BeanHandler<>(TagBean.class), id);
+                .query(GET_TAG_BY_ID_TEMPLATE, new BeanHandler<>(TagBean.class), id);
     }
 
     @Override
@@ -86,34 +82,39 @@ public class DBTagDAOImpl implements TagDAO {
 
     @Override
     public List<TagBean> getByTargetIdAndType(String target_id, TagTargetType target_type)
-        throws Exception {
+            throws Exception {
         ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
         return new QueryRunner(basicDataSource)
-            .query(GET_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE, h, target_id, target_type.toString());
+                .query(
+                        GET_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE,
+                        h,
+                        target_id,
+                        target_type.toString());
     }
 
     @Override
-    public List<TagBean> getLatestByTargetIdAndType(String target_id, TagTargetType target_type,
-                                                    int size) throws Exception {
+    public List<TagBean> getLatestByTargetIdAndType(
+            String target_id, TagTargetType target_type, int size) throws Exception {
         Preconditions.checkArgument(size > 0);
         ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
         return new QueryRunner(basicDataSource)
-            .query(GET_LATEST_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE, h, target_id,
-                target_type.toString(), size);
-
+                .query(
+                        GET_LATEST_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE,
+                        h,
+                        target_id,
+                        target_type.toString(),
+                        size);
     }
 
     @Override
     public List<TagBean> getByValue(TagValue value) throws Exception {
         ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
-        return new QueryRunner(basicDataSource)
-            .query(GET_TAG_BY_VALUE, h, value.toString());
-
+        return new QueryRunner(basicDataSource).query(GET_TAG_BY_VALUE, h, value.toString());
     }
 
     @Override
     public TagBean getLatestByTargetId(String targetId) throws Exception {
-        return new QueryRunner(basicDataSource).query(GET_LATEST_TAG_BY_TARGET_ID,
-            new BeanHandler<>(TagBean.class), targetId);
+        return new QueryRunner(basicDataSource)
+                .query(GET_LATEST_TAG_BY_TARGET_ID, new BeanHandler<>(TagBean.class), targetId);
     }
 }

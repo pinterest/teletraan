@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2023 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,15 @@ import com.pinterest.teletraan.universal.events.MetricsAsEventsListener;
 import com.pinterest.teletraan.universal.events.ResourceChangedEvent;
 
 public class AppEventFactory {
-    @JsonProperty
-    private Boolean enableMetricsAsEvent = true;
+    @JsonProperty private Boolean enableMetricsAsEvent = true;
 
-    @JsonProperty
-    private Boolean publishDeployEvents = true;
+    @JsonProperty private Boolean publishDeployEvents = true;
 
     public AppEventPublisher createEventPublisher() {
         AppEventPublisher publisher = new GenericEventPublisher();
         if (enableMetricsAsEvent) {
-            publisher.subscribe(new MetricsAsEventsListener<ResourceChangedEvent>(ResourceChangedEvent.class));
+            publisher.subscribe(
+                    new MetricsAsEventsListener<ResourceChangedEvent>(ResourceChangedEvent.class));
             if (publishDeployEvents) {
                 publisher.subscribe((new MetricsAsEventsListener<DeployEvent>(DeployEvent.class)));
             }

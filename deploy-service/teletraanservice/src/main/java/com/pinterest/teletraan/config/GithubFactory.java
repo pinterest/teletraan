@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,39 +15,27 @@
  */
 package com.pinterest.teletraan.config;
 
-import com.pinterest.deployservice.scm.GithubManager;
-import com.pinterest.deployservice.scm.SourceControlManager;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-
+import com.pinterest.deployservice.scm.GithubManager;
+import com.pinterest.deployservice.scm.SourceControlManager;
 import javax.validation.constraints.NotNull;
 
 @JsonTypeName("github")
 public class GithubFactory implements SourceControlFactory {
-    @JsonProperty
-    private String token;
+    @JsonProperty private String token;
 
-    @JsonProperty
-    private String appId;
+    @JsonProperty private String appId;
 
-    @JsonProperty
-    private String appPrivateKeyKnox;
+    @JsonProperty private String appPrivateKeyKnox;
 
-    @JsonProperty
-    private String appOrganization;
+    @JsonProperty private String appOrganization;
 
-    @NotNull
-    @JsonProperty
-    private String typeName;
+    @NotNull @JsonProperty private String typeName;
 
-    @NotNull
-    @JsonProperty
-    private String apiPrefix;
+    @NotNull @JsonProperty private String apiPrefix;
 
-    @NotNull
-    @JsonProperty
-    private String urlPrefix;
+    @NotNull @JsonProperty private String urlPrefix;
 
     public String getToken() {
         return token;
@@ -60,6 +48,7 @@ public class GithubFactory implements SourceControlFactory {
     public String getAppId() {
         return appId;
     }
+
     public void setAppId(String appId) {
         this.appId = appId;
     }
@@ -106,6 +95,7 @@ public class GithubFactory implements SourceControlFactory {
 
     @Override
     public SourceControlManager create() throws Exception {
-        return new GithubManager(token, appId, appPrivateKeyKnox, appOrganization, typeName, apiPrefix, urlPrefix);
+        return new GithubManager(
+                token, appId, appPrivateKeyKnox, appOrganization, typeName, apiPrefix, urlPrefix);
     }
 }

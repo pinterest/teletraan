@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,37 +19,31 @@ import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
+import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
-import java.util.List;
-
-/**
- * Implementation for UserRolesDAO.
- */
+/** Implementation for UserRolesDAO. */
 public class DBTokenRolesDAOImpl implements TokenRolesDAO {
 
-    private static final String INSERT_TEMPLATE =
-        "INSERT INTO tokens_and_roles SET %s";
+    private static final String INSERT_TEMPLATE = "INSERT INTO tokens_and_roles SET %s";
 
     private static final String DELETE_TEMPLATE =
-        "DELETE FROM tokens_and_roles WHERE script_name=? AND resource_id=? AND resource_type=?";
+            "DELETE FROM tokens_and_roles WHERE script_name=? AND resource_id=? AND resource_type=?";
 
     private static final String UPDATE_TEMPLATE =
-        "UPDATE tokens_and_roles SET %s WHERE script_name=? AND resource_id=? AND resource_type=?";
+            "UPDATE tokens_and_roles SET %s WHERE script_name=? AND resource_id=? AND resource_type=?";
 
-    private static final String GET_BY_TOKEN =
-        "SELECT * FROM tokens_and_roles WHERE token=?";
+    private static final String GET_BY_TOKEN = "SELECT * FROM tokens_and_roles WHERE token=?";
 
     private static final String GET_BY_RESOURCE =
-        "SELECT * FROM tokens_and_roles WHERE resource_id=? AND resource_type=? ORDER BY script_name";
+            "SELECT * FROM tokens_and_roles WHERE resource_id=? AND resource_type=? ORDER BY script_name";
 
     private static final String GET_BY_NAME_AND_RESOURCE =
-        "SELECT * FROM tokens_and_roles WHERE script_name =? AND resource_id=? AND resource_type=?";
+            "SELECT * FROM tokens_and_roles WHERE script_name =? AND resource_id=? AND resource_type=?";
 
     private BasicDataSource dataSource;
 
@@ -65,15 +59,19 @@ public class DBTokenRolesDAOImpl implements TokenRolesDAO {
     }
 
     @Override
-    public void delete(String userName, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
-        new QueryRunner(dataSource).update(DELETE_TEMPLATE, userName, resourceId,
-            resourceType.toString());
+    public void delete(String userName, String resourceId, AuthZResource.Type resourceType)
+            throws Exception {
+        new QueryRunner(dataSource)
+                .update(DELETE_TEMPLATE, userName, resourceId, resourceType.toString());
     }
 
     @Override
-    public void update(TokenRolesBean bean, String userName, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public void update(
+            TokenRolesBean bean,
+            String userName,
+            String resourceId,
+            AuthZResource.Type resourceType)
+            throws Exception {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_TEMPLATE, setClause.getClause());
         setClause.addValue(userName);
@@ -89,18 +87,18 @@ public class DBTokenRolesDAOImpl implements TokenRolesDAO {
     }
 
     @Override
-    public TokenRolesBean getByNameAndResource(String userName, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public TokenRolesBean getByNameAndResource(
+            String userName, String resourceId, AuthZResource.Type resourceType) throws Exception {
         ResultSetHandler<TokenRolesBean> h = new BeanHandler<>(TokenRolesBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_NAME_AND_RESOURCE, h, userName,
-            resourceId, resourceType.toString());
+        return new QueryRunner(dataSource)
+                .query(GET_BY_NAME_AND_RESOURCE, h, userName, resourceId, resourceType.toString());
     }
 
     @Override
-    public List<TokenRolesBean> getByResource(String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public List<TokenRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType)
+            throws Exception {
         ResultSetHandler<List<TokenRolesBean>> h = new BeanListHandler<>(TokenRolesBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_RESOURCE, h, resourceId,
-            resourceType.toString());
+        return new QueryRunner(dataSource)
+                .query(GET_BY_RESOURCE, h, resourceId, resourceType.toString());
     }
 }

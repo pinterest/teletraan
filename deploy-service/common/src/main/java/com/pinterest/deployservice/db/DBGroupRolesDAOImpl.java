@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,38 +19,33 @@ import com.pinterest.deployservice.bean.GroupRolesBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
+import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
-import java.util.List;
-
-/**
- * Implementation for GroupRolesDAO.
- */
+/** Implementation for GroupRolesDAO. */
 public class DBGroupRolesDAOImpl implements GroupRolesDAO {
 
-    private static final String INSERT_TEMPLATE =
-        "INSERT INTO groups_and_roles SET %s";
+    private static final String INSERT_TEMPLATE = "INSERT INTO groups_and_roles SET %s";
 
     private static final String DELETE_TEMPLATE =
-        "DELETE FROM groups_and_roles WHERE group_name=? " +
-            "AND resource_id=? AND resource_type=?";
+            "DELETE FROM groups_and_roles WHERE group_name=? "
+                    + "AND resource_id=? AND resource_type=?";
 
     private static final String UPDATE_TEMPLATE =
-        "UPDATE groups_and_roles SET %s WHERE group_name=? " +
-            "AND resource_id=? AND resource_type=?";
+            "UPDATE groups_and_roles SET %s WHERE group_name=? "
+                    + "AND resource_id=? AND resource_type=?";
 
     private static final String GET_BY_RESOURCE =
-        "SELECT * FROM groups_and_roles WHERE resource_id=? " +
-            "AND resource_type=? ORDER BY group_name";
+            "SELECT * FROM groups_and_roles WHERE resource_id=? "
+                    + "AND resource_type=? ORDER BY group_name";
 
     private static final String GET_BY_NAME_AND_RESOURCE =
-        "SELECT * FROM groups_and_roles WHERE group_name =? " +
-            "AND resource_id=? AND resource_type=? ORDER BY role";
+            "SELECT * FROM groups_and_roles WHERE group_name =? "
+                    + "AND resource_id=? AND resource_type=? ORDER BY role";
 
     private BasicDataSource dataSource;
 
@@ -66,15 +61,19 @@ public class DBGroupRolesDAOImpl implements GroupRolesDAO {
     }
 
     @Override
-    public void delete(String groupName, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
-        new QueryRunner(dataSource).update(DELETE_TEMPLATE, groupName, resourceId,
-            resourceType.toString());
+    public void delete(String groupName, String resourceId, AuthZResource.Type resourceType)
+            throws Exception {
+        new QueryRunner(dataSource)
+                .update(DELETE_TEMPLATE, groupName, resourceId, resourceType.toString());
     }
 
     @Override
-    public void update(GroupRolesBean bean, String groupName, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public void update(
+            GroupRolesBean bean,
+            String groupName,
+            String resourceId,
+            AuthZResource.Type resourceType)
+            throws Exception {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_TEMPLATE, setClause.getClause());
         setClause.addValue(groupName);
@@ -84,18 +83,18 @@ public class DBGroupRolesDAOImpl implements GroupRolesDAO {
     }
 
     @Override
-    public GroupRolesBean getByNameAndResource(String groupName, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public GroupRolesBean getByNameAndResource(
+            String groupName, String resourceId, AuthZResource.Type resourceType) throws Exception {
         ResultSetHandler<GroupRolesBean> h = new BeanHandler<>(GroupRolesBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_NAME_AND_RESOURCE, h, groupName,
-            resourceId, resourceType.toString());
+        return new QueryRunner(dataSource)
+                .query(GET_BY_NAME_AND_RESOURCE, h, groupName, resourceId, resourceType.toString());
     }
 
     @Override
-    public List<GroupRolesBean> getByResource(String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public List<GroupRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType)
+            throws Exception {
         ResultSetHandler<List<GroupRolesBean>> h = new BeanListHandler<>(GroupRolesBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_RESOURCE, h, resourceId,
-            resourceType.toString());
+        return new QueryRunner(dataSource)
+                .query(GET_BY_RESOURCE, h, resourceId, resourceType.toString());
     }
 }

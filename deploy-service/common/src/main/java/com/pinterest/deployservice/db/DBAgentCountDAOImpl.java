@@ -1,12 +1,12 @@
 /**
- * Copyright 2020 Pinterest, Inc.
+ * Copyright (c) 2020 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,12 +25,10 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 
 /* count table cache to store # of actively deploying agents and # of existing agents */
 public class DBAgentCountDAOImpl implements AgentCountDAO {
-    private static final String GET_COUNT =
-        "SELECT * FROM agent_counts WHERE env_id=?";
-    private static final String DELETE_COUNT =
-        "DELETE * FROM agent_counts WHERE env_id=?";
+    private static final String GET_COUNT = "SELECT * FROM agent_counts WHERE env_id=?";
+    private static final String DELETE_COUNT = "DELETE * FROM agent_counts WHERE env_id=?";
     private static final String INSERT_OR_UPDATE_COUNT =
-        "INSERT INTO agent_counts SET %s ON DUPLICATE KEY UPDATE %s";
+            "INSERT INTO agent_counts SET %s ON DUPLICATE KEY UPDATE %s";
 
     private BasicDataSource dataSource;
 
@@ -53,7 +51,11 @@ public class DBAgentCountDAOImpl implements AgentCountDAO {
     @Override
     public void insertOrUpdate(AgentCountBean agentCountBean) throws Exception {
         SetClause setClause = agentCountBean.genSetClause();
-        String clause = String.format(INSERT_OR_UPDATE_COUNT, setClause.getClause(), AgentCountBean.UPDATE_CLAUSE);
+        String clause =
+                String.format(
+                        INSERT_OR_UPDATE_COUNT,
+                        setClause.getClause(),
+                        AgentCountBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 }

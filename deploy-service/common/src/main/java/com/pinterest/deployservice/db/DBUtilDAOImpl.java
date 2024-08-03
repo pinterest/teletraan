@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,12 @@ package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.UtilDAO;
+import java.sql.Connection;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.dbutils.QueryRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.Connection;
 
 public class DBUtilDAOImpl implements UtilDAO {
     private static final Logger LOG = LoggerFactory.getLogger(DBUtilDAOImpl.class);
@@ -39,7 +38,7 @@ public class DBUtilDAOImpl implements UtilDAO {
     public DBUtilDAOImpl(BasicDataSource dataSource) {
         this.dataSource = dataSource;
     }
-    
+
     private String ensureValidLockName(String lockName) {
         String lockNameSha = CommonUtils.getShaHex(lockName.getBytes());
         LOG.debug("Converted lock name {} to {}", lockName, lockNameSha);
@@ -52,9 +51,15 @@ public class DBUtilDAOImpl implements UtilDAO {
         try {
             connection = dataSource.getConnection();
             connection.setAutoCommit(false);
-            long status = new QueryRunner().query(connection,
-                String.format(GET_LOCK_TEMPLATE, ensureValidLockName(id), LOCK_TIMEOUT),
-                SingleResultSetHandlerFactory.<Long>newObjectHandler());
+            long status =
+                    new QueryRunner()
+                            .query(
+                                    connection,
+                                    String.format(
+                                            GET_LOCK_TEMPLATE,
+                                            ensureValidLockName(id),
+                                            LOCK_TIMEOUT),
+                                    SingleResultSetHandlerFactory.<Long>newObjectHandler());
             if (status == 1L) {
                 return connection;
             }
@@ -68,9 +73,11 @@ public class DBUtilDAOImpl implements UtilDAO {
     @Override
     public void releaseLock(String id, Connection connection) {
         try {
-            new QueryRunner().query(connection,
-                String.format(RELEASE_LOCK_TEMPLATE, ensureValidLockName(id)),
-                SingleResultSetHandlerFactory.<Long>newObjectHandler());
+            new QueryRunner()
+                    .query(
+                            connection,
+                            String.format(RELEASE_LOCK_TEMPLATE, ensureValidLockName(id)),
+                            SingleResultSetHandlerFactory.<Long>newObjectHandler());
         } catch (Exception e) {
             LOG.error("Failed to call releaseLock on id {}.", id, e);
         }

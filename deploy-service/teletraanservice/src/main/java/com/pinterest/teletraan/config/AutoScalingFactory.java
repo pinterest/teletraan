@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AutoScalingFactory {
 
-    @JsonProperty
-    private String quboleAuthentication;
+    @JsonProperty private String quboleAuthentication;
 
-    @JsonProperty
-    private int spotAutoScalingThreshold;
+    @JsonProperty private int spotAutoScalingThreshold;
 
-    public String getQuboleAuthentication() { return quboleAuthentication; }
+    public String getQuboleAuthentication() {
+        return quboleAuthentication;
+    }
 
-    public void setQuboleAuthentication(String quboleAuthentication) { this.quboleAuthentication = quboleAuthentication; }
+    public void setQuboleAuthentication(String quboleAuthentication) {
+        this.quboleAuthentication = quboleAuthentication;
+    }
 
-    public int getSpotAutoScalingThreshold() { return spotAutoScalingThreshold; }
+    public int getSpotAutoScalingThreshold() {
+        return spotAutoScalingThreshold;
+    }
 
-    public void setSpotAutoScalingThreshold(Integer spotAutoScalingThreshold) { this.spotAutoScalingThreshold = spotAutoScalingThreshold; }
+    public void setSpotAutoScalingThreshold(Integer spotAutoScalingThreshold) {
+        this.spotAutoScalingThreshold = spotAutoScalingThreshold;
+    }
 }
