@@ -18,14 +18,13 @@ package com.pinterest.teletraan.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.jupiter.api.Test;
-
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.security.UserRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
+import org.junit.jupiter.api.Test;
 
 class RoleAuthorizationFactoryTest {
     private static RoleAuthorizationFactory sut = new RoleAuthorizationFactory();
@@ -33,14 +32,18 @@ class RoleAuthorizationFactoryTest {
 
     @Test
     void testCreate() {
-        assertThrows(UnsupportedOperationException.class, () -> {
-            sut.create(context);
-        });
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> {
+                    sut.create(context);
+                });
     }
 
     @Test
     void testCreate_servicePrincipal() throws Exception {
-        assertEquals(ScriptTokenRoleAuthorizer.class, sut.create(context, ServicePrincipal.class).getClass());
+        assertEquals(
+                ScriptTokenRoleAuthorizer.class,
+                sut.create(context, ServicePrincipal.class).getClass());
     }
 
     @Test
@@ -50,8 +53,10 @@ class RoleAuthorizationFactoryTest {
 
     @Test
     void testCreate_otherPrincipal() throws Exception {
-        assertThrows(UnsupportedOperationException.class, () -> {
-            sut.create(context, TeletraanPrincipal.class);
-        });
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> {
+                    sut.create(context, TeletraanPrincipal.class);
+                });
     }
 }

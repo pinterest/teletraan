@@ -1,16 +1,24 @@
+/**
+ * Copyright (c) 2022-2024 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.teletraan.worker;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.sql.Connection;
-import java.util.Collection;
-import java.util.Collections;
-
-import org.junit.Before;
-import org.junit.Test;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
@@ -23,7 +31,11 @@ import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
-
+import java.sql.Connection;
+import java.util.Collection;
+import java.util.Collections;
+import org.junit.Before;
+import org.junit.Test;
 
 public class HostTerminatorTest {
     private static String TEST_HOST_ID = "i-testHostId";
@@ -96,7 +108,8 @@ public class HostTerminatorTest {
 
     @Test
     public void hostAgentHasHost_ASGNameIsUsed() throws Exception {
-        when(mockAgentDAO.getByHostId(TEST_HOST_ID)).thenReturn(Collections.singletonList(testAgentBean));
+        when(mockAgentDAO.getByHostId(TEST_HOST_ID))
+                .thenReturn(Collections.singletonList(testAgentBean));
         when(mockHostAgentDAO.getHostById(TEST_HOST_ID)).thenReturn(testHostAgentBean);
         when(mockHostDAO.getTerminatingHosts()).thenReturn(Collections.singletonList(testHostBean));
 
@@ -107,7 +120,8 @@ public class HostTerminatorTest {
 
     @Test
     public void hostAgentDoesNotHaveHost_ASGNameIsUsed() throws Exception {
-        when(mockAgentDAO.getByHostId(TEST_HOST_ID)).thenReturn(Collections.singletonList(testAgentBean));
+        when(mockAgentDAO.getByHostId(TEST_HOST_ID))
+                .thenReturn(Collections.singletonList(testAgentBean));
         when(mockHostAgentDAO.getHostById(TEST_HOST_ID)).thenReturn(null);
         when(mockHostDAO.getTerminatingHosts()).thenReturn(Collections.singletonList(testHostBean));
 
@@ -119,7 +133,8 @@ public class HostTerminatorTest {
     @Test
     public void hostBeanStateIsPendingNoReplace_terminateHostWithoutReplace() throws Exception {
         testHostBean.setState(HostState.PENDING_TERMINATE_NO_REPLACE);
-        when(mockAgentDAO.getByHostId(TEST_HOST_ID)).thenReturn(Collections.singletonList(testAgentBean));
+        when(mockAgentDAO.getByHostId(TEST_HOST_ID))
+                .thenReturn(Collections.singletonList(testAgentBean));
         when(mockHostAgentDAO.getHostById(TEST_HOST_ID)).thenReturn(null);
         when(mockHostDAO.getTerminatingHosts()).thenReturn(Collections.singletonList(testHostBean));
 
@@ -127,5 +142,4 @@ public class HostTerminatorTest {
 
         verify(mockRodimusManager).terminateHostsByClusterName(TEST_GROUP_NAME, testHostIds, false);
     }
-
 }

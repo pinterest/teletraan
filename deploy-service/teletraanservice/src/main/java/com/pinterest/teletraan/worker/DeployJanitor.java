@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,15 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
-
+import io.micrometer.core.instrument.Counter;
+import java.sql.Connection;
+import java.util.Collections;
+import java.util.List;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.util.Collections;
-import java.util.List;
-
-import io.micrometer.core.instrument.Counter;
-
-/**
- * Removed unused/old deploys.
- */
+/** Removed unused/old deploys. */
 public class DeployJanitor implements Job {
     private static final Logger LOG = LoggerFactory.getLogger(DeployJanitor.class);
     private static final long MILLIS_PER_DAY = 86400000;
@@ -55,19 +50,27 @@ public class DeployJanitor implements Job {
 
         for (String envId : envIds) {
             EnvironBean envBean = environDAO.getById(envId);
-            long timeThreshold = System.currentTimeMillis() - (long) envBean.getMax_deploy_day() * MILLIS_PER_DAY;
-            long numToDelete = deployDAO.countDeploysByEnvId(envId) - (long) envBean.getMax_deploy_num();
+            long timeThreshold =
+                    System.currentTimeMillis()
+                            - (long) envBean.getMax_deploy_day() * MILLIS_PER_DAY;
+            long numToDelete =
+                    deployDAO.countDeploysByEnvId(envId) - (long) envBean.getMax_deploy_num();
 
             if (numToDelete > 0) {
                 String deployLockName = String.format("DEPLOYJANITOR-%s", envId);
                 Connection connection = utilDAO.getLock(deployLockName);
 
                 if (connection != null) {
-                    LOG.info(String.format("DB lock operation is successful: get lock %s", deployLockName));
+                    LOG.info(
+                            String.format(
+                                    "DB lock operation is successful: get lock %s",
+                                    deployLockName));
                     try {
                         deployDAO.deleteUnusedDeploys(envId, timeThreshold, numToDelete);
-                        LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
-                            envId, timeThreshold, numToDelete));
+                        LOG.info(
+                                String.format(
+                                        "Successfully removed deploys: %s before %d milliseconds has %d.",
+                                        envId, timeThreshold, numToDelete));
 
                         errorBudgetSuccess.increment();
                     } catch (Exception e) {
@@ -76,10 +79,16 @@ public class DeployJanitor implements Job {
                         errorBudgetFailure.increment();
                     } finally {
                         utilDAO.releaseLock(deployLockName, connection);
-                        LOG.info(String.format("DB lock operation is successful: release lock %s", deployLockName));
+                        LOG.info(
+                                String.format(
+                                        "DB lock operation is successful: release lock %s",
+                                        deployLockName));
                     }
                 } else {
-                    LOG.warn(String.format("DB lock operation fails: failed to get lock %s", deployLockName));
+                    LOG.warn(
+                            String.format(
+                                    "DB lock operation fails: failed to get lock %s",
+                                    deployLockName));
                 }
             }
         }
@@ -89,8 +98,10 @@ public class DeployJanitor implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         SchedulerContext schedulerContext;
 
-        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
-        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
+        errorBudgetSuccess =
+                ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure =
+                ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
 
         try {
             schedulerContext = context.getScheduler().getContext();

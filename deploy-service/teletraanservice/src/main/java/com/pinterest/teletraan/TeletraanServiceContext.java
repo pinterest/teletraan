@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,70 +22,68 @@ import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 
 public class TeletraanServiceContext extends ServiceContext {
 
-  private int maxDaysToKeep;
-  private int maxBuildsToKeep;
-  private ExternalAlertFactory externalAlertsFactory;
-  private AuthorizationFactory authorizationFactory;
-  private AuthZResourceExtractor.Factory authZResourceExtractorFactory;
-  private boolean aclManagementEnabled;
-  private String aclManagementDisabledMessage;
+    private int maxDaysToKeep;
+    private int maxBuildsToKeep;
+    private ExternalAlertFactory externalAlertsFactory;
+    private AuthorizationFactory authorizationFactory;
+    private AuthZResourceExtractor.Factory authZResourceExtractorFactory;
+    private boolean aclManagementEnabled;
+    private String aclManagementDisabledMessage;
 
-  public ExternalAlertFactory getExternalAlertsFactory() {
-    return externalAlertsFactory;
-  }
+    public ExternalAlertFactory getExternalAlertsFactory() {
+        return externalAlertsFactory;
+    }
 
-  public void setExternalAlertsFactory(
-      ExternalAlertFactory externalAlertsFactory) {
-    this.externalAlertsFactory = externalAlertsFactory;
-  }
+    public void setExternalAlertsFactory(ExternalAlertFactory externalAlertsFactory) {
+        this.externalAlertsFactory = externalAlertsFactory;
+    }
 
-  public int getMaxDaysToKeep() {
-    return maxDaysToKeep;
-  }
+    public int getMaxDaysToKeep() {
+        return maxDaysToKeep;
+    }
 
-  public void setMaxDaysToKeep(int maxDaysToKeep) {
-    this.maxDaysToKeep = maxDaysToKeep;
-  }
+    public void setMaxDaysToKeep(int maxDaysToKeep) {
+        this.maxDaysToKeep = maxDaysToKeep;
+    }
 
-  public int getMaxBuildsToKeep() {
-    return maxBuildsToKeep;
-  }
+    public int getMaxBuildsToKeep() {
+        return maxBuildsToKeep;
+    }
 
-  public void setMaxBuildsToKeep(int maxBuildsToKeep) {
-    this.maxBuildsToKeep = maxBuildsToKeep;
-  }
+    public void setMaxBuildsToKeep(int maxBuildsToKeep) {
+        this.maxBuildsToKeep = maxBuildsToKeep;
+    }
 
-  public void setAuthorizationFactory(AuthorizationFactory authorizationFactory) {
-    this.authorizationFactory = authorizationFactory;
-  }
+    public void setAuthorizationFactory(AuthorizationFactory authorizationFactory) {
+        this.authorizationFactory = authorizationFactory;
+    }
 
-  public AuthorizationFactory getAuthorizationFactory() {
-    return authorizationFactory;
-  }
+    public AuthorizationFactory getAuthorizationFactory() {
+        return authorizationFactory;
+    }
 
-  public AuthZResourceExtractor.Factory getAuthZResourceExtractorFactory() {
-    return authZResourceExtractorFactory;
-  }
+    public AuthZResourceExtractor.Factory getAuthZResourceExtractorFactory() {
+        return authZResourceExtractorFactory;
+    }
 
-  public void setAuthZResourceExtractorFactory(
-      AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
-    this.authZResourceExtractorFactory = authZResourceExtractorFactory;
-  }
+    public void setAuthZResourceExtractorFactory(
+            AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
+        this.authZResourceExtractorFactory = authZResourceExtractorFactory;
+    }
 
-  public boolean isAclManagementEnabled() {
-    return aclManagementEnabled;
-  }
+    public boolean isAclManagementEnabled() {
+        return aclManagementEnabled;
+    }
 
-  public void setAclManagementEnabled(boolean environmentAclManagementEnabled) {
-    this.aclManagementEnabled = environmentAclManagementEnabled;
-  }
+    public void setAclManagementEnabled(boolean environmentAclManagementEnabled) {
+        this.aclManagementEnabled = environmentAclManagementEnabled;
+    }
 
-  public String getAclManagementDisabledMessage() {
-    return aclManagementDisabledMessage;
-  }
+    public String getAclManagementDisabledMessage() {
+        return aclManagementDisabledMessage;
+    }
 
-  public void setAclManagementDisabledMessage(String environmentAclManagementDisabledMessage) {
-    this.aclManagementDisabledMessage = environmentAclManagementDisabledMessage;
-  }
-
+    public void setAclManagementDisabledMessage(String environmentAclManagementDisabledMessage) {
+        this.aclManagementDisabledMessage = environmentAclManagementDisabledMessage;
+    }
 }

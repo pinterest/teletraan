@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,14 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.handler.HostHandler;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
-import com.pinterest.deployservice.handler.HostHandler;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.micrometer.core.instrument.Counter;
 import java.sql.Connection;
 import java.util.*;
-
-import io.micrometer.core.instrument.Counter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
@@ -57,8 +54,10 @@ public class HostTerminator implements Runnable {
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
 
-        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
-        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
+        errorBudgetSuccess =
+                ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure =
+                ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     private void terminateHost(HostBean host) throws Exception {
@@ -72,7 +71,7 @@ public class HostTerminator implements Runnable {
         boolean stopSucceeded = true;
         for (AgentBean agentBean : agentBeans) {
             if (agentBean.getDeploy_stage() != DeployStage.STOPPED
-                && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
+                    && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
                 stopSucceeded = false;
                 break;
             }
@@ -89,17 +88,21 @@ public class HostTerminator implements Runnable {
                 // name. Therefore correct it if we can get the ASG name from HostAgentDAO.
                 clusterName = hostAgentBean.getAuto_scaling_group();
             } else if (!replaceHost) {
-                LOG.warn("Failed to get ASG name for host {}, using group name {} instead. Host can still be replaced.",
-                        hostId, clusterName);
+                LOG.warn(
+                        "Failed to get ASG name for host {}, using group name {} instead. Host can still be replaced.",
+                        hostId,
+                        clusterName);
             }
 
-            rodimusManager.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId), replaceHost);
+            rodimusManager.terminateHostsByClusterName(
+                    clusterName, Collections.singletonList(hostId), replaceHost);
         }
     }
 
     private boolean removeTerminatedHost(HostBean host) throws Exception {
         String hostId = host.getHost_id();
-        Collection<String> terminatedHosts = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
+        Collection<String> terminatedHosts =
+                rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
         if (terminatedHosts.contains(hostId)) {
             LOG.info(String.format("Delete records of terminated host {}", hostId));
             hostHandler.removeHost(hostId);
@@ -123,10 +126,16 @@ public class HostTerminator implements Runnable {
                         removeTerminatedHost(host);
                     }
                 } catch (Exception e) {
-                    LOG.error("Failed to process {} host {}", host.getState().toString(), host.getHost_id(), e);
+                    LOG.error(
+                            "Failed to process {} host {}",
+                            host.getState().toString(),
+                            host.getHost_id(),
+                            e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
-                    LOG.info(String.format("DB lock operation is successful: release lock %s", lockName));
+                    LOG.info(
+                            String.format(
+                                    "DB lock operation is successful: release lock %s", lockName));
                 }
             } else {
                 LOG.warn(String.format("DB lock operation fails: failed to get lock %s", lockName));

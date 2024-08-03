@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
-
+import io.micrometer.core.instrument.Counter;
+import java.sql.Connection;
+import java.util.Collections;
+import java.util.List;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -27,18 +30,11 @@ import org.quartz.SchedulerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.util.Collections;
-import java.util.List;
-
-import io.micrometer.core.instrument.Counter;
-
 /**
  * Remove unused and old builds.
- * <p>
- * If a build is old enough and unused by a deploy,
- * remove it from build tables.
- * And we need to keep the number of builds is not more than maxToKeep
+ *
+ * <p>If a build is old enough and unused by a deploy, remove it from build tables. And we need to
+ * keep the number of builds is not more than maxToKeep
  */
 public class BuildJanitor implements Job {
     private static final Logger LOG = LoggerFactory.getLogger(BuildJanitor.class);
@@ -66,10 +62,15 @@ public class BuildJanitor implements Job {
                 String buildLockName = String.format("BUILDJANITOR-%s", buildName);
                 Connection connection = utilDAO.getLock(buildLockName);
                 if (connection != null) {
-                    LOG.info(String.format("DB lock operation is successful: get lock %s", buildLockName));
+                    LOG.info(
+                            String.format(
+                                    "DB lock operation is successful: get lock %s", buildLockName));
                     try {
                         buildDAO.deleteUnusedBuilds(buildName, timeThreshold, numToDelete);
-                        LOG.info(String.format("Successfully removed builds: %s before %d milliseconds has %d.",                            buildName, timeThreshold, numToDelete));
+                        LOG.info(
+                                String.format(
+                                        "Successfully removed builds: %s before %d milliseconds has %d.",
+                                        buildName, timeThreshold, numToDelete));
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
 
@@ -77,14 +78,19 @@ public class BuildJanitor implements Job {
 
                     } finally {
                         utilDAO.releaseLock(buildLockName, connection);
-                        LOG.info(String.format("DB lock operation is successful: release lock %s", buildLockName));
+                        LOG.info(
+                                String.format(
+                                        "DB lock operation is successful: release lock %s",
+                                        buildLockName));
                     }
                 } else {
-                    LOG.warn(String.format("DB lock operation fails: failed to get lock %s", buildLockName));
+                    LOG.warn(
+                            String.format(
+                                    "DB lock operation fails: failed to get lock %s",
+                                    buildLockName));
                 }
             }
         }
-
     }
 
     @Override
@@ -92,10 +98,13 @@ public class BuildJanitor implements Job {
         try {
             LOG.info("Start build janitor process...");
             SchedulerContext schedulerContext = context.getScheduler().getContext();
-            TeletraanServiceContext workerContext = (TeletraanServiceContext) schedulerContext.get("serviceContext");
+            TeletraanServiceContext workerContext =
+                    (TeletraanServiceContext) schedulerContext.get("serviceContext");
 
-            errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
-            errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
+            errorBudgetSuccess =
+                    ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+            errorBudgetFailure =
+                    ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
 
             processBuilds(workerContext);
             LOG.info("Stop build janitor process...");
@@ -104,8 +113,7 @@ public class BuildJanitor implements Job {
         } catch (Throwable t) {
             LOG.error("Failed to call build janitor.", t);
 
-            if(errorBudgetFailure != null)
-                errorBudgetFailure.increment();
+            if (errorBudgetFailure != null) errorBudgetFailure.increment();
         }
     }
 }

@@ -41,9 +41,7 @@ class EnvStagesTest {
     static {
         TeletraanServiceContext context = new TeletraanServiceContext();
         context.setEnvironDAO(environDAO);
-        EXT = ResourceExtension.builder()
-                .addResource(new EnvStages(context))
-                .build();
+        EXT = ResourceExtension.builder().addResource(new EnvStages(context)).build();
     }
 
     @Test
@@ -58,9 +56,10 @@ class EnvStagesTest {
             updatedBean.setIs_sox(newSox[i]);
             when(environDAO.getByStage(ENV1, STAGE1)).thenReturn(originalBean);
 
-            Response response = EXT.target(TARGET + ENV1 + "/" + STAGE1)
-                    .request()
-                    .put(Entity.json(updatedBean));
+            Response response =
+                    EXT.target(TARGET + ENV1 + "/" + STAGE1)
+                            .request()
+                            .put(Entity.json(updatedBean));
 
             assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
         }

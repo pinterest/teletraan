@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,6 @@
  * limitations under the License.
  */
 package com.pinterest.teletraan;
-
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.dbcp.BasicDataSource;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.TriggerBuilder;
-import org.quartz.impl.StdSchedulerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
@@ -57,6 +32,7 @@ import com.pinterest.deployservice.db.DBHostAgentDAOImpl;
 import com.pinterest.deployservice.db.DBHostDAOImpl;
 import com.pinterest.deployservice.db.DBHostTagDAOImpl;
 import com.pinterest.deployservice.db.DBHotfixDAOImpl;
+import com.pinterest.deployservice.db.DBPindeployDAOImpl;
 import com.pinterest.deployservice.db.DBPromoteDAOImpl;
 import com.pinterest.deployservice.db.DBRatingsDAOImpl;
 import com.pinterest.deployservice.db.DBScheduleDAOImpl;
@@ -64,7 +40,6 @@ import com.pinterest.deployservice.db.DBTagDAOImpl;
 import com.pinterest.deployservice.db.DBTokenRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUserRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUtilDAOImpl;
-import com.pinterest.deployservice.db.DBPindeployDAOImpl;
 import com.pinterest.deployservice.events.EventBridgePublisher;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
@@ -89,6 +64,28 @@ import com.pinterest.teletraan.worker.HotfixStateTransitioner;
 import com.pinterest.teletraan.worker.MetricsEmitter;
 import com.pinterest.teletraan.worker.SimpleAgentJanitor;
 import com.pinterest.teletraan.worker.StateTransitioner;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.TriggerBuilder;
+import org.quartz.impl.StdSchedulerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConfigHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHelper.class);
@@ -101,7 +98,8 @@ public class ConfigHelper {
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
     private static final int DEFAULT_MAX_BUILDS_TO_KEEP = 1000;
 
-    public static TeletraanServiceContext setupContext(TeletraanServiceConfiguration configuration) throws Exception {
+    public static TeletraanServiceContext setupContext(TeletraanServiceConfiguration configuration)
+            throws Exception {
         TeletraanServiceContext context = new TeletraanServiceContext();
 
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
@@ -137,7 +135,8 @@ public class ConfigHelper {
 
         // Inject proper implementation based on config
         context.setAuthorizationFactory(configuration.getAuthorizationFactory());
-        context.setAuthZResourceExtractorFactory(new TeletraanAuthZResourceExtractorFactory(context));
+        context.setAuthZResourceExtractorFactory(
+                new TeletraanAuthZResourceExtractorFactory(context));
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
@@ -146,39 +145,45 @@ public class ConfigHelper {
         String defaultScmTypeName = configuration.getDefaultScmTypeName();
         List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
         Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        for(SourceControlFactory scf : sourceControlConfigs) {
+        for (SourceControlFactory scf : sourceControlConfigs) {
             SourceControlManager scm = scf.create();
             String type = scm.getTypeName();
             managers.put(type, scm);
         }
-        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers, defaultScmTypeName));
+        context.setSourceControlManagerProxy(
+                new SourceControlManagerProxy(managers, defaultScmTypeName));
 
         AppEventFactory appEventFactory = configuration.getAppEventFactory();
         if (appEventFactory != null) {
             context.setAppEventPublisher(appEventFactory.createEventPublisher());
         } else {
-            context.setAppEventPublisher(new AppEventPublisher(){});
+            context.setAppEventPublisher(new AppEventPublisher() {});
         }
 
         RodimusFactory rodimusFactory = configuration.getRodimusFactory();
         if (rodimusFactory != null) {
             context.setRodimusManager(
-                new RodimusManagerImpl(
-                    rodimusFactory.getRodimusUrl(),
-                    rodimusFactory.getKnoxKey(),
-                    rodimusFactory.getUseProxy(),
-                    rodimusFactory.getHttpProxyAddr(),
-                    rodimusFactory.getHttpProxyPort()));
+                    new RodimusManagerImpl(
+                            rodimusFactory.getRodimusUrl(),
+                            rodimusFactory.getKnoxKey(),
+                            rodimusFactory.getUseProxy(),
+                            rodimusFactory.getHttpProxyAddr(),
+                            rodimusFactory.getHttpProxyPort()));
         } else {
             context.setRodimusManager(new DefaultRodimusManager());
         }
 
         BuildAllowlistFactory buildAllowlistFactory = configuration.getBuildAllowlistFactory();
         if (buildAllowlistFactory != null) {
-            context.setBuildAllowlist(new BuildAllowlistImpl(buildAllowlistFactory.getValidBuildURLs(), buildAllowlistFactory.getTrustedBuildURLs(), buildAllowlistFactory.getsoxBuildURLs()));
+            context.setBuildAllowlist(
+                    new BuildAllowlistImpl(
+                            buildAllowlistFactory.getValidBuildURLs(),
+                            buildAllowlistFactory.getTrustedBuildURLs(),
+                            buildAllowlistFactory.getsoxBuildURLs()));
         } else {
-            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<>(), new ArrayList<>(),
-                new ArrayList<>()));
+            context.setBuildAllowlist(
+                    new BuildAllowlistImpl(
+                            new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
@@ -188,50 +193,54 @@ public class ConfigHelper {
         }
 
         LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());
-        //Set external alerts factory
-        if (configuration.getExternalAlertsConfigs()!= null) {
+        // Set external alerts factory
+        if (configuration.getExternalAlertsConfigs() != null) {
             context.setExternalAlertsFactory(
-                configuration.getExternalAlertsConfigs().createExternalAlertFactory());
+                    configuration.getExternalAlertsConfigs().createExternalAlertFactory());
         }
 
-        if (configuration.getPingRequestValidators()!=null){
+        if (configuration.getPingRequestValidators() != null) {
             List<PingRequestValidator> validators = new ArrayList<>();
-            for(String validator:configuration.getPingRequestValidators()){
+            for (String validator : configuration.getPingRequestValidators()) {
                 LOG.info("Add PingRequestValidator {}", validator);
-                validators.add((PingRequestValidator)  Class.forName(validator).newInstance());
+                validators.add((PingRequestValidator) Class.forName(validator).newInstance());
             }
             context.setPingRequestValidators(validators);
         }
 
         if (configuration.getAwsFactory() != null) {
-            context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
-
+            context.setBuildEventPublisher(
+                    new EventBridgePublisher(
+                            configuration.getAwsFactory().buildEventBridgeClient(),
+                            configuration.getAwsFactory().getEventBridgeEventBusName()));
         }
 
         if (configuration.getAccountAllowList() != null) {
             context.setAccountAllowList(configuration.getAccountAllowList());
         }
 
-        /**
-         Lastly, let us create the in-process background job executor, all transient, long
-         running background jobs can be handled by this executor
-         Currently we hard coded the parameters as:
+        /*
+        Lastly, let us create the in-process background job executor, all transient, long
+        running background jobs can be handled by this executor
+        Currently we hard coded the parameters as:
 
-         corePoolSize - the number of threads to keep in the pool, even if they are idle, unless allowCoreThreadTimeOut is set
-         maximumPoolSize - the maximum number of threads to allow in the pool
-         keepAliveTime - when the number of threads is greater than the core, this is the maximum time that excess idle threads will wait for new tasks before terminating.
-         unit - the time unit for the keepAliveTime argument
-         workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
-         */
+        corePoolSize - the number of threads to keep in the pool, even if they are idle, unless allowCoreThreadTimeOut is set
+        maximumPoolSize - the maximum number of threads to allow in the pool
+        keepAliveTime - when the number of threads is greater than the core, this is the maximum time that excess idle threads will wait for new tasks before terminating.
+        unit - the time unit for the keepAliveTime argument
+        workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
+        */
         // TODO make the thread configurable
-        ExecutorService jobPool = new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        ExecutorService jobPool =
+                new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         context.setJobPool(jobPool);
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
 
         context.setAclManagementEnabled(configuration.getSystemFactory().isAclManagementEnabled());
-        context.setAclManagementDisabledMessage(configuration.getSystemFactory().getAclManagementDisabledMessage());
+        context.setAclManagementDisabledMessage(
+                configuration.getSystemFactory().getAclManagementDisabledMessage());
 
         // Only applies to Teletraan agent service
         context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
@@ -239,7 +248,9 @@ public class ConfigHelper {
         return context;
     }
 
-    public static void scheduleWorkers(TeletraanServiceConfiguration configuration, TeletraanServiceContext serviceContext) throws Exception {
+    public static void scheduleWorkers(
+            TeletraanServiceConfiguration configuration, TeletraanServiceContext serviceContext)
+            throws Exception {
         List<WorkerConfig> workerConfigs = configuration.getWorkerConfigs();
         for (WorkerConfig config : workerConfigs) {
             String workerName = config.getName();
@@ -257,9 +268,13 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(AutoPromoter.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int bufferTimeMinutes = MapUtils.getIntValue(properties, "bufferTimeMinutes", AutoPromoter.DEFAULT_BUFFER_TIME_MINUTE);
-                Runnable worker = new AutoPromoter(serviceContext)
-                        .withBufferTimeMinutes(bufferTimeMinutes);
+                int bufferTimeMinutes =
+                        MapUtils.getIntValue(
+                                properties,
+                                "bufferTimeMinutes",
+                                AutoPromoter.DEFAULT_BUFFER_TIME_MINUTE);
+                Runnable worker =
+                        new AutoPromoter(serviceContext).withBufferTimeMinutes(bufferTimeMinutes);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AutoPromoter.");
             }
@@ -273,29 +288,51 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(SimpleAgentJanitor.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold",
-                        DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
-                int maxStaleHostThreshold = MapUtils.getIntValue(properties,
-                        "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
-                Runnable worker = new SimpleAgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
+                int minStaleHostThreshold =
+                        MapUtils.getIntValue(
+                                properties,
+                                "minStaleHostThreshold",
+                                DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
+                int maxStaleHostThreshold =
+                        MapUtils.getIntValue(
+                                properties,
+                                "maxStaleHostThreshold",
+                                DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
+                Runnable worker =
+                        new SimpleAgentJanitor(
+                                serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled SimpleAgentJanitor.");
             }
 
             if (workerName.equalsIgnoreCase(AgentJanitor.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold",
-                        DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
-                int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold",
-                        DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
-                int maxLaunchLatencyThreshold = MapUtils.getIntValue(properties, "maxLaunchLatencyThreshold",
-                        DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS);
-                Runnable worker = new AgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold, maxLaunchLatencyThreshold);
+                int minStaleHostThreshold =
+                        MapUtils.getIntValue(
+                                properties,
+                                "minStaleHostThreshold",
+                                DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
+                int maxStaleHostThreshold =
+                        MapUtils.getIntValue(
+                                properties,
+                                "maxStaleHostThreshold",
+                                DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
+                int maxLaunchLatencyThreshold =
+                        MapUtils.getIntValue(
+                                properties,
+                                "maxLaunchLatencyThreshold",
+                                DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS);
+                Runnable worker =
+                        new AgentJanitor(
+                                serviceContext,
+                                minStaleHostThreshold,
+                                maxStaleHostThreshold,
+                                maxLaunchLatencyThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AgentJanitor.");
             }
 
-            if(workerName.equalsIgnoreCase(DeployTagWorker.class.getSimpleName())) {
+            if (workerName.equalsIgnoreCase(DeployTagWorker.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 Runnable worker = new DeployTagWorker(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
@@ -306,30 +343,40 @@ public class ConfigHelper {
             JobDetail deployJanitorJob = null;
             CronTrigger deployJanitorTrigger = null;
             if (workerName.equalsIgnoreCase(DeployJanitor.class.getSimpleName())) {
-                String schedule = MapUtils.getString(properties, "schedule", DEFAULT_DEPLOY_JANITOR_SCHEDULE);
-                deployJanitorJob = JobBuilder.newJob(DeployJanitor.class)
-                        .withIdentity("deployJanitorJob", "group1")
-                        .build();
-                deployJanitorTrigger = TriggerBuilder.newTrigger()
-                        .forJob(deployJanitorJob)
-                        .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
-                        .build();
+                String schedule =
+                        MapUtils.getString(properties, "schedule", DEFAULT_DEPLOY_JANITOR_SCHEDULE);
+                deployJanitorJob =
+                        JobBuilder.newJob(DeployJanitor.class)
+                                .withIdentity("deployJanitorJob", "group1")
+                                .build();
+                deployJanitorTrigger =
+                        TriggerBuilder.newTrigger()
+                                .forJob(deployJanitorJob)
+                                .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
+                                .build();
             }
             JobDetail buildJanitorJob = null;
             CronTrigger buildJanitorTrigger = null;
             if (workerName.equalsIgnoreCase(BuildJanitor.class.getSimpleName())) {
-                String schedule = MapUtils.getString(properties, "schedule", DEFAULT_BUILD_JANITOR_SCHEDULE);
-                int maxDaysToKeep = MapUtils.getIntValue(properties, "minStaleHostThreshold", DEFAULT_MAX_DAYS_TO_KEEP);
-                int maxBuildsToKeep = MapUtils.getIntValue(properties, "maxStaleHostThreshold", DEFAULT_MAX_BUILDS_TO_KEEP);
+                String schedule =
+                        MapUtils.getString(properties, "schedule", DEFAULT_BUILD_JANITOR_SCHEDULE);
+                int maxDaysToKeep =
+                        MapUtils.getIntValue(
+                                properties, "minStaleHostThreshold", DEFAULT_MAX_DAYS_TO_KEEP);
+                int maxBuildsToKeep =
+                        MapUtils.getIntValue(
+                                properties, "maxStaleHostThreshold", DEFAULT_MAX_BUILDS_TO_KEEP);
                 serviceContext.setMaxDaysToKeep(maxDaysToKeep);
                 serviceContext.setMaxBuildsToKeep(maxBuildsToKeep);
-                buildJanitorJob = JobBuilder.newJob(BuildJanitor.class)
-                        .withIdentity("buildJanitorJob", "group1")
-                        .build();
-                buildJanitorTrigger = TriggerBuilder.newTrigger()
-                        .forJob(buildJanitorJob)
-                        .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
-                        .build();
+                buildJanitorJob =
+                        JobBuilder.newJob(BuildJanitor.class)
+                                .withIdentity("buildJanitorJob", "group1")
+                                .build();
+                buildJanitorTrigger =
+                        TriggerBuilder.newTrigger()
+                                .forJob(buildJanitorJob)
+                                .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
+                                .build();
             }
 
             if (deployJanitorTrigger != null || buildJanitorTrigger != null) {

@@ -289,8 +289,7 @@ class UserRoleAuthorizerTest {
                 .thenReturn(sysReaderBean);
         sysReader = new UserPrincipal(sysReaderBean.getUser_name(), null);
 
-        UserRolesBean envAdminBean =
-                createUserRolesBean(TeletraanPrincipalRole.ADMIN, "env1Admin");
+        UserRolesBean envAdminBean = createUserRolesBean(TeletraanPrincipalRole.ADMIN, "env1Admin");
         when(userRolesDAO.getByNameAndResource(
                         envAdminBean.getUser_name(), env1Name, AuthZResource.Type.ENV))
                 .thenReturn(envAdminBean);
