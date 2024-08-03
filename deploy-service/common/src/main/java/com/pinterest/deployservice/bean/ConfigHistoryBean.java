@@ -18,7 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-
 public class ConfigHistoryBean implements Updatable {
     @JsonProperty("id")
     private String config_id;

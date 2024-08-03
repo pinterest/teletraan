@@ -21,7 +21,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-
 public class GroupRolesBean implements Updatable {
 
     @NotEmpty
