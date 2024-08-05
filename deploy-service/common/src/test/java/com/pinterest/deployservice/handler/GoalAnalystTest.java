@@ -59,6 +59,7 @@ public class GoalAnalystTest {
         agentBean.setState(AgentState.NORMAL);
         agentBean.setFail_count(0);
         agentBean.setFirst_deploy(false);
+        agentBean.setStart_date(System.currentTimeMillis());
         return agentBean;
     }
 
@@ -1014,6 +1015,7 @@ public class GoalAnalystTest {
         envs.put(environBean.getEnv_id(), environBean);
         AgentBean agentBean = genDefaultAgent();
         agentBean.setState(AgentState.STOP);
+        agentBean.setLast_err_no(0);
         agents.put(environBean.getEnv_id(), agentBean);
         PingReportBean report = genDefaultReport();
         reports.put(report.getEnvId(), report);
@@ -1026,11 +1028,12 @@ public class GoalAnalystTest {
         assertEquals(analyst.getNeedDeleteAgentEnvIds().size(), 0);
         assertEquals(analyst.getInstallCandidates().size(), 1);
         GoalAnalyst.InstallCandidate candidate = analyst.getInstallCandidates().get(0);
-        assertEquals(candidate.needWait, false);
-        assertEquals(candidate.updateBean.getDeploy_stage(), DeployStage.STOPPING);
-        assertEquals(candidate.updateBean.getState(), AgentState.STOP);
-        assertEquals(candidate.updateBean.getStatus(), AgentStatus.UNKNOWN);
-        assertEquals(candidate.updateBean.getLast_err_no(), new Integer(0));
+        assertEquals(false, candidate.needWait);
+        assertEquals(DeployStage.STOPPING, candidate.updateBean.getDeploy_stage());
+        assertEquals(AgentState.STOP, candidate.updateBean.getState());
+        assertEquals(AgentStatus.UNKNOWN, candidate.updateBean.getStatus());
+        assertEquals(0, (int) candidate.updateBean.getLast_err_no());
+        assertEquals(agentBean.getStart_date(), candidate.updateBean.getStart_date());
     }
 
     @Test
