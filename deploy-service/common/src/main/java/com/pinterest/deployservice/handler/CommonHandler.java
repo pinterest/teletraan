@@ -428,7 +428,7 @@ public class CommonHandler {
         if (oldState != DeployState.RUNNING) {
             LOG.info("Set deploy {} from {} to RUNNING.", deployId, oldState);
         } else {
-            LOG.debug("Deploy {} is still RUNNING...", deployId, oldState);
+            LOG.debug("Deploy {} is still RUNNING...", deployId);
         }
         newDeployBean.setState(DeployState.RUNNING);
     }

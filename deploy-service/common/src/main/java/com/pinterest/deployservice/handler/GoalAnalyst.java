@@ -460,7 +460,7 @@ public class GoalAnalyst {
                             String.valueOf(updateBean.getStatus().equals(AgentStatus.SUCCEEDED)))
                     .increment();
         } catch (Exception ex) {
-            LOG.warn("Failed to emit metrics of {}", updateBean.toString(), ex);
+            LOG.warn("Failed to emit metrics of {}", updateBean, ex);
         }
     }
 

@@ -104,7 +104,7 @@ public class HostTerminator implements Runnable {
         Collection<String> terminatedHosts =
                 rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
         if (terminatedHosts.contains(hostId)) {
-            LOG.info(String.format("Delete records of terminated host {}", hostId));
+            LOG.info("Delete records of terminated host {}", hostId);
             hostHandler.removeHost(hostId);
             return true;
         }
@@ -127,10 +127,7 @@ public class HostTerminator implements Runnable {
                     }
                 } catch (Exception e) {
                     LOG.error(
-                            "Failed to process {} host {}",
-                            host.getState().toString(),
-                            host.getHost_id(),
-                            e);
+                            "Failed to process {} host {}", host.getState(), host.getHost_id(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
                     LOG.info(

@@ -33,7 +33,7 @@ public class Ec2InstanceValidator extends PingRequestValidator {
         if (!StringUtils.startsWith(bean.getHostId(), "i-")) {
             LOG.warn("Ignore invalid id {} for host {}", bean.getHostId(), bean.getHostName());
             throw new DeployInternalException(
-                    String.format("Host id {} is not a valid ec2 instance id"),
+                    String.format("Host id %s is not a valid ec2 instance id", bean.getHostId()),
                     StringUtils.defaultString(bean.getHostId()));
         }
 
@@ -53,7 +53,9 @@ public class Ec2InstanceValidator extends PingRequestValidator {
                     bean.getHostName(),
                     accountId);
             throw new DeployInternalException(
-                    String.format("Host id {} is from an disallowed AWS account: {}"),
+                    String.format(
+                            "Host id %s is from an disallowed AWS account: %s",
+                            bean.getHostId(), accountId),
                     StringUtils.defaultString(bean.getHostId()),
                     accountId);
         }

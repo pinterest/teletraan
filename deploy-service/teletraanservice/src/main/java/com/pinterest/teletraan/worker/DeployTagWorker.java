@@ -179,7 +179,7 @@ public class DeployTagWorker implements Runnable {
                     } catch (SQLException e) {
                         LOG.error(
                                 "failed to process job due to SQLException: {} Error {} stack {}",
-                                job.toString(),
+                                job,
                                 ExceptionUtils.getRootCauseMessage(e),
                                 ExceptionUtils.getStackTrace(e));
 
@@ -187,13 +187,13 @@ public class DeployTagWorker implements Runnable {
                     } catch (Exception e) {
                         LOG.error(
                                 "failed to process job due to all other exceptions: {} Error {} stack {}",
-                                job.toString(),
+                                job,
                                 ExceptionUtils.getRootCauseMessage(e),
                                 ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
                         LOG.error(
                                 "job {} deploy constraint transitions to error state due to exceptions",
-                                job.toString());
+                                job);
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
 

@@ -43,7 +43,7 @@ public class SourceControlManagerProxy {
         }
         SourceControlManager manager = this.managers.get(scmType);
         if (manager == null) {
-            LOG.error("Unsupported SCM type: " + scmType);
+            LOG.error("Unsupported SCM type: {}", scmType);
             throw new Exception("Unsupported SCM type: " + scmType);
         }
         return manager;

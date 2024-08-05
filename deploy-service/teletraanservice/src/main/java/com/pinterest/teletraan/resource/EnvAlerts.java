@@ -130,10 +130,7 @@ public class EnvAlerts {
             return Response.status(400).build();
         }
 
-        LOG.info(
-                "Get Alert triggered: {} time:{}",
-                alert.isTriggered(),
-                alert.getTriggeredDate().toString());
+        LOG.info("Get Alert triggered: {} time:{}", alert.isTriggered(), alert.getTriggeredDate());
 
         if (!alert.isTriggered()) {
             LOG.info("No action for alert off");
