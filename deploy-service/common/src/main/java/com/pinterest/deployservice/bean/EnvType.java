@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Pinterest, Inc.
+ * Copyright (c) 2016-2023 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,19 @@
  */
 package com.pinterest.deployservice.bean;
 
-/**
- * DEFAULT:
- *      Default stage type (Production)
- * PRODUCTION:
- *      Production stage type
- * CONTROL:
- *      Control stage type
- * CANARY:
- *      Canary stage type
- * LATEST:
- *      LATEST stage type
- */
 public enum EnvType {
+    /** Default stage type (Production) */
     DEFAULT,
+    /** Production stage type */
     PRODUCTION,
+    /** Control stage type */
     CONTROL,
+    /** Canary stage type */
     CANARY,
+    /** LATEST stage type */
     LATEST,
+    /** DEV stage type */
     DEV,
+    /** STAGING stage type */
     STAGING
 }

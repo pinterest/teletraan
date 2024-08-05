@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,13 @@
 package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 import javax.validation.constraints.NotEmpty;
 
-import java.util.Map;
-
 public class WorkerConfig {
-    @NotEmpty
-    @JsonProperty
-    private String name;
+    @NotEmpty @JsonProperty private String name;
 
-    @JsonProperty
-    private Map<String, String> properties;
+    @JsonProperty private Map<String, String> properties;
 
     public String getName() {
         return name;

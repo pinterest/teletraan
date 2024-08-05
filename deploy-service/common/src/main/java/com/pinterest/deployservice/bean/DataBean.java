@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,6 @@ package com.pinterest.deployservice.bean;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- * <p/>
- * CREATE TABLE datas (
- * data_id       VARCHAR(22)         NOT NULL,
- * data_kind     VARCHAR(32)         NOT NULL,
- * operator      VARCHAR(64)         NOT NULL,
- * timestamp     BIGINT              NOT NULL,
- * data          TEXT                NOT NULL,
- * PRIMARY KEY   (data_id)
- * );
- */
 public class DataBean implements Updatable {
     private String data_id;
     // TODO deprecate data_kind, we should use json all the time

@@ -38,68 +38,62 @@ public class DBBuildDAOImpl implements BuildDAO {
     private static final String DELETE_BUILD = "DELETE FROM builds WHERE build_id=?";
     private static final String GET_BUILD_BY_ID = "SELECT * FROM builds WHERE build_id=?";
     private static final String GET_BUILDS_BY_COMMIT_7 =
-        "SELECT * FROM builds WHERE scm_commit_7=? ORDER BY publish_date DESC LIMIT ?,?";
+            "SELECT * FROM builds WHERE scm_commit_7=? ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_BUILDS_BY_COMMIT_7_AND_NAME =
-        "SELECT * FROM builds WHERE scm_commit_7=? AND build_name=? ORDER BY publish_date DESC LIMIT ?,?";
+            "SELECT * FROM builds WHERE scm_commit_7=? AND build_name=? ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_LATEST_BUILD_BY_NAME =
-        "SELECT * FROM builds WHERE build_name=? ORDER BY publish_date DESC LIMIT 1";
-    private static final String
-        GET_LATEST_BUILD_BY_NAME_2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? ORDER BY publish_date DESC "
-            + "LIMIT 1";
+            "SELECT * FROM builds WHERE build_name=? ORDER BY publish_date DESC LIMIT 1";
+    private static final String GET_LATEST_BUILD_BY_NAME_2 =
+            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? ORDER BY publish_date DESC "
+                    + "LIMIT 1";
     private static final String GET_BUILDS_BY_NAME =
-        "SELECT * FROM builds WHERE build_name=? " + "ORDER BY publish_date DESC LIMIT ?,?";
+            "SELECT * FROM builds WHERE build_name=? " + "ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_BUILDS_BY_NAME_2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? "
-            + "ORDER BY publish_date DESC LIMIT ?,?";
-    private static final String
-        GET_BUILD_NAMES =
-        "SELECT DISTINCT build_name FROM builds WHERE build_name LIKE ? ORDER BY build_name ASC "
-            + "LIMIT ?,?";
+            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? "
+                    + "ORDER BY publish_date DESC LIMIT ?,?";
+    private static final String GET_BUILD_NAMES =
+            "SELECT DISTINCT build_name FROM builds WHERE build_name LIKE ? ORDER BY build_name ASC "
+                    + "LIMIT ?,?";
     private static final String GET_BRANCHES =
-        "SELECT DISTINCT scm_branch FROM builds WHERE build_name=?";
+            "SELECT DISTINCT scm_branch FROM builds WHERE build_name=?";
     private static final String GET_BUILD_NAMES2 =
-        "SELECT DISTINCT build_name FROM builds ORDER BY build_name ASC LIMIT ?,?";
+            "SELECT DISTINCT build_name FROM builds ORDER BY build_name ASC LIMIT ?,?";
     private static final String GET_BUILDS_BY_NAME_X =
-        "SELECT * FROM builds WHERE build_name=? AND "
-            + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
+            "SELECT * FROM builds WHERE build_name=? AND "
+                    + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
     private static final String GET_BUILDS_BY_NAME_X_2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND "
-            + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
-    private static final String
-        GET_ACCEPTED_BUILDS_TEMPLATE =
-        "SELECT * FROM builds WHERE build_name=? AND publish_date>? ORDER BY publish_date DESC "
-            + "LIMIT ?";
-    private static final String
-        GET_ACCEPTED_BUILDS_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? ORDER "
-            + "BY publish_date DESC LIMIT ?";
-    private static final String
-        GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE =
-        "SELECT * FROM builds WHERE build_name=? AND publish_date>? AND publish_date<? ORDER "
-            + "BY publish_date DESC LIMIT ?";
-    private static final String
-        GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? AND "
-            + "publish_date<?  ORDER BY publish_date DESC LIMIT ?";
+            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND "
+                    + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
+    private static final String GET_ACCEPTED_BUILDS_TEMPLATE =
+            "SELECT * FROM builds WHERE build_name=? AND publish_date>? ORDER BY publish_date DESC "
+                    + "LIMIT ?";
+    private static final String GET_ACCEPTED_BUILDS_TEMPLATE2 =
+            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? ORDER "
+                    + "BY publish_date DESC LIMIT ?";
+    private static final String GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE =
+            "SELECT * FROM builds WHERE build_name=? AND publish_date>? AND publish_date<? ORDER "
+                    + "BY publish_date DESC LIMIT ?";
+    private static final String GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2 =
+            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? AND "
+                    + "publish_date<?  ORDER BY publish_date DESC LIMIT ?";
 
     private static final String GET_ALL_BUILD_NAMES = "SELECT DISTINCT build_name FROM builds";
     private static final String GET_TOTAL_BY_NAME =
-        "SELECT COUNT(*) FROM builds WHERE build_name=?";
+            "SELECT COUNT(*) FROM builds WHERE build_name=?";
     private static final String GET_LIST_OF_BUILDS_BY_IDs =
-        "SELECT * FROM builds where build_id IN (%s)";
+            "SELECT * FROM builds where build_id IN (%s)";
 
     private static final String DELETE_UNUSED_BUILDS =
-        "DELETE FROM builds WHERE build_name=? AND publish_date<? "
-            + "AND NOT EXISTS (SELECT 1 FROM deploys WHERE deploys.build_id = builds.build_id) "
-            + "ORDER BY publish_date ASC LIMIT ?";
+            "DELETE FROM builds WHERE build_name=? AND publish_date<? "
+                    + "AND NOT EXISTS (SELECT 1 FROM deploys WHERE deploys.build_id = builds.build_id) "
+                    + "ORDER BY publish_date ASC LIMIT ?";
 
-    private static final String GET_CURRENT_BUILD_BY_GROUP_NAME = "SELECT * FROM builds WHERE build_id IN " +
-        "(SELECT build_id FROM deploys WHERE deploy_id IN " +
-        "(SELECT deploy_id FROM environs WHERE env_id IN" +
-        " (SELECT env_id FROM groups_and_envs WHERE group_name=?)" +
-        "))";
-
+    private static final String GET_CURRENT_BUILD_BY_GROUP_NAME =
+            "SELECT * FROM builds WHERE build_id IN "
+                    + "(SELECT build_id FROM deploys WHERE deploy_id IN "
+                    + "(SELECT deploy_id FROM environs WHERE env_id IN"
+                    + " (SELECT env_id FROM groups_and_envs WHERE group_name=?)"
+                    + "))";
 
     private BasicDataSource dataSource;
 
@@ -126,17 +120,16 @@ public class DBBuildDAOImpl implements BuildDAO {
     }
 
     @Override
-    public List<BuildBean> getByCommit7(String scmCommit7, String buildName, int pageIndex, int pageSize)
-        throws Exception {
+    public List<BuildBean> getByCommit7(
+            String scmCommit7, String buildName, int pageIndex, int pageSize) throws Exception {
         QueryRunner run = new QueryRunner(this.dataSource);
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         long start = (pageIndex - 1) * pageSize;
         if (StringUtils.isNotEmpty(buildName)) {
-            return run
-                .query(GET_BUILDS_BY_COMMIT_7_AND_NAME, h, scmCommit7, buildName, start, pageSize);
+            return run.query(
+                    GET_BUILDS_BY_COMMIT_7_AND_NAME, h, scmCommit7, buildName, start, pageSize);
         } else {
-            return run
-                .query(GET_BUILDS_BY_COMMIT_7, h, scmCommit7, start, pageSize);
+            return run.query(GET_BUILDS_BY_COMMIT_7, h, scmCommit7, start, pageSize);
         }
     }
 
@@ -153,24 +146,27 @@ public class DBBuildDAOImpl implements BuildDAO {
 
     @Override
     public List<String> getBuildNames(String nameFilter, int pageIndex, int pageSize)
-        throws Exception {
+            throws Exception {
         QueryRunner run = new QueryRunner(this.dataSource);
         if (StringUtils.isNotEmpty(nameFilter)) {
-            return run
-                .query(GET_BUILD_NAMES,
+            return run.query(
+                    GET_BUILD_NAMES,
                     SingleResultSetHandlerFactory.<String>newListObjectHandler(),
-                    String.format("%%%s%%", nameFilter), (pageIndex - 1) * pageSize, pageSize);
+                    String.format("%%%s%%", nameFilter),
+                    (pageIndex - 1) * pageSize,
+                    pageSize);
         } else {
-            return run
-                .query(GET_BUILD_NAMES2,
+            return run.query(
+                    GET_BUILD_NAMES2,
                     SingleResultSetHandlerFactory.<String>newListObjectHandler(),
-                    (pageIndex - 1) * pageSize, pageSize);
+                    (pageIndex - 1) * pageSize,
+                    pageSize);
         }
     }
 
     @Override
     public List<BuildBean> getByNameDate(String buildName, String branch, long before, long after)
-        throws Exception {
+            throws Exception {
         QueryRunner run = new QueryRunner(this.dataSource);
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
@@ -182,7 +178,7 @@ public class DBBuildDAOImpl implements BuildDAO {
 
     @Override
     public List<BuildBean> getByName(String buildName, String branch, int pageIndex, int pageSize)
-        throws Exception {
+            throws Exception {
         QueryRunner run = new QueryRunner(this.dataSource);
         long start = (pageIndex - 1) * pageSize;
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
@@ -196,79 +192,102 @@ public class DBBuildDAOImpl implements BuildDAO {
     @Override
     public List<String> getBranches(String buildName) throws Exception {
         QueryRunner run = new QueryRunner(this.dataSource);
-        return run.query(GET_BRANCHES, SingleResultSetHandlerFactory.<String>newListObjectHandler(),
-            buildName);
+        return run.query(
+                GET_BRANCHES,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(),
+                buildName);
     }
 
-
     @Override
-    public List<BuildBean> getAcceptedBuilds(String buildName, String branch, Interval interval,
-                                             int limit) throws Exception {
+    public List<BuildBean> getAcceptedBuilds(
+            String buildName, String branch, Interval interval, int limit) throws Exception {
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
-            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, h, buildName, branch,
-                    interval.getStartMillis(), interval.getEndMillis(), limit);
+            return new QueryRunner(dataSource)
+                    .query(
+                            GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2,
+                            h,
+                            buildName,
+                            branch,
+                            interval.getStartMillis(),
+                            interval.getEndMillis(),
+                            limit);
         } else {
-            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE, h, buildName,
-                    interval.getStartMillis(), interval.getEndMillis(), limit);
+            return new QueryRunner(dataSource)
+                    .query(
+                            GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE,
+                            h,
+                            buildName,
+                            interval.getStartMillis(),
+                            interval.getEndMillis(),
+                            limit);
         }
     }
 
     @Override
     public List<String> getAllBuildNames() throws Exception {
         QueryRunner run = new QueryRunner(this.dataSource);
-        return run
-            .query(GET_ALL_BUILD_NAMES,
-                SingleResultSetHandlerFactory.<String>newListObjectHandler());
+        return run.query(
+                GET_ALL_BUILD_NAMES, SingleResultSetHandlerFactory.<String>newListObjectHandler());
     }
 
     @Override
     public long countBuildsByName(String buildName) throws Exception {
-        Long
-            n =
-            new QueryRunner(dataSource)
-                .query(GET_TOTAL_BY_NAME, SingleResultSetHandlerFactory.<Long>newObjectHandler(),
-                    buildName);
+        Long n =
+                new QueryRunner(dataSource)
+                        .query(
+                                GET_TOTAL_BY_NAME,
+                                SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                                buildName);
         return n == null ? 0 : n;
     }
 
     @Override
     public void deleteUnusedBuilds(String buildName, long timeThreshold, long numOfBuilds)
-        throws Exception {
+            throws Exception {
         new QueryRunner(dataSource)
-            .update(DELETE_UNUSED_BUILDS, buildName, timeThreshold, numOfBuilds);
+                .update(DELETE_UNUSED_BUILDS, buildName, timeThreshold, numOfBuilds);
     }
 
     @Override
     public List<BuildBean> getBuildsFromIds(Collection<String> ids) throws Exception {
         if (ids.isEmpty()) {
-            return new ArrayList<>(); //MySQL doesn't allow IN (). So just return empty here.
+            return new ArrayList<>(); // MySQL doesn't allow IN (). So just return empty here.
         }
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         QueryRunner run = new QueryRunner(dataSource);
         return run.query(
-                String.format(GET_LIST_OF_BUILDS_BY_IDs, QueryUtils.genStringPlaceholderList(ids.size())),
+                String.format(
+                        GET_LIST_OF_BUILDS_BY_IDs, QueryUtils.genStringPlaceholderList(ids.size())),
                 h,
                 ids.toArray());
     }
 
     @Override
-    public List<BuildBean> get(String scmCommit, String buildName, String scmBranch,
-                               Optional<Integer> pageIndex, Optional<Integer> pageSize, Long before,
-                               Long after)
-        throws Exception {
+    public List<BuildBean> get(
+            String scmCommit,
+            String buildName,
+            String scmBranch,
+            Optional<Integer> pageIndex,
+            Optional<Integer> pageSize,
+            Long before,
+            Long after)
+            throws Exception {
 
         if (!StringUtils.isEmpty(scmCommit)) {
-            return this.getByCommit7(StringUtils.substring(scmCommit, 0, 7), buildName, pageIndex.or(1),
-                pageSize.or(DEFAULT_SIZE));
+            return this.getByCommit7(
+                    StringUtils.substring(scmCommit, 0, 7),
+                    buildName,
+                    pageIndex.or(1),
+                    pageSize.or(DEFAULT_SIZE));
         }
 
         if (!StringUtils.isEmpty(buildName)) {
             if (before != null && after != null) {
                 return this.getByNameDate(buildName, scmBranch, before, after);
             } else {
-                return this
-                    .getByName(buildName, scmBranch, pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
+                return this.getByName(
+                        buildName, scmBranch, pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
             }
         }
 

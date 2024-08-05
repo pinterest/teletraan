@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
- * <p>
+ * Copyright (c) 2016-2024 Pinterest, Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 package com.pinterest.teletraan;
-
-import java.util.Collections;
-import java.util.List;
-
-import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.config.AnonymousAuthenticationFactory;
@@ -42,8 +37,10 @@ import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.SystemFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
-
 import io.dropwizard.Configuration;
+import java.util.Collections;
+import java.util.List;
+import javax.validation.Valid;
 
 public class TeletraanServiceConfiguration extends Configuration {
     @Valid
@@ -94,7 +91,6 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("system")
     private SystemFactory systemFactory;
 
-
     @Valid
     @JsonProperty("rodimus")
     private RodimusFactory rodimusFactory;
@@ -115,8 +111,7 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("pingrequestvalidators")
     private List<String> pingRequestValidators;
 
-    @Valid
-    private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
+    @Valid private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
 
     @Valid
     @JsonProperty("accountAllowList")
@@ -180,7 +175,6 @@ public class TeletraanServiceConfiguration extends Configuration {
     public void setChatFactory(ChatFactory chatFactory) {
         this.chatFactory = chatFactory;
     }
-
 
     public EmailFactory getEmailFactory() {
         if (emailFactory == null) {
@@ -254,23 +248,19 @@ public class TeletraanServiceConfiguration extends Configuration {
         this.workerConfigs = workerConfigs;
     }
 
-
     public ExternalAlertsConfigFactory getExternalAlertsConfigs() {
         return externalAlertsConfigs;
     }
 
-    public void setExternalAlertsConfigs(
-        ExternalAlertsConfigFactory externalAlertsConfigs) {
+    public void setExternalAlertsConfigs(ExternalAlertsConfigFactory externalAlertsConfigs) {
         this.externalAlertsConfigs = externalAlertsConfigs;
     }
-
 
     public List<String> getPingRequestValidators() {
         return pingRequestValidators;
     }
 
-    public void setPingRequestValidators(
-        List<String> pingRequestValidators) {
+    public void setPingRequestValidators(List<String> pingRequestValidators) {
         this.pingRequestValidators = pingRequestValidators;
     }
 

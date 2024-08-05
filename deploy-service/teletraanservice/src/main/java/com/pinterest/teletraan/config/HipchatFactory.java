@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,15 @@
  */
 package com.pinterest.teletraan.config;
 
-import javax.validation.constraints.NotEmpty;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.chat.HipChatManager;
+import javax.validation.constraints.NotEmpty;
 
 @JsonTypeName("hipchat")
 public class HipchatFactory implements ChatFactory {
-    @NotEmpty
-    @JsonProperty
-    private String token;
+    @NotEmpty @JsonProperty private String token;
 
     public String getToken() {
         return token;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.DeployFilterBean;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 public class DeployQueryFilter {
     private static final int DEFAULT_PAGE_INDEX = 1;
@@ -67,8 +66,8 @@ public class DeployQueryFilter {
         return sb;
     }
 
-    private <E extends Enum<E>> StringBuilder appendSubQueryEnum(StringBuilder sb, String name,
-        List<E> valueList) {
+    private <E extends Enum<E>> StringBuilder appendSubQueryEnum(
+            StringBuilder sb, String name, List<E> valueList) {
         if (valueList == null || valueList.isEmpty()) {
             return sb;
         }
@@ -121,7 +120,6 @@ public class DeployQueryFilter {
             sb.append("start_date>=? AND ");
             values.add(filter.getAfter());
         }
-
 
         if (sb.length() > 1) {
             // remove the trialing AND and space

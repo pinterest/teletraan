@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 package com.pinterest.deployservice.scm;
 
 import com.pinterest.deployservice.bean.CommitBean;
-
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
 public class DefaultSourceControlManager implements SourceControlManager {
-    private final static String DEFAULT_PATH = "";
+    private static final String DEFAULT_PATH = "";
 
     @Override
     public String generateCommitLink(String repo, String sha) {
@@ -50,21 +49,25 @@ public class DefaultSourceControlManager implements SourceControlManager {
         return null;
     }
 
-    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception {
-      return getCommits(repo, sha, keepHead, DEFAULT_PATH);
+    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead)
+            throws Exception {
+        return getCommits(repo, sha, keepHead, DEFAULT_PATH);
     }
 
     @Override
-    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path) throws Exception {
+    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path)
+            throws Exception {
         return new LinkedList<>();
     }
 
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception {
-      return getCommits(repo, startSha, endSha, size, DEFAULT_PATH);
+    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size)
+            throws Exception {
+        return getCommits(repo, startSha, endSha, size, DEFAULT_PATH);
     }
 
     @Override
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Exception {
+    public List<CommitBean> getCommits(
+            String repo, String startSha, String endSha, int size, String path) throws Exception {
         return Collections.emptyList();
     }
 }

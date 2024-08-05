@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,13 @@
  */
 package com.pinterest.deployservice.common;
 
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KnoxKeyReader implements KeyReader {
     private static final Logger LOG = LoggerFactory.getLogger(KnoxKeyReader.class);
@@ -35,16 +33,17 @@ public class KnoxKeyReader implements KeyReader {
     private final LoadingCache<String, Optional<String>> knoxCache;
 
     public KnoxKeyReader() {
-        knoxCache = CacheBuilder.newBuilder()
-                .maximumSize(1)
-                .expireAfterWrite(1, TimeUnit.MINUTES)
-                .build(
-                        new CacheLoader<String, Optional<String>>() {
-                            @Override
-                            public Optional<String> load(String key) throws Exception {
-                                return Optional.fromNullable(getKeyInternal());
-                            }
-                        });
+        knoxCache =
+                CacheBuilder.newBuilder()
+                        .maximumSize(1)
+                        .expireAfterWrite(1, TimeUnit.MINUTES)
+                        .build(
+                                new CacheLoader<String, Optional<String>>() {
+                                    @Override
+                                    public Optional<String> load(String key) throws Exception {
+                                        return Optional.fromNullable(getKeyInternal());
+                                    }
+                                });
     }
 
     void setKnoxManager(KnoxKeyManager knoxManager) {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- * <p/>
- * CREATE TABLE `pindeploy` (
- * `env_id` varchar(22) NOT NULL,
- * `is_pindeploy` tinyint(1) NOT NULL DEFAULT '0',
- * `pipeline` varchar(128) NOT NULL DEFAULT "",
- * PRIMARY KEY (`env_id`)
-);
- */
 public class PindeployBean implements Updatable {
     @JsonProperty("envId")
     private String env_id;
@@ -71,10 +61,10 @@ public class PindeployBean implements Updatable {
         return clause;
     }
 
-    public final static String UPDATE_CLAUSE =
-        "env_id=VALUES(env_id)," +
-            "is_pindeploy=VALUES(is_pindeploy)," +
-            "pipeline=VALUES(pipeline)";
+    public static final String UPDATE_CLAUSE =
+            "env_id=VALUES(env_id),"
+                    + "is_pindeploy=VALUES(is_pindeploy),"
+                    + "pipeline=VALUES(pipeline)";
 
     @Override
     public String toString() {

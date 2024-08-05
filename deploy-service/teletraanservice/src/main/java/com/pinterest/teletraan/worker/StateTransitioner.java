@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,13 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
-
+import io.micrometer.core.instrument.Counter;
+import java.util.Collections;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
-
-import io.micrometer.core.instrument.Counter;
-
-/**
- * Check active deploys and transition them into final states
- */
+/** Check active deploys and transition them into final states */
 public class StateTransitioner implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(StateTransitioner.class);
 
@@ -42,8 +37,10 @@ public class StateTransitioner implements Runnable {
     public StateTransitioner(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
-        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
-        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
+        errorBudgetSuccess =
+                ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure =
+                ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     void processBatch() throws Exception {

@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,16 +19,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.deployservice.group.CMDBHostGroupManager;
 import com.pinterest.deployservice.group.HostGroupManager;
-
 import javax.validation.constraints.NotNull;
 
 @JsonTypeName("cmdb")
 public class CMDBFactory implements HostGroupFactory {
-    @NotNull
-    @JsonProperty
-    private String server;
+    @NotNull @JsonProperty private String server;
 
-    public String getServer() { return server; }
+    public String getServer() {
+        return server;
+    }
 
     @Override
     public HostGroupManager createHostGroupDAO() throws Exception {

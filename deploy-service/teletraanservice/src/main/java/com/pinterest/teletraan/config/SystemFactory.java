@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class SystemFactory {
     private static final String DEFAULT_DASHBOARD_URL = "http://localhost:8888";
 
-    @JsonProperty
-    private String dashboardUrl = DEFAULT_DASHBOARD_URL;
+    @JsonProperty private String dashboardUrl = DEFAULT_DASHBOARD_URL;
+
+    @JsonProperty private String changeFeedUrl;
+
+    @JsonProperty private long agentCountCacheTtl = 10 * 1000l;
+
+    @JsonProperty private long maxParallelThreshold = 10000;
+
+    @JsonProperty private boolean aclManagementEnabled = true;
 
     @JsonProperty
-    private String changeFeedUrl;
-
-    @JsonProperty
-    private long agentCountCacheTtl = 10 * 1000l;
-
-    @JsonProperty
-    private long maxParallelThreshold = 10000;
-
-    @JsonProperty
-    private boolean aclManagementEnabled = true;
-
-    @JsonProperty
-    private String aclManagementDisabledMessage = "ACL management is disabled. Please contact your admin for modification.";
+    private String aclManagementDisabledMessage =
+            "ACL management is disabled. Please contact your admin for modification.";
 
     public String getDashboardUrl() {
         return dashboardUrl;
@@ -85,5 +81,4 @@ public class SystemFactory {
     public void setAclManagementDisabledMessage(String aclManagementDisabledMessage) {
         this.aclManagementDisabledMessage = aclManagementDisabledMessage;
     }
-
 }

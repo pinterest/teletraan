@@ -91,7 +91,8 @@ class BaseAuthorizerTest {
         verify(extractor).extractResource(context, authZInfo.beanClass());
 
         when(extractor.extractResource(any(), any())).thenThrow(new ExtractionException(null));
-        assertThrows(WebApplicationException.class, () -> sut.authorize(principal, TEST_ROLE, context));
+        assertThrows(
+                WebApplicationException.class, () -> sut.authorize(principal, TEST_ROLE, context));
     }
 
     @Test

@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,16 +24,12 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 
 public class DBDataDAOImpl implements DataDAO {
-    private static final String INSERT_DATA_TEMPLATE =
-        "INSERT INTO datas SET %s";
-    private static final String UPDATE_DATA_TEMPLATE =
-        "UPDATE datas SET %s WHERE data_id=?";
-    private static final String INSERT_OR_UPDATE_DATA_TEMPLATE=
-        "INSERT INTO datas SET %s ON DUPLICATE KEY UPDATE timestamp=?, data=?";
-    private static final String DELETE_DATA =
-        "DELETE FROM datas WHERE data_id=?";
-    private static final String GET_DATA_BY_ID =
-        "SELECT * FROM datas WHERE data_id=?";
+    private static final String INSERT_DATA_TEMPLATE = "INSERT INTO datas SET %s";
+    private static final String UPDATE_DATA_TEMPLATE = "UPDATE datas SET %s WHERE data_id=?";
+    private static final String INSERT_OR_UPDATE_DATA_TEMPLATE =
+            "INSERT INTO datas SET %s ON DUPLICATE KEY UPDATE timestamp=?, data=?";
+    private static final String DELETE_DATA = "DELETE FROM datas WHERE data_id=?";
+    private static final String GET_DATA_BY_ID = "SELECT * FROM datas WHERE data_id=?";
 
     private BasicDataSource dataSource;
 
@@ -76,4 +72,3 @@ public class DBDataDAOImpl implements DataDAO {
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 }
-

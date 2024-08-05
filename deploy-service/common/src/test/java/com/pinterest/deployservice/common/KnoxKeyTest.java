@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Pinterest, Inc.
+ * Copyright (c) 2022-2023 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.common;
-
-import com.pinterest.deployservice.rodimus.RodimusManager;
-import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
+import com.pinterest.deployservice.rodimus.RodimusManager;
+import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,11 +28,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
-
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -42,11 +38,16 @@ import org.mockito.invocation.InvocationOnMock;
 public class KnoxKeyTest {
 
     private static enum Answer {
-        NULL, EXCEPTION, ARRAY, LATENCY
+        NULL,
+        EXCEPTION,
+        ARRAY,
+        LATENCY
     };
 
-    private static final String msgUnauthException = "HTTP request failed, status = 401, content = Unauthorized";
-    private static final String postAnswerTag = "{\"i-001\":{\"Name\": \"devapp-example1\"},\"i-002\":{\"Name\": \"devrestricted-example2\"}}";
+    private static final String msgUnauthException =
+            "HTTP request failed, status = 401, content = Unauthorized";
+    private static final String postAnswerTag =
+            "{\"i-001\":{\"Name\": \"devapp-example1\"},\"i-002\":{\"Name\": \"devrestricted-example2\"}}";
     private static final String postAnswerArray = "[\"i-001\",\"i-002\"]";
     private static final String getAnswerValue = "{\"launchLatencyTh\": 10}";
 
@@ -69,30 +70,34 @@ public class KnoxKeyTest {
         // Create mock for httpClient
         mockHttpClient = Mockito.mock(HTTPClient.class);
 
-        rodimusManager = new RodimusManagerImpl("http://localhost", "teletraan:test", false, "", "");
+        rodimusManager =
+                new RodimusManagerImpl("http://localhost", "teletraan:test", false, "", "");
 
         // Allocate answerList
         answerList = new ArrayList<Answer>();
         mockClasses(rodimusManager, mockKnoxKeyReader, mockHttpClient);
 
         when(this.mockHttpClient.get(
-                Mockito.any(String.class),
-                Mockito.any(String.class),
-                Mockito.anyMap(),
-                Mockito.anyMap(),
-                Mockito.any(Integer.class))).thenAnswer(invocation -> this.getAnswer(invocation));
+                        Mockito.any(String.class),
+                        Mockito.any(String.class),
+                        Mockito.anyMap(),
+                        Mockito.anyMap(),
+                        Mockito.any(Integer.class)))
+                .thenAnswer(invocation -> this.getAnswer(invocation));
 
         when(mockHttpClient.post(
-                Mockito.any(String.class),
-                Mockito.any(String.class),
-                Mockito.anyMap(),
-                Mockito.any(Integer.class))).thenAnswer(invocation -> this.postAnswer(invocation));
+                        Mockito.any(String.class),
+                        Mockito.any(String.class),
+                        Mockito.anyMap(),
+                        Mockito.any(Integer.class)))
+                .thenAnswer(invocation -> this.postAnswer(invocation));
 
         when(this.mockHttpClient.delete(
-                Mockito.any(String.class),
-                Mockito.any(String.class),
-                Mockito.anyMap(),
-                Mockito.any(Integer.class))).thenAnswer(invocation -> this.deleteAnswer(invocation));
+                        Mockito.any(String.class),
+                        Mockito.any(String.class),
+                        Mockito.anyMap(),
+                        Mockito.any(Integer.class)))
+                .thenAnswer(invocation -> this.deleteAnswer(invocation));
     }
 
     // ### terminateHostsByClusterName tests ###
@@ -103,7 +108,8 @@ public class KnoxKeyTest {
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[1]);
 
         try {
-            this.rodimusManager.terminateHostsByClusterName("cluster", Collections.singletonList("i-001"));
+            this.rodimusManager.terminateHostsByClusterName(
+                    "cluster", Collections.singletonList("i-001"));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -117,13 +123,18 @@ public class KnoxKeyTest {
         // Token does not work, refresh and retry, second try works
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
 
-        Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-            this.rodimusManager.terminateHostsByClusterName("cluster", Collections.singletonList("i-001"));
-        });
+        Exception exception =
+                Assert.assertThrows(
+                        DeployInternalException.class,
+                        () -> {
+                            this.rodimusManager.terminateHostsByClusterName(
+                                    "cluster", Collections.singletonList("i-001"));
+                        });
         Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
 
         try {
-            this.rodimusManager.terminateHostsByClusterName("cluster", Collections.singletonList("i-001"));
+            this.rodimusManager.terminateHostsByClusterName(
+                    "cluster", Collections.singletonList("i-001"));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -138,9 +149,13 @@ public class KnoxKeyTest {
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[0]);
 
         for (int i = 1; i <= 2; i++) {
-            Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-                this.rodimusManager.terminateHostsByClusterName("cluster", Collections.singletonList("i-001"));
-            });
+            Exception exception =
+                    Assert.assertThrows(
+                            DeployInternalException.class,
+                            () -> {
+                                this.rodimusManager.terminateHostsByClusterName(
+                                        "cluster", Collections.singletonList("i-001"));
+                            });
 
             Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
         }
@@ -173,9 +188,12 @@ public class KnoxKeyTest {
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
         this.postAnswerReturn = postAnswerArray;
 
-        Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-            this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
-        });
+        Exception exception =
+                Assert.assertThrows(
+                        DeployInternalException.class,
+                        () -> {
+                            this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
+                        });
         Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
 
         try {
@@ -195,9 +213,13 @@ public class KnoxKeyTest {
         this.postAnswerReturn = postAnswerArray;
 
         for (int i = 1; i <= 2; i++) {
-            Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-                this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
-            });
+            Exception exception =
+                    Assert.assertThrows(
+                            DeployInternalException.class,
+                            () -> {
+                                this.rodimusManager.getTerminatedHosts(
+                                        Arrays.asList("i-001", "i-002"));
+                            });
 
             Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
         }
@@ -230,9 +252,12 @@ public class KnoxKeyTest {
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
         this.postAnswerReturn = postAnswerArray;
 
-        Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-            this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
-        });
+        Exception exception =
+                Assert.assertThrows(
+                        DeployInternalException.class,
+                        () -> {
+                            this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
+                        });
         Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
 
         try {
@@ -251,9 +276,12 @@ public class KnoxKeyTest {
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[0]);
 
         for (int i = 1; i <= 2; i++) {
-            Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-                this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
-            });
+            Exception exception =
+                    Assert.assertThrows(
+                            DeployInternalException.class,
+                            () -> {
+                                this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
+                            });
 
             Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
         }
@@ -287,9 +315,12 @@ public class KnoxKeyTest {
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
         this.postAnswerReturn = postAnswerTag;
 
-        Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-            this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
-        });
+        Exception exception =
+                Assert.assertThrows(
+                        DeployInternalException.class,
+                        () -> {
+                            this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
+                        });
         Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
 
         try {
@@ -309,9 +340,12 @@ public class KnoxKeyTest {
         this.postAnswerReturn = postAnswerTag;
 
         for (int i = 1; i <= 2; i++) {
-            Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
-                this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
-            });
+            Exception exception =
+                    Assert.assertThrows(
+                            DeployInternalException.class,
+                            () -> {
+                                this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
+                            });
 
             Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
         }
@@ -322,7 +356,9 @@ public class KnoxKeyTest {
 
     // ### HELPER METHODS ###
 
-    private void mockClasses(RodimusManager rodimusMngr, KnoxKeyReader mokKnox, HTTPClient mokHttpClient) throws Exception {
+    private void mockClasses(
+            RodimusManager rodimusMngr, KnoxKeyReader mokKnox, HTTPClient mokHttpClient)
+            throws Exception {
         // Modify fsKnox to use our mock
         Field classKnox = rodimusMngr.getClass().getDeclaredField("knoxKeyReader");
         classKnox.setAccessible(true);
@@ -339,8 +375,7 @@ public class KnoxKeyTest {
     private String getToken(Map<String, String> headers) {
         // Get token out of Map of headers
         for (Map.Entry<String, String> entry : headers.entrySet()) {
-            if (entry.getKey() == "Authorization")
-                return entry.getValue();
+            if (entry.getKey() == "Authorization") return entry.getValue();
         }
         return null;
     }
@@ -392,5 +427,4 @@ public class KnoxKeyTest {
             throw new DeployInternalException(msgUnauthException);
         }
     }
-
 }

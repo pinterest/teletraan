@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
  */
 package com.pinterest.deployservice.rodimus;
 
-
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public interface RodimusManager {
-    void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception;
+    void terminateHostsByClusterName(String clusterName, Collection<String> hostIds)
+            throws Exception;
 
-    void terminateHostsByClusterName(String clusterName, Collection<String> hostIds, Boolean replaceHost)
-    throws Exception;
+    void terminateHostsByClusterName(
+            String clusterName, Collection<String> hostIds, Boolean replaceHost) throws Exception;
 
     Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception;
 

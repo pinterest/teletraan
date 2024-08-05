@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2018 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,19 +16,17 @@
 package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.AgentBean;
-
 import java.util.Collection;
 import java.util.List;
 
-/**
- * A collection of methods to help interact with table agents
- */
+/** A collection of methods to help interact with table agents */
 public interface AgentDAO {
     void insertOrUpdate(AgentBean agentBean) throws Exception;
 
     void update(String hostId, String envId, AgentBean updateBean) throws Exception;
 
-    void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception;
+    void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean)
+            throws Exception;
 
     void resetFailedAgents(String envId, String deployId) throws Exception;
 
@@ -78,9 +76,11 @@ public interface AgentDAO {
 
     long countAgentsByDeploy(String deployId) throws Exception;
 
-    long countDeployingAgentWithHostTag(String envId, String tagName, String tagValue) throws Exception;
+    long countDeployingAgentWithHostTag(String envId, String tagName, String tagValue)
+            throws Exception;
 
-    long countFinishedAgentsByDeployWithHostTags(String envId, String deployId, String tagName, List<String> tagValues) throws Exception;
+    long countFinishedAgentsByDeployWithHostTags(
+            String envId, String deployId, String tagName, List<String> tagValues) throws Exception;
 
     // return how many hosts that are deployed
     long countDeployedHosts() throws Exception;

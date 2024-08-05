@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2020 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,10 +19,12 @@ import com.pinterest.deployservice.bean.*;
 
 public class Constants {
     public static final DeployPriority DEFAULT_PRIORITY = DeployPriority.NORMAL;
-    public static final AcceptanceStatus DEFAULT_ACCEPTANCE_STATUS = AcceptanceStatus.PENDING_DEPLOY;
+    public static final AcceptanceStatus DEFAULT_ACCEPTANCE_STATUS =
+            AcceptanceStatus.PENDING_DEPLOY;
     public static final PromoteType DEFAULT_PROMOTE_TYPE = PromoteType.MANUAL;
     public static final PromoteFailPolicy DEFAULT_PROMOTE_FAIL_POLICY = PromoteFailPolicy.CONTINUE;
-    public static final PromoteDisablePolicy DEFAULT_PROMOTE_DISABLE_POLICY = PromoteDisablePolicy.AUTO;
+    public static final PromoteDisablePolicy DEFAULT_PROMOTE_DISABLE_POLICY =
+            PromoteDisablePolicy.AUTO;
     public static final OverridePolicy DEFAULT_OVERRIDE_POLICY = OverridePolicy.OVERRIDE;
     public static final AcceptanceType DEFAULT_ACCEPTANCE_TYPE = AcceptanceType.AUTO;
     public static final EnvType DEFAULT_STAGE_TYPE = EnvType.DEFAULT;

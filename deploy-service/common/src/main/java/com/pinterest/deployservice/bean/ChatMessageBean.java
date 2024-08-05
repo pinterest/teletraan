@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,11 @@ import javax.validation.constraints.NotEmpty;
 
 public class ChatMessageBean {
 
-    @NotEmpty
-    private String from;
+    @NotEmpty private String from;
 
-    @NotEmpty
-    private String to;
+    @NotEmpty private String to;
 
-    @NotEmpty
-    private String message;
+    @NotEmpty private String message;
 
     public String getFrom() {
         return from;

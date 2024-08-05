@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2017 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,16 +17,13 @@ package com.pinterest.deployservice.common;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Wrapper for Jenkins API calls
- * TODO make it generic
- */
+// TODO: make it generic
+/** Wrapper for Jenkins API calls */
 public class Jenkins {
     private static final Logger LOG = LoggerFactory.getLogger(Jenkins.class);
     private static final int RETRIES = 3;
@@ -47,8 +44,13 @@ public class Jenkins {
         long estimateDuration;
         long duration;
 
-        public Build(String buildId, String result, boolean isBuilding, long startTimestamp, int estimateDuration,
-            int duration) {
+        public Build(
+                String buildId,
+                String result,
+                boolean isBuilding,
+                long startTimestamp,
+                int estimateDuration,
+                int duration) {
             this.buildId = buildId;
             this.result = result;
             this.isBuilding = isBuilding;
@@ -104,7 +106,10 @@ public class Jenkins {
         if (this.jenkinsRemoteToken != null)
             tokenString = String.format("token=%s&", this.jenkinsRemoteToken);
 
-        String url = String.format("%s/job/%s/buildWithParameters?%s%s", this.jenkinsUrl, jobName, tokenString, buildParams);
+        String url =
+                String.format(
+                        "%s/job/%s/buildWithParameters?%s%s",
+                        this.jenkinsUrl, jobName, tokenString, buildParams);
         // startBuild(url);
         // Use GET instead, which is the same as POST but no need for token
         httpClient.get(url, null, null, null, RETRIES);
@@ -117,11 +122,12 @@ public class Jenkins {
         String ret = httpClient.get(url, null, null, null, RETRIES);
         JsonParser parser = new JsonParser();
         JsonObject json = (JsonObject) parser.parse(ret);
-        return new Build(json.get("number").toString(),
-            json.get("result").toString(),
-            Boolean.parseBoolean(json.get("building").toString()),
-            Long.parseLong(json.get("timestamp").toString()),
-            Integer.parseInt(json.get("estimatedDuration").toString()),
-            Integer.parseInt(json.get("duration").toString()));
+        return new Build(
+                json.get("number").toString(),
+                json.get("result").toString(),
+                Boolean.parseBoolean(json.get("building").toString()),
+                Long.parseLong(json.get("timestamp").toString()),
+                Integer.parseInt(json.get("estimatedDuration").toString()),
+                Integer.parseInt(json.get("duration").toString()));
     }
 }

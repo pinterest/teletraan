@@ -164,8 +164,11 @@
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>${spotless.version}</version>
                 <configuration>
-                    <ratchetFrom>origin/master</ratchetFrom>
+                    <upToDateChecking>
+                        <enabled>true</enabled>
+                    </upToDateChecking>
                     <java>
+                        <toggleOffOn />
                         <googleJavaFormat>
                             <version>${googleJavaFormat.version}</version>
                             <style>AOSP</style> <!-- AOSP is almost the same as the GOOGLE style but uses 4 spaces for indentation. -->

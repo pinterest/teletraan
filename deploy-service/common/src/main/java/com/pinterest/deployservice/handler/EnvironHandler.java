@@ -80,13 +80,13 @@ public class EnvironHandler {
             }
         }
 
-        //If the update contains either max parallel number or percentage. We clear the other by set
-        //to 0. Note: the null value of bean won't propagate to the database
-        if(envBean.getMax_parallel() != null && envBean.getMax_parallel_pct()==null){
+        // If the update contains either max parallel number or percentage. We clear the other by
+        // set to 0. Note: the null value of bean won't propagate to the database
+        if (envBean.getMax_parallel() != null && envBean.getMax_parallel_pct() == null) {
             envBean.setMax_parallel_pct(0);
         }
 
-        if(envBean.getMax_parallel() == null && envBean.getMax_parallel_pct()!=null){
+        if (envBean.getMax_parallel() == null && envBean.getMax_parallel_pct() != null) {
             envBean.setMax_parallel(0);
         }
 
@@ -104,8 +104,9 @@ public class EnvironHandler {
         }
 
         if (envBean.getDescription() == null) {
-            envBean.setDescription(String.format("%s stage for env %s", envBean.getEnv_name(),
-                    envBean.getStage_name()));
+            envBean.setDescription(
+                    String.format(
+                            "%s stage for env %s", envBean.getEnv_name(), envBean.getStage_name()));
         }
 
         if (envBean.getBuild_name() == null) {
@@ -129,7 +130,7 @@ public class EnvironHandler {
         }
 
         if (envBean.getSuccess_th() == null) {
-            //To keep the precision, the default success_th value should be 10000 in DB.
+            // To keep the precision, the default success_th value should be 10000 in DB.
             envBean.setSuccess_th(Constants.DEFAULT_SUCCESS_THRESHOLD * 100);
         }
 
@@ -200,7 +201,8 @@ public class EnvironHandler {
         return dataHandler.getDataById(id, AlarmDataFactory.class);
     }
 
-    public void updateAlarms(EnvironBean environBean, List<AlarmBean> alarmBeans, String operator) throws Exception {
+    public void updateAlarms(EnvironBean environBean, List<AlarmBean> alarmBeans, String operator)
+            throws Exception {
         String id = environBean.getAlarm_config_id();
         if (StringUtils.isEmpty(id)) {
             id = dataHandler.insertData(alarmBeans, AlarmDataFactory.class, operator);
@@ -219,7 +221,9 @@ public class EnvironHandler {
         return dataHandler.getDataById(id, MetricsDataFactory.class);
     }
 
-    public void updateMetrics(EnvironBean environBean, List<MetricsConfigBean> metricsBeans, String operator) throws Exception {
+    public void updateMetrics(
+            EnvironBean environBean, List<MetricsConfigBean> metricsBeans, String operator)
+            throws Exception {
         String id = environBean.getMetrics_config_id();
         if (StringUtils.isEmpty(id)) {
             id = dataHandler.insertData(metricsBeans, MetricsDataFactory.class, operator);
@@ -238,7 +242,8 @@ public class EnvironHandler {
         return dataHandler.getDataById(id, WebhookDataFactory.class);
     }
 
-    public void updateHooks(EnvironBean environBean, EnvWebHookBean hookBean, String operator) throws Exception {
+    public void updateHooks(EnvironBean environBean, EnvWebHookBean hookBean, String operator)
+            throws Exception {
         String id = environBean.getWebhooks_config_id();
         if (StringUtils.isEmpty(id)) {
             id = dataHandler.insertData(hookBean, WebhookDataFactory.class, operator);
@@ -257,7 +262,9 @@ public class EnvironHandler {
         return dataHandler.getMapById(id);
     }
 
-    public void updateAdvancedConfigs(EnvironBean environBean, Map<String, String> configs, String operator) throws Exception {
+    public void updateAdvancedConfigs(
+            EnvironBean environBean, Map<String, String> configs, String operator)
+            throws Exception {
         String dataId = environBean.getAdv_config_id();
         if (dataId == null) {
             // Create data the first time
@@ -277,7 +284,9 @@ public class EnvironHandler {
         return dataHandler.getMapById(id);
     }
 
-    public void updateScriptConfigs(EnvironBean environBean, Map<String, String> configs, String operator) throws Exception {
+    public void updateScriptConfigs(
+            EnvironBean environBean, Map<String, String> configs, String operator)
+            throws Exception {
         String dataId = environBean.getSc_config_id();
         if (dataId == null) {
             // Create data the first time
@@ -314,7 +323,8 @@ public class EnvironHandler {
         return promoteBean;
     }
 
-    public void updateEnvPromote(EnvironBean envBean, PromoteBean promoteBean, String operator) throws Exception {
+    public void updateEnvPromote(EnvironBean envBean, PromoteBean promoteBean, String operator)
+            throws Exception {
         String envId = envBean.getEnv_id();
         promoteBean.setLast_operator(operator);
         promoteBean.setLast_update(System.currentTimeMillis());
@@ -369,25 +379,29 @@ public class EnvironHandler {
     }
 
     /**
-     * A stage is only allowed to be deleted when there is no host and group capacity, e.g.
-     * all the agents had been instructed to delete its env ( stop service and delete status etc.)
+     * A stage is only allowed to be deleted when there is no host and group capacity, e.g. all the
+     * agents had been instructed to delete its env ( stop service and delete status etc.)
      */
     public void deleteEnvStage(String envName, String envStage, String operator) throws Exception {
         EnvironBean envBean = getStageSafely(envName, envStage);
         String envId = envBean.getEnv_id();
         List<String> groups = groupDAO.getCapacityGroups(envBean.getEnv_id());
         if (groups != null && !groups.isEmpty()) {
-            throw new DeployInternalException("Reject the delete of env %s while it still has group capacity", envId);
+            throw new DeployInternalException(
+                    "Reject the delete of env %s while it still has group capacity", envId);
         }
 
         List<String> hosts = groupDAO.getCapacityHosts(envBean.getEnv_id());
         if (hosts != null && !hosts.isEmpty()) {
-            throw new DeployInternalException("Reject the delete of env %s while it still has host capacity", envId);
+            throw new DeployInternalException(
+                    "Reject the delete of env %s while it still has host capacity", envId);
         }
 
         long total = agentDAO.countAgentByEnv(envId);
         if (total > 0) {
-            throw new DeployInternalException("Reject the delete of env %s while there are still %d hosts active", envId, total);
+            throw new DeployInternalException(
+                    "Reject the delete of env %s while there are still %d hosts active",
+                    envId, total);
         }
         // TODO make the following transcational
         environDAO.delete(envId);
@@ -407,10 +421,11 @@ public class EnvironHandler {
     }
 
     /**
-     * UI should check the host exist and can be added first;
-     * Make sure UI warn if cause env conflict with existing group capacity
+     * UI should check the host exist and can be added first; Make sure UI warn if cause env
+     * conflict with existing group capacity
      */
-    public void updateHosts(EnvironBean envBean, List<String> hosts, String operator) throws Exception {
+    public void updateHosts(EnvironBean envBean, List<String> hosts, String operator)
+            throws Exception {
         List<String> oldHostList = groupDAO.getCapacityHosts(envBean.getEnv_id());
         Set<String> oldHosts = new HashSet<>();
         oldHosts.addAll(oldHostList);
@@ -426,7 +441,8 @@ public class EnvironHandler {
         }
     }
 
-    public void updateGroups(EnvironBean envBean, List<String> groups, String operator) throws Exception {
+    public void updateGroups(EnvironBean envBean, List<String> groups, String operator)
+            throws Exception {
         // TODO need to check group env conflicts and reject if so
         List<String> oldGroupList = groupDAO.getCapacityGroups(envBean.getEnv_id());
         Set<String> oldGroups = new HashSet<>();
@@ -442,26 +458,29 @@ public class EnvironHandler {
             if (group == envBean.getCluster_name()) {
                 LOG.info("Skipping implicit group {}", group);
                 continue;
-
             }
             groupDAO.removeGroupCapacity(envBean.getEnv_id(), group);
         }
     }
 
     /**
-     * Take this opportunity to update the deploy progress, and return the latest
-     * This usually called by UI client to monitor the ongoing deploy.
+     * Take this opportunity to update the deploy progress, and return the latest This usually
+     * called by UI client to monitor the ongoing deploy.
      */
     public DeployProgressBean updateDeployProgress(EnvironBean envBean) throws Exception {
         // TODO consider to transition and get agent status in one transaction for consistency
         commonHandler.transitionDeployState(envBean.getDeploy_id(), envBean);
         List<AgentBean> agentBeans = agentDAO.getAllByEnv(envBean.getEnv_id());
 
-        long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
+        long capacityTotal =
+                environDAO.countTotalCapacity(
+                        envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
         Set<String> capacityHosts = new HashSet<>();
         if (capacityTotal > agentBeans.size()) {
             // Capacity hosts = newly provisioned host + agents
-            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
+            List<String> capacityHostList =
+                    environDAO.getTotalCapacityHosts(
+                            envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
             capacityHosts.addAll(capacityHostList);
         }
 
@@ -477,7 +496,8 @@ public class EnvironHandler {
 
         List<HostBean> newHosts = new ArrayList<>();
         for (String hostName : capacityHosts) {
-            Collection<HostBean> hostBeans = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), hostName);
+            Collection<HostBean> hostBeans =
+                    hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), hostName);
             if (!hostBeans.isEmpty()) {
                 newHosts.add(hostBeans.iterator().next());
             }
@@ -505,13 +525,15 @@ public class EnvironHandler {
         agentDAO.updateAgentById(hostId, agentBean);
 
         HostBean hostBean = new HostBean();
-        HostState state = replaceHost ? HostState.PENDING_TERMINATE : HostState.PENDING_TERMINATE_NO_REPLACE;
+        HostState state =
+                replaceHost ? HostState.PENDING_TERMINATE : HostState.PENDING_TERMINATE_NO_REPLACE;
         hostBean.setState(state);
         hostBean.setLast_update(System.currentTimeMillis());
         hostDAO.updateHostById(hostId, hostBean);
     }
 
-    public void stopServiceOnHosts(Collection<String> hostIds, boolean replaceHost) throws Exception {
+    public void stopServiceOnHosts(Collection<String> hostIds, boolean replaceHost)
+            throws Exception {
         for (String hostId : hostIds) {
             stopServiceOnHost(hostId, replaceHost);
         }

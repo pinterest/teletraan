@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,6 @@
 package com.pinterest.deployservice.common;
 
 import com.pinterest.deployservice.bean.*;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -33,7 +32,8 @@ public class StateMachines {
     public static final Map<DeployType, OpCode> DEPLOY_TYPE_OPCODE_MAP = new HashMap<>();
     public static final Map<DeployState, DeployState> FINAL_STATE_TRANSITION_MAP = new HashMap<>();
     public static final Map<DeployStage, DeployStage> DEPLOY_STAGE_TRANSITION_MAP = new HashMap<>();
-    public static final Map<DeployType, Map<DeployStage, DeployStage>> DEPLOY_TYPE_TRANSITION_MAP = new HashMap<>();
+    public static final Map<DeployType, Map<DeployStage, DeployStage>> DEPLOY_TYPE_TRANSITION_MAP =
+            new HashMap<>();
 
     static {
         FINAL_STATE_TRANSITION_MAP.put(DeployState.RUNNING, DeployState.ABORTED);

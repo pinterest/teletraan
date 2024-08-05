@@ -1,5 +1,5 @@
-/*
- * Copyright 2024 Pinterest, Inc.
+/**
+ * Copyright (c) 2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pinterest.deployservice.handler;
-
-import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.EnvType;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.common.DeployInternalException;
-import com.pinterest.deployservice.dao.BuildDAO;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.ws.rs.WebApplicationException;
-import java.util.ArrayList;
 
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG;
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_EMPTY_BUILD_ID;
@@ -36,12 +22,23 @@ import static com.pinterest.deployservice.handler.DeployHandler.ERROR_STAGE_NOT_
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE;
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE;
 import static com.pinterest.deployservice.handler.DeployHandler.PRIVATE_BUILD_SCM_BRANCH;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.EnvType;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.common.DeployInternalException;
+import com.pinterest.deployservice.dao.BuildDAO;
+import java.util.ArrayList;
+import javax.ws.rs.WebApplicationException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DeployHandlerTest {
     private static DeployHandler deployHandler;
@@ -55,7 +52,8 @@ public class DeployHandlerTest {
 
         ServiceContext serviceContext = new ServiceContext();
         serviceContext.setBuildDAO(buildDAO);
-        serviceContext.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+        serviceContext.setBuildAllowlist(
+                new BuildAllowlistImpl(new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
         return serviceContext;
     }
 
@@ -86,8 +84,10 @@ public class DeployHandlerTest {
     public void validateBuildFailBuildIdEmpty() throws Exception {
         EnvironBean envBean = genDefaultEnvBean();
 
-        Throwable throwable = assertThrows(WebApplicationException.class,
-                () -> deployHandler.validateBuild(envBean, ""));
+        Throwable throwable =
+                assertThrows(
+                        WebApplicationException.class,
+                        () -> deployHandler.validateBuild(envBean, ""));
         assertTrue(throwable.getMessage().contains(ERROR_EMPTY_BUILD_ID));
     }
 
@@ -97,12 +97,18 @@ public class DeployHandlerTest {
         envBean.setBuild_name("other");
         when(buildDAO.getById(BUILD_ID)).thenReturn(genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH));
 
-        Throwable throwable = assertThrows(DeployInternalException.class,
-                () -> deployHandler.validateBuild(envBean, BUILD_ID));
-        assertTrue(throwable.getMessage().contains(
-                String.format(ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
-                        genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH).getBuild_name(),
-                        envBean.getBuild_name())));
+        Throwable throwable =
+                assertThrows(
+                        DeployInternalException.class,
+                        () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        assertTrue(
+                throwable
+                        .getMessage()
+                        .contains(
+                                String.format(
+                                        ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
+                                        genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH).getBuild_name(),
+                                        envBean.getBuild_name())));
     }
 
     @Test
@@ -111,12 +117,17 @@ public class DeployHandlerTest {
         when(buildDAO.getById(BUILD_ID)).thenReturn(buildBean);
         EnvironBean envBean = genDefaultEnvBean();
         envBean.setEnsure_trusted_build(true);
-        Throwable throwable = assertThrows(WebApplicationException.class,
-                () -> deployHandler.validateBuild(envBean, BUILD_ID));
-        assertTrue(throwable.getMessage().contains(
-                String.format(ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
-                        buildBean.getArtifact_url()))
-        );
+        Throwable throwable =
+                assertThrows(
+                        WebApplicationException.class,
+                        () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        assertTrue(
+                throwable
+                        .getMessage()
+                        .contains(
+                                String.format(
+                                        ERROR_NON_PRIVATE_UNTRUSTED_LOCATION,
+                                        buildBean.getArtifact_url())));
     }
 
     @Test
@@ -124,8 +135,10 @@ public class DeployHandlerTest {
         BuildBean buildBean = genBuildBean(PRIVATE_BUILD_SCM_BRANCH);
         when(buildDAO.getById(BUILD_ID)).thenReturn(buildBean);
 
-        Throwable throwable = assertThrows(WebApplicationException.class,
-                () -> deployHandler.validateBuild(genDefaultEnvBean(), BUILD_ID));
+        Throwable throwable =
+                assertThrows(
+                        WebApplicationException.class,
+                        () -> deployHandler.validateBuild(genDefaultEnvBean(), BUILD_ID));
         assertTrue(throwable.getMessage().contains(ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD));
     }
 
@@ -138,8 +151,10 @@ public class DeployHandlerTest {
         envBean.setIs_sox(true);
         envBean.setAllow_private_build(true);
 
-        Throwable throwable = assertThrows(WebApplicationException.class,
-                () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        Throwable throwable =
+                assertThrows(
+                        WebApplicationException.class,
+                        () -> deployHandler.validateBuild(envBean, BUILD_ID));
         assertTrue(throwable.getMessage().contains(ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE));
     }
 
@@ -152,9 +167,12 @@ public class DeployHandlerTest {
         envBean.setIs_sox(true);
         envBean.setAllow_private_build(true);
 
-        Throwable throwable = assertThrows(WebApplicationException.class,
-                () -> deployHandler.validateBuild(envBean, BUILD_ID));
-        assertTrue(throwable.getMessage().contains(ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE));
+        Throwable throwable =
+                assertThrows(
+                        WebApplicationException.class,
+                        () -> deployHandler.validateBuild(envBean, BUILD_ID));
+        assertTrue(
+                throwable.getMessage().contains(ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE));
     }
 
     private BuildBean genBuildBean(String scmBranch) {

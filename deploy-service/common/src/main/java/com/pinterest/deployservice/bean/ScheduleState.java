@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,23 +16,15 @@
 package com.pinterest.deployservice.bean;
 
 public enum ScheduleState {
-    /*
-     * Schedule hasn't been deployed yet 
-     */
+    /** Schedule hasn't been deployed yet */
     NOT_STARTED,
 
-    /*
-     * Active session is currently deploying
-     */
+    /** Active session is currently deploying */
     RUNNING,
 
-    /*
-     * Mid-sessions and waiting to start next session
-     */
+    /** Mid-sessions and waiting to start next session */
     COOLING_DOWN,
 
-    /*
-     * Running on the rest of the hosts, finished all the sessions
-     */
-    FINAL, 
+    /** Running on the rest of the hosts, finished all the sessions */
+    FINAL,
 }

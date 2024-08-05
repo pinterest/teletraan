@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.health.WorkerHealthCheck;
 import io.dropwizard.Application;
-import io.dropwizard.setup.Environment;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
 
 public class TeletraanWorker extends Application<TeletraanServiceConfiguration> {
     @Override
@@ -32,14 +32,14 @@ public class TeletraanWorker extends Application<TeletraanServiceConfiguration> 
     public void initialize(Bootstrap<TeletraanServiceConfiguration> bootstrap) {
         // Enable variable substitution with environment variables
         bootstrap.setConfigurationSourceProvider(
-                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
-                        new EnvironmentVariableSubstitutor(false)
-                )
-        );
+                new SubstitutingSourceProvider(
+                        bootstrap.getConfigurationSourceProvider(),
+                        new EnvironmentVariableSubstitutor(false)));
     }
 
     @Override
-    public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
+    public void run(TeletraanServiceConfiguration configuration, Environment environment)
+            throws Exception {
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
         ConfigHelper.scheduleWorkers(configuration, context);
         environment.healthChecks().register("generic", new WorkerHealthCheck(context));

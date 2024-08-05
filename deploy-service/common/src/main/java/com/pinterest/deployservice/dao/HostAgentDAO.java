@@ -1,5 +1,5 @@
-/*
- * Copyright 2020 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2023 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
  */
 package com.pinterest.deployservice.dao;
 
+import com.pinterest.deployservice.bean.HostAgentBean;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.pinterest.deployservice.bean.HostAgentBean;
-
-/**
- * A collection of methods to help hosts and groups mapping
- */
+/** A collection of methods to help hosts and groups mapping */
 public interface HostAgentDAO {
     void insert(HostAgentBean hostAgentBean) throws Exception;
 
@@ -36,11 +33,13 @@ public interface HostAgentDAO {
 
     List<HostAgentBean> getStaleHosts(long lastUpdateBefore) throws SQLException;
 
-    List<HostAgentBean> getStaleHosts(long lastUpdateAfter, long lastUpdateBefore) throws SQLException;
+    List<HostAgentBean> getStaleHosts(long lastUpdateAfter, long lastUpdateBefore)
+            throws SQLException;
 
     List<HostAgentBean> getStaleEnvHosts(long lastUpdateBefore) throws Exception;
 
-    List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize) throws Exception;
+    List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize)
+            throws Exception;
 
     long getDistinctHostsCount() throws SQLException;
 }

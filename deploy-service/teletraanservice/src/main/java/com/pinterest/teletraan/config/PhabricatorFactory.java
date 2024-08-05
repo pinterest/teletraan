@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,25 +19,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.deployservice.scm.PhabricatorManager;
 import com.pinterest.deployservice.scm.SourceControlManager;
-
 import javax.validation.constraints.NotNull;
 
 @JsonTypeName("phabricator")
 public class PhabricatorFactory implements SourceControlFactory {
-    @NotNull
-    @JsonProperty
-    private String typeName;
+    @NotNull @JsonProperty private String typeName;
 
-    @NotNull
-    @JsonProperty
-    private String urlPrefix;
+    @NotNull @JsonProperty private String urlPrefix;
 
-    @NotNull
-    @JsonProperty
-    private String arc;
+    @NotNull @JsonProperty private String arc;
 
-    @JsonProperty
-    private String arcrc;
+    @JsonProperty private String arcrc;
 
     public String getTypeName() {
         return typeName;

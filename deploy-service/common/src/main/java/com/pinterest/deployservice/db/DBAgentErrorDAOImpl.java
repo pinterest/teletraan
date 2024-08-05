@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,14 +24,13 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 
 public class DBAgentErrorDAOImpl implements AgentErrorDAO {
-    private static final String INSERT_ERROR_TEMPLATE =
-        "INSERT INTO agent_errors SET %s";
+    private static final String INSERT_ERROR_TEMPLATE = "INSERT INTO agent_errors SET %s";
     private static final String UPDATE_ERROR_TEMPLATE =
-        "UPDATE agent_errors SET %s WHERE host_name=? AND env_id=?";
+            "UPDATE agent_errors SET %s WHERE host_name=? AND env_id=?";
     private static final String GET_ERROR =
-        "SELECT * FROM agent_errors WHERE host_name=? AND env_id=?";
+            "SELECT * FROM agent_errors WHERE host_name=? AND env_id=?";
     private static final String GET_ERROR_BY_HOSTID_AND_ENVID =
-        "SELECT * FROM agent_errors WHERE host_id=? AND env_id=?";
+            "SELECT * FROM agent_errors WHERE host_id=? AND env_id=?";
 
     private BasicDataSource dataSource;
 
@@ -53,7 +52,8 @@ public class DBAgentErrorDAOImpl implements AgentErrorDAO {
     }
 
     @Override
-    public void update(String hostName, String envId, AgentErrorBean agentErrorBean) throws Exception {
+    public void update(String hostName, String envId, AgentErrorBean agentErrorBean)
+            throws Exception {
         SetClause setClause = agentErrorBean.genSetClause();
         String clause = String.format(UPDATE_ERROR_TEMPLATE, setClause.getClause());
         setClause.addValue(hostName);

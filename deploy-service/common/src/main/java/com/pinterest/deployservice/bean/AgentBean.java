@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE agents (
- * host_id        VARCHAR(64)         NOT NULL,
- * host_name      VARCHAR(64)         NOT NULL,
- * env_id         VARCHAR(22)         NOT NULL,
- * deploy_id      VARCHAR(22)         NOT NULL,
- * deploy_stage   VARCHAR(32)         NOT NULL,
- * state          VARCHAR(32)         NOT NULL,
- * status         VARCHAR(32)         NOT NULL,
- * start_date     BIGINT              NOT NULL,
- * last_update    BIGINT              NOT NULL,
- * last_operator  VARCHAR(64)         NOT NULL,
- * last_err_no    INT                 NOT NULL DEFAULT 0,
- * fail_count     INT                 NOT NULL DEFAULT 0,
- * first_deploy   TINYINT(1)          NOT NULL DEFAULT 0,
- * first_deploy_time     BIGINT              NOT NULL,
- * stage_start_date     BIGINT              NOT NULL,
- * container_health_status VARCHAR(32) NOT NULL DEFAULT "",
- * PRIMARY KEY    (host_id, env_id)
- * );
- */
 public class AgentBean implements Updatable {
 
     @JsonProperty("hostId")
@@ -241,22 +218,22 @@ public class AgentBean implements Updatable {
         return clause;
     }
 
-    public final static String UPDATE_CLAUSE =
-        "host_id=VALUES(host_id)," +
-            "host_name=VALUES(host_name),"+
-            "deploy_id=VALUES(deploy_id)," +
-            "deploy_stage=VALUES(deploy_stage)," +
-            "start_date=VALUES(start_date)," +
-            "last_update=VALUES(last_update)," +
-            "last_operator=VALUES(last_operator)," +
-            "state=VALUES(state)," +
-            "status=VALUES(status)," +
-            "fail_count=VALUES(fail_count)," +
-            "last_err_no=VALUES(last_err_no)," +
-            "first_deploy=VALUES(first_deploy)," +
-            "first_deploy_time=CASE WHEN first_deploy_time IS NULL THEN VALUES(first_deploy_time) ELSE first_deploy_time END," +
-            "stage_start_date=VALUES(stage_start_date)," +
-            "container_health_status=VALUES(container_health_status)";
+    public static final String UPDATE_CLAUSE =
+            "host_id=VALUES(host_id),"
+                    + "host_name=VALUES(host_name),"
+                    + "deploy_id=VALUES(deploy_id),"
+                    + "deploy_stage=VALUES(deploy_stage),"
+                    + "start_date=VALUES(start_date),"
+                    + "last_update=VALUES(last_update),"
+                    + "last_operator=VALUES(last_operator),"
+                    + "state=VALUES(state),"
+                    + "status=VALUES(status),"
+                    + "fail_count=VALUES(fail_count),"
+                    + "last_err_no=VALUES(last_err_no),"
+                    + "first_deploy=VALUES(first_deploy),"
+                    + "first_deploy_time=CASE WHEN first_deploy_time IS NULL THEN VALUES(first_deploy_time) ELSE first_deploy_time END,"
+                    + "stage_start_date=VALUES(stage_start_date),"
+                    + "container_health_status=VALUES(container_health_status)";
 
     @Override
     public String toString() {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  */
 package com.pinterest.deployservice.scm;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.common.EncryptionUtils;
 import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.KnoxKeyReader;
-
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -33,18 +39,10 @@ import org.kohsuke.github.GitHubBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.WebApplicationException;
-
 public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
-    private final static String UNKNOWN_LOGIN = "UNKNOWN";
-    private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 minutes
+    private static final String UNKNOWN_LOGIN = "UNKNOWN";
+    private static final long TOKEN_TTL_MILLIS = 600000; // token expires after 10 minutes
     private final String apiPrefix;
     private final String urlPrefix;
     private final String githubAppId;
@@ -54,7 +52,14 @@ public class GithubManager extends BaseManager {
 
     public Map<String, String> headers = new HashMap<>();
 
-    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String typeName, String apiPrefix, String urlPrefix) {
+    public GithubManager(
+            String token,
+            String appId,
+            String appPrivateKeyKnox,
+            String appOrganization,
+            String typeName,
+            String apiPrefix,
+            String urlPrefix) {
         this.typeName = typeName;
         this.apiPrefix = apiPrefix;
         this.urlPrefix = urlPrefix;
@@ -66,8 +71,7 @@ public class GithubManager extends BaseManager {
 
     private void setHeaders() throws Exception {
         // if token is specified, use token auth, otherwise, use GitHub app auth
-        if (StringUtils.isEmpty(this.token))
-        {
+        if (StringUtils.isEmpty(this.token)) {
             try {
                 // get private key PEM from knox
                 KnoxKeyReader knoxKey = new KnoxKeyReader();
@@ -79,22 +83,29 @@ public class GithubManager extends BaseManager {
                 }
 
                 // generate jwt token by signing with GitHub app id and private key
-                String jwtToken = EncryptionUtils.createGithubJWT(this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
+                String jwtToken =
+                        EncryptionUtils.createGithubJWT(
+                                this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
 
                 // get installation token using the jwt token
                 GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
-                GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
-                GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();
+                GHAppInstallation appInstallation =
+                        gitHubApp
+                                .getApp()
+                                .getInstallationByOrganization(this.githubAppOrganization);
+                GHAppInstallationToken appInstallationToken =
+                        appInstallation.createToken().create();
 
                 // always use the newly created GitHub app token as the token will expire
-                this.headers.put("Authorization", String.format("Token %s", appInstallationToken.getToken()));
+                this.headers.put(
+                        "Authorization",
+                        String.format("Token %s", appInstallationToken.getToken()));
             } catch (Exception e) {
                 // e.printStackTrace();
                 LOG.error("Exception when getting Github token: ", e);
                 throw e;
             }
-        }
-        else {
+        } else {
             // this is the token that does not expire
             this.headers.put("Authorization", String.format("Token %s", this.token));
         }
@@ -176,26 +187,27 @@ public class GithubManager extends BaseManager {
         String jsonPayload;
         try {
             jsonPayload = httpClient.get(url, null, null, headers, 1);
-        }
-        catch (IOException e) {
-            // an IOException (and its subclasses) in this case indicates that the commit hash is not found in the repo.
+        } catch (IOException e) {
+            // an IOException (and its subclasses) in this case indicates that the commit hash is
+            // not found in the repo.
             // e.g. java.io.IOException: Server returned HTTP response code: 422
             LOG.warn("GitHub commit hash {} is not found in repo {}.", sha, repo);
-            throw new WebApplicationException(String.format("Commit hash %s is not found in repo %s", sha, repo),
+            throw new WebApplicationException(
+                    String.format("Commit hash %s is not found in repo %s", sha, repo),
                     Response.Status.NOT_FOUND);
         }
 
         GsonBuilder builder = new GsonBuilder();
-        Map<String, Object>
-            jsonMap =
-            builder.create().fromJson(jsonPayload, new TypeToken<HashMap<String, Object>>() {
-            }.getType());
+        Map<String, Object> jsonMap =
+                builder.create()
+                        .fromJson(
+                                jsonPayload, new TypeToken<HashMap<String, Object>>() {}.getType());
         return toCommitBean(jsonMap, repo);
     }
 
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
-        throws Exception {
+            throws Exception {
         HTTPClient httpClient = new HTTPClient();
         String url = String.format("%s/repos/%s/commits", apiPrefix, repo);
 
@@ -208,10 +220,11 @@ public class GithubManager extends BaseManager {
         String jsonPayload = httpClient.get(url, null, params, headers, 1);
         Queue<CommitBean> CommitBeans = new LinkedList<>();
         GsonBuilder builder = new GsonBuilder();
-        Map<String, Object>[]
-            jsonMaps =
-            builder.create().fromJson(jsonPayload, new TypeToken<HashMap<String, Object>[]>() {
-            }.getType());
+        Map<String, Object>[] jsonMaps =
+                builder.create()
+                        .fromJson(
+                                jsonPayload,
+                                new TypeToken<HashMap<String, Object>[]>() {}.getType());
 
         for (Map<String, Object> jsonMap : jsonMaps) {
             if (!keepHead) {

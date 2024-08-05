@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2022 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.pinterest.deployservice.scm;
 
 import com.pinterest.deployservice.bean.CommitBean;
-
 import java.util.List;
 import java.util.Queue;
 
@@ -34,14 +33,21 @@ public interface SourceControlManager {
 
     // Start from sha, get default number of commits
     Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception;
-    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path) throws Exception;
+
+    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path)
+            throws Exception;
 
     /**
-     * Returns a list of CommitInfo from startSha inclusive to endSha exclusive,
-     * or up to the specified size, whichever happens first
-     * if size == 0, then will return the full list until endSha
-     * if endSha == null, then will return up to size, max_size = 500
+     * Returns a list of CommitInfo from startSha inclusive to endSha exclusive, or up to the
+     * specified size, whichever happens first
+     *
+     * <p>if size == 0, then will return the full list until endSha
+     *
+     * <p>if endSha == null, then will return up to size, max_size = 500
      */
-    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception;
-    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Exception;
+    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size)
+            throws Exception;
+
+    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path)
+            throws Exception;
 }

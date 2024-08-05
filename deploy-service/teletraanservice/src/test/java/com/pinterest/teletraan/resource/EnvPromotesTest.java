@@ -1,28 +1,39 @@
+/**
+ * Copyright (c) 2024 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.teletraan.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
-import java.util.stream.Stream;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-
-import com.pinterest.deployservice.dao.EnvironDAO;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.PromoteDisablePolicy;
 import com.pinterest.deployservice.bean.PromoteType;
 import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
+import java.util.stream.Stream;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
 public class EnvPromotesTest {
@@ -32,15 +43,14 @@ public class EnvPromotesTest {
     static {
         TeletraanServiceContext context = new TeletraanServiceContext();
         context.setEnvironDAO(mock(EnvironDAO.class));
-        EXT = ResourceExtension.builder()
-                .addResource(new EnvPromotes(context))
-                .build();
+        EXT = ResourceExtension.builder().addResource(new EnvPromotes(context)).build();
     }
 
     @ParameterizedTest
     @MethodSource("invalidPromoteBeansSource")
     public void invalidPromoteBeans_422(PromoteBean promoteBean) {
-        final Response put = EXT.target(Target.V1_ENV_PROMOTES).request().put(Entity.json(promoteBean));
+        final Response put =
+                EXT.target(Target.V1_ENV_PROMOTES).request().put(Entity.json(promoteBean));
 
         assertEquals(422, put.getStatus());
     }
@@ -48,7 +58,8 @@ public class EnvPromotesTest {
     @ParameterizedTest
     @MethodSource("validPromoteBeansSource")
     public void invalidPromoteBeans_not422(PromoteBean promoteBean) {
-        final Response put = EXT.target(Target.V1_ENV_PROMOTES).request().put(Entity.json(promoteBean));
+        final Response put =
+                EXT.target(Target.V1_ENV_PROMOTES).request().put(Entity.json(promoteBean));
 
         assertNotEquals(422, put.getStatus());
     }
@@ -71,8 +82,7 @@ public class EnvPromotesTest {
                 Arguments.of(largeQueueSize),
                 Arguments.of(negativeDelay),
                 Arguments.of(invalidCron),
-                Arguments.of(invalidCron2)
-        );
+                Arguments.of(invalidCron2));
     }
 
     static Stream<Arguments> validPromoteBeansSource() {
@@ -88,8 +98,7 @@ public class EnvPromotesTest {
                 Arguments.of(validPromoteBean()),
                 Arguments.of(manual),
                 Arguments.of(validSchedule),
-                Arguments.of(emptySchedule)
-        );
+                Arguments.of(emptySchedule));
     }
 
     static PromoteBean validPromoteBean() {

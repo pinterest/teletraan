@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.HostBean;
-
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-/**
- * A collection of methods to help hosts and groups mapping
- */
+/** A collection of methods to help hosts and groups mapping */
 public interface HostDAO {
     List<String> getGroupNamesByHost(String hostName) throws Exception;
 
@@ -34,7 +31,14 @@ public interface HostDAO {
 
     void insert(HostBean hostBean) throws Exception;
 
-    void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames, String accountId) throws Exception;
+    void insertOrUpdate(
+            String hostName,
+            String ip,
+            String hostId,
+            String state,
+            Set<String> groupNames,
+            String accountId)
+            throws Exception;
 
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
 

@@ -82,7 +82,8 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
     /**
      * Handle an exception that occurred while authorizing a request
      *
-     * Subclasses can override this method to provide custom handling of authorization exceptions
+     * <p>Subclasses can override this method to provide custom handling of authorization exceptions
+     *
      * @param ex
      * @return true if authorized
      */

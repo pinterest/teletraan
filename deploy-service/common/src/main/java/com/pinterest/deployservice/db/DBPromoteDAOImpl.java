@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,25 +18,20 @@ package com.pinterest.deployservice.db;
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.PromoteDAO;
+import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 
-import java.util.List;
-
 public class DBPromoteDAOImpl implements PromoteDAO {
-    private static final String GET_BY_ID =
-        "SELECT * FROM promotes WHERE env_id=?";
+    private static final String GET_BY_ID = "SELECT * FROM promotes WHERE env_id=?";
     private static final String GET_AUTO_PROMOTE_ENV_IDS =
-        "SELECT DISTINCT env_id FROM promotes WHERE type!='MANUAL' " +
-            "AND pred_stage IS NOT NULL";
-    private static final String INSERT_TEMPLATE =
-        "INSERT INTO promotes SET %s";
-    private static final String UPDATE_TEMPLATE =
-        "UPDATE promotes SET %s WHERE env_id=?";
-    private static final String DELETE =
-        "DELETE FROM promotes WHERE env_id=?";
+            "SELECT DISTINCT env_id FROM promotes WHERE type!='MANUAL' "
+                    + "AND pred_stage IS NOT NULL";
+    private static final String INSERT_TEMPLATE = "INSERT INTO promotes SET %s";
+    private static final String UPDATE_TEMPLATE = "UPDATE promotes SET %s WHERE env_id=?";
+    private static final String DELETE = "DELETE FROM promotes WHERE env_id=?";
 
     private BasicDataSource dataSource;
 
@@ -52,8 +47,10 @@ public class DBPromoteDAOImpl implements PromoteDAO {
 
     @Override
     public List<String> getAutoPromoteEnvIds() throws Exception {
-        return new QueryRunner(dataSource).query(GET_AUTO_PROMOTE_ENV_IDS,
-            SingleResultSetHandlerFactory.<String>newListObjectHandler());
+        return new QueryRunner(dataSource)
+                .query(
+                        GET_AUTO_PROMOTE_ENV_IDS,
+                        SingleResultSetHandlerFactory.<String>newListObjectHandler());
     }
 
     @Override

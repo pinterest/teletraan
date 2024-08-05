@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
  */
 package com.pinterest.deployservice.handler;
 
+import com.google.common.base.Splitter;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.WebHookBean;
 import com.pinterest.deployservice.common.HTTPClient;
-
-import com.google.common.base.Splitter;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WebhookJob implements Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(WebhookJob.class);
@@ -54,33 +52,41 @@ public class WebhookJob implements Callable<Void> {
             String numericDeployState = String.valueOf(deployBean.getState().ordinal());
             String deployStart = String.valueOf(deployBean.getStart_date());
             String url = webhook.getUrl();
-            url = url
-                .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
-                .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+            url =
+                    url.replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
+                            .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
+                            .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             LOG.info("Url after transform is {}", url);
 
             String headerString = webhook.getHeaders();
             if (!StringUtils.isEmpty(headerString)) {
-                headerString = headerString
-                    .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
-                    .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                    .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                headerString =
+                        headerString
+                                .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
+                                .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
+                                .replaceAll(
+                                        "\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             }
             LOG.info("Header string after transform is {}", headerString);
 
             String bodyString = webhook.getBody();
             if (!StringUtils.isEmpty(bodyString)) {
-                bodyString = bodyString
-                    .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
-                    .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                    .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                bodyString =
+                        bodyString
+                                .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
+                                .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
+                                .replaceAll(
+                                        "\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             }
             LOG.info("Body string after transform is {}", bodyString);
 
             Map<String, String> headers = null;
             if (!StringUtils.isEmpty(headerString)) {
-                headers = Splitter.on(';').trimResults().withKeyValueSeparator(":").split(webhook.getHeaders());
+                headers =
+                        Splitter.on(';')
+                                .trimResults()
+                                .withKeyValueSeparator(":")
+                                .split(webhook.getHeaders());
             }
 
             String method = webhook.getMethod();

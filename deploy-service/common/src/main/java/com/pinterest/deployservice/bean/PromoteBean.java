@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,38 +15,18 @@
  */
 package com.pinterest.deployservice.bean;
 
-import java.io.Serializable;
-
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.StringUtils;
-import org.quartz.CronExpression;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.deployservice.common.Constants;
-
 import io.dropwizard.validation.ValidationMethod;
-/**
- * Keep the bean and table in sync
- * <p>
- * CREATE TABLE promotes (
- * env_id          VARCHAR(22)         NOT NULL,
- * type            VARCHAR(32)         NOT NULL,
- * pred_stage      VARCHAR(64),
- * queue_size      INT                 NOT NULL,
- * schedule        VARCHAR(32),
- * delay           INT                 NOT NULL DEFAULT 0,
- * disable_policy  VARCHAR(32)         NOT NULL,
- * fail_policy     VARCHAR(32)         NOT NULL,
- * last_operator   VARCHAR(64)         NOT NULL,
- * last_update     BIGINT              NOT NULL,
- * PRIMARY KEY     (env_id)
- * );
- */
+import java.io.Serializable;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.quartz.CronExpression;
+
 public class PromoteBean implements Updatable, Serializable {
     @JsonProperty("envId")
     private String env_id;
@@ -57,13 +37,13 @@ public class PromoteBean implements Updatable, Serializable {
     @JsonProperty("lastUpdate")
     private Long last_update;
 
-    @NotNull
-    private PromoteType type;
+    @NotNull private PromoteType type;
 
     @JsonProperty("predStage")
     private String pred_stage;
 
-    @Min(1) @Max(Constants.DEFAULT_MAX_PROMOTE_QUEUE_SIZE)
+    @Min(1)
+    @Max(Constants.DEFAULT_MAX_PROMOTE_QUEUE_SIZE)
     @JsonProperty("queueSize")
     private Integer queue_size;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-/**
- * Keep the bean and table in sync
- * <p/>
- * CREATE TABLE deploys (
- * deploy_id     VARCHAR(22)         NOT NULL,
- * alias         VARCHAR(22),
- * env_id        VARCHAR(22)         NOT NULL,
- * build_id      VARCHAR(22)         NOT NULL,
- * deploy_type   VARCHAR(32)         NOT NULL,
- * state         VARCHAR(32)         NOT NULL,
- * start_date    BIGINT              NOT NULL,
- * operator      VARCHAR(32)         NOT NULL,
- * last_update   BIGINT              NOT NULL,
- * description   VARCHAR(512),
- * suc_total     INT                 NOT NULL DEFAULT 0,
- * suc_date      BIGINT,
- * fail_total    INT                 NOT NULL DEFAULT 0,
- * total         INT                 NOT NULL DEFAULT 0,
- * acc_status    VARCHAR(32)         NOT NULL,
- * from_deploy   VARCHAR(22),
- * PRIMARY KEY   (deploy_id)
- * );
- */
 public class DeployBean implements Updatable {
     @JsonProperty("id")
     private String deploy_id;

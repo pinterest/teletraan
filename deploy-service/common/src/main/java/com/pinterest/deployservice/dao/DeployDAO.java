@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,11 @@ import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.UpdateStatement;
 import com.pinterest.deployservice.db.DeployQueryFilter;
-
-import org.joda.time.Interval;
-
 import java.sql.SQLException;
 import java.util.List;
+import org.joda.time.Interval;
 
-/**
- * A collection of methods to help read table DEPLOYS
- */
+/** A collection of methods to help read table DEPLOYS */
 public interface DeployDAO {
     DeployBean getById(String deployId) throws Exception;
 
@@ -46,16 +42,17 @@ public interface DeployDAO {
     // Return upto size number of ACCEPTED deploy whose build publish time is after after
     List<DeployBean> getAcceptedDeploys(String envId, Interval interval, int size) throws Exception;
 
-
     // Return ACCEPTED deploy whose suc_date is before before and build publish time is after after
     List<DeployBean> getAcceptedDeploysDelayed(String envId, Interval interval) throws Exception;
 
-    // Return upto size number of ACCEPTED deploy whose suc_date is before before and build publish time is after after
+    // Return upto size number of ACCEPTED deploy whose suc_date is before before and build publish
+    // time is after after
     Long countNonRegularDeploys(String envId, long after) throws Exception;
 
     // Update state, and other colums, if only if state == currentState
     // Return affected rows, 0 means not updated
-    int updateStateSafely(String deployId, String currentState, DeployBean updateBean) throws Exception;
+    int updateStateSafely(String deployId, String currentState, DeployBean updateBean)
+            throws Exception;
 
     // Count total number of deploys by env_id
     long countDeploysByEnvId(String envId) throws Exception;

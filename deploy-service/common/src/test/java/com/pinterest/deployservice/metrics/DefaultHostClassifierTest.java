@@ -1,20 +1,33 @@
+/**
+ * Copyright (c) 2024 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.deployservice.metrics;
 
 import static com.pinterest.deployservice.bean.BeanUtils.createHostBean;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.pinterest.deployservice.bean.HostBean;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.pinterest.deployservice.bean.HostBean;
 
 public class DefaultHostClassifierTest {
 
@@ -27,8 +40,9 @@ public class DefaultHostClassifierTest {
     public void setUp() {
         sut = new DefaultHostClassifier();
         regularHost = Collections.singletonList(createHostBean(Instant.now()));
-        timeoutHost = Collections
-                .singletonList(createHostBean(Instant.now().minus(Duration.ofMinutes(2l))));
+        timeoutHost =
+                Collections.singletonList(
+                        createHostBean(Instant.now().minus(Duration.ofMinutes(2l))));
     }
 
     @Test
@@ -159,7 +173,9 @@ public class DefaultHostClassifierTest {
         sut.updateClassification(CollectionUtils.union(regularHost, carryOverHost), timeoutInstant);
         sut.updateClassification(agentLessHosts, timeoutInstant);
 
-        assertTrue(CollectionUtils.isEqualCollection(CollectionUtils.union(newHost, timeoutHost), sut.getNewHosts()));
+        assertTrue(
+                CollectionUtils.isEqualCollection(
+                        CollectionUtils.union(newHost, timeoutHost), sut.getNewHosts()));
         assertTrue(CollectionUtils.isEqualCollection(agentLessHosts, sut.getInitializingHosts()));
         assertTrue(CollectionUtils.isEqualCollection(timeoutHost, sut.getTimeoutHosts()));
         assertTrue(CollectionUtils.isEqualCollection(carryOverHost, sut.getCarryoverHosts()));
@@ -170,7 +186,8 @@ public class DefaultHostClassifierTest {
     public void duplicateHostId_earliestHostOnly() {
         List<HostBean> hosts = new ArrayList<>(regularHost);
         HostBean laterHost = createHostBean(Instant.now());
-        HostBean earlierHost = createHostBean(Instant.ofEpochMilli(regularHost.get(0).getCreate_date() - 1000));
+        HostBean earlierHost =
+                createHostBean(Instant.ofEpochMilli(regularHost.get(0).getCreate_date() - 1000));
 
         laterHost.setHost_id(regularHost.get(0).getHost_id());
         earlierHost.setHost_id(regularHost.get(0).getHost_id());

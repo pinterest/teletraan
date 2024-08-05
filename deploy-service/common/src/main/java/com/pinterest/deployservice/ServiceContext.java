@@ -1,5 +1,5 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/**
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 package com.pinterest.deployservice;
-
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-
-import org.apache.commons.dbcp.BasicDataSource;
 
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
@@ -42,8 +33,8 @@ import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
-import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.PindeployDAO;
+import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.RatingDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
@@ -57,6 +48,12 @@ import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import org.apache.commons.dbcp.BasicDataSource;
 
 public class ServiceContext {
     private BasicDataSource dataSource;
@@ -352,7 +349,6 @@ public class ServiceContext {
         this.tokenRolesDAO = tokenRolesDAO;
     }
 
-
     public RodimusManager getRodimusManager() {
         return rodimusManager;
     }
@@ -453,8 +449,7 @@ public class ServiceContext {
         return pingRequestValidators;
     }
 
-    public void setPingRequestValidators(
-        List<PingRequestValidator> pingRequestValidators) {
+    public void setPingRequestValidators(List<PingRequestValidator> pingRequestValidators) {
         this.pingRequestValidators = pingRequestValidators;
     }
 
@@ -478,12 +473,11 @@ public class ServiceContext {
         return buildEventPublisher;
     }
 
-    public void setBuildEventPublisher(
-        BuildEventPublisher buildEventPublisher) {
+    public void setBuildEventPublisher(BuildEventPublisher buildEventPublisher) {
         this.buildEventPublisher = buildEventPublisher;
     }
 
-    public Set<String> getAccountAllowList() { 
+    public Set<String> getAccountAllowList() {
         return accountAllowList;
     }
 

@@ -43,10 +43,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
     public void initialize(Bootstrap<TeletraanServiceConfiguration> bootstrap) {
         // Enable variable substitution with environment variables
         bootstrap.setConfigurationSourceProvider(
-            new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
-                new EnvironmentVariableSubstitutor(false)
-            )
-        );
+                new SubstitutingSourceProvider(
+                        bootstrap.getConfigurationSourceProvider(),
+                        new EnvironmentVariableSubstitutor(false)));
     }
 
     @Override
@@ -119,12 +118,16 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
 
         // Enable CORS headers
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-        FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+        FilterRegistration.Dynamic filter =
+                environment.servlets().addFilter("CORS", CrossOriginFilter.class);
         filter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-        filter.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,OPTIONS");
+        filter.setInitParameter(
+                CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,OPTIONS");
         filter.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
         filter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER, "true");
-        filter.setInitParameter("allowedHeaders", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
+        filter.setInitParameter(
+                "allowedHeaders",
+                "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
         filter.setInitParameter("allowCredentials", "true");
     }
 

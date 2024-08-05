@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Pinterest, Inc.
- * <p>
+ * Copyright (c) 2016-2024 Pinterest, Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,27 +17,9 @@ package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
+import java.beans.Transient;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import java.beans.Transient;
-
-/**
- * CREATE TABLE `tags` (
- * `id` varchar(30) NOT NULL,
- * `value` varchar(30) NOT NULL,
- * `target_type` varchar(30) NOT NULL,
- * `target_id` varchar(64) NOT NULL,
- * `operator` varchar(64) NOT NULL,
- * `created_date` bigint(20) NOT NULL
- * `comments` varchar(256),
- * `meta_info` text,
- * PRIMARY KEY tag_infosKEY (`id`),
- * INDEX `tags_target_id_idx` (`target_id`, `is_active`),
- * INDEX `tags_target_name_idx` (`target_name`, `is_active`),
- * INDEX `tags_type_idx` (`target_type`, `is_active`)
- * ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
- */
 public class TagBean implements Updatable {
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -114,9 +96,13 @@ public class TagBean implements Updatable {
         this.created_date = created_date;
     }
 
-    public String getComments() { return comments; }
+    public String getComments() {
+        return comments;
+    }
 
-    public void setComments(String comments) { this.comments = comments; }
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
 
     public String getMeta_info() {
         return meta_info;
@@ -126,14 +112,13 @@ public class TagBean implements Updatable {
         this.meta_info = meta_info;
     }
 
-
     @Transient
-    public <T> T deserializeTagMetaInfo(Class<T> theClass) throws Exception{
+    public <T> T deserializeTagMetaInfo(Class<T> theClass) throws Exception {
         return mapper.readValue(this.getMeta_info(), theClass);
     }
 
     @Transient
-    public void serializeTagMetaInfo(Object object) throws Exception{
+    public void serializeTagMetaInfo(Object object) throws Exception {
         this.setMeta_info(mapper.writeValueAsString(object));
     }
 
@@ -146,7 +131,7 @@ public class TagBean implements Updatable {
         clause.addColumn("target_id", this.target_id);
         clause.addColumn("operator", this.operator);
         clause.addColumn("created_date", this.created_date);
-        clause.addColumn("comments",this.comments);
+        clause.addColumn("comments", this.comments);
         clause.addColumn("meta_info", this.meta_info);
         return clause;
     }

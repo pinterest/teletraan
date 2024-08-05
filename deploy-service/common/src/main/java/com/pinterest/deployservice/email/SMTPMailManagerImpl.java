@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,12 @@
  */
 package com.pinterest.deployservice.email;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.LoggerFactory;
-
+import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.util.Properties;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 
 public class SMTPMailManagerImpl implements MailManager {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(SMTPMailManagerImpl.class);
@@ -31,26 +30,31 @@ public class SMTPMailManagerImpl implements MailManager {
     private String password;
 
     /**
-     * The e-mail address that Teletraan puts to "From:" field in outgoing e-mails.
-     * Null if not configured.
+     * The e-mail address that Teletraan puts to "From:" field in outgoing e-mails. Null if not
+     * configured.
      */
     private String adminAddress;
 
     /**
-     * The SMTP server to use for sending e-mail. Null for default to the environment,
-     * which is usually <tt>localhost</tt>.
+     * The SMTP server to use for sending e-mail. Null for default to the environment, which is
+     * usually <tt>localhost</tt>.
      */
     private String host;
     /**
-     * The SMTP port to use for sending e-mail. Null for default to the environment,
-     * which is usually <tt>25</tt>.
+     * The SMTP port to use for sending e-mail. Null for default to the environment, which is
+     * usually <tt>25</tt>.
      */
     private String port;
 
     private Properties properties;
 
-    public SMTPMailManagerImpl(String host, String port, String userName, String password,
-        String adminAddress, boolean sslEnabled) {
+    public SMTPMailManagerImpl(
+            String host,
+            String port,
+            String userName,
+            String password,
+            String adminAddress,
+            boolean sslEnabled) {
         this.host = host;
         this.port = port;
         this.userName = userName;

@@ -274,7 +274,9 @@ public class EnvCapacities {
             if (envBean != null) {
                 resources.add(new AuthZResource(envBean.getEnv_name(), envBean.getStage_name()));
             } else {
-                LOG.info("Failed to find main environment for capacity {}, skip authorization", capacity);
+                LOG.info(
+                        "Failed to find main environment for capacity {}, skip authorization",
+                        capacity);
             }
         }
         return resources;

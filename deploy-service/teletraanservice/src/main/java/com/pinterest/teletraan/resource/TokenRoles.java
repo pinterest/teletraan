@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,11 @@ import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.List;
+import javax.ws.rs.core.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class TokenRoles {
     private static final Logger LOG = LoggerFactory.getLogger(TokenRoles.class);
@@ -37,25 +35,37 @@ public abstract class TokenRoles {
         tokenRolesDAO = context.getTokenRolesDAO();
     }
 
-    public List<TokenRolesBean> getByResource(String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public List<TokenRolesBean> getByResource(String resourceId, AuthZResource.Type resourceType)
+            throws Exception {
         return tokenRolesDAO.getByResource(resourceId, resourceType);
     }
 
-    public TokenRolesBean getByNameAndResource(String scriptName,
-        String resourceId, AuthZResource.Type resourceType) throws Exception {
+    public TokenRolesBean getByNameAndResource(
+            String scriptName, String resourceId, AuthZResource.Type resourceType)
+            throws Exception {
         return tokenRolesDAO.getByNameAndResource(scriptName, resourceId, resourceType);
     }
 
-    public void update(TokenRolesBean bean, String scriptName,
-        String resourceId, AuthZResource.Type resourceType) throws Exception {
+    public void update(
+            TokenRolesBean bean,
+            String scriptName,
+            String resourceId,
+            AuthZResource.Type resourceType)
+            throws Exception {
         tokenRolesDAO.update(bean, scriptName, resourceId, resourceType);
-        LOG.info("Successfully updated script {} permission for resource {} with {}",
-            scriptName, resourceId, bean);
+        LOG.info(
+                "Successfully updated script {} permission for resource {} with {}",
+                scriptName,
+                resourceId,
+                bean);
     }
 
-    public Response create(UriInfo uriInfo, TokenRolesBean bean, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public Response create(
+            UriInfo uriInfo,
+            TokenRolesBean bean,
+            String resourceId,
+            AuthZResource.Type resourceType)
+            throws Exception {
         String token = CommonUtils.getBase64UUID();
         bean.setToken(token);
         bean.setResource_id(resourceId);
@@ -63,18 +73,22 @@ public abstract class TokenRoles {
         bean.setExpire_date(System.currentTimeMillis() + VALIDATE_TIME);
         tokenRolesDAO.insert(bean);
         bean.setToken("xxxxxxxx");
-        LOG.info("Successfully created new script permission for resource {} with {}",
-            resourceId, bean);
+        LOG.info(
+                "Successfully created new script permission for resource {} with {}",
+                resourceId,
+                bean);
         TokenRolesBean newBean = tokenRolesDAO.getByToken(token);
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
         URI roleUri = ub.path(newBean.getScript_name()).build();
         return Response.created(roleUri).entity(newBean).build();
     }
 
-    public void delete(String scriptName, String resourceId,
-        AuthZResource.Type resourceType) throws Exception {
+    public void delete(String scriptName, String resourceId, AuthZResource.Type resourceType)
+            throws Exception {
         tokenRolesDAO.delete(scriptName, resourceId, resourceType);
-        LOG.info("Successfully deleted script {} permission for resource {}",
-            scriptName, resourceId);
+        LOG.info(
+                "Successfully deleted script {} permission for resource {}",
+                scriptName,
+                resourceId);
     }
 }

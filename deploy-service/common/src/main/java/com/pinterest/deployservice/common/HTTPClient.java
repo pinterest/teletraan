@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,17 @@
  */
 package com.pinterest.deployservice.common;
 
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.Proxy;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.Map;
 
 // A simple HttpURLConnection wrapper
 public class HTTPClient {
@@ -44,7 +43,8 @@ public class HTTPClient {
     public HTTPClient(boolean useProxy, String httpProxyAddr, int httpProxyPort) {
         if (Boolean.TRUE.equals(useProxy)) {
             if (httpProxyAddr == null) {
-                throw new IllegalArgumentException("useProxy was configured but missing required httpProxyAddr");
+                throw new IllegalArgumentException(
+                        "useProxy was configured but missing required httpProxyAddr");
             }
             this.useProxy = useProxy;
             this.httpProxyAddr = httpProxyAddr;
@@ -65,7 +65,8 @@ public class HTTPClient {
         return httpProxyPort;
     }
 
-    private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
+    private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl)
+            throws Exception {
         if (params == null || params.isEmpty()) {
             return url;
         }
@@ -77,15 +78,19 @@ public class HTTPClient {
             prefix = "&";
             // note: scrubUrlQueryValue could be expensive with many filtered values
             // consider using it only in only a DEBUG logging context in the future
-            String reportedValue = scrubUrl ? scrubUrlQueryValue(entry.getKey(), entry.getValue()) : entry.getValue();
-            sb.append(String.format("%s=%s", entry.getKey(),
-                    URLEncoder.encode(reportedValue, "UTF-8")));
+            String reportedValue =
+                    scrubUrl
+                            ? scrubUrlQueryValue(entry.getKey(), entry.getValue())
+                            : entry.getValue();
+            sb.append(
+                    String.format(
+                            "%s=%s", entry.getKey(), URLEncoder.encode(reportedValue, "UTF-8")));
         }
         return sb.toString();
     }
 
     private String scrubUrlQueryValue(String queryParamKey, String queryParamValue) {
-        String[] filteredQueryKeySubstrings = { "token" };
+        String[] filteredQueryKeySubstrings = {"token"};
 
         for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {
             if (StringUtils.containsIgnoreCase(queryParamKey, filteredQueryKeySubstring)) {
@@ -95,25 +100,39 @@ public class HTTPClient {
         return queryParamValue;
     }
 
-    public String get(String url, String payload, Map<String, String> params, Map<String, String> headers, int retries)
+    public String get(
+            String url,
+            String payload,
+            Map<String, String> params,
+            Map<String, String> headers,
+            int retries)
             throws Exception {
         return internalCall(url, params, "GET", payload, headers, retries);
     }
 
-    public String post(String url, String payload, Map<String, String> headers, int retries) throws Exception {
+    public String post(String url, String payload, Map<String, String> headers, int retries)
+            throws Exception {
         return internalCall(url, null, "POST", payload, headers, retries);
     }
 
-    public String put(String url, String payload, Map<String, String> headers, int retries) throws Exception {
+    public String put(String url, String payload, Map<String, String> headers, int retries)
+            throws Exception {
         return internalCall(url, null, "PUT", payload, headers, retries);
     }
 
-    public String delete(String url, String payload, Map<String, String> headers, int retries) throws Exception {
+    public String delete(String url, String payload, Map<String, String> headers, int retries)
+            throws Exception {
         return internalCall(url, null, "DELETE", payload, headers, retries);
     }
 
-    private String internalCall(String base_url, Map<String, String> params, String method, String payload,
-            Map<String, String> headers, int retries) throws Exception {
+    private String internalCall(
+            String base_url,
+            Map<String, String> params,
+            String method,
+            String payload,
+            Map<String, String> headers,
+            int retries)
+            throws Exception {
         HttpURLConnection conn = null;
         Exception lastException = null;
 
@@ -124,7 +143,10 @@ public class HTTPClient {
             try {
                 URL urlObj = new URL(url);
                 if (useProxy) {
-                    Proxy httpProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyAddr, httpProxyPort));
+                    Proxy httpProxy =
+                            new Proxy(
+                                    Proxy.Type.HTTP,
+                                    new InetSocketAddress(httpProxyAddr, httpProxyPort));
                     conn = (HttpURLConnection) urlObj.openConnection(httpProxy);
                 } else {
                     conn = (HttpURLConnection) urlObj.openConnection();
@@ -151,10 +173,13 @@ public class HTTPClient {
                 String ret = IOUtils.toString(conn.getInputStream(), "UTF-8");
                 int responseCode = conn.getResponseCode();
                 if (responseCode >= 400) {
-                    throw new DeployInternalException("HTTP request failed, status = {}, content = {}",
-                            responseCode, ret);
+                    throw new DeployInternalException(
+                            "HTTP request failed, status = {}, content = {}", responseCode, ret);
                 }
-                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, scrubbedUrl);
+                LOG.info(
+                        "HTTP Request returned with response code {} for URL {}",
+                        responseCode,
+                        scrubbedUrl);
                 return ret;
             } catch (Exception e) {
                 lastException = e;
@@ -162,8 +187,14 @@ public class HTTPClient {
                 if (useProxy) {
                     proxyMsg = String.format(" via proxy %s:%s,", httpProxyAddr, httpProxyPort);
                 }
-                LOG.error("Failed to send HTTP Request to {},{} with method {} with payload {}, with headers {}",
-                        scrubbedUrl, proxyMsg, method, payload, headers, e);
+                LOG.error(
+                        "Failed to send HTTP Request to {},{} with method {} with payload {}, with headers {}",
+                        scrubbedUrl,
+                        proxyMsg,
+                        method,
+                        payload,
+                        headers,
+                        e);
             } finally {
                 if (conn != null) {
                     conn.disconnect();

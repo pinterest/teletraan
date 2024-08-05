@@ -1,12 +1,12 @@
 /**
- * Copyright 2024 Pinterest, Inc.
+ * Copyright (c) 2020-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,12 +25,10 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 
 /* count table cache to store # of actively deploying agents and # of existing agents */
 public class DBPindeployDAOImpl implements PindeployDAO {
-    private static final String GET_PINDEPLOY =
-        "SELECT * FROM pindeploy WHERE env_id=?";
-    private static final String DELETE_PINDEPLOY =
-        "DELETE FROM pindeploy WHERE pipeline=?";
+    private static final String GET_PINDEPLOY = "SELECT * FROM pindeploy WHERE env_id=?";
+    private static final String DELETE_PINDEPLOY = "DELETE FROM pindeploy WHERE pipeline=?";
     private static final String INSERT_OR_UPDATE_PINDEPLOY =
-        "INSERT INTO pindeploy SET %s ON DUPLICATE KEY UPDATE pipeline=?, is_pindeploy=?";
+            "INSERT INTO pindeploy SET %s ON DUPLICATE KEY UPDATE pipeline=?, is_pindeploy=?";
 
     private BasicDataSource dataSource;
 

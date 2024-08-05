@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2023 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,6 @@
  */
 package com.pinterest.teletraan.worker;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
@@ -31,13 +23,18 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.HostHandler;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Housekeeping on stuck and dead agents
- * <p>
- * if an agent has not ping server for certain time, we will cross check with
- * authoritative source to confirm if the host is terminated, and set agent status
- * accordingly
+ *
+ * <p>if an agent has not ping server for certain time, we will cross check with authoritative
+ * source to confirm if the host is terminated, and set agent status accordingly
  */
 public class SimpleAgentJanitor implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleAgentJanitor.class);
@@ -48,8 +45,8 @@ public class SimpleAgentJanitor implements Runnable {
     protected long maxStaleHostThreshold;
     protected long minStaleHostThreshold;
 
-    public SimpleAgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
-            int maxStaleHostThreshold) {
+    public SimpleAgentJanitor(
+            ServiceContext serviceContext, int minStaleHostThreshold, int maxStaleHostThreshold) {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
         hostAgentDAO = serviceContext.getHostAgentDAO();
@@ -76,7 +73,8 @@ public class SimpleAgentJanitor implements Runnable {
         }
     }
 
-    private void processStaleHosts(Collection<String> staleHostIds, boolean needToDelete) throws Exception {
+    private void processStaleHosts(Collection<String> staleHostIds, boolean needToDelete)
+            throws Exception {
         for (String staleId : staleHostIds) {
             if (needToDelete) {
                 removeStaleHost(staleId);
@@ -98,7 +96,8 @@ public class SimpleAgentJanitor implements Runnable {
             maxStaleHostIds.add(host.getHost_id());
         }
         if (!maxStaleHostIds.isEmpty()) {
-            LOG.info("Found the following hosts (Explicit capacity) exceeded maxStaleThreshold: ",
+            LOG.info(
+                    "Found the following hosts (Explicit capacity) exceeded maxStaleThreshold: ",
                     maxStaleHostIds);
             processStaleHosts(maxStaleHostIds, true);
         }
@@ -113,7 +112,8 @@ public class SimpleAgentJanitor implements Runnable {
             minStaleHostIds.add(host.getHost_id());
         }
         if (!minStaleHostIds.isEmpty()) {
-            LOG.info("Found following hosts (Explicit capacity) exceeded minStaleThreshold: ",
+            LOG.info(
+                    "Found following hosts (Explicit capacity) exceeded minStaleThreshold: ",
                     minStaleHostIds);
             processStaleHosts(minStaleHostIds, false);
         }

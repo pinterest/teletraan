@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 package com.pinterest.deployservice.chat;
 
 public interface ChatManager {
-    void
-    send(String from, String room, String message, String color) throws Exception;
+    void send(String from, String room, String message, String color) throws Exception;
 
-    void
-    sendToUser(String from, String user, String message, String color) throws Exception;
+    void sendToUser(String from, String user, String message, String color) throws Exception;
 }
