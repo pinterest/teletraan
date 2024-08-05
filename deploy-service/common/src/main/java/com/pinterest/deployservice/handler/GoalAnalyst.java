@@ -525,7 +525,7 @@ public class GoalAnalyst {
         agentBean.setState(AgentState.STOP);
         agentBean.setLast_operator(Constants.SYSTEM_OPERATOR);
         long now = System.currentTimeMillis();
-        agentBean.setStart_date(now);
+        agentBean.setStart_date(agent.getStart_date());
         agentBean.setLast_update(now);
         agentBean.setLast_err_no(0);
         agentBean.setFail_count(0);
