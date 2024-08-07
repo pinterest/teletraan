@@ -85,6 +85,7 @@ definitions:
           - BUILD
           - HOTFIX
           - HOST
+          - PROVISION_PREFIX
           - UNSPECIFIED
       resourceName:
         type: string

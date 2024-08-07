@@ -115,8 +115,10 @@ public class AuthZResource {
         DEPLOY,
         /** For hotfix related resources. */
         HOTFIX,
-        /** For Host related resources. */
+        /** For host related resources. */
         HOST,
+        /** For cluster provision prefix resource. */
+        PROVISION_PREFIX,
         /* For anything else */
         UNSPECIFIED,
     }
