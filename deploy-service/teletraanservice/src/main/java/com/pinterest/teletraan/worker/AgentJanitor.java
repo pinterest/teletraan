@@ -82,7 +82,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
     }
 
     private Set<String> getTerminatedHostsFromSource(List<String> staleHostIds) {
-        int batchSize = 10;
+        int batchSize = 5;
         Set<String> terminatedHosts = new HashSet<>();
         for (int i = 0; i < staleHostIds.size(); i += batchSize) {
             try {
