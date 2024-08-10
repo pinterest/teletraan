@@ -86,29 +86,8 @@
     </script>
 
     <div id="metricStatId" class="collapse in panel-body">
-        <div id="groupStatsId" class="collapse in panel-body" style="text-align: center;">
-            <div id="container" class="chartContainer">
-                <div id="line_latencystats"></div>
-                <div id="launch_rate_id"></div>
-                {% include "groups/latency_stats.tmpl" %}
-                {% include "groups/launch_rate.tmpl" %}
-
-                {% if pas_enabled == 'ENABLED' %}
-                <div id="pas_stats_id"></div>
-                {% include "groups/pas_stats.tmpl" %}
-                {% endif %}
-
-                <style>
-                .chartContainer>div {
-                    width:550px;
-                    height:350px;
-                    display:inline-block;
-                }
-                </style>
-            </div>
-            <div id="loadGroupInfo"></div>
-        </div>
         <div id="tsdLinksId" style="text-align: left;">
+            <h4>Updated: check out these links for better visualization</h4>
             <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
                 href="{{ group_size_url }}"
                 title="" data-original-title="Click to see more group size information in TSDB">
@@ -131,6 +110,28 @@
                     <strong>First deploy SR for {{ env.envName }}</strong>
                 </a>
             {% endfor %}
+        </div>
+        <div id="groupStatsId" class="collapse in panel-body" style="text-align: center;">
+            <div id="container" class="chartContainer">
+                <div id="line_latencystats"></div>
+                <div id="launch_rate_id"></div>
+                {% include "groups/latency_stats.tmpl" %}
+                {% include "groups/launch_rate.tmpl" %}
+
+                {% if pas_enabled == 'ENABLED' %}
+                <div id="pas_stats_id"></div>
+                {% include "groups/pas_stats.tmpl" %}
+                {% endif %}
+
+                <style>
+                .chartContainer>div {
+                    width:550px;
+                    height:350px;
+                    display:inline-block;
+                }
+                </style>
+            </div>
+            <div id="loadGroupInfo"></div>
         </div>
     </div>
 </div>
