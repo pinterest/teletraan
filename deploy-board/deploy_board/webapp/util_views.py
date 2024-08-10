@@ -189,7 +189,7 @@ def get_launch_rate(request, group_name):
     try:
         util_data["metric_names"] = []
         for env in envs:
-            metric_name = "mimmax:autoscaling.{}.{}.first_deploy.failed".format(
+            metric_name = "mimmax:rate:teletraan.{}.{}.first_deploy{{success=false}}".format(
                 env["envName"], env["stageName"])
             rate_data_points = autoscaling_metrics_helper.get_raw_metrics(request, metric_name,
                                                                           settings.DEFAULT_START_TIME)
