@@ -19,11 +19,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.config.AuthorizationFactory;
@@ -35,10 +37,13 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.core.SecurityContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -50,6 +55,7 @@ class EnvCapacitiesTest {
     private List<String> capacities;
 
     @Mock private EnvironDAO environDAO;
+    @Mock private GroupDAO groupDAO;
     @Mock private TeletraanAuthorizer<TeletraanPrincipal> authorizer;
     @Mock private TeletraanPrincipal principal;
 
@@ -63,6 +69,7 @@ class EnvCapacitiesTest {
         when(authorizationFactory.create(any())).thenReturn(authorizer);
         serviceContext.setAuthorizationFactory(authorizationFactory);
         serviceContext.setEnvironDAO(environDAO);
+        serviceContext.setGroupDAO(groupDAO);
 
         sut = new EnvCapacities(serviceContext);
         capacities = new ArrayList<>();
@@ -161,5 +168,36 @@ class EnvCapacitiesTest {
         return Stream.of(
                 Arguments.of(EnvCapacities.CapacityType.GROUP),
                 Arguments.of(EnvCapacities.CapacityType.HOST));
+    }
+
+    @Test
+    void addGroupSuccess() throws Exception {
+        // Given the parameters
+        String envName = "testEnvName";
+        String stageName = "testStageName";
+        Optional<CapacityType> capacityType = Optional.of(CapacityType.GROUP);
+        String capacityGroup = "testCapacityGroup";
+        SecurityContext sc = mock(SecurityContext.class);
+        when(sc.getUserPrincipal()).thenReturn(principal);
+
+        // And the mock dependencies
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
+        when(environDAO.getByStage(envName, stageName)).thenReturn(envBean);
+        when(environDAO.getByCluster(capacityGroup)).thenReturn(envBean);
+        AuthZResource authZResource =
+                new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
+        when(authorizer.authorize(
+                        principal, TeletraanPrincipalRole.Names.WRITE, authZResource, null))
+                .thenReturn(true);
+
+        // Verify the call succeeds
+        sut.add(envName, stageName, capacityType, capacityGroup, sc);
+
+        // Verify mock calls
+        verify(environDAO).getByStage(envName, stageName);
+        verify(environDAO).getByCluster(capacityGroup);
+        verify(authorizer)
+                .authorize(principal, TeletraanPrincipalRole.Names.WRITE, authZResource, null);
+        verify(groupDAO).addGroupCapacity(envBean.getEnv_id(), capacityGroup);
     }
 }
