@@ -32,7 +32,7 @@ import logging
 
 from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper, accounts_helper
-from .helpers import clusters_helper, environs_helper, environ_hosts_helper
+from .helpers import clusters_helper, environs_helper, environ_hosts_helper, hosttypesmapping_helper
 from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 from . import common
 import traceback
@@ -664,6 +664,7 @@ def create_host_type_mapping(request):
 def modify_host_type_mapping(request):
     try:
         host_type_mapping_info = json.loads(request.body)
+        updated_info = {}
         updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
         host_type_id = host_type_mapping_info['id']
         updated_info['defaultId'] = host_type_mapping_info['id']
