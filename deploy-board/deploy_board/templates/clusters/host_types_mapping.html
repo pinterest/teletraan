@@ -1,0 +1,118 @@
+{% extends 'environs/env_base.html' %}
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/">Clouds</a></li>
+    <li><a href="/clouds/hosttypesmapping/">Host Types Mapping</a></li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Host Types Mapping</h4>
+    </div>
+    <div class="row">
+        <a id="listGroupsBtnId" href="/" class="deployToolTip btn btn-default btn-block">
+            <span class="glyphicon glyphicon-wrench"></span> Back to Cloud
+        </a>
+    </div>
+    <div class="row">
+    <button class="deployToolTip btn btn-default btn-block"
+            data-toggle="modal" data-target="#createHostTypeMappingModalId"
+            title="Create Host Type Mapping" id="createHostTypeMappingBtnId">
+        <span class="glyphicon glyphicon-plus"></span> Add Host Type Mapping
+    </button>
+</div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Host Types Mapping</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "clusters/host_types.tmpl" %}
+        <ul class="pager">
+            <li>
+                <a href='/clouds/hosttypesmapping/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                    class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                    <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                </a>
+            </li>
+            <li>
+                <a href='/clouds/hosttypesmapping/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                    class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                    Next <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="modal fade" id="createHostTypeMappingModalId" tabindex="-1" role="dialog" aria-labelledby="createHostTypeMappingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="createHostTypeMappingFormId" class="form-horizontal" role="form" method="post" action="/clouds/create_host_type_mapping/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Create Host Type Mapping Confirm</h4>
+                </div>
+                <div class="modal-body" id="createHostTypeMappingModal">
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Default Host Type
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="defaultHostType" required id="defaultHostType">
+                                {% for type in hosttype_list %}
+                                    <option value="{{ type.provider_name }}" >{{ type.provider_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Second Priority Host Type
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="secondHostType" required id="secondHostType">
+                                {% for type in hosttype_list %}
+                                    <option value="{{ type.provider_name }}" >{{ type.provider_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Third Priority Host Type
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="thirdHostType" required id="thirdHostType">
+                                {% for type in hosttype_list %}
+                                    <option value="{{ type.provider_name }}" >{{ type.provider_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="modalConfirmBtnId" type="submit" class="btn btn-primary">Create</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
