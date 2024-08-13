@@ -645,8 +645,10 @@ def get_host_types_mapping(request):
 
 def get_host_type_mapping_by_id(request, host_type_id):
     host_type_mapping = hosttypesmapping_helper.get_by_id(request, host_type_id)
+    host_types = hosttypes_helper.get_by_provider(request, 'AWS')
     contents = render_to_string("clusters/modify_host_type_mapping_modal.tmpl", {
         'host_type_mapping': host_type_mapping,
+        'hosttype_list': host_types,
         "csrf_token": get_token(request)
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
