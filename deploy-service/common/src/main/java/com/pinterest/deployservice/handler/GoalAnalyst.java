@@ -58,7 +58,8 @@ public class GoalAnalyst {
     private static final int ROLL_BACK_PRIORITY = DeployPriority.HIGHER.getValue() - 10;
     private static final String DEPLOY_LATENCY_TIMER_NAME =
             CUSTOM_NAME_PREFIX + "teletraan.%s.%s.deploy_latency";
-    private static final String LAUNCH_LATENCY_TIMER_NAME = "teletraan.%s.%s.launch_latency";
+    private static final String LAUNCH_LATENCY_TIMER_NAME =
+            CUSTOM_NAME_PREFIX + "teletraan.%s.%s.launch_latency";
     private static final String FIRST_DEPLOY_COUNTER_NAME =
             CUSTOM_NAME_PREFIX + "teletraan.%s.%s.first_deploy";
 
