@@ -68,7 +68,7 @@
 {% endblock %}
 
 {% block main %}
-<!---- Group Metrics Panel --->
+<!-- Group Metrics Panel -->
 <div class="panel panel-default">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left pointer-cursor">
@@ -86,7 +86,32 @@
     </script>
 
     <div id="metricStatId" class="collapse in panel-body">
-        <div align="center" id="groupStatsId" class="collapse in panel-body">
+        <div id="tsdLinksId" style="text-align: left;">
+            <h4>Check out these links for better visualization</h4>
+            <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                href="{{ group_size_url }}"
+                title="" data-original-title="Click to see more group size information in TSDB">
+                <strong>Group Size</strong>
+            </a>
+            <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                href="{{ provision_latency_url }}"
+                title="" data-original-title="Click to see more provision latency information in TSDB">
+                <strong>Provision Latency</strong>
+            </a>
+            {% for env in envs %}
+                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                    href="{{ env.firstDeployLatencyLink }}"
+                    title="" data-original-title="Click to see more first deploy latency information in TSDB">
+                    <strong>Deploy Latency for {{ env.envName }}</strong>
+                </a>
+                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                    href="{{ env.firstDeploySRLink }}"
+                    title="" data-original-title="Click to see more first deploy success rate information in TSDB">
+                    <strong>First deploy SR for {{ env.envName }}</strong>
+                </a>
+            {% endfor %}
+        </div>
+        <div id="groupStatsId" class="collapse in panel-body" style="text-align: center;">
             <div id="container" class="chartContainer">
                 <div id="line_latencystats"></div>
                 <div id="launch_rate_id"></div>
@@ -108,37 +133,13 @@
             </div>
             <div id="loadGroupInfo"></div>
         </div>
-        <div align="left" id="tsdLinksId">
-            <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="{{group_size_url}}"
-                title="" data-original-title="Click to see more group size information in TSDB">
-                <strong>Group Size</strong>
-            </a>
-            {% for env in envs %}
-
-                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="{{env.launchlatencylink}}"
-                    title="" data-original-title="Click to see more launch latency information in TSDB">
-                    <strong>Launch Latency for {{ env.envName }}</strong>
-                </a>
-                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="{{env.deploylatencylink}}"
-                    title="" data-original-title="Click to see more deploy latency information in TSDB">
-                <strong>Deploy Latency for {{ env.envName }}</strong>
-                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="{{env.deployfailedlink}}"
-                    title="" data-original-title="Click to see more launch failed count information in TSDB">
-                <strong>Launch failed count for {{ env.envName }}</strong>
-            </a>
-            {% endfor %}
-        </div>
     </div>
 </div>
 
 <!--- launch instances button dialog-->
 {% include "message_banner.tmpl" %}
 
-<!---- Group Details Panel --->
+<!--- Group Details Panel -->
 {% if not scaling_down_event_enabled and asg_status == "ENABLED" %}
 <div class="panel panel-warning">
 {% elif asg_status == "DISABLED" %}
@@ -162,7 +163,7 @@
             </a>
         </h4>
 
-        <!---- Buttons --->
+        <!--- Buttons -->
         {% if not scaling_down_event_enabled and asg_status == "ENABLED" %}
             <div class="btn-group pull-right">
                 <button type="button" class="deployToolTip btn btn-default btn-sm"

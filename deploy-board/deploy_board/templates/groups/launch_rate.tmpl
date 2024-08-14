@@ -10,11 +10,11 @@
             var data = new google.visualization.DataTable();
             data.addColumn("datetime", "Date");
 
-            var failure_count_name = "Launch Failure Count";
+            var failure_count_name = "Launch Failure Rate";
             data.addColumn("number", failure_count_name);
 
             var options = {
-                title: 'Launch Failure Count',
+                title: 'Launch Failure Rate',
                 titleFontSize: 15,
                 height: 300,
                 min: 0,
@@ -65,7 +65,7 @@
             if (metric_names != null) {
                 for (var i = 0; i < 1; ++i) {
                     var metric_name = metric_names[i];
-                    data.addColumn("number", "Launch Failure Count");
+                    data.addColumn("number", "Launch Failure Rate");
                     data_list = response[metric_name];
                     for (j = 0; j < data_list.length; ++j) {
                         var d = new Date(data_list[j][0]);
