@@ -27,7 +27,7 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.testcontainers.containers.MySQLContainer;
 
 public class DBUtils {
-    private static final String MYSQL_IMAGE_NAME = "mysql:8.0";
+    private static final String MYSQL_IMAGE_NAME = "mysql:8.0-oracle";
     private static final String MYSQL_URL = "jdbc:mysql://0.0.0.0:3303/deploy?useSSL=false";
     public static String DATABASE_NAME = "deploy";
     public static String DATABASE_USER = "root";
