@@ -32,7 +32,7 @@ import logging
 
 from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper, accounts_helper
-from .helpers import clusters_helper, environs_helper, environ_hosts_helper
+from .helpers import clusters_helper, environs_helper, environ_hosts_helper, hosttypesmapping_helper
 from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 from . import common
 import traceback
@@ -626,6 +626,60 @@ def get_base_images_by_name_json(request, name):
         cell = params.get('cell', DEFAULT_CELL)
     base_images = get_base_image_info_by_name(request, name, cell)
     return HttpResponse(json.dumps(base_images), content_type="application/json")
+
+
+def get_host_types_mapping(request):
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    host_types_mapping = hosttypesmapping_helper.get_all(request, index, size)
+    host_types = hosttypes_helper.get_by_provider(request, 'AWS')
+    return render(request, 'clusters/host_types_mapping.html', {
+        'host_types_mapping': host_types_mapping,
+        'hosttype_list': host_types,
+        'pageIndex': index,
+        'pageSize': DEFAULT_PAGE_SIZE,
+        'disablePrevious': index <= 1,
+        'disableNext': len(host_types) < DEFAULT_PAGE_SIZE,
+    })
+
+
+def get_host_type_mapping_by_id(request, host_type_id):
+    host_type_mapping = hosttypesmapping_helper.get_by_id(request, host_type_id)
+    host_types = hosttypes_helper.get_by_provider(request, 'AWS')
+    contents = render_to_string("clusters/modify_host_type_mapping_modal.tmpl", {
+        'host_type_mapping': host_type_mapping,
+        'hosttype_list': host_types,
+        "csrf_token": get_token(request)
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
+def create_host_type_mapping(request):
+    params = request.POST
+    host_type_mapping_info = {}
+    host_type_mapping_info['defaultId'] = params['defaultHostType']
+    host_type_mapping_info['backupIds'] = [params['secondHostType'], params['thirdHostType']]
+    hosttypesmapping_helper.create_host_type_mapping(request, host_type_mapping_info)
+    return redirect('/clouds/hosttypesmapping/')
+
+
+def modify_host_type_mapping(request):
+    try:
+        host_type_mapping_info = json.loads(request.body)
+        updated_info = {}
+        updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
+        host_type_id = host_type_mapping_info['id']
+        updated_info['defaultId'] = host_type_mapping_info['id']
+
+        log.info("Update Host Type Mapping with {}".format(updated_info))
+        hosttypesmapping_helper.modify_host_type_mapping(request, host_type_id, updated_info)
+    except NotAuthorizedException as e:
+        log.error("Have an NotAuthorizedException error {}".format(e))
+        return HttpResponse(e, status=403, content_type="application/json")
+    except Exception as e:
+        log.error("modifying host type mapping has an error {}".format(e))
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse(json.dumps(host_type_mapping_info), content_type="application/json")
 
 
 def create_host_type(request):

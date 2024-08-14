@@ -1,0 +1,34 @@
+{% load utils %}
+{% load static %}
+
+<form name="hostTypeMappingList">
+    <table id="hostTypeMappingTableId" class="table table-condensed table-striped table-hover">
+        <tr>
+            <th class="col-lg-2">Default Host Type</th>
+            <th class="col-lg-6">Backup Host Types</th>
+            <th class="col-lg-1">Edit</th>
+        </tr>
+        {% for mapping in host_types_mapping %}
+        <tr>
+            <td> {{ mapping.defaultId }} </td>
+            <td> {{ mapping.backupIds }} </td>
+            <td>
+                <button href="" id="hostTypeMappingDetailsId" type="button" class="deployToolTip btn btn-default btn-xs"
+                    data-toggle="modal" title="Modify an existing host type mapping" data-value={{ mapping.defaultId }} data-target="#modifyHostTypeMappingModalId">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</form>
+<div class="modal fade" id="modifyHostTypeMappingModalId" tabindex="-1" role="dialog" aria-labelledby="modifyHostTypeMappingModalLabel" aria-hidden="true"></div>
+
+<script>
+   $(document).on("click", "#hostTypeMappingDetailsId", function () {
+        var host_type_id = $(this).attr('data-value');
+        $.get(`/clouds/get_host_type_mapping/${host_type_id}/`, function(response) {
+            $('#modifyHostTypeMappingModalId').html(response);
+        });
+    });
+</script>

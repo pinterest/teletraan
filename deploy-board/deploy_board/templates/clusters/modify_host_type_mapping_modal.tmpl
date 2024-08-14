@@ -1,0 +1,92 @@
+<div class="modal-dialog modal-md">
+    <div class="modal-content">
+        <form id="modifyHostTypeMappingFormId" class="form-horizontal" role="form" method="post" action="/clouds/modify_host_type_mapping/">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Modify Host Type Mapping Confirm</h4>
+            </div>
+            <div class="modal-body" id="modifyHostTypeMappingModal">
+                <input class="form-control" name="id" required="true" type="hidden" value= "{{ host_type_mapping.defaultId }}"/>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Default Host Type
+                    </label>
+                    <div class="col-md-6">
+                        {{ host_type_mapping.defaultId }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Second Priority Host Type
+                    </label>
+                    <div class="col-md-6">
+                        <select class="form-control" name="secondHostType" required id="secondHostType">
+                            {% for type in hosttype_list %}
+                                <option value="{{ type.provider_name }}" >{{ type.provider_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Third Priority Host Type
+                    </label>
+                    <div class="col-md-6">
+                        <select class="form-control" name="thirdHostType" required id="thirdHostType">
+                            {% for type in hosttype_list %}
+                                <option value="{{ type.provider_name }}" >{{ type.provider_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modalConfirmBtnId" type="submit" class="btn btn-primary">Save</button>
+                <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function convertFormToJSON(form) {
+        const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+        const json = {};
+        $.each(array, function () {
+          json[this.name] = this.value || "";
+        });
+        return JSON.stringify(json);
+    }
+
+    function sendRequest(form) {
+        console.log(convertFormToJSON(form));
+        $.ajax({
+            type: 'POST',
+            url: '/clouds/modify_host_type_mapping/',
+            data: convertFormToJSON(form),
+            dataType: "json",
+            beforeSend: function(xhr, settings) {
+                var csrftoken = getCookie('csrftoken')
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            success: function(data) {
+                $("#modifyHostTypeMappingModalId").hide();
+                window.location.reload()
+                globalNotificationBanner.info = "Request sent successfully"
+            },
+            error: function(data) {
+                globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
+            }
+        });
+    }
+
+
+    $(function() {
+        var form = "#modifyHostTypeMappingModalId form"
+        $('#modifyHostTypeMappingFormId').submit(function (e) {
+            e.preventDefault();
+            sendRequest(form);
+        });
+    });
+
+</script>
