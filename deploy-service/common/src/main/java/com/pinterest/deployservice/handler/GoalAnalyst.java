@@ -27,6 +27,7 @@ import com.pinterest.deployservice.bean.DeployPriority;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.PingReportBean;
 import com.pinterest.deployservice.common.Constants;
@@ -34,6 +35,7 @@ import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.DeployConstraintDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Duration;
@@ -56,6 +58,7 @@ public class GoalAnalyst {
     private static final int ROLL_BACK_PRIORITY = DeployPriority.HIGHER.getValue() - 10;
     private static final String DEPLOY_LATENCY_TIMER_NAME =
             CUSTOM_NAME_PREFIX + "teletraan.%s.%s.deploy_latency";
+    private static final String LAUNCH_LATENCY_TIMER_NAME = "teletraan.%s.%s.launch_latency";
     private static final String FIRST_DEPLOY_COUNTER_NAME =
             CUSTOM_NAME_PREFIX + "teletraan.%s.%s.first_deploy";
 
@@ -64,6 +67,7 @@ public class GoalAnalyst {
     private DeployDAO deployDAO;
     private HostTagDAO hostTagDAO;
     private DeployConstraintDAO deployConstraintDAO;
+    private HostDAO hostDAO;
 
     private String ec2Tags;
 
@@ -226,6 +230,7 @@ public class GoalAnalyst {
             HostTagDAO hostTagDAO,
             DeployDAO deployDAO,
             EnvironDAO environDAO,
+            HostDAO hostDAO,
             String host,
             String host_id,
             Map<String, EnvironBean> envs,
@@ -241,6 +246,7 @@ public class GoalAnalyst {
         this.ec2Tags = ec2Tags;
         this.hostTagDAO = hostTagDAO;
         this.deployConstraintDAO = deployConstraintDAO;
+        this.hostDAO = hostDAO;
 
         for (Map.Entry<String, AgentBean> entry : agents.entrySet()) {
             try {
@@ -459,9 +465,34 @@ public class GoalAnalyst {
                             "success",
                             String.valueOf(updateBean.getStatus().equals(AgentStatus.SUCCEEDED)))
                     .increment();
+
+            Long hostStartTime = estimateHostStartTime(updateBean);
+            if (hostStartTime != null) {
+                Metrics.timer(
+                                String.format(
+                                        LAUNCH_LATENCY_TIMER_NAME,
+                                        env.getEnv_name(),
+                                        env.getStage_name()))
+                        .record(
+                                Duration.ofMillis(
+                                        updateBean.getFirst_deploy_time() - hostStartTime));
+            }
         } catch (Exception ex) {
             LOG.warn("Failed to emit metrics of {}", updateBean, ex);
         }
+    }
+
+    private Long estimateHostStartTime(AgentBean agent) {
+        try {
+            List<HostBean> hosts = hostDAO.getHostsByHostId(agent.getHost_id());
+            if (!hosts.isEmpty()) {
+                return hosts.get(0).getCreate_date();
+            }
+        } catch (Exception ex) {
+            LOG.info("Failed to get host with id {}", agent.getHost_id(), ex);
+        }
+
+        return null;
     }
 
     // Generate new agent bean based on the report & current agent record,
