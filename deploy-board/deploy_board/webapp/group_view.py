@@ -1210,7 +1210,7 @@ class GroupDetailView(View):
         "begin": "1w",
         "reducer_interval": "10m",
     }
-    base_metric_url = "https://statsboard.pinadmin.com/build3?"
+    base_dashboard_url = "https://statsboard.pinadmin.com/d/teletraan_user/main"
 
     def get(self, request, group_name):
         autoscaling_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
@@ -1221,10 +1221,6 @@ class GroupDetailView(View):
         envs = environs_helper.get_all_envs_by_group(request, group_name)
         disabled_actions = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
         pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
-
-        for env in envs:
-            env['firstDeploySRLink'] = self.generate_first_deploy_success_rate_link(env)
-            env['firstDeployLatencyLink'] = self.generate_deploy_latency_link(env)
 
         if "Terminate" in disabled_actions:
             scaling_down_event_enabled = False
@@ -1247,60 +1243,16 @@ class GroupDetailView(View):
             "launch_config": launch_config,
             "pas_enabled": pas_config['pas_state'] if pas_config else False,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
-            "group_size_url": self.generate_group_size_url(group_name),
-            "provision_latency_url": self.generate_provision_latency_url(group_name),
+            "teletraan_user_dashboard_url": self.generate_dashboard_url(group_name, envs),
         })
 
-    def generate_deploy_latency_link(self, env):
+    def generate_dashboard_url(self, group, envs):
+        env_arg = '|'.join([f'{env.get('envName')}.{env.get('stageName')}' for env in envs])
         params = {
-            "metrics": (
-                '{"cmd":"sd=(s-s.timeShift(1h)).nonNegative()\\nctd=(ct-ct.timeShift(1h)).nonNegative()\\nmean=sd/ctd\\nreturn max,mean","metrics":'
-                f'[{{"aggregator":"zimsum","alias":"s","metric":"teletraan.{env.get("envName")}.{env.get("stageName")}.deploy_latency.sum"}},'
-                f'{{"aggregator":"zimsum","alias":"ct","metric":"teletraan.{env.get("envName")}.{env.get("stageName")}.deploy_latency.count"}},'
-                f'{{"aggregator":"mimmax","alias":"max","metric":"teletraan.{env.get("envName")}.{env.get("stageName")}.deploy_latency.max"}}]}}'
-            ),
-            "settings": (
-                '{"appearance":{"mean":{"color":"#0000ff"},"max":{"color":"#ff8000"}},"title":"mean & max first deploy latency [1h window]","y_axis_label":"Latency","y_min":0,'
-                '"note":"The deploy latency is measured from the first deploy start to finish on a single host."}'
-            ),
+            "tags": f"group={group},envs={env_arg}",
         }
         params.update(self.default_params)
-        return f"{self.base_metric_url}{urllib.parse.urlencode(params)}"
-
-    def generate_provision_latency_url(self, group_name):
-        params = {
-            "metrics": (
-                '{"cmd":"sd=(s-s.timeShift(1h)).nonNegative()\\nctd=(ct-ct.timeShift(1h)).nonNegative()\\nmean=sd/ctd\\nreturn max,mean","metrics":'
-                f'[{{"aggregator":"zimsum","alias":"s","metric":"teletraan.{group_name}.provision_latency.sum"}},'
-                f'{{"aggregator":"zimsum","alias":"ct","metric":"teletraan.{group_name}.provision_latency.count"}},'
-                f'{{"aggregator":"mimmax","alias":"max","metric":"teletraan.{group_name}.provision_latency.max"}}]}}'
-            ),
-            "settings": '{"appearance":{"mean":{"color":"#0000ff"},"max":{"color":"#ff8000"}},"title":"mean & max provision latency [1h window]","y_axis_label":"Latency","y_min":0,'
-            '"note":"The provision latency is measured from the host launch to the first Teletraan ping."}',
-        }
-        params.update(self.default_params)
-        return f"{self.base_metric_url}{urllib.parse.urlencode(params)}"
-
-    def generate_first_deploy_success_rate_link(self, env):
-        params = {
-            "metrics": (
-                '{"cmd":"sd=(suc-suc.timeShift(1h)).nonNegative()\\ntotd=(tot-tot.timeShift(1h)).nonNegative()\\nsr=sd/totd*100\\nreturn sr","metrics":'
-                f'[{{"aggregator":"zimsum","alias":"suc","metric":"teletraan.{env.get("envName")}.{env.get("stageName")}.first_deploy","tags":{{"success":"true"}}}},'
-                f'{{"aggregator":"zimsum","alias":"tot","metric":"teletraan.{env.get("envName")}.{env.get("stageName")}.first_deploy"}}]}}'
-            ),
-            "settings": '{"appearance":{"sr":{"disabled":false,"stroke_style":"solid","color":"#00ff00"}},"title":"First deploy success rate [1h window]","y_max":105,"y_min":0}',
-        }
-        params.update(self.default_params)
-        return f"{self.base_metric_url}{urllib.parse.urlencode(params)}"
-
-    def generate_group_size_url(self, group_name):
-        params = {
-            "metrics": f'{{"metrics":[{{"aggregator":"zimavg","alias":"size","metric":"autoscaling.{group_name}.size"}}]}}',
-            "settings": '{"appearance":{"d":{"color":"dodgerblue"}},"renderer":"line","title":"Group size","y_axis_label":"Group size","y_min":0}',
-        }
-        params.update(self.default_params)
-        return f"{self.base_metric_url}{urllib.parse.urlencode(params)}"
-
+        return f"{self.base_dashboard_url}?{urllib.parse.urlencode(params)}"
 
 # generate aws related settings
 def get_aws_settings(request):
