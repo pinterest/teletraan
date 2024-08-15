@@ -1243,13 +1243,18 @@ class GroupDetailView(View):
             "launch_config": launch_config,
             "pas_enabled": pas_config['pas_state'] if pas_config else False,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
-            "teletraan_user_dashboard_url": self.generate_dashboard_url(group_name, envs),
+            "teletraan_user_dashboard_url": self.generate_dashboard_url(group_name, envs, group_info),
         })
 
-    def generate_dashboard_url(self, group, envs):
+    def generate_dashboard_url(self, group, envs, group_info):
+        launch_latency_th = (
+            group_info.get("groupInfo", {}).get("launchLatencyTh", 600)
+            if group_info
+            else 600
+        )
         env_arg = '|'.join([f'{env.get("envName")}.{env.get("stageName")}' for env in envs])
         params = {
-            "tags": f"cluster={group},envs={env_arg}",
+            "tags": f"cluster={group},envs={env_arg},th={launch_latency_th}",
         }
         params.update(self.default_params)
         return f"{self.base_dashboard_url}?{urllib.parse.urlencode(params)}"
