@@ -34,6 +34,24 @@
             </td>
         </tr>
         <tr>
+            <td>Publish Info</td>
+            <td>
+                {% if current_image.publish_info  %}
+                    <a class="deployToolTip" data-toggle="tooltip"
+                        title="Click to see the details of jenkins build job"
+                        href='{{ current_image.publish_info }}'
+                    >
+                        <i class="fa fa-wrench"></i>
+                        Publisher Information
+                    </a>
+                {% else %}
+                    <span> <i class="fa fa-wrench"></i>
+                    Publisher Information
+                    </span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
             <td>Golden Tags</td>
             <td>
                 {%if golden_latest %}
