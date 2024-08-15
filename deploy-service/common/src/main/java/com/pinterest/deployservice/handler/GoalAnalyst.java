@@ -466,7 +466,7 @@ public class GoalAnalyst {
                                     env.getEnv_name(),
                                     env.getStage_name()),
                             "success",
-                            String.valueOf(updateBean.getStatus().equals(AgentStatus.SUCCEEDED)))
+                            String.valueOf(AgentStatus.SUCCEEDED.equals(updateBean.getStatus())))
                     .increment();
 
             Long hostStartTime = estimateHostStartTime(updateBean);

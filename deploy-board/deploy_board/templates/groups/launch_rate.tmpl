@@ -43,7 +43,7 @@
                         lineWidth: 2}
                 },
                 vAxes: {
-                    0: {title: 'Success Rate',
+                    0: {title: 'Failure Rate',
                         titleTextStyle: {italic: false}}
                 },
                 interpolateNulls: true,
@@ -65,7 +65,6 @@
             if (metric_names != null) {
                 for (var i = 0; i < 1; ++i) {
                     var metric_name = metric_names[i];
-                    data.addColumn("number", "Launch Failure Rate");
                     data_list = response[metric_name];
                     for (j = 0; j < data_list.length; ++j) {
                         var d = new Date(data_list[j][0]);
