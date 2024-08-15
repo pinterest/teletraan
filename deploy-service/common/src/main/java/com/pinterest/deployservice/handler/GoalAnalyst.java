@@ -436,8 +436,8 @@ public class GoalAnalyst {
         }
 
         if (Boolean.TRUE.equals(updateBean.getFirst_deploy())
-                && (report.getDeployStage() == DeployStage.SERVING_BUILD
-                        || updateBean.getState() == AgentState.PAUSED_BY_SYSTEM)) {
+                && (DeployStage.SERVING_BUILD.equals(report.getDeployStage())
+                        || AgentState.PAUSED_BY_SYSTEM.equals(updateBean.getState()))) {
             // turn off first deploy flag
             updateBean.setFirst_deploy(false);
             updateBean.setFirst_deploy_time(currentTime);
