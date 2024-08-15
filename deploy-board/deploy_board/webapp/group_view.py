@@ -1247,7 +1247,7 @@ class GroupDetailView(View):
         })
 
     def generate_dashboard_url(self, group, envs):
-        env_arg = '|'.join([f'{env.get('envName')}.{env.get('stageName')}' for env in envs])
+        env_arg = '|'.join([f'{env.get("envName")}.{env.get("stageName")}' for env in envs])
         params = {
             "tags": f"group={group},envs={env_arg}",
         }
