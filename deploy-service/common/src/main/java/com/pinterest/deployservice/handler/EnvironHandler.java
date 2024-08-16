@@ -444,9 +444,8 @@ public class EnvironHandler {
     public void updateGroups(EnvironBean envBean, List<String> groups, String operator)
             throws Exception {
         // TODO need to check group env conflicts and reject if so
-        List<String> oldGroupList = groupDAO.getCapacityGroups(envBean.getEnv_id());
         Set<String> oldGroups = new HashSet<>();
-        oldGroups.addAll(oldGroupList);
+        oldGroups.addAll(groupDAO.getCapacityGroups(envBean.getEnv_id()));
         for (String group : groups) {
             if (!oldGroups.contains(group)) {
                 groupDAO.addGroupCapacity(envBean.getEnv_id(), group);
@@ -455,7 +454,7 @@ public class EnvironHandler {
             }
         }
         for (String group : oldGroups) {
-            if (group == envBean.getCluster_name()) {
+            if (group.equals(envBean.getCluster_name())) {
                 LOG.info("Skipping implicit group {}", group);
                 continue;
             }
