@@ -492,7 +492,7 @@ public class GoalAnalyst {
                 return hosts.get(0).getCreate_date();
             }
         } catch (Exception ex) {
-            LOG.info("Failed to get host with id {}", agent.getHost_id(), ex);
+            LOG.warn("Failed to get host with id {}", agent.getHost_id(), ex);
         }
 
         return null;
