@@ -160,7 +160,7 @@ def get_latency_metrics(request, group_name):
                                                                              "LAUNCH", settings.DEFAULT_START_TIME)
             json_data = []
             for data_point in launch_data_points:
-                timestamp, value = data_point["timestamp"], data_point["value"] / 1000
+                timestamp, value = data_point["timestamp"], data_point["value"]
                 json_data.append([timestamp, value])
             util_data[metric_name1] = json_data
 
@@ -169,7 +169,7 @@ def get_latency_metrics(request, group_name):
                                                                              "DEPLOY", settings.DEFAULT_START_TIME)
             json_data2 = []
             for data_point in deploy_data_points:
-                timestamp, value = data_point["timestamp"], data_point["value"] / 1000
+                timestamp, value = data_point["timestamp"], data_point["value"]
                 json_data2.append([timestamp, value])
             util_data[metric_name2] = json_data2
 
@@ -189,13 +189,13 @@ def get_launch_rate(request, group_name):
     try:
         util_data["metric_names"] = []
         for env in envs:
-            metric_name = "mimmax:rate:teletraan.{}.{}.first_deploy{{success=false}}".format(
+            metric_name = "zimsum:rate:teletraan.{}.{}.first_deploy{{success=false}}".format(
                 env["envName"], env["stageName"])
             rate_data_points = autoscaling_metrics_helper.get_raw_metrics(request, metric_name,
                                                                           settings.DEFAULT_START_TIME)
             json_data = []
             for data_point in rate_data_points:
-                timestamp, value = data_point["timestamp"], data_point["value"]
+                timestamp, value = data_point["timestamp"], data_point["value"] * 60
                 json_data.append([timestamp, value])
 
             util_data[metric_name] = json_data

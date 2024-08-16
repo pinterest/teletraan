@@ -861,6 +861,7 @@ public class PingHandler {
                         hostTagDAO,
                         deployDAO,
                         environDAO,
+                        hostDAO,
                         hostName,
                         hostId,
                         envs,

@@ -87,29 +87,12 @@
 
     <div id="metricStatId" class="collapse in panel-body">
         <div id="tsdLinksId" style="text-align: left;">
-            <h4>Check out these links for better visualization</h4>
+            <h4>Check out the dashboard for better visualization</h4>
             <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="{{ group_size_url }}"
-                title="" data-original-title="Click to see more group size information in TSDB">
-                <strong>Group Size</strong>
+                href="{{ teletraan_user_dashboard_url }}"
+                title="" data-original-title="Click to see more in TSDB">
+                <strong>Teletraan user dashboard</strong>
             </a>
-            <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="{{ provision_latency_url }}"
-                title="" data-original-title="Click to see more provision latency information in TSDB">
-                <strong>Provision Latency</strong>
-            </a>
-            {% for env in envs %}
-                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="{{ env.firstDeployLatencyLink }}"
-                    title="" data-original-title="Click to see more first deploy latency information in TSDB">
-                    <strong>Deploy Latency for {{ env.envName }}</strong>
-                </a>
-                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="{{ env.firstDeploySRLink }}"
-                    title="" data-original-title="Click to see more first deploy success rate information in TSDB">
-                    <strong>First deploy SR for {{ env.envName }}</strong>
-                </a>
-            {% endfor %}
         </div>
         <div id="groupStatsId" class="collapse in panel-body" style="text-align: center;">
             <div id="container" class="chartContainer">
