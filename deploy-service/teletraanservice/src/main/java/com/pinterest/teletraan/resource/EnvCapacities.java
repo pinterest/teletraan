@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
@@ -157,9 +158,12 @@ public class EnvCapacities {
             @NotEmpty String name,
             @Context SecurityContext sc)
             throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        String operator = sc.getUserPrincipal().getName();
         name = name.replace("\"", "");
+        List<String> names = ImmutableList.of(name);
+
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
+        String operator = sc.getUserPrincipal().getName();
         if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
             groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
         } else {
