@@ -97,7 +97,7 @@ def get_by_name(request, name, cell_name):
     return rodimus_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token, params=params)
 
 def get_acceptance_by_name(request, name, cell_name):
-    params = [('cellName', cell_name)]
+    params = [('cellName', cell_name), ('pageSize', 200)]
     return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token, params=params)
 
 
