@@ -112,6 +112,7 @@ class EnvCapacityBasicCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
+            cluster_info['enableMultipleHostTypes'] = False
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -214,6 +215,7 @@ class EnvCapacityAdvCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
+            cluster_info['enableMultipleHostTypes'] = False
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
@@ -328,6 +330,7 @@ class ClusterConfigurationView(View):
                         log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
                         raise TeletraanException("Teletraan does not support user to remove %s" % field)
             cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
+            cluster_info['enableMultipleHostTypes'] = False
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -1032,6 +1035,7 @@ def clone_cluster(request, src_name, src_stage):
         # 7. rodimus service post create cluster
         src_cluster_info['clusterName'] = dest_cluster_name
         src_cluster_info['capacity'] = 0
+        src_cluster_info['enableMultipleHostTypes'] = False
         log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
         dest_cluster_info = clusters_helper.create_cluster_with_env(
             request, dest_cluster_name, dest_name, dest_stage, src_cluster_info)
@@ -1314,6 +1318,7 @@ def submit_auto_refresh_config(request, name, stage):
         clusters_helper.submit_cluster_auto_refresh_config(request, data=auto_refresh_config)
         cluster = clusters_helper.get_cluster(request, cluster_name)
         cluster["autoRefresh"] = autoRefresh
+        cluster['enableMultipleHostTypes'] = False
         clusters_helper.update_cluster(request, cluster_name, cluster)
         group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
         if group_info:
