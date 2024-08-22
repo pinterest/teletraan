@@ -533,6 +533,7 @@ Vue.component("hosttype-select", {
       </button>\
     </span></div>\
     </div>\
+    <div class="col-xs-2"></div>\
     <div class="col-xs-2">\
         <input type="checkbox" id="checkbox" v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
         <label for="checkbox">Enable Multiple Host Types</label>\
@@ -563,7 +564,7 @@ Vue.component('remaining-capacity', {
     template: '<div class="form-group">\
     <div class="col-xs-2"></div>\
     <div class="col-xs-6" v-bind:style="marginStyle">\
-        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Subnet Capacity: {{remainingcapacity}}</span>\
+        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Subnet Capacity: {{c}}</span>\
     </div>\
     </div>',
     props: ['title', 'remainingcapacity', 'inadvanced'],
@@ -572,6 +573,16 @@ Vue.component('remaining-capacity', {
             return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
         }
     }
+});
+
+Vue.component('backup-hosttypes', {
+    template: '<div class="form-group">\
+    <div class="col-xs-2"></div>\
+    <div class="col-xs-6" v-bind:style="marginStyle">\
+        <span class="col-xs-6" style="padding:0;" v-bind:title="title">{{backuphosttypes}}</span>\
+    </div>\
+    </div>',
+    props: ['backuphosttypes']
 });
 
 Vue.component("accessrole-input", {

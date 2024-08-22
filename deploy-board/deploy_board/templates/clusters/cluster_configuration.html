@@ -78,9 +78,7 @@
                     <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
-                    abcd
-                    <mapping-help v-show="showMappingHelp" v-bind:data="mappingHelpData"></mapping-help>
-                    xyz
+                    <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -543,8 +541,7 @@
                 baseImageHelpData: [],
                 showHostTypeHelp: false,
                 hostTypeHelpData:[],
-                showMappingHelp: initialEnableMultipleHostTypes,
-                mappingHelpData: getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType),
+                backuphosttypes: getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes),
                 showSecurityZoneHelp: false,
                 securityZoneHelpData: [],
                 showPlacementsHelp: false,
@@ -936,29 +933,8 @@
                 },
                 selecttypes: function(value){
                     console.log(value);
-                    this.enableMultipleHostTypes = value
-                    const selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === currentCluster.hostType);
-                    const name = selectedHostTypeObject.provider_name;
-                    console.log(name);
-                    const selectedHostTypeMappingObject = info.hostTypesMapping.find(hostTypeMapping => hostTypeMapping.defaultId === name);
-                    if (this.enableMultipleHostTypes && !(selectedHostTypeMappingObject === undefined)) {  
-                        console.log("show backup ids");
-                        console.log(selectedHostTypeMappingObject.backupIds);
-                        capacitySetting.showMappingHelp = true;
-                        capacitySetting.mappingHelpData = selectedHostTypeMappingObject.backupIds;
-                        this.showMappingHelp = true;
-                        this.mappingHelpData = selectedHostTypeMappingObject.backupIds;
-                    } else if (this.enableMultipleHostTypes && selectedHostTypeMappingObject === undefined) {  
-                        console.log("show info");
-                        capacitySetting.showMappingHelp = true;
-                        capacitySetting.mappingHelpData = "No back up host types are defined for this default host type";
-                        this.showMappingHelp = true;
-                        this.mappingHelpData = "No back up host types are defined for this default host type";
-                    } else {
-                        console.log("show nothing");
-                        capacitySetting.showMappingHelp = false;
-                        this.showMappingHelp = false;
-                    } 
+                    this.enableMultipleHostTypes = value;
+                    this.backuphosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes);
                 },
                 changeSubnetType: function(value) {
                     this.subnetType = value
