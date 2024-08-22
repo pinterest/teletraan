@@ -74,6 +74,7 @@ function getBackupIds(mapping, types, type) {
         return "No back up host types are defined for this default host type";
     } else {
         console.log("show backup ids");
+        console.log(selectedHostTypeMappingObject.backupIds);
         return selectedHostTypeMappingObject.backupIds;
     }
 }
