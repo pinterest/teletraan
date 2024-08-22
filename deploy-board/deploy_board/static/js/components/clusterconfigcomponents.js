@@ -515,9 +515,6 @@ Vue.component("placements-select", {
         assignipchange: function (value) {
             this.$emit('assignpublicipclick', value)
         },
-        enabletypeschange: function (value) {
-            this.$emit('enablemultiplehosttypesclick', value)
-        },
         filterclick: function (value) {
             this.$emit('subnetfilterclick', value)
         }
@@ -555,6 +552,9 @@ Vue.component("hosttype-select", {
         },
         helpClick: function () {
             this.$emit('helpclick')
+        },
+        enabletypeschange: function (value) {
+            this.$emit('enablemultiplehosttypesclick', value)
         },
     }
 });
