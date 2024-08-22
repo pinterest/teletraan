@@ -17,7 +17,7 @@ package com.pinterest.deployservice.events;
 
 import static com.pinterest.deployservice.events.EventBridgePublisher.DETAIL_TYPE;
 import static com.pinterest.deployservice.events.EventBridgePublisher.TELETRAAN_SOURCE;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
