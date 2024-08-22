@@ -525,9 +525,9 @@ Vue.component("placements-select", {
 });
 
 Vue.component("hosttype-select", {
-    template: '<div v-bind:class="formStyle">\
+    template: '<div class="form-group">\
     <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">{{label}}</label>\
-    <div v-bind:class="width"><div v-bind:class="groupStyle">\
+    <div class="col-xs-6"><div v-bind:class="groupStyle">\
     <select v-bind:class="selectClass" v-on:change="updateValue($event.target.value)" required="true">\
     <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected" v-bind:disabled="option.isDisabled">{{option.text}}</option></select>\
     <span v-if="showhelp" class="input-group-btn">\
