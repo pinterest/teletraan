@@ -1083,7 +1083,8 @@
                 "width": "100%"
             }).change(function() {
                 capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
-                capacitySetting.backupHosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, capacitySetting.selectedHostTypeValue, this.enableMultipleHostTypes);
+                capacitySetting.backupHosttypes = "None";
+                capacitySetting.enableMultipleHostTypes = false;
             });
 
             $(".chosen-select").chosen({
