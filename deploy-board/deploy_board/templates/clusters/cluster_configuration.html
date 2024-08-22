@@ -774,6 +774,8 @@
                                         }
                                     });
                             capacitySetting.selectedHostTypeValue = data[0].id;
+                            capacitySetting.enableMultipleHostTypes = false;
+                            capacitySetting.backupHosttypes = "None";
                             //Schedule this to nextTick that calls after next DOM refresh
                             //as JQuery chosen call must happen after DOM updates finished
                             Vue.nextTick(function(){
