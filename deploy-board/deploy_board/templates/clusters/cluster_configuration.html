@@ -1082,7 +1082,8 @@
             $('.single-select-search').chosen({
                 "width": "100%"
             }).change(function() {
-                capacitySetting.selectedHostTypeValue = $('.single-select-search').val()
+                capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
+                capacitySetting.backupHosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, capacitySetting.selectedHostTypeValue, this.enableMultipleHostTypes);
             });
 
             $(".chosen-select").chosen({

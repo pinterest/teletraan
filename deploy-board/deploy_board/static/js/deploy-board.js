@@ -66,8 +66,6 @@ function getRemainingCapacity(capacityInfo, placementList) {
 }
 
 function getBackupIds(mapping, types, type, enable) {
-    console.log(type);
-    console.log(enable);
     const selectedHostTypeObject = types.find(hostType => hostType.id === type);
     const name = selectedHostTypeObject.provider_name;
     const selectedHostTypeMappingObject = mapping.find(hostTypeMapping => hostTypeMapping.defaultId === name);
