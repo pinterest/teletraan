@@ -16,8 +16,8 @@
 package com.pinterest.deployservice.metrics;
 
 import static com.pinterest.deployservice.bean.BeanUtils.createHostBean;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.deployservice.bean.HostBean;
 import java.time.Duration;

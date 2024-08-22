@@ -15,8 +15,8 @@
  */
 package com.pinterest.deployservice.common;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.rodimus.RodimusManager;
