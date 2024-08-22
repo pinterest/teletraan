@@ -541,7 +541,7 @@
                 baseImageHelpData: [],
                 showHostTypeHelp: false,
                 hostTypeHelpData:[],
-                backuphosttypes: getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes),
+                backupHosttypes: getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes),
                 showSecurityZoneHelp: false,
                 securityZoneHelpData: [],
                 showPlacementsHelp: false,
@@ -934,7 +934,7 @@
                 selecttypes: function(value){
                     console.log(value);
                     this.enableMultipleHostTypes = value;
-                    this.backuphosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes);
+                    this.backupHosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes);
                 },
                 changeSubnetType: function(value) {
                     this.subnetType = value
