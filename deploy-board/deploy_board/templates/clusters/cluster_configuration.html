@@ -939,11 +939,11 @@
                     const name = selectedHostTypeObject.provider_name;
                     console.log(name);
                     console.log(info.hostTypesMapping);
-                    const selectedHostTypeMappingObject = info.hostTypesMapping.find(hostTypeMapping => hostTypeMapping.default_id === name);
+                    const selectedHostTypeMappingObject = info.hostTypesMapping.find(hostTypeMapping => hostTypeMapping.defaultId === name);
                     if (this.enableMultipleHostTypes && !(selectedHostTypeMappingObject === undefined)) {  
                         console.log("show backup ids");
                         capacitySetting.showMappingHelp = true;
-                        capacitySetting.mappingHelpData = selectedHostTypeMappingObject.backup_ids;
+                        capacitySetting.mappingHelpData = selectedHostTypeMappingObject.backupIds;
                     } else if (this.enableMultipleHostTypes && selectedHostTypeMappingObject === undefined) {  
                         console.log("show info");
                         capacitySetting.showMappingHelp = true;

@@ -68,11 +68,13 @@ function getRemainingCapacity(capacityInfo, placementList) {
 function getBackupIds(mapping, types, type) {
     const selectedHostTypeObject = types.find(hostType => hostType.id === type);
     const name = selectedHostTypeObject.provider_name;
-    const selectedHostTypeMappingObject = mapping.find(hostTypeMapping => hostTypeMapping.default_id === name);
+    const selectedHostTypeMappingObject = mapping.find(hostTypeMapping => hostTypeMapping.defaultId === name);
     if (selectedHostTypeMappingObject === undefined) {  
+        console.log("show info");
         return "No back up host types are defined for this default host type";
     } else {
-        return selectedHostTypeMappingObject.backup_ids;
+        console.log("show backup ids");
+        return selectedHostTypeMappingObject.backupIds;
     }
 }
 
