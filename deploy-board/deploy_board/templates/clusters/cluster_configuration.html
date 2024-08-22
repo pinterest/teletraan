@@ -431,7 +431,7 @@
             }
         });
         const initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
-        const initialEnableMultipleHostTypes = currentCluster.enableMultipleHostTypes === "true" ;
+        const initialEnableMultipleHostTypes = currentCluster.enableMultipleHostTypes === true ;
         console.log(currentCluster.enableMultipleHostTypes);
         console.log(initialEnableMultipleHostTypes);
         const initialCell = currentCluster.cellName;
@@ -933,17 +933,22 @@
                     }
                 },
                 selecttypes: function(value){
+                    console.log(value);
                     this.enableMultipleHostTypes = value
-                    const selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
+                    const selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === currentCluster.hostType);
                     const name = selectedHostTypeObject.provider_name;
+                    console.log(name);
                     const selectedHostTypeMappingObject = info.hostTypesMapping.find(hostTypeMapping => hostTypeMapping.default_id === name);
                     if (this.enableMultipleHostTypes && !(selectedHostTypeMappingObject === undefined)) {  
+                        console.log("show backup ids");
                         this.showMappingHelp = true;
                         this.mappingHelpData = selectedHostTypeMappingObject.backup_ids;
                     } else if (this.enableMultipleHostTypes && selectedHostTypeMappingObject === undefined) {  
+                        console.log("show info");
                         this.showMappingHelp = true;
                         this.mappingHelpData = "No back up host types are defined for this default host type";
                     } else {
+                        console.log("show nothing");
                         this.showMappingHelp = false;
                     } 
                 },
