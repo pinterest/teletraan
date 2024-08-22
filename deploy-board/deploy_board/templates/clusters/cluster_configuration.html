@@ -931,7 +931,7 @@
                 },
                 selecttypes: function(value){
                     this.enableMultipleHostTypes = value;
-                    this.backupHosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, this.enableMultipleHostTypes);
+                    this.backupHosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, this.selectedHostTypeValue, this.enableMultipleHostTypes);
                 },
                 changeSubnetType: function(value) {
                     this.subnetType = value

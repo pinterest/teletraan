@@ -66,19 +66,17 @@ function getRemainingCapacity(capacityInfo, placementList) {
 }
 
 function getBackupIds(mapping, types, type, enable) {
+    console.log(type);
+    cocnsole.log(enable);
     const selectedHostTypeObject = types.find(hostType => hostType.id === type);
     const name = selectedHostTypeObject.provider_name;
     const selectedHostTypeMappingObject = mapping.find(hostTypeMapping => hostTypeMapping.defaultId === name);
     if (enable && selectedHostTypeMappingObject === undefined) {  
-        console.log("show info");
         return "No back up host types are defined for this default host type";
     } else if (enable && !(selectedHostTypeMappingObject === undefined)) {
-        console.log("show backup ids");
-        console.log(selectedHostTypeMappingObject.backupIds);
         return selectedHostTypeMappingObject.backupIds;
     } else {
-        console.log("show nothing");
-        return "";
+        return "None";
     }
 }
 

@@ -533,8 +533,8 @@ Vue.component("hosttype-select", {
       </button>\
     </span></div>\
     </div>\
-    <div class="col-xs-2"></div>\
-    <div class="col-xs-2">\
+    <div class="col-xs-1"></div>\
+    <div class="col-xs-3">\
         <input type="checkbox" id="checkbox" v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
         <label for="checkbox">Enable Multiple Host Types</label>\
     </div></div>',
@@ -578,8 +578,8 @@ Vue.component('remaining-capacity', {
 Vue.component('backup-hosttypes', {
     template: '<div class="form-group">\
     <div class="col-xs-2"></div>\
-    <div class="col-xs-6">\
-        <span class="col-xs-6" style="padding:0;">Backup Host Types In Order: {{backuphosttypes}}</span>\
+    <div class="col-xs-8">\
+        <span class="col-xs-8" style="padding:0;">Backup Host Types In Order: {{backuphosttypes}}</span>\
     </div>\
     </div>',
     props: ['backuphosttypes']
