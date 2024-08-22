@@ -432,6 +432,8 @@
         });
         const initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
         const initialEnableMultipleHostTypes = currentCluster.enableMultipleHostTypes === "true" ;
+        console.log(currentCluster.enableMultipleHostTypes);
+        console.log(initialEnableMultipleHostTypes);
         const initialCell = currentCluster.cellName;
         var baseImagesSorted = info.baseImages.sort(baseImageSorter);
 
