@@ -579,7 +579,7 @@ Vue.component('backup-hosttypes', {
     template: '<div class="form-group">\
     <div class="col-xs-2"></div>\
     <div class="col-xs-6">\
-        <span class="col-xs-6" style="padding:0;">{{backuphosttypes}}</span>\
+        <span class="col-xs-6" style="padding:0;">Backup Host Types In Order: {{backuphosttypes}}</span>\
     </div>\
     </div>',
     props: ['backuphosttypes']
