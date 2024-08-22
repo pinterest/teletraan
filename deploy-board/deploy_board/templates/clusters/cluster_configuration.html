@@ -540,6 +540,7 @@
                 showHostTypeHelp: false,
                 hostTypeHelpData:[],
                 backupHosttypes: getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes),
+                hostTypes: info.hostTypes,
                 showSecurityZoneHelp: false,
                 securityZoneHelpData: [],
                 showPlacementsHelp: false,
@@ -776,6 +777,7 @@
                             capacitySetting.selectedHostTypeValue = data[0].id;
                             capacitySetting.enableMultipleHostTypes = false;
                             capacitySetting.backupHosttypes = "None";
+                            capacitySetting.hostTypes = data;
                             //Schedule this to nextTick that calls after next DOM refresh
                             //as JQuery chosen call must happen after DOM updates finished
                             Vue.nextTick(function(){
@@ -933,7 +935,7 @@
                 },
                 selecttypes: function(value){
                     this.enableMultipleHostTypes = value;
-                    this.backupHosttypes = getBackupIds(info.hostTypesMapping, info.hostTypes, this.selectedHostTypeValue, this.enableMultipleHostTypes);
+                    this.backupHosttypes = getBackupIds(info.hostTypesMapping, capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue, this.enableMultipleHostTypes);
                 },
                 changeSubnetType: function(value) {
                     this.subnetType = value
