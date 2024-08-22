@@ -515,6 +515,9 @@ Vue.component("placements-select", {
         assignipchange: function (value) {
             this.$emit('assignpublicipclick', value)
         },
+        enabletypeschange: function (value) {
+            this.$emit('enablemultiplehosttypesclick', value)
+        },
         filterclick: function (value) {
             this.$emit('subnetfilterclick', value)
         }
@@ -533,7 +536,10 @@ Vue.component("hosttype-select", {
       </button>\
     </span></div>\
     </div>\
-    </div>',
+    <div class="col-xs-2">\
+        <input type="checkbox" id="checkbox" v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
+        <label for="checkbox">Enable Multiple Host Types</label>\
+    </div></div>',
     props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired'],
     data: function () {
         return {

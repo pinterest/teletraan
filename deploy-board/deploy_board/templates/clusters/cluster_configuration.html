@@ -76,8 +76,9 @@
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
-                    showhelp="true" v-on:helpclick="hostTypeHelpClick"></hosttype-select>
+                    showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
+                    <mapping-help v-show="showMappingHelp" v-bind:data="mappingHelpData"></mapping-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -430,6 +431,7 @@
             }
         });
         const initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
+        const initialEnableMultipleHostTypes = currentCluster.enableMultipleHostTypes === "true" ;
         const initialCell = currentCluster.cellName;
         var baseImagesSorted = info.baseImages.sort(baseImageSorter);
 
@@ -458,6 +460,7 @@
                             }
                         }).filter(function(item){return item.name!='assign_public_ip'}),
                 assignPublicIP: initialAssignPublicIP,
+                enableMultipleHostTypes: initialEnableMultipleHostTypes,
                 awsRole: currentCluster.configs.aws_role,
                 capacity: currentCluster.capacity != asgLaunchInfo.minSize ? asgLaunchInfo.minSize : currentCluster.capacity,
                 useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : info.defaultUseLaunchTemplate,
@@ -925,6 +928,18 @@
                         globalNotificationBanner.error = ""
                     }
                 },
+                selecttypes: function(value){
+                    this.enableMultipleHostTypes = value
+                    const selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
+                    const name = selectedHostTypeObject.provider_name;
+                    const selectedHostTypeMappingObject = info.hostTypesMapping.find(hostTypeMapping => hostTypeMapping.default_id === name);
+                    if (this.enableMultipleHostTypes && !(selectedHostTypeMappingObject === undefined)) {  
+                        this.showMappingHelp = true;
+                        this.mappingHelpData = selectedHostTypeMappingObject.backup_ids;
+                    } else {
+                        this.showMappingHelp = false;
+                    }
+                },
                 changeSubnetType: function(value) {
                     this.subnetType = value
                     var showPublicSubnets = value == 'public' ? true : false
@@ -950,6 +965,7 @@
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
+                    clusterInfo['enableMultipleHostTypes'] = this.enableMultipleHostTypes;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
