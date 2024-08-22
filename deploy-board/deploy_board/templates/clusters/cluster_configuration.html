@@ -539,6 +539,8 @@
                 baseImageHelpData: [],
                 showHostTypeHelp: false,
                 hostTypeHelpData:[],
+                showMappingHelp: initialEnableMultipleHostTypes === true ? true : false,
+                mappingHelpData: getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType),
                 showSecurityZoneHelp: false,
                 securityZoneHelpData: [],
                 showPlacementsHelp: false,
@@ -936,9 +938,12 @@
                     if (this.enableMultipleHostTypes && !(selectedHostTypeMappingObject === undefined)) {  
                         this.showMappingHelp = true;
                         this.mappingHelpData = selectedHostTypeMappingObject.backup_ids;
+                    } else if (this.enableMultipleHostTypes && selectedHostTypeMappingObject === undefined) {  
+                        this.showMappingHelp = true;
+                        this.mappingHelpData = "No back up host types are defined for this default host type";
                     } else {
                         this.showMappingHelp = false;
-                    }
+                    } 
                 },
                 changeSubnetType: function(value) {
                     this.subnetType = value
