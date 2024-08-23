@@ -20,7 +20,7 @@ import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactor
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE;
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE;
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -44,10 +44,10 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MetricsEmitterTest {
 
@@ -56,12 +56,12 @@ public class MetricsEmitterTest {
     private DeployDAO deployDAO;
     private ServiceContext serviceContext;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
         Metrics.addRegistry(new SimpleMeterRegistry());
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         hostDAO = mock(HostDAO.class);
         hostAgentDAO = mock(HostAgentDAO.class);
@@ -73,7 +73,7 @@ public class MetricsEmitterTest {
         serviceContext.setHostDAO(hostDAO);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Metrics.globalRegistry.clear();
     }

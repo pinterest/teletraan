@@ -15,14 +15,14 @@
  */
 package com.pinterest.deployservice.common;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class HTTPClientTest {;
+public class HTTPClientTest {
     @Test
     public void testScrubUrlQueryValue() throws Exception {
         HTTPClient httpClient = new HTTPClient();

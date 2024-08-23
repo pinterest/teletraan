@@ -15,8 +15,11 @@
  */
 package com.pinterest.deployservice.common;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.rodimus.RodimusManager;
@@ -28,21 +31,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
 @SuppressWarnings("unchecked")
-public class KnoxKeyTest {
+class KnoxKeyTest {
 
     private static enum Answer {
         NULL,
         EXCEPTION,
         ARRAY,
         LATENCY
-    };
+    }
 
     private static final String msgUnauthException =
             "HTTP request failed, status = 401, content = Unauthorized";
@@ -58,8 +60,8 @@ public class KnoxKeyTest {
     private String[] testKey = new String[2];
     private String postAnswerReturn = null;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         // Load testKeys
         testKey[0] = "aaa"; // auth error
         testKey[1] = "bbb"; // auth ok
@@ -77,33 +79,33 @@ public class KnoxKeyTest {
         answerList = new ArrayList<Answer>();
         mockClasses(rodimusManager, mockKnoxKeyReader, mockHttpClient);
 
-        when(this.mockHttpClient.get(
-                        Mockito.any(String.class),
-                        Mockito.any(String.class),
+        when(mockHttpClient.get(
+                        Mockito.anyString(),
+                        Mockito.any(),
+                        Mockito.any(),
                         Mockito.anyMap(),
-                        Mockito.anyMap(),
-                        Mockito.any(Integer.class)))
+                        Mockito.anyInt()))
                 .thenAnswer(invocation -> this.getAnswer(invocation));
 
         when(mockHttpClient.post(
-                        Mockito.any(String.class),
-                        Mockito.any(String.class),
+                        Mockito.anyString(),
+                        Mockito.anyString(),
                         Mockito.anyMap(),
-                        Mockito.any(Integer.class)))
+                        Mockito.anyInt()))
                 .thenAnswer(invocation -> this.postAnswer(invocation));
 
-        when(this.mockHttpClient.delete(
-                        Mockito.any(String.class),
-                        Mockito.any(String.class),
+        when(mockHttpClient.delete(
+                        Mockito.anyString(),
+                        Mockito.anyString(),
                         Mockito.anyMap(),
-                        Mockito.any(Integer.class)))
+                        Mockito.anyInt()))
                 .thenAnswer(invocation -> this.deleteAnswer(invocation));
     }
 
     // ### terminateHostsByClusterName tests ###
 
     @Test
-    public void terminateHostsByClusterName_Ok() throws Exception {
+    void terminateHostsByClusterName_Ok() throws Exception {
         // All working as expected
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[1]);
 
@@ -119,18 +121,18 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void terminateHostsByClusterName_ErrorOk() throws Exception {
+    void terminateHostsByClusterName_ErrorOk() throws Exception {
         // Token does not work, refresh and retry, second try works
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
 
         Exception exception =
-                Assert.assertThrows(
+                assertThrows(
                         DeployInternalException.class,
                         () -> {
                             this.rodimusManager.terminateHostsByClusterName(
                                     "cluster", Collections.singletonList("i-001"));
                         });
-        Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
+        assertTrue(exception.getMessage().contains(msgUnauthException));
 
         try {
             this.rodimusManager.terminateHostsByClusterName(
@@ -144,20 +146,20 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void terminateHostsByClusterName_MultipleError() throws Exception {
+    void terminateHostsByClusterName_MultipleError() {
         // Token does not work
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[0]);
 
         for (int i = 1; i <= 2; i++) {
             Exception exception =
-                    Assert.assertThrows(
+                    assertThrows(
                             DeployInternalException.class,
                             () -> {
                                 this.rodimusManager.terminateHostsByClusterName(
                                         "cluster", Collections.singletonList("i-001"));
                             });
 
-            Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
+            assertTrue(exception.getMessage().contains(msgUnauthException));
         }
 
         final Answer[] expected = {Answer.EXCEPTION, Answer.EXCEPTION};
@@ -167,7 +169,7 @@ public class KnoxKeyTest {
     // ### getTerminatedHosts tests ###
 
     @Test
-    public void getTerminatedHosts_Ok() throws Exception {
+    void getTerminatedHosts_Ok() throws Exception {
         // All working as expected
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[1]);
         this.postAnswerReturn = postAnswerArray;
@@ -183,18 +185,18 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void getTerminatedHosts_ErrorOk() throws Exception {
+    void getTerminatedHosts_ErrorOk() throws Exception {
         // Token does not work, refresh and retry, second try works
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
         this.postAnswerReturn = postAnswerArray;
 
         Exception exception =
-                Assert.assertThrows(
+                assertThrows(
                         DeployInternalException.class,
                         () -> {
                             this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
                         });
-        Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
+        assertTrue(exception.getMessage().contains(msgUnauthException));
 
         try {
             this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
@@ -207,21 +209,21 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void getTerminatedHosts_MultipleError() throws Exception {
+    void getTerminatedHosts_MultipleError() {
         // Token does not work, refresh does not offer new token
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[0]);
         this.postAnswerReturn = postAnswerArray;
 
         for (int i = 1; i <= 2; i++) {
             Exception exception =
-                    Assert.assertThrows(
+                    assertThrows(
                             DeployInternalException.class,
                             () -> {
                                 this.rodimusManager.getTerminatedHosts(
                                         Arrays.asList("i-001", "i-002"));
                             });
 
-            Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
+            assertTrue(exception.getMessage().contains(msgUnauthException));
         }
 
         final Answer[] expected = {Answer.EXCEPTION, Answer.EXCEPTION};
@@ -231,13 +233,13 @@ public class KnoxKeyTest {
     // ### getClusterInstanceLaunchGracePeriod tests
 
     @Test
-    public void getClusterInstanceLaunchGracePeriod_Ok() throws Exception {
+    void getClusterInstanceLaunchGracePeriod_Ok() throws Exception {
         // All working as expected
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[1]);
         long res = 0;
         try {
             res = this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
-            Assert.assertEquals(res, (long) 10);
+            assertEquals(res, (long) 10);
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
@@ -247,18 +249,18 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void getClusterInstanceLaunchGracePeriod_test() throws Exception {
+    void getClusterInstanceLaunchGracePeriod_test() throws Exception {
         // Token does not work, refresh and retry, second try works
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
         this.postAnswerReturn = postAnswerArray;
 
         Exception exception =
-                Assert.assertThrows(
+                assertThrows(
                         DeployInternalException.class,
                         () -> {
                             this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
                         });
-        Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
+        assertTrue(exception.getMessage().contains("HTTP request failed, status"));
 
         try {
             this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
@@ -271,19 +273,19 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void getClusterInstanceLaunchGracePeriod_MultipleError() throws Exception {
+    void getClusterInstanceLaunchGracePeriod_MultipleError() {
         // Token does not work, refresh does not offer new token
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[0]);
 
         for (int i = 1; i <= 2; i++) {
             Exception exception =
-                    Assert.assertThrows(
+                    assertThrows(
                             DeployInternalException.class,
                             () -> {
                                 this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
                             });
 
-            Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
+            assertTrue(exception.getMessage().contains("HTTP request failed, status"));
         }
 
         final Answer[] expected = {Answer.EXCEPTION, Answer.EXCEPTION};
@@ -293,7 +295,7 @@ public class KnoxKeyTest {
     // ### getEC2Tags tests ###
 
     @Test
-    public void getEC2Tags_Ok() throws Exception {
+    void getEC2Tags_Ok() throws Exception {
         // All working as expected
 
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[1]);
@@ -310,18 +312,18 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void getEC2Tags_ErrorOk() throws Exception {
+    void getEC2Tags_ErrorOk() throws Exception {
         // Token does not work, refresh and retry, second try works
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
         this.postAnswerReturn = postAnswerTag;
 
         Exception exception =
-                Assert.assertThrows(
+                assertThrows(
                         DeployInternalException.class,
                         () -> {
                             this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
                         });
-        Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
+        assertTrue(exception.getMessage().contains("HTTP request failed, status"));
 
         try {
             this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
@@ -334,20 +336,20 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void getEC2Tags_MultipleError() throws Exception {
+    void getEC2Tags_MultipleError() {
         // Token does not work, refresh does not offer new token
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[0]);
         this.postAnswerReturn = postAnswerTag;
 
         for (int i = 1; i <= 2; i++) {
             Exception exception =
-                    Assert.assertThrows(
+                    assertThrows(
                             DeployInternalException.class,
                             () -> {
                                 this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
                             });
 
-            Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
+            assertTrue(exception.getMessage().contains("HTTP request failed, status"));
         }
 
         final Answer[] expected = {Answer.EXCEPTION, Answer.EXCEPTION};

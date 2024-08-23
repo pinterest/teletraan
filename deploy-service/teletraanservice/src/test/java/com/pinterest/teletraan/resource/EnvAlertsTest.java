@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -47,9 +48,8 @@ import java.util.HashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class EnvAlertsTest {
 
@@ -69,7 +69,7 @@ public class EnvAlertsTest {
     AlertContext alertContext;
     DeployHandlerInterface deployHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         context = new TeletraanServiceContext();
         buildDAO = mock(BuildDAO.class);
@@ -133,9 +133,9 @@ public class EnvAlertsTest {
                         "markbadbuild rollback",
                         sc,
                         createAlertBody(DateTime.now().minusSeconds(1), true));
-        Assert.assertEquals(200, resp.getStatus());
+        assertEquals(200, resp.getStatus());
         HashMap entity = (HashMap) resp.getEntity();
-        Assert.assertEquals(0, entity.size());
+        assertEquals(0, entity.size());
 
         // Test case 2, in range, only mark build no deploy
         resp =
@@ -146,12 +146,12 @@ public class EnvAlertsTest {
                         "markbadbuild rollback",
                         sc,
                         createAlertBody(DateTime.now().minusSeconds(1), true));
-        Assert.assertEquals(200, resp.getStatus());
+        assertEquals(200, resp.getStatus());
         entity = (HashMap) resp.getEntity();
-        Assert.assertEquals(2, entity.size());
-        Assert.assertEquals(
+        assertEquals(2, entity.size());
+        assertEquals(
                 "No rollback candidate available", entity.get(AutoRollbackAction.class.getName()));
-        Assert.assertEquals(
+        assertEquals(
                 buildBean.getBuild_id(),
                 ((TagBean) entity.get(MarkBadBuildAction.class.getName())).getTarget_id());
 
@@ -167,11 +167,11 @@ public class EnvAlertsTest {
                         "markbadbuild rollback",
                         sc,
                         createAlertBody(DateTime.now().minusSeconds(1), true));
-        Assert.assertEquals(200, resp.getStatus());
+        assertEquals(200, resp.getStatus());
         entity = (HashMap) resp.getEntity();
-        Assert.assertEquals(2, entity.size());
-        Assert.assertEquals(lastKnownGoodDeploy, entity.get(AutoRollbackAction.class.getName()));
-        Assert.assertEquals(
+        assertEquals(2, entity.size());
+        assertEquals(lastKnownGoodDeploy, entity.get(AutoRollbackAction.class.getName()));
+        assertEquals(
                 buildBean.getBuild_id(),
                 ((TagBean) entity.get(MarkBadBuildAction.class.getName())).getTarget_id());
     }

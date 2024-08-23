@@ -15,8 +15,8 @@
  */
 package com.pinterest.deployservice.db;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.pinterest.deployservice.bean.BeanUtils;
 import com.pinterest.deployservice.bean.EnvironBean;

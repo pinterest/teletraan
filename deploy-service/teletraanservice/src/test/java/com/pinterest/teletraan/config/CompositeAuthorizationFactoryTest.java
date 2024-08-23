@@ -15,8 +15,8 @@
  */
 package com.pinterest.teletraan.config;
 
-import static org.junit.Assert.assertSame;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.teletraan.TeletraanServiceContext;

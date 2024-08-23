@@ -15,21 +15,21 @@
  */
 package com.pinterest.deployservice.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class KnoxKeyReaderTest {
     private KnoxKeyReader sut;
     private KnoxKeyManager mockKnoxKeyManager;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         sut = new KnoxKeyReader();
         mockKnoxKeyManager = mock(KnoxKeyManager.class);

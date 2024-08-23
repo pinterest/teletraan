@@ -15,22 +15,23 @@
  */
 package com.pinterest.deployservice.scm;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.pinterest.deployservice.bean.CommitBean;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /* To run this test only:
  *  update the github configuration in setUp() before running. uncomment the ignore
  *  $ mvn -Dtest=GithubManagerTest -DfailIfNoTests=false test
  */
-public class GithubManagerTest {
+class GithubManagerTest {
     GithubManager manager;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() {
         String typeName = "Github";
         String apiPrefix = "https://api.github.com";
         String urlPrefix = "https://github.com";
@@ -48,17 +49,17 @@ public class GithubManagerTest {
                         typeName,
                         apiPrefix,
                         urlPrefix);
-        Assert.assertEquals(this.manager.getUrlPrefix(), urlPrefix);
+        assertEquals(this.manager.getUrlPrefix(), urlPrefix);
     }
 
     @Test
-    @Ignore
-    public void testGetCommit() throws Exception {
+    @Disabled("Github manager is not ready for test")
+    void testGetCommit() throws Exception {
         CommitBean commit =
                 this.manager.getCommit(
                         "pinterest/teletraan", "0caa0c0dc877920811e0eb695f1ed0dfd498f586");
         System.out.println(commit);
-        Assert.assertEquals(
+        assertEquals(
                 "https://github.com/pinterest/teletraan/commit/0caa0c0dc877920811e0eb695f1ed0dfd498f586",
                 commit.getInfo());
 

@@ -15,11 +15,11 @@
  */
 package com.pinterest.deployservice.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
@@ -36,9 +36,8 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class GoalAnalystTest {
@@ -46,9 +45,6 @@ public class GoalAnalystTest {
     private Map<String, EnvironBean> envs;
     private Map<String, PingReportBean> reports;
     private Map<String, AgentBean> agents;
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {}
 
     AgentBean genDefaultAgent() {
         AgentBean agentBean = new AgentBean();
@@ -85,7 +81,7 @@ public class GoalAnalystTest {
         return envBean;
     }
 
-    @Before
+    @BeforeEach
     public void setUpTest() throws Exception {
         envs = new HashMap<>();
         reports = new HashMap<>();

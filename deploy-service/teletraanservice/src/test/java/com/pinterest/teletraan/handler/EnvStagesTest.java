@@ -26,8 +26,8 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.resource.EnvStages;
 import java.security.Principal;
 import javax.ws.rs.core.SecurityContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -35,7 +35,7 @@ public class EnvStagesTest {
     private EnvStages envStages;
     private EnvironDAO environDAO;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         environDAO = mock(EnvironDAO.class);
         TeletraanServiceContext tsc = new TeletraanServiceContext();

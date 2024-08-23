@@ -24,8 +24,8 @@ import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ScriptTokenRoleAuthorizerTest {
     private ServiceContext context;
@@ -47,7 +47,7 @@ public class ScriptTokenRoleAuthorizerTest {
     private AuthZResource env1Stage;
     private AuthZResource envXStage;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         context = new ServiceContext();
         context.setUserRolesDAO(null);
@@ -134,7 +134,7 @@ public class ScriptTokenRoleAuthorizerTest {
     }
 
     @Test
-    public void testSysSys() throws Exception {
+    void testSysSys() throws Exception {
         checkPositive(sysAdmin, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRole.OPERATOR);
         checkPositive(sysAdmin, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRole.ADMIN);
 
@@ -146,7 +146,7 @@ public class ScriptTokenRoleAuthorizerTest {
     }
 
     @Test
-    public void testSysEnvStage() throws Exception {
+    void testSysEnvStage() throws Exception {
         checkPositive(sysAdmin, env1Stage, TeletraanPrincipalRole.OPERATOR);
         checkPositive(sysAdmin, env1Stage, TeletraanPrincipalRole.ADMIN);
 
@@ -218,7 +218,7 @@ public class ScriptTokenRoleAuthorizerTest {
     }
 
     @Test
-    public void testPingerCanPing() throws Exception {
+    void testPingerCanPing() throws Exception {
         checkPositive(pinger, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRole.PINGER);
     }
 

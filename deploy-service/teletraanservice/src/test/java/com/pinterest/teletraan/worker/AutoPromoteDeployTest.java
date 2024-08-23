@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -45,10 +46,9 @@ import java.util.HashSet;
 import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -83,7 +83,7 @@ public class AutoPromoteDeployTest {
         return ret;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         context = new ServiceContext();
         buildDAO = mock(BuildDAO.class);
@@ -104,7 +104,7 @@ public class AutoPromoteDeployTest {
         predEnvironBean.setEnv_name("testenv");
     }
 
-    @After
+    @AfterEach
     public void clean() throws Exception {
         allDeployBeans.clear();
     }
@@ -120,12 +120,12 @@ public class AutoPromoteDeployTest {
         // No build. No previous deploy
         PromoteResult result =
                 promoter.computePromoteDeployResult(environBean, null, 10, promoteBean);
-        Assert.assertEquals(PromoteResult.ResultCode.NoPredEnvironment, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoPredEnvironment, result.getResult());
 
         // Ensure same for scheduled build
         promoteBean.setSchedule(CronTenAMPerDay);
         result = promoter.computePromoteDeployResult(environBean, null, 10, promoteBean);
-        Assert.assertEquals(PromoteResult.ResultCode.NoPredEnvironment, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoPredEnvironment, result.getResult());
     }
 
     @Test
@@ -192,8 +192,7 @@ public class AutoPromoteDeployTest {
 
         PromoteResult result =
                 promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-        Assert.assertEquals(
-                PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
         // bad build, safe promote never gets called
         verify(promoterSpy, never()).safePromote(any(), anyString(), anyString(), any(), any());
     }
@@ -210,12 +209,12 @@ public class AutoPromoteDeployTest {
         // No build. No previous deploy
         PromoteResult result =
                 promoter.computePromoteDeployResult(environBean, null, 10, promoteBean);
-        Assert.assertEquals(PromoteResult.ResultCode.NoPredEnvironmentDeploy, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoPredEnvironmentDeploy, result.getResult());
 
         // Ensure same for scheduled build
         promoteBean.setSchedule(CronTenAMPerDay);
         result = promoter.computePromoteDeployResult(environBean, null, 10, promoteBean);
-        Assert.assertEquals(PromoteResult.ResultCode.NoPredEnvironmentDeploy, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoPredEnvironmentDeploy, result.getResult());
     }
 
     /*
@@ -256,13 +255,11 @@ public class AutoPromoteDeployTest {
         // No build. No previous deploy
         PromoteResult result =
                 promoter.computePromoteDeployResult(environBean, currentDeploy, 10, promoteBean);
-        Assert.assertEquals(
-                PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
         promoteBean.setSchedule(CronTenAMPerDay);
         result = promoter.computePromoteDeployResult(environBean, currentDeploy, 10, promoteBean);
-        Assert.assertEquals(
-                PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
     }
 
     /* Autopromote enabled for any new build. Have previous deploy but from different deploy*/
@@ -312,8 +309,7 @@ public class AutoPromoteDeployTest {
         newDeploy.setStart_date(now.minusMinutes(6).getMillis());
         PromoteResult result =
                 promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-        Assert.assertEquals(
-                PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
         when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("build3"))))
                 .thenReturn(Arrays.asList(build3));
@@ -321,7 +317,7 @@ public class AutoPromoteDeployTest {
         // Set predeploy to 11 minutes, delay is 10 minutes
         newDeploy.setStart_date(now.minusMinutes(11).getMillis());
         result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-        Assert.assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
+        assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
     }
 
     /* Autopromote enabled for any new build. Have previous deploy but from different deploy*/
@@ -364,8 +360,7 @@ public class AutoPromoteDeployTest {
         newDeploy.setStart_date(now.minusMinutes(6).getMillis());
         PromoteResult result =
                 promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-        Assert.assertEquals(
-                PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+        assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
         when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("build1"))))
                 .thenReturn(Arrays.asList(build1));
@@ -373,7 +368,7 @@ public class AutoPromoteDeployTest {
         // Set predeploy to 11 minutes, delay is 10 minutes
         newDeploy.setStart_date(now.minusMinutes(11).getMillis());
         result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-        Assert.assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
+        assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
     }
 
     @Test
@@ -432,12 +427,11 @@ public class AutoPromoteDeployTest {
             AutoPromoter promoter = new AutoPromoter(context);
             PromoteResult result =
                     promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-            Assert.assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
+            assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
             promoteBean.setDelay(1 + (int) (now.getMillis() - newDeploy.getStart_date()) / 60000);
             result =
                     promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-            Assert.assertEquals(
-                    PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+            assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
         } else {
             // Before 10 am. Need newdeploy to be >25 hours
@@ -447,13 +441,12 @@ public class AutoPromoteDeployTest {
             AutoPromoter promoter = new AutoPromoter(context);
             PromoteResult result =
                     promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-            Assert.assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
+            assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
             promoteBean.setDelay(1 + (int) (now.getMillis() - newDeploy.getStart_date()) / 60000);
             result =
                     promoter.computePromoteDeployResult(
                             environBean, currentDeploy, 10, promoteBean);
-            Assert.assertEquals(
-                    PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+            assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
         }
     }
 
@@ -509,13 +502,12 @@ public class AutoPromoteDeployTest {
             AutoPromoter promoter = new AutoPromoter(context);
             PromoteResult result =
                     promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-            Assert.assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
+            assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
 
             promoteBean.setDelay(1 + (int) (now.getMillis() - newDeploy.getStart_date()) / 60000);
             result =
                     promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-            Assert.assertEquals(
-                    PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+            assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
         } else {
             prevDeploy.setStart_date(now.minusHours(27).getMillis());
@@ -524,13 +516,12 @@ public class AutoPromoteDeployTest {
             AutoPromoter promoter = new AutoPromoter(context);
             PromoteResult result =
                     promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
-            Assert.assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
+            assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
             promoteBean.setDelay(1 + (int) (now.getMillis() - newDeploy.getStart_date()) / 60000);
             result =
                     promoter.computePromoteDeployResult(
                             environBean, currentDeploy, 10, promoteBean);
-            Assert.assertEquals(
-                    PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+            assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
         }
     }
 }

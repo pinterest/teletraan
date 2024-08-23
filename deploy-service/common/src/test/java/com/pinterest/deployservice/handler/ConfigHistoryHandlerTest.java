@@ -15,7 +15,7 @@
  */
 package com.pinterest.deployservice.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,8 +32,8 @@ import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class ConfigHistoryHandlerTest {
@@ -56,7 +56,7 @@ public class ConfigHistoryHandlerTest {
         return serviceContext;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         configHistoryHandler = new ConfigHistoryHandler(createMockServiceContext());
     }
