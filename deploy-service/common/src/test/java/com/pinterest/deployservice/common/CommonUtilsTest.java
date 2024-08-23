@@ -23,11 +23,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CommonUtilsTest {
+class CommonUtilsTest {
     @Test
-    public void testEncodeDecodeData() throws Exception {
+    void testEncodeDecodeData() throws Exception {
         Map<String, String> data = new HashMap<String, String>();
         String script = "#!/bin/bash\necho \"Hello World!\"";
         data.put("simple", "How are you!");
@@ -51,7 +51,7 @@ public class CommonUtilsTest {
     }
 
     @Test
-    public void testURLIncludesDot() throws Exception {
+    void testURLIncludesDot() {
         Pattern p = Pattern.compile("^[a-zA-Z0-9\\-_.]+$");
         Matcher m = p.matcher("username");
         assertTrue(m.find());

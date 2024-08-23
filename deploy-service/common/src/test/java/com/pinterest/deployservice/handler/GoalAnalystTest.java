@@ -36,9 +36,8 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class GoalAnalystTest {
@@ -46,9 +45,6 @@ public class GoalAnalystTest {
     private Map<String, EnvironBean> envs;
     private Map<String, PingReportBean> reports;
     private Map<String, AgentBean> agents;
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {}
 
     AgentBean genDefaultAgent() {
         AgentBean agentBean = new AgentBean();
@@ -85,7 +81,7 @@ public class GoalAnalystTest {
         return envBean;
     }
 
-    @Before
+    @BeforeEach
     public void setUpTest() throws Exception {
         envs = new HashMap<>();
         reports = new HashMap<>();

@@ -25,8 +25,8 @@ import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl.Verb;
 import java.lang.reflect.Field;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -35,7 +35,7 @@ public class RodimusManagerImplTest {
     private HTTPClient mockHttpClient;
     private String TEST_URL = "testUrl";
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         sut = new RodimusManagerImpl("http://localhost", null, false, "", "");
 

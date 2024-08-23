@@ -15,27 +15,28 @@
  */
 package com.pinterest.deployservice.group;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.pinterest.deployservice.bean.HostBean;
 import java.util.Map;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-public class CMDBHostGroupManagerTest {
+class CMDBHostGroupManagerTest {
 
     @Test
-    @Ignore
-    public void getHostIdsByGroup() throws Exception {
+    @Disabled
+    void getHostIdsByGroup() throws Exception {
         CMDBHostGroupManager manager = new CMDBHostGroupManager("http://cmdbapi.pinadmin.com");
         Map<String, HostBean> ret = manager.getHostIdsByGroup("adminapp");
-        Assert.assertTrue(ret.size() > 0);
+        assertTrue(ret.size() > 0);
     }
 
     @Test
-    @Ignore
-    public void getLastInstanceId() throws Exception {
+    @Disabled
+    void getLastInstanceId() throws Exception {
         CMDBHostGroupManager manager = new CMDBHostGroupManager("http://cmdbapi.pinadmin.com");
         String s = manager.getLastInstanceId("adminapp");
-        Assert.assertTrue(s != null && s.length() > 0);
+        assertTrue(s != null && s.length() > 0);
     }
 }

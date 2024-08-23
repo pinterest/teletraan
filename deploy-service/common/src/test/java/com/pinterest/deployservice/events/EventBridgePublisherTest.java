@@ -17,6 +17,7 @@ package com.pinterest.deployservice.events;
 
 import static com.pinterest.deployservice.events.EventBridgePublisher.DETAIL_TYPE;
 import static com.pinterest.deployservice.events.EventBridgePublisher.TELETRAAN_SOURCE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -29,8 +30,7 @@ import com.pinterest.deployservice.bean.BuildBean;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.eventbridge.EventBridgeAsyncClient;
@@ -89,11 +89,11 @@ public class EventBridgePublisherTest {
         putEventsRequestArgumentCaptor.getValue().accept(builder);
         PutEventsRequest actualRequest = builder.build();
 
-        Assert.assertEquals(expectedRequest, actualRequest);
+        assertEquals(expectedRequest, actualRequest);
 
         String detailJson = actualRequest.entries().get(0).detail();
         JsonNode jsonNode = objectMapper.readTree(detailJson);
-        Assert.assertEquals(ACTION, jsonNode.get("action-type").textValue());
+        assertEquals(ACTION, jsonNode.get("action-type").textValue());
     }
 
     private String buildEventDetailJson(BuildBean buildBean) {

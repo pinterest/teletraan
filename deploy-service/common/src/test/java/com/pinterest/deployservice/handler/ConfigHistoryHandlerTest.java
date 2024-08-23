@@ -32,8 +32,8 @@ import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class ConfigHistoryHandlerTest {
@@ -56,7 +56,7 @@ public class ConfigHistoryHandlerTest {
         return serviceContext;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         configHistoryHandler = new ConfigHistoryHandler(createMockServiceContext());
     }

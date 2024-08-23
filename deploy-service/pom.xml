@@ -77,20 +77,6 @@
             <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--JUnit
-        Jupiter Engine to depend on the JUnit4 engine and JUnit 4 API  -->
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit-jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>

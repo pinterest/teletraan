@@ -15,6 +15,9 @@
  */
 package com.pinterest.deployservice.buildtags;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,20 +30,19 @@ import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TagDAO;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class BuildTagsManagerImplTest {
+class BuildTagsManagerImplTest {
 
     @Test
-    public void testgetEffectiveTag() throws Exception {
+    void testgetEffectiveTag() throws Exception {
         BuildTagsManagerImpl manager = new BuildTagsManagerImpl(mock(TagDAO.class));
         List<BuildBean> builds = genCommits(10, "build1", "master", 1000000);
         List<BuildTagBean> tagBeanList = new ArrayList<>();
 
         // Test when there is no tag
-        Assert.assertNull(manager.getEffectiveBuildTag(tagBeanList, builds.get(0)));
-        Assert.assertNull(manager.getEffectiveBuildTag(tagBeanList, builds.get(1)));
+        assertNull(manager.getEffectiveBuildTag(tagBeanList, builds.get(0)));
+        assertNull(manager.getEffectiveBuildTag(tagBeanList, builds.get(1)));
 
         // Tag on 0, 2, and 5
         BuildTagBean t0 = genBuildTagBean(builds.get(0), TagValue.BAD_BUILD);
@@ -50,34 +52,34 @@ public class BuildTagsManagerImplTest {
         tagBeanList.add(t2);
         tagBeanList.add(t5);
 
-        Assert.assertEquals(
+        assertEquals(
                 t0.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(0)).getId());
-        Assert.assertEquals(
+        assertEquals(
                 t0.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(1)).getId());
-        Assert.assertEquals(
+        assertEquals(
                 t2.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(2)).getId());
-        Assert.assertEquals(
+        assertEquals(
                 t2.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(3)).getId());
-        Assert.assertEquals(
+        assertEquals(
                 t2.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(4)).getId());
-        Assert.assertEquals(
+        assertEquals(
                 t5.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(5)).getId());
-        Assert.assertEquals(
+        assertEquals(
                 t5.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(6)).getId());
-        Assert.assertEquals(
+        assertEquals(
                 t5.getTag().getId(),
                 manager.getEffectiveBuildTag(tagBeanList, builds.get(7)).getId());
     }
 
     @Test
-    public void testGetEffectiveTagsWithBuilds() throws Exception {
+    void testGetEffectiveTagsWithBuilds() throws Exception {
         TagDAO tagDAO = mock(TagDAO.class);
         BuildTagsManagerImpl manager = new BuildTagsManagerImpl(tagDAO);
 
@@ -103,32 +105,26 @@ public class BuildTagsManagerImplTest {
                 .thenReturn(tagBeanList3);
 
         // Labels on service_one/master
-        Assert.assertNull(manager.getEffectiveBuildTag(builds1.get(0)));
-        Assert.assertEquals(
-                TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds1.get(1)).getValue());
-        Assert.assertEquals(
-                TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds1.get(2)).getValue());
-        Assert.assertEquals(
-                TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds1.get(4)).getValue());
-        Assert.assertEquals(
-                TagValue.GOOD_BUILD, manager.getEffectiveBuildTag(builds1.get(5)).getValue());
-        Assert.assertEquals(
-                TagValue.GOOD_BUILD, manager.getEffectiveBuildTag(builds1.get(6)).getValue());
+        assertNull(manager.getEffectiveBuildTag(builds1.get(0)));
+        assertEquals(TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds1.get(1)).getValue());
+        assertEquals(TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds1.get(2)).getValue());
+        assertEquals(TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds1.get(4)).getValue());
+        assertEquals(TagValue.GOOD_BUILD, manager.getEffectiveBuildTag(builds1.get(5)).getValue());
+        assertEquals(TagValue.GOOD_BUILD, manager.getEffectiveBuildTag(builds1.get(6)).getValue());
 
         // Labels on service_one/hotfix
-        Assert.assertNull(manager.getEffectiveBuildTag(builds2.get(1)));
-        Assert.assertNull(manager.getEffectiveBuildTag(builds2.get(3)));
-        Assert.assertNull(manager.getEffectiveBuildTag(builds2.get(5)));
+        assertNull(manager.getEffectiveBuildTag(builds2.get(1)));
+        assertNull(manager.getEffectiveBuildTag(builds2.get(3)));
+        assertNull(manager.getEffectiveBuildTag(builds2.get(5)));
 
         // Labels on service_two/master
-        Assert.assertNull(manager.getEffectiveBuildTag(builds3.get(1)));
-        Assert.assertNull(manager.getEffectiveBuildTag(builds3.get(8)));
-        Assert.assertEquals(
-                TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds3.get(9)).getValue());
+        assertNull(manager.getEffectiveBuildTag(builds3.get(1)));
+        assertNull(manager.getEffectiveBuildTag(builds3.get(8)));
+        assertEquals(TagValue.BAD_BUILD, manager.getEffectiveBuildTag(builds3.get(9)).getValue());
     }
 
     @Test
-    public void testsSortAndDedupTags() throws Exception {
+    void testsSortAndDedupTags() throws Exception {
         List<BuildTagBean> tagBeanList = new ArrayList<>();
         List<BuildBean> builds = genCommits(10, "service_one", "master", 1000000);
         for (BuildBean build : builds) {
@@ -138,9 +134,9 @@ public class BuildTagsManagerImplTest {
         // All good builds
         List<BuildTagBean> test = new ArrayList<>(tagBeanList);
         List<BuildTagBean> result = BuildTagsManagerImpl.sortAndDedupTags(test);
-        Assert.assertEquals(10, result.size());
+        assertEquals(10, result.size());
         for (int i = 0; i < result.size() - 1; i++) {
-            Assert.assertTrue(
+            assertTrue(
                     result.get(i).getBuild().getCommit_date()
                             < result.get(i + 1).getBuild().getCommit_date());
         }
@@ -157,13 +153,13 @@ public class BuildTagsManagerImplTest {
         test.add(t);
 
         List<BuildTagBean> result = BuildTagsManagerImpl.sortAndDedupTags(test);
-        Assert.assertEquals(10, result.size());
+        assertEquals(10, result.size());
         for (int i = 0; i < result.size() - 1; i++) {
-            Assert.assertTrue(
+            assertTrue(
                     result.get(i).getBuild().getCommit_date()
                             < result.get(i + 1).getBuild().getCommit_date());
         }
-        Assert.assertEquals(result.get(position).getTag().getValue(), TagValue.BAD_BUILD);
+        assertEquals(result.get(position).getTag().getValue(), TagValue.BAD_BUILD);
     }
 
     private List<BuildBean> genCommits(

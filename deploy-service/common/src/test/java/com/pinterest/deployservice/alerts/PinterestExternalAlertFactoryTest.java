@@ -17,13 +17,13 @@ package com.pinterest.deployservice.alerts;
 
 import com.pinterest.deployservice.bean.ExternalAlert;
 import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class PinterestExternalAlertFactoryTest {
+class PinterestExternalAlertFactoryTest {
 
     @Test
-    public void getAlert() throws Exception {
+    void getAlert() {
         PinterestExternalAlertFactory factory = new PinterestExternalAlertFactory();
         ExternalAlert alert =
                 factory.getAlert(
@@ -32,9 +32,10 @@ public class PinterestExternalAlertFactoryTest {
                                 + " empty_data_triggered_date=None&empty_data_triggered=False&alert_id=-1"
                                 + "&untriggered_date=None");
 
-        Assert.assertTrue(alert.isTriggered());
-        Assert.assertFalse(alert.isEmptyDataTriggered());
-        Assert.assertEquals(alert.getId(), "-1");
-        Assert.assertEquals(alert.getTriggeredDate(), new DateTime().withMillis(1510165897620L));
+        Assertions.assertTrue(alert.isTriggered());
+        Assertions.assertFalse(alert.isEmptyDataTriggered());
+        Assertions.assertEquals(alert.getId(), "-1");
+        Assertions.assertEquals(
+                alert.getTriggeredDate(), new DateTime().withMillis(1510165897620L));
     }
 }

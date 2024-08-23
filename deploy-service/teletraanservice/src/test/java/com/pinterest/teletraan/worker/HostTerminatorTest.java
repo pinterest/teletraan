@@ -34,8 +34,8 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class HostTerminatorTest {
     private static String TEST_HOST_ID = "i-testHostId";
@@ -88,7 +88,7 @@ public class HostTerminatorTest {
         return bean;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         mockAgentDAO = mock(AgentDAO.class);
         mockHostAgentDAO = mock(HostAgentDAO.class);

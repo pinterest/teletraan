@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DefaultHostClassifierTest {
 
@@ -36,7 +36,7 @@ public class DefaultHostClassifierTest {
     private List<HostBean> regularHost;
     private List<HostBean> timeoutHost;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         sut = new DefaultHostClassifier();
         regularHost = Collections.singletonList(createHostBean(Instant.now()));
