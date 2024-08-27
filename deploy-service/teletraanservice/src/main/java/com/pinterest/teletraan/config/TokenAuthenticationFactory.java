@@ -33,6 +33,7 @@ import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.auth.JSONUnauthorizedHandler;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -102,7 +103,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     @SuppressWarnings({"unchecked"})
     AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthFilter(
-            TeletraanServiceContext context) throws Exception {
+            TeletraanServiceContext context) {
         Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthenticator =
                 new ScriptTokenAuthenticator<>(new TeletraanScriptTokenProvider(context));
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
@@ -126,7 +127,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     // TODO: CDP-7837 remove this after all the clients are updated to use the new token scheme
     AuthFilter<String, UserPrincipal> createOauthTokenAuthFilter(TeletraanServiceContext context)
-            throws Exception {
+            throws MalformedURLException {
         Authenticator<String, UserPrincipal> oauthAuthenticator =
                 new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl());
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
@@ -146,7 +147,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     }
 
     AuthFilter<String, UserPrincipal> createJwtTokenAuthFilter(TeletraanServiceContext context)
-            throws Exception {
+            throws MalformedURLException {
         Authenticator<String, UserPrincipal> oauthJwtAuthenticator =
                 new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl());
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {

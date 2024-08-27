@@ -17,23 +17,16 @@ package com.pinterest.teletraan.universal.security;
 
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
-import io.dropwizard.auth.Authorizer;
 import javax.annotation.Nullable;
 import javax.ws.rs.container.ContainerRequestContext;
 
-public class OpenAuthorizer
-        implements TeletraanAuthorizer<TeletraanPrincipal>, Authorizer<TeletraanPrincipal> {
+public class OpenAuthorizer implements TeletraanAuthorizer<TeletraanPrincipal> {
     @Override
     public boolean authorize(
             TeletraanPrincipal principal,
             String role,
             AuthZResource requestedResource,
             @Nullable ContainerRequestContext context) {
-        return true;
-    }
-
-    @Override
-    public boolean authorize(TeletraanPrincipal principal, String role) {
         return true;
     }
 }
