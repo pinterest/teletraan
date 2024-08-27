@@ -20,9 +20,12 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.BasePastisAuthorizer;
+import com.pinterest.teletraan.universal.security.DenyAllAuthorizer;
 import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
-import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
+import io.dropwizard.auth.Authorizer;
+import javax.ws.rs.ForbiddenException;
 
 @JsonTypeName("composite")
 public class CompositeAuthorizationFactory implements AuthorizationFactory {
@@ -39,9 +42,8 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
         return pastisServiceName;
     }
 
-    @Override
-    public <P extends TeletraanPrincipal> TeletraanAuthorizer<P> create(
-            TeletraanServiceContext context) throws Exception {
+    private TeletraanAuthorizer<TeletraanPrincipal> getOrCreateAuthorizer(
+            TeletraanServiceContext context) {
         if (pastisAuthorizer == null) {
             pastisAuthorizer =
                     BasePastisAuthorizer.builder()
@@ -49,15 +51,32 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
                             .serviceName(pastisServiceName)
                             .build();
         }
-        return (TeletraanAuthorizer<P>) pastisAuthorizer;
+        return pastisAuthorizer;
     }
 
     @Override
-    public <P extends TeletraanPrincipal> TeletraanAuthorizer<? extends TeletraanPrincipal> create(
-            TeletraanServiceContext context, Class<P> principalClass) throws Exception {
-        if (ServicePrincipal.class.equals(principalClass)) {
-            return new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory());
+    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context) {
+        return (Authorizer<P>) getOrCreateAuthorizer(context);
+    }
+
+    @Override
+    public <P extends TeletraanPrincipal> Authorizer<P> create(
+            TeletraanServiceContext context, Class<P> principalClass) {
+        if (ScriptTokenPrincipal.class.equals(principalClass)) {
+            return (Authorizer<P>)
+                    new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory());
         }
         return create(context);
+    }
+
+    @Override
+    public TeletraanAuthorizer<TeletraanPrincipal> createSecondaryAuthorizer(
+            TeletraanServiceContext context, Class<? extends TeletraanPrincipal> principalClass)
+            throws ForbiddenException {
+        if (ScriptTokenPrincipal.class.equals(principalClass)) {
+            // Deny all on-the-fly authorization requests for script token principals
+            return new DenyAllAuthorizer();
+        }
+        return getOrCreateAuthorizer(context);
     }
 }

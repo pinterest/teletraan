@@ -30,6 +30,7 @@ import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.resource.EnvCapacities.CapacityType;
+import com.pinterest.teletraan.universal.security.AnonymousAuthFilter;
 import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
@@ -57,16 +58,17 @@ class EnvCapacitiesTest {
     @Mock private EnvironDAO environDAO;
     @Mock private GroupDAO groupDAO;
     @Mock private TeletraanAuthorizer<TeletraanPrincipal> authorizer;
-    @Mock private TeletraanPrincipal principal;
+    private TeletraanPrincipal principal;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
 
+        principal = AnonymousAuthFilter.USER;
         TeletraanServiceContext serviceContext = new TeletraanServiceContext();
         AuthorizationFactory authorizationFactory = mock(AuthorizationFactory.class);
 
-        when(authorizationFactory.create(any())).thenReturn(authorizer);
+        when(authorizationFactory.createSecondaryAuthorizer(any(), any())).thenReturn(authorizer);
         serviceContext.setAuthorizationFactory(authorizationFactory);
         serviceContext.setEnvironDAO(environDAO);
         serviceContext.setGroupDAO(groupDAO);
@@ -79,7 +81,7 @@ class EnvCapacitiesTest {
 
     @ParameterizedTest
     @MethodSource("capacityTypes")
-    void authorizeShouldAllowSidecarEnvsToAddCapacities(CapacityType type) throws Exception {
+    void authorizeShouldAllowSidecarEnvsToAddCapacities(CapacityType type) {
         EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
         envBean.setSystem_priority(1);
 
@@ -88,7 +90,7 @@ class EnvCapacitiesTest {
 
     @ParameterizedTest
     @MethodSource("capacityTypes")
-    void authorizeShouldAllowEmptyCapacities(CapacityType type) throws Exception {
+    void authorizeShouldAllowEmptyCapacities(CapacityType type) {
         EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
 
         assertDoesNotThrow(() -> sut.authorize(envBean, principal, type, new ArrayList<>()));
@@ -115,7 +117,7 @@ class EnvCapacitiesTest {
             when(environDAO.getByCluster(capacity)).thenReturn(envBean);
         }
         when(authorizer.authorize(
-                        (TeletraanPrincipal) principal,
+                        principal,
                         TeletraanPrincipalRole.Names.WRITE,
                         new AuthZResource(envBean.getEnv_name(), envBean.getStage_name()),
                         null))

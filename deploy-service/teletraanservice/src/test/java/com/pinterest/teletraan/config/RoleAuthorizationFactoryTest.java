@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.security.UserRoleAuthorizer;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
@@ -40,19 +41,28 @@ class RoleAuthorizationFactoryTest {
     }
 
     @Test
-    void testCreate_servicePrincipal() throws Exception {
-        assertEquals(
-                ScriptTokenRoleAuthorizer.class,
-                sut.create(context, ServicePrincipal.class).getClass());
+    void testCreate_servicePrincipal() {
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> {
+                    sut.create(context, ServicePrincipal.class);
+                });
     }
 
     @Test
-    void testCreate_userPrincipal() throws Exception {
+    void testCreate_scriptTokenPrincipal() {
+        assertEquals(
+                ScriptTokenRoleAuthorizer.class,
+                sut.create(context, ScriptTokenPrincipal.class).getClass());
+    }
+
+    @Test
+    void testCreate_userPrincipal() {
         assertEquals(UserRoleAuthorizer.class, sut.create(context, UserPrincipal.class).getClass());
     }
 
     @Test
-    void testCreate_otherPrincipal() throws Exception {
+    void testCreate_otherPrincipal() {
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> {
