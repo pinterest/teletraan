@@ -37,6 +37,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -132,15 +133,27 @@ public class Environs {
     public List<EnvironBean> getAll(
             @ApiParam(value = "Environment name", required = true) @QueryParam("envName")
                     String envName,
-            @QueryParam("groupName") String groupName)
+            @QueryParam("groupName") String groupName,
+            @QueryParam("stageType") String stageType)
             throws Exception {
-        if (!StringUtils.isEmpty(envName)) {
-            return environDAO.getByName(envName);
+        if (!StringUtils.isBlank(envName)) {
+            final List<EnvironBean> envs = environDAO.getByName(envName);
+            if (!StringUtils.isBlank(stageType)) {
+                return envs.stream()
+                        .filter(
+                                e ->
+                                        StringUtils.equalsIgnoreCase(
+                                                e.getStage_type().toString(), stageType))
+                        .collect(Collectors.toList());
+            }
+
+            return envs;
         }
 
         if (!StringUtils.isEmpty(groupName)) {
             return environDAO.getEnvsByGroups(Arrays.asList(groupName));
         }
+
         return environDAO.getAllEnvs();
     }
 
