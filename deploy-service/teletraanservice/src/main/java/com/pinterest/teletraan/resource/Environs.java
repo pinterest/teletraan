@@ -139,7 +139,12 @@ public class Environs {
         if (!StringUtils.isBlank(envName)) {
             final List<EnvironBean> envs = environDAO.getByName(envName);
             if (!StringUtils.isBlank(stageType)) {
-                return envs.stream().filter(e -> StringUtils.equalsIgnoreCase(e.getStage_type().toString(), stageType)).collect(Collectors.toList());
+                return envs.stream()
+                        .filter(
+                                e ->
+                                        StringUtils.equalsIgnoreCase(
+                                                e.getStage_type().toString(), stageType))
+                        .collect(Collectors.toList());
             }
 
             return envs;
