@@ -77,7 +77,7 @@ definitions:
           - ENV_STAGE
           - GROUP
           - SYSTEM
-          - PLACEMENTS
+          - PLACEMENT
           - BASE_IMAGE
           - SECURITY_ZONE
           - IAM_ROLE
