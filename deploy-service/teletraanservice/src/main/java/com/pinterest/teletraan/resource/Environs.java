@@ -136,16 +136,19 @@ public class Environs {
             @QueryParam("groupName") String groupName,
             @QueryParam("stageType") String stageType)
             throws Exception {
-        if (!StringUtils.isEmpty(envName)) {
+        if (!StringUtils.isBlank(envName)) {
             final List<EnvironBean> envs = environDAO.getByName(envName);
             if (!StringUtils.isBlank(stageType)) {
                 return envs.stream().filter(e -> StringUtils.equalsIgnoreCase(e.getStage_type().toString(), stageType)).collect(Collectors.toList());
             }
+
+            return envs;
         }
 
         if (!StringUtils.isEmpty(groupName)) {
             return environDAO.getEnvsByGroups(Arrays.asList(groupName));
         }
+
         return environDAO.getAllEnvs();
     }
 
