@@ -76,8 +76,9 @@
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
-                    showhelp="true" v-on:helpclick="hostTypeHelpClick"></hosttype-select>
+                    showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
+                    <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -430,6 +431,7 @@
             }
         });
         const initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
+        const initialEnableMultipleHostTypes = currentCluster.enableMultipleHostTypes === true ;
         const initialCell = currentCluster.cellName;
         var baseImagesSorted = info.baseImages.sort(baseImageSorter);
 
@@ -458,6 +460,7 @@
                             }
                         }).filter(function(item){return item.name!='assign_public_ip'}),
                 assignPublicIP: initialAssignPublicIP,
+                enableMultipleHostTypes: initialEnableMultipleHostTypes,
                 awsRole: currentCluster.configs.aws_role,
                 capacity: currentCluster.capacity != asgLaunchInfo.minSize ? asgLaunchInfo.minSize : currentCluster.capacity,
                 useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : info.defaultUseLaunchTemplate,
@@ -536,6 +539,8 @@
                 baseImageHelpData: [],
                 showHostTypeHelp: false,
                 hostTypeHelpData:[],
+                backupHosttypes: getBackupIds(info.hostTypesMapping, info.hostTypes, currentCluster.hostType, initialEnableMultipleHostTypes),
+                hostTypes: info.hostTypes,
                 showSecurityZoneHelp: false,
                 securityZoneHelpData: [],
                 showPlacementsHelp: false,
@@ -770,6 +775,9 @@
                                         }
                                     });
                             capacitySetting.selectedHostTypeValue = data[0].id;
+                            capacitySetting.enableMultipleHostTypes = false;
+                            capacitySetting.backupHosttypes = "None";
+                            capacitySetting.hostTypes = data;
                             //Schedule this to nextTick that calls after next DOM refresh
                             //as JQuery chosen call must happen after DOM updates finished
                             Vue.nextTick(function(){
@@ -925,6 +933,10 @@
                         globalNotificationBanner.error = ""
                     }
                 },
+                selecttypes: function(value){
+                    this.enableMultipleHostTypes = value;
+                    this.backupHosttypes = getBackupIds(info.hostTypesMapping, capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue, this.enableMultipleHostTypes);
+                },
                 changeSubnetType: function(value) {
                     this.subnetType = value
                     var showPublicSubnets = value == 'public' ? true : false
@@ -950,6 +962,7 @@
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
+                    clusterInfo['enableMultipleHostTypes'] = this.enableMultipleHostTypes;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
@@ -1073,7 +1086,9 @@
             $('.single-select-search').chosen({
                 "width": "100%"
             }).change(function() {
-                capacitySetting.selectedHostTypeValue = $('.single-select-search').val()
+                capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
+                capacitySetting.backupHosttypes = "None";
+                capacitySetting.enableMultipleHostTypes = false;
             });
 
             $(".chosen-select").chosen({

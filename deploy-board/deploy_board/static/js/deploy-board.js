@@ -65,6 +65,19 @@ function getRemainingCapacity(capacityInfo, placementList) {
     return totalCapacity;
 }
 
+function getBackupIds(mapping, types, type, enable) {
+    const selectedHostTypeObject = types.find(hostType => hostType.id === type);
+    const name = selectedHostTypeObject.provider_name;
+    const selectedHostTypeMappingObject = mapping.find(hostTypeMapping => hostTypeMapping.defaultId === name);
+    if (enable && selectedHostTypeMappingObject === undefined) {
+        return "No back up host types are defined for this default host type";
+    } else if (enable && !(selectedHostTypeMappingObject === undefined)) {
+        return selectedHostTypeMappingObject.backupIds;
+    } else {
+        return "None";
+    }
+}
+
 function getDefaultPlacement(capacityCreationInfo) {
     this.capacityCreationInfo = {
         ...this.capacityCreationInfo,

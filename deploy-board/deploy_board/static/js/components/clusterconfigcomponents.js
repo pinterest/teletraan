@@ -522,9 +522,9 @@ Vue.component("placements-select", {
 });
 
 Vue.component("hosttype-select", {
-    template: '<div v-bind:class="formStyle">\
+    template: '<div class="form-group">\
     <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">{{label}}</label>\
-    <div v-bind:class="width"><div v-bind:class="groupStyle">\
+    <div class="col-xs-6"><div v-bind:class="groupStyle">\
     <select v-bind:class="selectClass" v-on:change="updateValue($event.target.value)" required="true">\
     <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected" v-bind:disabled="option.isDisabled">{{option.text}}</option></select>\
     <span v-if="showhelp" class="input-group-btn">\
@@ -533,8 +533,12 @@ Vue.component("hosttype-select", {
       </button>\
     </span></div>\
     </div>\
-    </div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired'],
+    <div class="col-xs-1"></div>\
+    <div class="col-xs-3">\
+        <input type="checkbox" id="checkbox" v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
+        <label for="checkbox">Enable Multiple Host Types</label>\
+    </div></div>',
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes'],
     data: function () {
         return {
             width: this.small ? 'col-xs-4' : 'col-xs-10',
@@ -549,6 +553,9 @@ Vue.component("hosttype-select", {
         },
         helpClick: function () {
             this.$emit('helpclick')
+        },
+        enabletypeschange: function (value) {
+            this.$emit('enablemultiplehosttypesclick', value)
         },
     }
 });
@@ -566,6 +573,16 @@ Vue.component('remaining-capacity', {
             return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
         }
     }
+});
+
+Vue.component('backup-hosttypes', {
+    template: '<div class="form-group">\
+    <div class="col-xs-2"></div>\
+    <div class="col-xs-8">\
+        <span class="col-xs-8" style="padding:0;">Backup Host Types In Order: {{backuphosttypes}}</span>\
+    </div>\
+    </div>',
+    props: ['backuphosttypes']
 });
 
 Vue.component("accessrole-input", {
