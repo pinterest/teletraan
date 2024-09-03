@@ -343,6 +343,16 @@ body {
   margin-top: 3px;
 }
 
+.stage-type-badge {
+  display: inline-block;
+  border-style: solid;
+  border-radius: 25px;
+  border-color: #ccc;
+  padding-left: 5px;
+  padding-right: 5px;
+  background-color: #fff;
+}
+
 .mr-1 {
   margin-right: 5px;
 }
