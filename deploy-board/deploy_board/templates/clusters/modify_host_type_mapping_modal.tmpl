@@ -76,7 +76,6 @@
             },
             error: function(data) {
                 $("#modifyHostTypeMappingModalId").hide();
-                window.location.reload();
                 globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
             }
         });

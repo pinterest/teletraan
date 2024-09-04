@@ -674,7 +674,13 @@ def modify_host_type_mapping(request):
 
     log.info("Update Host Type Mapping with {}".format(updated_info))
     hosttypesmapping_helper.modify_host_type_mapping(request, host_type_id, updated_info)
-    return redirect('/clouds/hosttypesmapping/')
+    except NotAuthorizedException as e:
+        log.error("Have an NotAuthorizedException error {}".format(e))
+        return HttpResponse(e, status=403, content_type="application/json")
+    except Exception as e:
+        log.error("modifying host type has an error {}".format(e))
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse(json.dumps(host_type_info), content_type="application/json")
 
 
 def create_host_type(request):
