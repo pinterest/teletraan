@@ -372,6 +372,9 @@ $('#privateBldUploadBtnId button').click(function () {
                 </div>
                 {% endif %}
             {% endif %}
+            <h6 class="stage-type-badge">
+                {{env.stageType|default:"NO STAGE TYPE"}}
+            </h6>
             <div class="btn-group pull-right">
                 {% if has_deploy and env|isEnvEnabled %}
                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
