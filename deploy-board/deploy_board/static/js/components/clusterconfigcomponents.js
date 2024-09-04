@@ -576,13 +576,18 @@ Vue.component('remaining-capacity', {
 });
 
 Vue.component('backup-hosttypes', {
-    template: '<div class="form-group">\
+    template: '<div class="form-group" v-if="isVisible">\
     <div class="col-xs-2"></div>\
     <div class="col-xs-8">\
         <span class="col-xs-8" style="padding:0;">Backup Host Types In Order: {{backuphosttypes}}</span>\
     </div>\
     </div>',
-    props: ['backuphosttypes']
+    props: ['backuphosttypes'],
+    data: function () {
+        return {
+            isVisible: this.backuphosttypes === 'None' ? false : true
+        }
+    }
 });
 
 Vue.component("accessrole-input", {
