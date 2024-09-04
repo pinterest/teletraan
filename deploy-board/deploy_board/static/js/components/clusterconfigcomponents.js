@@ -536,7 +536,7 @@ Vue.component("hosttype-select", {
     <div class="col-xs-1"></div>\
     <div class="col-xs-3">\
         <input type="checkbox" id="checkbox" v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
-        <label for="checkbox">Enable Multiple Host Types</label>\
+        <label for="checkbox">Enable Backup instance types</label>\
     </div></div>',
     props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes'],
     data: function () {
