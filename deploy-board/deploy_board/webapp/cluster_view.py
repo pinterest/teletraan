@@ -679,7 +679,7 @@ def modify_host_type_mapping(request):
         log.error("Have an NotAuthorizedException error {}".format(e))
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
-        log.error("modifying host type has an error {}".format(e))
+        log.error("modifying host type mapping has an error {}".format(e))
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse(json.dumps(host_type_mapping_info), content_type="application/json")
 
