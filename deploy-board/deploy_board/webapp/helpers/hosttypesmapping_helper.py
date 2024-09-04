@@ -35,4 +35,3 @@ def get_by_id(request, host_type_id):
 
 def get_fulllist(request):
     return rodimus_client.get("/host_types_mapping/fullList", request.teletraan_user_id.token)
-    
