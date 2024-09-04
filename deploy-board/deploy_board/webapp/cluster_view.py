@@ -681,7 +681,7 @@ def modify_host_type_mapping(request):
     except Exception as e:
         log.error("modifying host type has an error {}".format(e))
         return HttpResponse(e, status=500, content_type="application/json")
-    return HttpResponse(json.dumps(host_type_info), content_type="application/json")
+    return HttpResponse(json.dumps(host_type_mapping_info), content_type="application/json")
 
 
 def create_host_type(request):
