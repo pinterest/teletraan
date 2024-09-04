@@ -666,22 +666,15 @@ def create_host_type_mapping(request):
 
 
 def modify_host_type_mapping(request):
-    try:
-        host_type_mapping_info = json.loads(request.body)
-        updated_info = {}
-        updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
-        host_type_id = host_type_mapping_info['id']
-        updated_info['defaultId'] = host_type_mapping_info['id']
+    host_type_mapping_info = json.loads(request.body)
+    updated_info = {}
+    updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
+    host_type_id = host_type_mapping_info['id']
+    updated_info['defaultId'] = host_type_mapping_info['id']
 
-        log.info("Update Host Type Mapping with {}".format(updated_info))
-        hosttypesmapping_helper.modify_host_type_mapping(request, host_type_id, updated_info)
-    except NotAuthorizedException as e:
-        log.error("Have an NotAuthorizedException error {}".format(e))
-        return HttpResponse(e, status=403, content_type="application/json")
-    except Exception as e:
-        log.error("modifying host type mapping has an error {}".format(e))
-        return HttpResponse(e, status=500, content_type="application/json")
-    return HttpResponse(json.dumps(host_type_mapping_info), content_type="application/json")
+    log.info("Update Host Type Mapping with {}".format(updated_info))
+    hosttypesmapping_helper.modify_host_type_mapping(request, host_type_id, updated_info)
+    return redirect('/clouds/hosttypesmapping/')
 
 
 def create_host_type(request):
