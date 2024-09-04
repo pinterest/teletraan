@@ -75,7 +75,6 @@
                 globalNotificationBanner.info = "Request sent successfully";
             },
             error: function(data) {
-                $("#modifyHostTypeMappingModalId").hide();
                 globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
             }
         });
