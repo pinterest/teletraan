@@ -666,14 +666,15 @@ def create_host_type_mapping(request):
 
 
 def modify_host_type_mapping(request):
-    host_type_mapping_info = json.loads(request.body)
-    updated_info = {}
-    updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
-    host_type_id = host_type_mapping_info['id']
-    updated_info['defaultId'] = host_type_mapping_info['id']
+    try:
+        host_type_mapping_info = json.loads(request.body)
+        updated_info = {}
+        updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
+        host_type_id = host_type_mapping_info['id']
+        updated_info['defaultId'] = host_type_mapping_info['id']
 
-    log.info("Update Host Type Mapping with {}".format(updated_info))
-    hosttypesmapping_helper.modify_host_type_mapping(request, host_type_id, updated_info)
+        log.info("Update Host Type Mapping with {}".format(updated_info))
+        hosttypesmapping_helper.modify_host_type_mapping(request, host_type_id, updated_info)
     except NotAuthorizedException as e:
         log.error("Have an NotAuthorizedException error {}".format(e))
         return HttpResponse(e, status=403, content_type="application/json")
