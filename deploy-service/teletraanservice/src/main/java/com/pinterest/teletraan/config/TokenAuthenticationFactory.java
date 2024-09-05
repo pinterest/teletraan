@@ -24,7 +24,6 @@ import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
 import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
 import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
-import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import io.dropwizard.auth.AuthFilter;
@@ -34,6 +33,7 @@ import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.auth.JSONUnauthorizedHandler;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -103,7 +103,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     @SuppressWarnings({"unchecked"})
     AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthFilter(
-            TeletraanServiceContext context) throws Exception {
+            TeletraanServiceContext context) {
         Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthenticator =
                 new ScriptTokenAuthenticator<>(new TeletraanScriptTokenProvider(context));
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
@@ -117,17 +117,17 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 .setAuthenticator(scriptTokenAuthenticator)
                 .setAuthorizer(
                         (Authorizer<ScriptTokenPrincipal<ValueBasedRole>>)
-                                context.getAuthorizationFactory()
-                                        .create(context, ServicePrincipal.class))
+                                (Authorizer<?>)
+                                        context.getAuthorizationFactory()
+                                                .create(context, ScriptTokenPrincipal.class))
                 .setPrefix("token")
                 .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                 .buildAuthFilter();
     }
 
     // TODO: CDP-7837 remove this after all the clients are updated to use the new token scheme
-    @SuppressWarnings({"unchecked"})
     AuthFilter<String, UserPrincipal> createOauthTokenAuthFilter(TeletraanServiceContext context)
-            throws Exception {
+            throws MalformedURLException {
         Authenticator<String, UserPrincipal> oauthAuthenticator =
                 new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl());
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
@@ -140,17 +140,14 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         return new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(oauthAuthenticator)
                 .setAuthorizer(
-                        (Authorizer<UserPrincipal>)
-                                context.getAuthorizationFactory()
-                                        .create(context, UserPrincipal.class))
+                        context.getAuthorizationFactory().create(context, UserPrincipal.class))
                 .setPrefix("token")
                 .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                 .buildAuthFilter();
     }
 
-    @SuppressWarnings({"unchecked"})
     AuthFilter<String, UserPrincipal> createJwtTokenAuthFilter(TeletraanServiceContext context)
-            throws Exception {
+            throws MalformedURLException {
         Authenticator<String, UserPrincipal> oauthJwtAuthenticator =
                 new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl());
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
@@ -163,9 +160,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         return new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(oauthJwtAuthenticator)
                 .setAuthorizer(
-                        (Authorizer<UserPrincipal>)
-                                context.getAuthorizationFactory()
-                                        .create(context, UserPrincipal.class))
+                        context.getAuthorizationFactory().create(context, UserPrincipal.class))
                 .setPrefix("Bearer")
                 .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                 .buildAuthFilter();

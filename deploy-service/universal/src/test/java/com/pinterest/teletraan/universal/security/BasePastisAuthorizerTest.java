@@ -60,17 +60,19 @@ class BasePastisAuthorizerTest {
     private static PastisAuthorizer pastis;
     private static AuthZResourceExtractor.Factory factory;
 
+    private BasePastisAuthorizer sut;
+
     @BeforeEach
     public void setUp() {
         context = mock(ContainerRequestContext.class);
         pastis = mock(PastisAuthorizer.class);
         factory = mock(AuthZResourceExtractor.Factory.class);
+        sut = new BasePastisAuthorizer(pastis, factory);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {ACTION_READ, ACTION_WRITE})
     void testAuthorize_userPrincipal(String action) {
-        BasePastisAuthorizer<UserPrincipal> sut = new BasePastisAuthorizer<>(pastis, factory);
         UserPrincipal principal = new UserPrincipal(PRINCIPAL_NAME, Arrays.asList(GROUP_NAME));
         sut.authorize(principal, action, resource, context);
         verify(pastis)
@@ -87,7 +89,6 @@ class BasePastisAuthorizerTest {
 
     @Test
     void testAuthorize_userPrincipal_failure() {
-        BasePastisAuthorizer<UserPrincipal> sut = new BasePastisAuthorizer<>(pastis, factory);
         UserPrincipal principal = new UserPrincipal(PRINCIPAL_NAME, Arrays.asList(GROUP_NAME));
         when(pastis.authorize(anyString())).thenThrow(new RuntimeException());
         assertFalse(sut.authorize(principal, ACTION_READ, resource, context));
@@ -96,7 +97,6 @@ class BasePastisAuthorizerTest {
     @ParameterizedTest
     @ValueSource(strings = {ACTION_READ, ACTION_WRITE})
     void testAuthorize_servicePrincipal(String action) {
-        BasePastisAuthorizer<ServicePrincipal> sut = new BasePastisAuthorizer<>(pastis, factory);
         ServicePrincipal principal = new ServicePrincipal(SPIFFE_ID);
         sut.authorize(principal, action, resource, context);
         verify(pastis)
@@ -120,7 +120,6 @@ class BasePastisAuthorizerTest {
     @ParameterizedTest
     @ValueSource(strings = {ACTION_READ, ACTION_WRITE})
     void testAuthorize_payloadContainsOptionalFields(String action) {
-        BasePastisAuthorizer<UserPrincipal> sut = new BasePastisAuthorizer<>(pastis, factory);
         UserPrincipal principal = new UserPrincipal(PRINCIPAL_NAME, Arrays.asList(GROUP_NAME));
         sut.authorize(principal, action, resourceWithOptionalFields, context);
         verify(pastis)

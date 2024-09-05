@@ -17,31 +17,14 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
-import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
-import javax.annotation.Nullable;
-import javax.ws.rs.container.ContainerRequestContext;
+import io.dropwizard.auth.Authorizer;
+import io.dropwizard.auth.PermitAllAuthorizer;
 
 @JsonTypeName("open")
 public class OpenAuthorizationFactory implements AuthorizationFactory {
     @Override
-    public TeletraanAuthorizer<TeletraanPrincipal> create(TeletraanServiceContext context)
-            throws Exception {
-        return new TeletraanAuthorizer<TeletraanPrincipal>() {
-            @Override
-            public boolean authorize(TeletraanPrincipal principal, String resource) {
-                return true;
-            }
-
-            @Override
-            public boolean authorize(
-                    TeletraanPrincipal principal,
-                    String role,
-                    AuthZResource requestedResource,
-                    @Nullable ContainerRequestContext context) {
-                return true;
-            }
-        };
+    public Authorizer<TeletraanPrincipal> create(TeletraanServiceContext context) {
+        return new PermitAllAuthorizer<>();
     }
 }

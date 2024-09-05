@@ -20,10 +20,13 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import javax.annotation.Nullable;
 import javax.ws.rs.container.ContainerRequestContext;
 
-public interface TeletraanAuthorizer<P extends TeletraanPrincipal> {
-    boolean authorize(
-            P principal,
+public class DenyAllAuthorizer implements TeletraanAuthorizer<TeletraanPrincipal> {
+    @Override
+    public boolean authorize(
+            TeletraanPrincipal principal,
             String role,
             AuthZResource requestedResource,
-            @Nullable ContainerRequestContext context);
+            @Nullable ContainerRequestContext context) {
+        return false;
+    }
 }

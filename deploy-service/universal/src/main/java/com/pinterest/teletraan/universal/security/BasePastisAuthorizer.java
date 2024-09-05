@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * @param <P> the principal type
  */
 @Slf4j
-public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuthorizer<P> {
+public class BasePastisAuthorizer extends BaseAuthorizer<TeletraanPrincipal> {
     private static final String INPUT = "input";
     protected final PastisAuthorizer pastis;
 
@@ -62,7 +62,7 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
 
     @Override
     public boolean authorize(
-            P principal,
+            TeletraanPrincipal principal,
             String role,
             AuthZResource requestedResource,
             @Nullable ContainerRequestContext context) {
