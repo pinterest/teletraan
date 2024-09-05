@@ -213,7 +213,7 @@ public class EnvStages {
             notes = "Sets the external_id column on a stage given the environment and stage names",
             response = EnvironBean.class)
     @Path("/external_id")
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @RolesAllowed({TeletraanPrincipalRole.Names.WRITE, TeletraanPrincipalRole.Names.UPDATE_EXTERNAL_ID})
     @ResourceAuthZInfo(
             type = AuthZResource.Type.ENV_STAGE,
             idLocation = ResourceAuthZInfo.Location.PATH)
