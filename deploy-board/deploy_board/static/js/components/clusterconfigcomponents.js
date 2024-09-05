@@ -583,11 +583,11 @@ Vue.component('backup-hosttypes', {
     </div>\
     </div>',
     props: ['backuphosttypes'],
-    data: function () {
-        console.log(this.backuphosttypes);
-        console.log(this.backuphosttypes === 'None');
-        return {
-            isVisible: this.backuphosttypes === 'None' ? false : true
+    computed: {
+        isVisible: function () {
+            console.log(this.backuphosttypes);
+            console.log(this.backuphosttypes === 'None');
+            return this.backuphosttypes === 'None' ? false : true
         }
     }
 });
