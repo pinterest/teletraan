@@ -55,7 +55,7 @@ public enum TeletraanPrincipalRole implements RoleEnum<ValueBasedRole> {
         public static final String EXECUTE = "EXECUTE";
         public static final String DELETE = "DELETE";
 
-        public static final String NIMBUS_EXTERNAL_ID_UPDATER = "NIMBUS_EXTERNAL_ID_UPDATER";
+        public static final String UPDATE_EXTERNAL_ID = "UPDATE_EXTERNAL_ID";
     }
 
     private final ValueBasedRole role;
