@@ -585,8 +585,6 @@ Vue.component('backup-hosttypes', {
     props: ['backuphosttypes'],
     computed: {
         isVisible: function () {
-            console.log(this.backuphosttypes);
-            console.log(this.backuphosttypes === 'None');
             return this.backuphosttypes === 'None' ? false : true
         }
     }
