@@ -540,7 +540,6 @@ Vue.component("hosttype-select", {
     </div></div>',
     props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes'],
     data: function () {
-        console.log(this.disablebackupinstancetypes);
         return {
             width: this.small ? 'col-xs-4' : 'col-xs-10',
             formStyle: this.small ? '' : 'form-group',
