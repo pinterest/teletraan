@@ -534,17 +534,18 @@ Vue.component("hosttype-select", {
     </span></div>\
     </div>\
     <div class="col-xs-1"></div>\
-    <div class="col-xs-3">\
+    <div class="col-xs-3" v-if="isVisible">\
         <input type="checkbox" id="checkbox" v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
         <label for="checkbox">Enable Backup instance types</label>\
     </div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes'],
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes'],
     data: function () {
         return {
             width: this.small ? 'col-xs-4' : 'col-xs-10',
             formStyle: this.small ? '' : 'form-group',
             groupStyle: this.showhelp ? 'input-group' : '',
-            selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control'
+            selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control',
+            isVisible: this.disablebackupinstancetypes !== true
         }
     },
     methods: {
