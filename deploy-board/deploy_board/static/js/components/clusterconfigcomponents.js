@@ -546,7 +546,7 @@ Vue.component("hosttype-select", {
             formStyle: this.small ? '' : 'form-group',
             groupStyle: this.showhelp ? 'input-group' : '',
             selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control',
-            isVisible: this.disablebackupinstancetypes !== true
+            isVisible: !this.disablebackupinstancetypes
         }
     },
     methods: {
