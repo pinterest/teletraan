@@ -541,8 +541,6 @@ Vue.component("hosttype-select", {
     props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes'],
     computed: {
         isVisible: function () {
-            console.log(this.disablebackupinstancetypes);
-            console.log(this.disablebackupinstancetypes === "False");
             return this.disablebackupinstancetypes === "False"
         }
     },
