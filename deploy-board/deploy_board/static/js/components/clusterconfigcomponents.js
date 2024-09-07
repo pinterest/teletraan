@@ -541,8 +541,9 @@ Vue.component("hosttype-select", {
     props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes'],
     computed: {
         isVisible: function () {
-            console.log(!this.disablebackupinstancetypes);
-            return !this.disablebackupinstancetypes
+            console.log(this.disablebackupinstancetypes);
+            console.log(this.disablebackupinstancetypes === "False");
+            return this.disablebackupinstancetypes === "False"
         }
     },
     data: function () {
@@ -550,7 +551,7 @@ Vue.component("hosttype-select", {
             width: this.small ? 'col-xs-4' : 'col-xs-10',
             formStyle: this.small ? '' : 'form-group',
             groupStyle: this.showhelp ? 'input-group' : '',
-            selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control',
+            selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control'
         }
     },
     methods: {
