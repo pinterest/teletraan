@@ -539,13 +539,18 @@ Vue.component("hosttype-select", {
         <label for="checkbox">Enable Backup instance types</label>\
     </div></div>',
     props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes'],
+    computed: {
+        isVisible: function () {
+            console.log(!this.disablebackupinstancetypes);
+            return !this.disablebackupinstancetypes
+        }
+    },
     data: function () {
         return {
             width: this.small ? 'col-xs-4' : 'col-xs-10',
             formStyle: this.small ? '' : 'form-group',
             groupStyle: this.showhelp ? 'input-group' : '',
             selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control',
-            isVisible: !this.disablebackupinstancetypes
         }
     },
     methods: {
