@@ -560,9 +560,9 @@ var capacitySetting = new Vue({
                 globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)";
                 return false;
             }
-            var access_role = clusterInfo.configs['access_role'];
-            if (!access_role || access_role.trim()) {
-                globalNotificationBanner.error = "Access Role must be specified can not be empty";
+            var access_role = clusterInfo.configs['access_role'] ?? '';
+            if (access_role.trim().length === 0) {
+                globalNotificationBanner.error = "Access Role must be specified and cannot be empty";
                 return false;
             }
 
@@ -644,7 +644,7 @@ var capacitySetting = new Vue({
             }
 
             let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
-            clusterInfo.configs['access_role'] = accessRoleObj ? accessRoleObj.value : null;
+            clusterInfo.configs['access_role'] = accessRoleObj?.value;
 
             if (this.validateInput(clusterInfo)) {
                 //Send request
