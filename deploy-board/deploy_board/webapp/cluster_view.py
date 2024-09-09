@@ -240,9 +240,7 @@ class ClusterConfigurationView(View):
         accounts = accounts_helper.get_all_accounts(request)
         host_types = hosttypes_helper.get_by_arch(
             request, current_cluster['archName'])
-        index = int(request.GET.get('page_index', '1'))
-        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-        host_types_mapping = hosttypesmapping_helper.get_all(request, index, size)
+        host_types_mapping = hosttypesmapping_helper.get_fulllist(request)
         current_image = baseimages_helper.get_by_id(
             request, current_cluster['baseImageId'])
         # TODO: remove baseImageName and access the prop from baseImage directly.

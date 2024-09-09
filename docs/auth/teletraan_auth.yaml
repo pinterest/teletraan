@@ -42,6 +42,7 @@ definitions:
       - PUBLISHER
       - PINGER
       - USE
+      - UPDATE_EXTERNAL_ID
   role:
     type: object
     description: |

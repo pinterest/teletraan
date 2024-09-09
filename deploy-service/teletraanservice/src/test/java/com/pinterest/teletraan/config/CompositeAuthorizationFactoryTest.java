@@ -20,24 +20,81 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.security.TeletraanAuthZResourceExtractorFactory;
 import com.pinterest.teletraan.universal.security.BasePastisAuthorizer;
+import com.pinterest.teletraan.universal.security.DenyAllAuthorizer;
+import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
+import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
+import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import io.dropwizard.auth.Authorizer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CompositeAuthorizationFactoryTest {
-    @Test
-    void testCreate() throws Exception {
-        TeletraanServiceContext context = new TeletraanServiceContext();
+    private TeletraanServiceContext context;
+    private CompositeAuthorizationFactory sut;
+
+    @BeforeEach
+    void setUp() {
+        context = new TeletraanServiceContext();
         context.setAuthZResourceExtractorFactory(
                 new TeletraanAuthZResourceExtractorFactory(context));
-        CompositeAuthorizationFactory factory = new CompositeAuthorizationFactory();
+        sut = new CompositeAuthorizationFactory();
+    }
 
-        Authorizer<?> authorizer = factory.create(context);
+    @Test
+    void testCreate() {
+        Authorizer<?> authorizer = sut.create(context);
         assertNotNull(authorizer);
         assertTrue(authorizer instanceof BasePastisAuthorizer);
 
-        Authorizer<?> authorizer2 = factory.create(context);
+        Authorizer<?> authorizer2 = sut.create(context);
         assertSame(authorizer, authorizer2);
+    }
+
+    @Test
+    void testCreateWithNullPrincipalClass() {
+        Authorizer<?> authorizer = sut.create(context, null);
+        assertNotNull(authorizer);
+        assertTrue(authorizer instanceof BasePastisAuthorizer);
+    }
+
+    @Test
+    void testCreateWithScriptTokenPrincipalClass() {
+        Authorizer<?> authorizer = sut.create(context, ScriptTokenPrincipal.class);
+        assertTrue(authorizer instanceof ScriptTokenRoleAuthorizer);
+    }
+
+    @Test
+    void testCreateWithUserPrincipalClass() {
+        Authorizer<?> authorizer = sut.create(context, UserPrincipal.class);
+        assertTrue(authorizer instanceof BasePastisAuthorizer);
+    }
+
+    @Test
+    void testCreateSecondaryAuthorizerWithNullPrincipalClass() {
+        TeletraanAuthorizer<TeletraanPrincipal> authorizer =
+                sut.createSecondaryAuthorizer(context, null);
+        assertNotNull(authorizer);
+        assertTrue(authorizer instanceof BasePastisAuthorizer);
+    }
+
+    @Test
+    void testCreateSecondaryAuthorizerWithScriptTokenPrincipalClass() {
+        TeletraanPrincipal scriptTokenPrincipal = new ScriptTokenPrincipal<>(null, null, null);
+        TeletraanAuthorizer<TeletraanPrincipal> authorizer =
+                sut.createSecondaryAuthorizer(context, scriptTokenPrincipal.getClass());
+        assertTrue(authorizer instanceof DenyAllAuthorizer);
+    }
+
+    @Test
+    void testCreateSecondaryAuthorizerWithServicePrincipalClass() {
+        TeletraanPrincipal servicePrincipal = new ServicePrincipal("");
+        TeletraanAuthorizer<TeletraanPrincipal> authorizer =
+                sut.createSecondaryAuthorizer(context, servicePrincipal.getClass());
+        assertTrue(authorizer instanceof BasePastisAuthorizer);
     }
 }
