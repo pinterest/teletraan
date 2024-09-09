@@ -1,8 +1,35 @@
 <ul class="nav nav-tabs">
+    <div class="dropdown">
+    <button class="dropdown-toggle" type="button" data-toggle="dropdown">Dropdown</button>
+        <ul class="dropdown-menu checkbox-menu allow-focus">
+            <li>
+                <label>
+                    <input type="checkbox" /> pineapple
+                </label>
+            </li>
+
+            <li>
+                <label>
+                    <input type="checkbox" />
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox" />
+                </label>
+            </li>
+        </ul>
+    </div>
     {% for stage in envs %}
-    <li {% if stage.stageName == env.stageName %}class="active"{% endif %}>
-    <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
-       href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
-    </li>
+    <!-- TODO: add filter ui component here -->
+
+        {% if stage.stageType == "CANARY" %}
+            <li {% if stage.stageName == env.stageName %}class="active"{% endif %}>
+            <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
+            href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
+            </li>
+            {% endif %}
     {% endfor %}
+
+
 </ul>
