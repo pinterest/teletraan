@@ -1,26 +1,22 @@
-<ul class="nav nav-tabs">
-    <div class="dropdown">
+<div id="stageFilter" class="dropdown">
     <button class="dropdown-toggle" type="button" data-toggle="dropdown">Dropdown</button>
-        <ul class="dropdown-menu checkbox-menu allow-focus">
-            <li>
-                <label>
-                    <input type="checkbox" /> pineapple
-                </label>
-            </li>
-
-            <li>
-                <label>
-                    <input type="checkbox" />
-                </label>
-            </li>
-            <li>
-                <label>
-                    <input type="checkbox" />
-                </label>
-            </li>
-        </ul>
-    </div>
-    {% for stage in envs %}
+    <ul class="dropdown-menu checkbox-menu allow-focus">
+    {% for stage in all_stage_types %}
+        <li>
+            <label onclick="event.stopPropagation()">
+                <input type="checkbox" /> {{stage}}
+            </label>
+        </li>
+    {% endfor %}
+   </ul>
+</div>
+<script>
+$('#stageFilter').on("change", "input[type='checkbox']", function () {
+    $(this).closest("li").toggleClass("active", this.checked);
+});
+</script>
+<ul class="nav nav-tabs">
+   {% for stage in envs %}
     <!-- TODO: add filter ui component here -->
 
         {% if stage.stageType == "CANARY" %}

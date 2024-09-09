@@ -451,6 +451,7 @@ class EnvLandingView(View):
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
                 "env": env,
+                "all_stage_types": environs_helper.STAGE_TYPES,
                 "env_promote": env_promote,
                 "stages": stages,
                 "metrics": metrics,
@@ -546,6 +547,7 @@ class EnvLandingView(View):
             context = {
                 "envs": envs,
                 "env": env,
+                "all_stage_types": environs_helper.STAGE_TYPES,
                 "env_promote": env_promote,
                 "stages": stages,
                 "report": report,

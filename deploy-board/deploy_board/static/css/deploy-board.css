@@ -353,6 +353,19 @@ body {
   background-color: #fff;
 }
 
+.checkbox-menu li label {
+    display: block;
+}
+
+.checkbox-menu li input{
+    position: relative;
+}
+
+.checkbox-menu li.active label {
+    font-weight: bold;
+}
+
+
 .mr-1 {
   margin-right: 5px;
 }
