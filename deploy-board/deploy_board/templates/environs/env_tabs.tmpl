@@ -1,31 +1,125 @@
-<div id="stageFilter" class="dropdown">
-    <button class="dropdown-toggle" type="button" data-toggle="dropdown">Dropdown</button>
-    <ul class="dropdown-menu checkbox-menu allow-focus">
+<div id="stageFilter" class="dropdown" style="float:right">
+    <button onclick="toggleFilter(this)">
+        <span class="glyphicon glyphicon-filter"/>
+    </button>
+    <button
+        class="dropdown-toggle"
+        type="button"
+        data-toggle="dropdown"
+        title="filter environmnent stages by stage type">
+            <span class="glyphicon glyphicon-chevron-down"/>
+    </button>
+    <ul class="dropdown-menu checkbox-menu allow-focus" style="left: unset; right: 0px">
     {% for stage in all_stage_types %}
-        <li>
+        <li >
             <label onclick="event.stopPropagation()">
-                <input type="checkbox" /> {{stage}}
+                <input data-stagetype="{{stage}}" type="checkbox" /> {{stage}}
             </label>
         </li>
     {% endfor %}
+    <div class="divider"></div>
+    <button style="float:right" onclick="resetFilter()">reset</button>
    </ul>
 </div>
-<script>
-$('#stageFilter').on("change", "input[type='checkbox']", function () {
-    $(this).closest("li").toggleClass("active", this.checked);
-});
-</script>
-<ul class="nav nav-tabs">
+<ul id="stage-tabs" class="nav nav-tabs">
    {% for stage in envs %}
     <!-- TODO: add filter ui component here -->
-
-        {% if stage.stageType == "CANARY" %}
-            <li {% if stage.stageName == env.stageName %}class="active"{% endif %}>
+        <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
             <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
+            onclick="callback(event, this)"
             href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
-            </li>
-            {% endif %}
+        </li>
     {% endfor %}
-
-
 </ul>
+<div id="filter-opts" data-filter="{{stagetype_filter}}" />
+
+
+
+<script>
+    let filter
+    let filterInactive = true
+
+    try {
+        filter = Array.from(JSON.parse($("#filter-opts").attr("data-filter")))
+        if(!Array.isArray(filter)){
+            throw new Error("invalid url filter params")
+        }
+        filterInactive = filter.length === 0;
+    } catch {
+        console.log("err")
+        filter = []
+    }
+    if(!filterInactive){
+        updateChecklist()
+        runFilter()
+    }
+    $('#stageFilter').on("change", "input[type='checkbox']", function () {
+        $(this).closest("li").toggleClass("active", this.checked);
+
+
+        let stageType = $(this).attr("data-stagetype");
+        if(this.checked){
+            filter.push(stageType);
+        } else {
+            //remove from filter
+            let index = filter.indexOf(stageType)
+            if(index > -1){
+                filter.splice(index, 1);
+            }
+        }
+        //turn filter off if empty
+        if(filter.length < 1){
+            filterInactive=true;
+        } else {
+            filterInactive=false;
+        }
+
+        runFilter()
+    });
+
+    function runFilter(){
+         $("#stage-tabs").children().each(function(){
+            let stageType = $(this).attr("data-stagetype")
+            if(filter.includes(stageType) || filterInactive){
+                this.style.display = "block";
+            } else {
+                this.style.display = "none";
+            }
+        })
+    }
+
+    function toggleFilter(btn){
+        /// styling to button based on filter active or not
+        filterInactive = !filterInactive;
+        runFilter()
+    }
+
+    function resetFilter(){
+        filter=[];
+        $('#stageFilter > ul').children().each(function(){
+            $(this).removeClass("active");
+            $(this).find("input:first").prop("checked", false)
+        })
+        filterInactive=true;
+        runFilter();
+    }
+
+    function updateChecklist(){
+        $('#stageFilter > ul').children().each(function(){
+            let k = $(this).find("input:first")
+            if(filter.includes(k.attr("data-stagetype"))){
+                k.prop("checked", true)
+            }
+        })
+    }
+
+    function callback(e, a){
+        if(!filterInactive){
+            e.preventDefault()
+            let src = a.href
+            src+= "?filter=" + JSON.stringify(filter);
+            window.location.href=src
+        }
+    }
+</script>
+
