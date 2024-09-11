@@ -35,19 +35,20 @@
 
 
 <script>
-    let filter
-    let filterInactive = true
+    let filter;
+    let filterInactive = true;
 
     try {
-        filter = Array.from(JSON.parse(decodeURIComponent($("#filter-opts").attr("data-filter"))))
+        filter = Array.from(JSON.parse(decodeURIComponent($("#filter-opts").attr("data-filter"))));
         if(!Array.isArray(filter)){
-            throw new Error("invalid url filter params")
+            throw new Error("invalid url filter params");
         }
         filterInactive = filter.length === 0;
     } catch {
-        filter = []
+        filter = [];
     }
-   $('#stageFilter').on("change", "input[type='checkbox']", function () {
+
+   $('#stageFilter').on("change", "input[type='checkbox']", function() {
         $(this).closest("li").toggleClass("active", this.checked);
 
 
@@ -56,7 +57,7 @@
             filter.push(stageType);
         } else {
             //remove from filter
-            let index = filter.indexOf(stageType)
+            let index = filter.indexOf(stageType);
             if(index > -1){
                 filter.splice(index, 1);
             }
@@ -68,60 +69,70 @@
             filterInactive=false;
         }
 
-        runFilter()
+        runFilter();
     });
+
     if(!filterInactive){
         updateChecklist();
         runFilter();
     }
 
 
+    //set tabs visible by filter
     function runFilter(){
-         $("#stage-tabs").children().each(function(){
-            let stageType = $(this).attr("data-stagetype")
+         $("#stage-tabs").children().each(function() {
+            let stageType = $(this).attr("data-stagetype");
             if(filter.includes(stageType) || filterInactive){
                 this.style.display = "block";
             } else {
                 this.style.display = "none";
             }
         })
+
         /// styling to button based on filter active or not
-        $("#stageFilterButton").toggleClass("btn-primary", !filterInactive)
-        updateUrl()
+        $("#stageFilterButton").toggleClass("btn-primary", !filterInactive);
+        updateUrl();
     }
 
+    //uncheck all filter boxes and turn filter off
     function resetFilter(){
         filter=[];
-        $('#stageFilter > ul').children().each(function(){
+        $('#stageFilter > ul').children().each(function() {
             $(this).removeClass("active");
-            $(this).find("input:first").prop("checked", false)
+            $(this).find("input:first").prop("checked", false);
         })
         filterInactive=true;
         runFilter();
     }
 
     function updateChecklist(){
-        $('#stageFilter > ul').children().each(function(){
-            let k = $(this).find("input:first")
+        $('#stageFilter > ul').children().each(function() {
+            let k = $(this).find("input:first");
             if(filter.includes(k.attr("data-stagetype"))){
-                k.prop("checked", true)
-                $(this).addClass("active")
+                k.prop("checked", true);
+                $(this).addClass("active");
             }
         })
     }
 
+    //update filter param in url as it changes
     function updateUrl(){
-        let url = new URL(window.location.href)
-        url.searchParams.set('filter', JSON.stringify(filter))
-        window.history.replaceState(null,null,url)
+        let url = new URL(window.location.href);
+        if(filter.length < 1){
+            url.searchParams.delete("stageFilter");
+        } else {
+            url.searchParams.set("stageFilter", JSON.stringify(filter));
+        }
+            window.history.replaceState(null,null,url);
     }
 
+    //intercept and add filter parameter to link
     function callback(e, anchor){
         if(!filterInactive){
-            e.preventDefault()
-            let url = new URL(anchor.href)
-            url.searchParams.set('filter', JSON.stringify(filter))
-            window.location.href=url
+            e.preventDefault();
+            let url = new URL(anchor.href);
+            url.searchParams.set("stageFilter", JSON.stringify(filter));
+            window.location.href=url;
         }
     }
 </script>
