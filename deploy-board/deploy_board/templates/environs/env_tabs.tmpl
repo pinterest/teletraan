@@ -39,13 +39,12 @@
     let filterInactive = true
 
     try {
-        filter = Array.from(JSON.parse($("#filter-opts").attr("data-filter")))
+        filter = Array.from(JSON.parse(decodeURIComponent($("#filter-opts").attr("data-filter"))))
         if(!Array.isArray(filter)){
             throw new Error("invalid url filter params")
         }
         filterInactive = filter.length === 0;
     } catch {
-        console.log("err")
         filter = []
     }
    $('#stageFilter').on("change", "input[type='checkbox']", function () {
@@ -88,6 +87,7 @@
         })
         /// styling to button based on filter active or not
         $("#stageFilterButton").toggleClass("btn-primary", !filterInactive)
+        updateUrl()
     }
 
     function resetFilter(){
@@ -110,12 +110,18 @@
         })
     }
 
-    function callback(e, a){
+    function updateUrl(){
+        let url = new URL(window.location.href)
+        url.searchParams.set('filter', JSON.stringify(filter))
+        window.history.replaceState(null,null,url)
+    }
+
+    function callback(e, anchor){
         if(!filterInactive){
             e.preventDefault()
-            let src = a.href
-            src+= "?initial-filter=" + JSON.stringify(filter);
-            window.location.href=src
+            let url = new URL(anchor.href)
+            url.searchParams.set('filter', JSON.stringify(filter))
+            window.location.href=url
         }
     }
 </script>

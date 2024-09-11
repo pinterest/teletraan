@@ -444,7 +444,7 @@ class EnvLandingView(View):
 
         asg_suspended_processes = _get_asg_suspended_processes(request, env) or []
 
-        stagetype_filter = request.GET.get('initial-filter', [])
+        stagetype_filter = request.GET.get('filter', [])
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
