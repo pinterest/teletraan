@@ -20,7 +20,7 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.views.generic import View
 
-from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL, RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL
+from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL, RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL, TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
@@ -83,6 +83,7 @@ class EnvCapacityBasicCreateView(View):
             'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
+            'disable_backup_instance_types': TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES,
             'capacity_creation_info': json.dumps(capacity_creation_info)})
 
     def post(self, request, name, stage):
@@ -192,7 +193,8 @@ class EnvCapacityAdvCreateView(View):
             'is_pinterest': IS_PINTEREST,
             'puppet_repository': PUPPET_CONFIG_REPOSITORY,
             'puppet_hiera_paths': PUPPET_HIERA_PATHS,
-            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
+            'disable_backup_instance_types': TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES
         })
 
     def post(self, request, name, stage):
@@ -306,7 +308,8 @@ class ClusterConfigurationView(View):
             'is_pinterest': IS_PINTEREST,
             'puppet_repository': PUPPET_CONFIG_REPOSITORY,
             'puppet_hiera_paths': PUPPET_HIERA_PATHS,
-            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
+            'disable_backup_instance_types': TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES
         })
 
     def post(self, request, name, stage):
