@@ -382,12 +382,20 @@ body {
 }
 
 .checkbox-menu li input{
+    width: 17px;
+    height: 17px;
+    margin-right: 3px;
     position: relative;
     top: 2px;
 }
 
 .checkbox-menu li.active label {
     font-weight: bold;
+}
+
+.checkbox-menu li span{
+    position: relative;
+    bottom: 2px;
 }
 
 .mr-1 {

@@ -11,7 +11,8 @@
    {% for stage in all_stage_types %}
         <li >
             <label onclick="event.stopPropagation()">
-                <input data-stagetype="{{stage}}" type="checkbox"/> {{stage|title}}
+                <input data-stagetype="{{stage}}" type="checkbox"/>
+                <span>{{stage|title}}</span>
             </label>
         </li>
     {% endfor %}
