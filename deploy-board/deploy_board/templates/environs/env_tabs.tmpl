@@ -1,24 +1,22 @@
 <div id="stageFilter" class="dropdown" style="float:right">
-    <button onclick="toggleFilter(this)">
-        <span class="glyphicon glyphicon-filter"/>
-    </button>
     <button
-        class="dropdown-toggle"
+        id="stageFilterButton"
+        class="deployToolTip dropdown-toggle btn btn-default"
         type="button"
         data-toggle="dropdown"
-        title="filter environmnent stages by stage type">
-            <span class="glyphicon glyphicon-chevron-down"/>
+        title="Filter environmnent stages by stage type">
+            <span class="glyphicon glyphicon-filter"/>
     </button>
     <ul class="dropdown-menu checkbox-menu allow-focus" style="left: unset; right: 0px">
-    {% for stage in all_stage_types %}
+   {% for stage in all_stage_types %}
         <li >
             <label onclick="event.stopPropagation()">
-                <input data-stagetype="{{stage}}" type="checkbox" /> {{stage}}
+                <input data-stagetype="{{stage}}" type="checkbox"/> {{stage|title}}
             </label>
         </li>
     {% endfor %}
     <div class="divider"></div>
-    <button style="float:right" onclick="resetFilter()">reset</button>
+    <button class="btn btn-default stage-filter-reset-button" style="" onclick="resetFilter()">Reset</button>
    </ul>
 </div>
 <ul id="stage-tabs" class="nav nav-tabs">
@@ -49,11 +47,7 @@
         console.log("err")
         filter = []
     }
-    if(!filterInactive){
-        updateChecklist()
-        runFilter()
-    }
-    $('#stageFilter').on("change", "input[type='checkbox']", function () {
+   $('#stageFilter').on("change", "input[type='checkbox']", function () {
         $(this).closest("li").toggleClass("active", this.checked);
 
 
@@ -76,6 +70,11 @@
 
         runFilter()
     });
+    if(!filterInactive){
+        updateChecklist();
+        runFilter();
+    }
+
 
     function runFilter(){
          $("#stage-tabs").children().each(function(){
@@ -86,12 +85,8 @@
                 this.style.display = "none";
             }
         })
-    }
-
-    function toggleFilter(btn){
         /// styling to button based on filter active or not
-        filterInactive = !filterInactive;
-        runFilter()
+        $("#stageFilterButton").toggleClass("btn-primary", !filterInactive)
     }
 
     function resetFilter(){
@@ -109,6 +104,7 @@
             let k = $(this).find("input:first")
             if(filter.includes(k.attr("data-stagetype"))){
                 k.prop("checked", true)
+                $(this).addClass("active")
             }
         })
     }
