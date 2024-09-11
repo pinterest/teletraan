@@ -117,7 +117,7 @@
         if(!filterInactive){
             e.preventDefault()
             let src = a.href
-            src+= "?filter=" + JSON.stringify(filter);
+            src+= "?initial-filter=" + JSON.stringify(filter);
             window.location.href=src
         }
     }
