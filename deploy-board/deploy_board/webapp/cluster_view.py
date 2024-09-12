@@ -48,7 +48,7 @@ class EnvCapacityBasicCreateView(View):
             request, DEFAULT_ARCH)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
-
+        host_types_mapping = hosttypesmapping_helper.get_fulllist(request)
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
             request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
@@ -59,6 +59,7 @@ class EnvCapacityBasicCreateView(View):
         capacity_creation_info = {
             'environment': env,
             'hostTypes': host_types,
+            'hostTypesMapping': host_types_mapping,
             'securityZones': security_zones,
             'placements': placements,
             'baseImages': default_base_image,
@@ -137,7 +138,7 @@ class EnvCapacityAdvCreateView(View):
             request, DEFAULT_ARCH)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
-
+        host_types_mapping = hosttypesmapping_helper.get_fulllist(request)
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
             request, None, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
@@ -157,6 +158,7 @@ class EnvCapacityAdvCreateView(View):
         capacity_creation_info = {
             'environment': env,
             'hostTypes': host_types,
+            'hostTypesMapping': host_types_mapping,
             'securityZones': security_zones,
             'placements': placements,
             'cells': cells,

@@ -56,7 +56,7 @@
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
-                    showhelp="true" v-on:helpclick="hostTypeHelpClick"></hosttype-select>
+                    showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
@@ -123,6 +123,7 @@ const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(base
 const hieraPaths = `{{ puppet_hiera_paths }}`;
 const puppetRepository = `{{ puppet_repository }}`;
 const deployServiceWikiUrl = `{{ conflicting_deploy_service_wiki_url }}`;
+const disableBackupInstanceTypes = `{{ disable_backup_instance_types}}`;
 
 var capacitySetting = new Vue({
     el: "#mainPanel",
@@ -220,6 +221,9 @@ var capacitySetting = new Vue({
         hieraPaths,
         puppetRepository,
         deployServiceWikiUrl,
+        disableBackupInstanceTypes,
+        enableMultipleHostTypes: false,
+        backupHosttypes: "None",
     },
     methods: {
         addConfig: function (config) {
@@ -417,6 +421,8 @@ var capacitySetting = new Vue({
                     capacitySetting.hostTypeOptions = hostTypes.getOptions();
                     capacitySetting.selectedHostTypeValue = hostTypes.getSelectedId();
                     capacityCreationInfo.hostTypes = data;
+                    capacitySetting.enableMultipleHostTypes = false;
+                    capacitySetting.backupHosttypes = "None";
                     //Schedule this to nextTick that calls after next DOM refresh
                     //as JQuery chosen call must happen after DOM updates finished
                     Vue.nextTick(function(){
@@ -498,6 +504,10 @@ var capacitySetting = new Vue({
         selectpublicip: function(assignPublicIP){
             this.assignPublicIP = assignPublicIP
             this.placements = placements.getFullList(assignPublicIP, null)
+        },
+        selecttypes: function(value){
+            this.enableMultipleHostTypes = value;
+            this.backupHosttypes = getBackupIds(info.hostTypesMapping, capacityCreationInfo.hostTypes, capacitySetting.selectedHostTypeValue, this.enableMultipleHostTypes);
         },
         validateInput: function (clusterInfo) {
             //Validate input data.
@@ -613,6 +623,7 @@ var capacitySetting = new Vue({
             clusterInfo['replacementTimeout'] = this.replacementTimeout;
             clusterInfo['statefulStatus'] =  this.selectedStatefulStatus;
             clusterInfo['accountId'] = this.currentAccountId;
+            clusterInfo['enableMultipleHostTypes'] = this.enableMultipleHostTypes;
             if (this.selectedPlacements != null && this.selectedPlacements.length>0){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }
@@ -712,7 +723,9 @@ $(document).ready(function () {
     $('.single-select-search').chosen({
         "width": "100%"
     }).change(function() {
-        capacitySetting.selectedHostTypeValue = $('.single-select-search').val()
+        capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
+        capacitySetting.backupHosttypes = "None";
+        capacitySetting.enableMultipleHostTypes = false;
     });
 
     $(".chosen-select").chosen({ "width": "100%" })
