@@ -67,6 +67,7 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
         return create(context);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public TeletraanAuthorizer<TeletraanPrincipal> createSecondaryAuthorizer(
             TeletraanServiceContext context, Class<? extends TeletraanPrincipal> principalClass)
