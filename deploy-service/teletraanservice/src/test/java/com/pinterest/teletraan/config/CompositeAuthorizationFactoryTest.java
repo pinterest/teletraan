@@ -23,7 +23,6 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.security.TeletraanAuthZResourceExtractorFactory;
 import com.pinterest.teletraan.universal.security.BasePastisAuthorizer;
-import com.pinterest.teletraan.universal.security.DenyAllAuthorizer;
 import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
@@ -87,7 +86,7 @@ class CompositeAuthorizationFactoryTest {
         TeletraanPrincipal scriptTokenPrincipal = new ScriptTokenPrincipal<>(null, null, null);
         TeletraanAuthorizer<TeletraanPrincipal> authorizer =
                 sut.createSecondaryAuthorizer(context, scriptTokenPrincipal.getClass());
-        assertTrue(authorizer instanceof DenyAllAuthorizer);
+        assertTrue(ScriptTokenRoleAuthorizer.class.isAssignableFrom(authorizer.getClass()));
     }
 
     @Test
