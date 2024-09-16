@@ -1,4 +1,4 @@
-<div id="stageFilter" class="dropdown" style="float:right">
+<div id="stageFilter" class="dropdown" style="float:right;">
     <button
         id="stageFilterButton"
         class="deployToolTip dropdown-toggle btn btn-default"
@@ -7,7 +7,7 @@
         title="Filter environmnent stages by stage type">
             <span class="glyphicon glyphicon-filter"/>
     </button>
-    <ul class="dropdown-menu checkbox-menu allow-focus" style="left: unset; right: 0px">
+    <ul class="dropdown-menu checkbox-menu allow-focus" style="left: unset; right: 0px;">
    {% for stage in all_stage_types %}
         <li >
             <label onclick="event.stopPropagation()">
@@ -17,10 +17,10 @@
         </li>
     {% endfor %}
     <div class="divider"></div>
-    <button class="btn btn-default stage-filter-reset-button" style="" onclick="resetFilter()">Reset</button>
+    <button class="btn btn-default stage-filter-reset-button" onclick="resetFilter()">Reset</button>
    </ul>
 </div>
-<ul id="stage-tabs" class="nav nav-tabs">
+<ul id="stage-tabs" class="nav nav-tabs" style="padding-right:40px;">
    {% for stage in envs %}
     <!-- TODO: add filter ui component here -->
         <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
