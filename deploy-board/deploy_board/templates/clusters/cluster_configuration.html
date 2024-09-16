@@ -75,7 +75,7 @@
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
-                    <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
+                    <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" selectsearch="true"
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
@@ -447,6 +447,7 @@
         const hieraPaths = `{{ puppet_hiera_paths }}`;
         const puppetRepository = `{{ puppet_repository }}`;
         const deployServiceWikiUrl = `{{ conflicting_deploy_service_wiki_url }}`;
+        const disableBackupInstanceTypes = `{{ disable_backup_instance_types}}`;
 
         var capacitySetting = new Vue({
             el: "#mainPanel",
@@ -556,6 +557,7 @@
                 puppetRepository,
                 hieraPaths,
                 deployServiceWikiUrl,
+                disableBackupInstanceTypes,
             }),
             methods: {
                 addConfig: function(config) {

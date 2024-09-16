@@ -30,11 +30,7 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * A base class for authorizers that use Pastis for authorization. Pinterest only
- *
- * @param <P> the principal type
- */
+/** A base class for authorizers that use Pastis for authorization. Pinterest only */
 @Slf4j
 public class BasePastisAuthorizer extends BaseAuthorizer<TeletraanPrincipal> {
     private static final String INPUT = "input";

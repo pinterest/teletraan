@@ -32,7 +32,7 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
     private static final String DEFAULT_PASTIS_SERVICE_NAME = "teletraan_dev";
 
     @JsonProperty private String pastisServiceName = DEFAULT_PASTIS_SERVICE_NAME;
-    private TeletraanAuthorizer<TeletraanPrincipal> pastisAuthorizer;
+    private BasePastisAuthorizer pastisAuthorizer;
 
     public void setPastisServiceName(String pastisServiceName) {
         this.pastisServiceName = pastisServiceName;
@@ -42,8 +42,7 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
         return pastisServiceName;
     }
 
-    private TeletraanAuthorizer<TeletraanPrincipal> getOrCreateAuthorizer(
-            TeletraanServiceContext context) {
+    private BasePastisAuthorizer getOrCreateAuthorizer(TeletraanServiceContext context) {
         if (pastisAuthorizer == null) {
             pastisAuthorizer =
                     BasePastisAuthorizer.builder()
@@ -69,13 +68,16 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
         return create(context);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public TeletraanAuthorizer<TeletraanPrincipal> createSecondaryAuthorizer(
             TeletraanServiceContext context, Class<? extends TeletraanPrincipal> principalClass)
             throws ForbiddenException {
         if (ScriptTokenPrincipal.class.equals(principalClass)) {
-            // Deny all on-the-fly authorization requests for script token principals
-            return new DenyAllAuthorizer();
+            return (TeletraanAuthorizer<TeletraanPrincipal>)
+                    (TeletraanAuthorizer<?>)
+                            new ScriptTokenRoleAuthorizer(
+                                    context.getAuthZResourceExtractorFactory());
         }
         return getOrCreateAuthorizer(context);
     }

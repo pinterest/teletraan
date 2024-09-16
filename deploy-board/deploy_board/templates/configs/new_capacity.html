@@ -61,7 +61,9 @@
                     <label>This is for CMP docker with cpu architecture x86_64 only hosts. For other types, please click the Advanced Settings on the left. </label>
                 </div>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
-                <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"></hosttype-select>
+                <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
+                v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
+                <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
@@ -103,6 +105,7 @@ let goldenImage = capacityCreationInfo.baseImages.find(goldenImageFinder);
 
 var placements = getDefaultPlacement(capacityCreationInfo);
 var hostTypes = getDefaultHostType(capacityCreationInfo.hostTypes, capacityCreationInfo.defaultHostType, capacityCreationInfo.defaultARMHostType);
+const disableBackupInstanceTypes = `{{ disable_backup_instance_types}}`;
 
 var capacitySetting = new Vue({
     el:"#capacityPanel",
@@ -138,6 +141,9 @@ var capacitySetting = new Vue({
             }
         }),
         showStatefulHelp: false,
+        disableBackupInstanceTypes,
+        enableMultipleHostTypes: false,
+        backupHosttypes: "None",
     },
     methods:{
         validateInput: function(clusterInfo){
@@ -202,6 +208,7 @@ var capacitySetting = new Vue({
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             clusterInfo['statefulStatus'] =  this.selectedStatefulStatus;
+            clusterInfo['enableMultipleHostTypes'] = this.enableMultipleHostTypes;
             if (this.selectedPlacements != null){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }
@@ -244,6 +251,10 @@ var capacitySetting = new Vue({
             this.assignPublicIP = assignPublicIP;
             this.placements = placements.getSimpleList(assignPublicIP, null);
         },
+        selecttypes: function(value){
+            this.enableMultipleHostTypes = value;
+            this.backupHosttypes = getBackupIds(capacityCreationInfo.hostTypesMapping, capacityCreationInfo.hostTypes, capacitySetting.selectedHostTypeValue, this.enableMultipleHostTypes);
+        },
         updateAwsRole: function(value){
             this.awsRole = value
         },
@@ -279,7 +290,9 @@ $(document).ready(function() {
     $('.single-select-search').chosen({
         "width": "100%"
     }).change(function() {
-        capacitySetting.selectedHostTypeValue = $('.single-select-search').val()
+        capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
+        capacitySetting.backupHosttypes = "None";
+        capacitySetting.enableMultipleHostTypes = false;
     });
 
     $(".chosen-select").chosen({
