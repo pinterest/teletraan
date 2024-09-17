@@ -25,4 +25,12 @@ public class EnvoyCredentials {
     String user;
     String spiffeId;
     List<String> groups;
+    String pipelineId;
+
+    public EnvoyCredentials(String user, String spiffeId, List<String> groups) {
+        this.user = user;
+        this.spiffeId = spiffeId;
+        this.groups = groups;
+        this.pipelineId = null; // Default value for backward compatibility
+    }
 }

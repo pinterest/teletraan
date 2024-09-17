@@ -17,11 +17,15 @@ package com.pinterest.teletraan.config;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.ImmutableList;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.EnvoyAuthFilter;
 import com.pinterest.teletraan.universal.security.EnvoyAuthenticator;
+import com.pinterest.teletraan.universal.security.PinDeployPipelinePrincipalReplacer;
+import com.pinterest.teletraan.universal.security.PrincipalReplacer;
 import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.dropwizard.auth.AuthFilter;
@@ -30,16 +34,21 @@ import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.auth.JSONUnauthorizedHandler;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.container.ContainerRequestFilter;
 import org.apache.commons.lang3.StringUtils;
 
 @JsonTypeName("composite")
 public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
+    @JsonProperty private List<String> pinDeploySpiffeIds;
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
+        PrincipalReplacer principalReplacer =
+                new PinDeployPipelinePrincipalReplacer(ImmutableList.copyOf(pinDeploySpiffeIds));
         Authenticator<EnvoyCredentials, TeletraanPrincipal> authenticator =
-                new EnvoyAuthenticator();
+                new EnvoyAuthenticator(ImmutableList.of(principalReplacer));
 
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
             MetricRegistry registry = SharedMetricRegistries.getDefault();
