@@ -392,19 +392,57 @@ body {
     font-weight: bold;
 }
 
-.checkbox-menu li span{
+.checkbox-menu li span {
     position: relative;
     bottom: 2px;
 }
 
+.filter-wide {
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+    width: 100%;
+    position: relative;
+}
+
+.filter-wide > li {
+    position: relative;
+    display: block;
+}
+
+.filter-tabs {
+    margin-top: -1px;
+}
+
+.filter-tabs > li {
+    float: left;
+    margin-bottom: -1px;
+}
+
+.filter-tabs > li > button:hover {
+    border-color: #1c1e22 #1c1e22 #1c1e22;
+}
+
+#stageFilterOptions {
+    width: 100%;
+    display: inline-block;
+    margin-top: 5px;
+    margin-bottom: 30px;
+}
+
+#stageFilterDropdown {
+    margin-bottom: 4px;
+    display: block;
+}
+
 .mr-1 {
-  margin-right: 5px;
+    margin-right: 5px;
 }
 
 .ml-1 {
-  margin-left: 5px;
+    margin-left: 5px;
 }
 
 .mt-1 {
-  margin-top: 5px;
+    margin-top: 5px;
 }

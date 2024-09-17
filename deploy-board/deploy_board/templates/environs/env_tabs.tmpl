@@ -1,28 +1,45 @@
-<div id="stageFilter" class="dropdown" style="float:right;">
-    <button
-        id="stageFilterButton"
-        class="deployToolTip dropdown-toggle btn btn-default"
-        type="button"
-        data-toggle="dropdown"
-        title="Filter environmnent stages by stage type">
-            <span class="glyphicon glyphicon-filter"/>
-    </button>
-    <ul class="dropdown-menu checkbox-menu allow-focus" style="left: unset; right: 0px;">
-   {% for stage in all_stage_types %}
-        <li >
-            <label onclick="event.stopPropagation()">
-                <input data-stagetype="{{stage}}" type="checkbox"/>
-                <span>{{stage|title}}</span>
-            </label>
+<div id="stageFilterOptions">
+    <div id="stageFilterDropdown" class="dropdown" style="float:left">
+        <button
+            id="stageFilterButton"
+            class="deployToolTip dropdown-toggle btn btn-default"
+            type="button"
+            data-toggle="dropdown"
+            style="margin-right: 15px;"
+            title="Filter environmnent stages by stage type">
+                Stage Type Filter
+                <span class="glyphicon glyphicon-chevron-down"/>
+        </button>
+        <ul class="dropdown-menu checkbox-menu allow-focus" >
+            {% for stage in all_stage_types %}
+                <li >
+                    <label onclick="event.stopPropagation()">
+                        <input data-stagetype="{{stage}}" type="checkbox"/>
+                        <span>{{stage|title}}</span>
+                    </label>
+                </li>
+            {% endfor %}
+            <div class="divider"></div>
+            <button class="btn btn-default stage-filter-reset-button" onclick="resetFilter()">Reset</button>
+        </ul>
+    </div>
+
+    <ul id="filterTabs" class="filter-wide filter-tabs">
+        <li style="margin-right: 15px;">
+            <span style="line-height: 35px;">Active Filters:</span>
         </li>
-    {% endfor %}
-    <div class="divider"></div>
-    <button class="btn btn-default stage-filter-reset-button" onclick="resetFilter()">Reset</button>
-   </ul>
+        {% for stage in all_stage_types %}
+            <li >
+                <button onclick="updateFilterSingle(this)" data-stagetype={{stage}} class="btn btn-default" style="display:none;">
+                    {{stage|title}}
+                    <span class="glyphicon glyphicon-remove"/>
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
 </div>
-<ul id="stage-tabs" class="nav nav-tabs" style="padding-right:40px;">
-   {% for stage in envs %}
-    <!-- TODO: add filter ui component here -->
+<ul id="stageTabs" class="nav nav-tabs" style="padding-right:40px;">
+    {% for stage in envs %}
         <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
             <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
             onclick="callback(event, this)"
@@ -30,7 +47,7 @@
         </li>
     {% endfor %}
 </ul>
-<div id="filter-opts" data-filter="{{stagetype_filter}}" />
+<div id="filterOpts" data-filter="{{stagetype_filter}}" />
 
 
 
@@ -39,16 +56,17 @@
     let filterInactive = true;
 
     try {
-        filter = Array.from(JSON.parse(decodeURIComponent($("#filter-opts").attr("data-filter"))));
+        filter = Array.from(JSON.parse(decodeURIComponent($("#filterOpts").attr("data-filter"))));
+        console.log(filter);
         if(!Array.isArray(filter)){
             throw new Error("invalid url filter params");
         }
-        filterInactive = filter.length === 0;
     } catch {
         filter = [];
     }
 
-   $('#stageFilter').on("change", "input[type='checkbox']", function() {
+
+   $("#stageFilterDropdown").on("change", "input[type='checkbox']", function() {
         $(this).closest("li").toggleClass("active", this.checked);
 
 
@@ -62,25 +80,25 @@
                 filter.splice(index, 1);
             }
         }
-        //turn filter off if empty
-        if(filter.length < 1){
-            filterInactive=true;
-        } else {
-            filterInactive=false;
-        }
-
-        runFilter();
+        update();
     });
 
-    if(!filterInactive){
-        updateChecklist();
-        runFilter();
+    update();
+    function update() {
+        console.log(filter)
+        if(filter.length < 1){
+            resetFilter();
+        } else {
+            filterInactive = false;
+            updateChecklist();
+            updateFilterButtons();
+            runFilter();
+        }
     }
-
 
     //set tabs visible by filter
     function runFilter(){
-         $("#stage-tabs").children().each(function() {
+         $("#stageTabs").children().each(function() {
             let stageType = $(this).attr("data-stagetype");
             if(filter.includes(stageType) || filterInactive){
                 this.style.display = "block";
@@ -97,22 +115,45 @@
     //uncheck all filter boxes and turn filter off
     function resetFilter(){
         filter=[];
-        $('#stageFilter > ul').children().each(function() {
-            $(this).removeClass("active");
-            $(this).find("input:first").prop("checked", false);
-        })
         filterInactive=true;
+        updateChecklist();
+        updateFilterButtons();
         runFilter();
     }
 
     function updateChecklist(){
-        $('#stageFilter > ul').children().each(function() {
+        $('#stageFilterDropdown > ul').children().each(function() {
             let k = $(this).find("input:first");
             if(filter.includes(k.attr("data-stagetype"))){
                 k.prop("checked", true);
                 $(this).addClass("active");
+            } else {
+                k.prop("checked", false);
+                $(this).removeClass("active");
             }
         })
+    }
+
+    function updateFilterButtons() {
+        $('#filterTabs').children().each(function() {
+            let k = $(this).find("button:first");
+            if(filter.includes(k.attr("data-stagetype"))){
+                k.css("display", "block");
+            } else {
+                k.css("display", "none");
+            }
+        })
+
+    }
+
+    function updateFilterSingle(btn){
+        let stageType = $(btn).attr("data-stagetype");
+        let index = filter.indexOf(stageType);
+        if(index > -1){
+            filter.splice(index, 1);
+        }
+
+        update();
     }
 
     //update filter param in url as it changes
