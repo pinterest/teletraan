@@ -536,7 +536,7 @@ Vue.component("hosttype-select", {
     <div class="col-xs-1"></div>\
     <div class="col-xs-3" v-if="isVisible">\
         <input type="checkbox" id="checkbox" title="You should only enable this feature with capacity-eng approval. Your enable/disable operation on this feature triggers a notification to capacity-eng." v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
-        <label for="checkbox">Enable Backup instance types</label>\
+        <label for="checkbox" title="You should only enable this feature with capacity-eng approval. Your enable/disable operation on this feature triggers a notification to capacity-eng.">Enable Backup instance types</label>\
     </div></div>',
     props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes'],
     computed: {
@@ -585,6 +585,8 @@ Vue.component('backup-hosttypes', {
     <div class="col-xs-2"></div>\
     <div class="col-xs-8">\
         <span class="col-xs-8" style="padding:0;">Backup Host Types In Order: {{backuphosttypes}}</span>\
+        <span class="col-xs-8" style="padding:0;">You should only enable this feature with capacity-eng approval.</span>\
+        <span class="col-xs-8" style="padding:0;">Your enable/disable operation on this feature triggers a notification to capacity-eng.</span>\
     </div>\
     </div>',
     props: ['backuphosttypes'],
