@@ -1,3 +1,4 @@
+<div id="stageTabsView">
 <div id="stageFilterOptions">
     <div id="stageFilterDropdown" class="dropdown" style="float:left">
         <button
@@ -5,7 +6,6 @@
             class="deployToolTip dropdown-toggle btn btn-default"
             type="button"
             data-toggle="dropdown"
-            style="margin-right: 15px;"
             title="Filter environmnent stages by stage type">
                 Stage Type Filter
                 <span class="glyphicon glyphicon-chevron-down"/>
@@ -20,13 +20,13 @@
                 </li>
             {% endfor %}
             <div class="divider"></div>
-            <button class="btn btn-default stage-filter-reset-button" onclick="resetFilter()">Reset</button>
+            <button class="btn btn-default stage-filter-reset-button" onclick="clearFilter()">Reset</button>
         </ul>
     </div>
 
     <ul id="filterTabs" class="filter-wide filter-tabs">
-        <li style="margin-right: 15px;">
-            <span style="line-height: 35px;">Active Filters:</span>
+        <li id="activeFiltersLabel" style="margin-right: 10px;">
+            <span style="line-height: 30px;">Active Filters:</span>
         </li>
         {% for stage in all_stage_types %}
             <li >
@@ -49,6 +49,7 @@
 </ul>
 <div id="filterOpts" data-filter="{{stagetype_filter}}" />
 
+</div>
 
 
 <script>
@@ -87,12 +88,18 @@
     function update() {
         console.log(filter)
         if(filter.length < 1){
-            resetFilter();
+            filterInactive = true;
         } else {
             filterInactive = false;
-            updateChecklist();
-            updateFilterButtons();
-            runFilter();
+        }
+        updateChecklist();
+        updateFilterButtons();
+        runFilter();
+
+        if(filterInactive){
+            $("#activeFiltersLabel").css("display", "none")
+        } else {
+            $("#activeFiltersLabel").css("display", "block")
         }
     }
 
@@ -113,12 +120,9 @@
     }
 
     //uncheck all filter boxes and turn filter off
-    function resetFilter(){
+    function clearFilter(){
         filter=[];
-        filterInactive=true;
-        updateChecklist();
-        updateFilterButtons();
-        runFilter();
+        update();
     }
 
     function updateChecklist(){

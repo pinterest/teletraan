@@ -422,17 +422,36 @@ body {
 .filter-tabs > li > button:hover {
     border-color: #1c1e22 #1c1e22 #1c1e22;
 }
+.filter-tabs > li > button {
+    font-size: inherit;
+}
+
+#stageFilterButton {
+    font-size: inherit;
+    margin-right: 15px;
+}
 
 #stageFilterOptions {
     width: 100%;
     display: inline-block;
-    margin-top: 5px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    padding: 5px;
+    padding-right: 0px;
+    font-size: 12px;
+
+    border-bottom: 1px solid #ddd;
+    background-color: #f5f5f5;
 }
 
 #stageFilterDropdown {
     margin-bottom: 4px;
     display: block;
+}
+
+#stageTabsView {
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px 4px 0 0;
 }
 
 .mr-1 {
