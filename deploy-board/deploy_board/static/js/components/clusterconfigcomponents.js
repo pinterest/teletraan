@@ -594,9 +594,9 @@ Vue.component('backup-hosttypes', {
             return this.backuphosttypes !== 'None'
         },
         backupTypesWarning: function () {
-            const part1 = "You should only enable this feature with capacity-eng approval.";
+            const part1 = "You should only enable this feature with capacity-eng approval. ";
             const part2 = "Your enable/disable operation on this feature triggers a notification to capacity-eng.";
-            text = part1 + part2;
+            const text = part1 + part2;
             return text;
         }
     }
