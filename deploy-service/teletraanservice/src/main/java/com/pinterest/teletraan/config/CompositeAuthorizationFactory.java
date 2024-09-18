@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.BasePastisAuthorizer;
-import com.pinterest.teletraan.universal.security.DenyAllAuthorizer;
 import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
