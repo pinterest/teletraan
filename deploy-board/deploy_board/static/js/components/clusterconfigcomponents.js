@@ -585,6 +585,7 @@ Vue.component('backup-hosttypes', {
     <div class="col-xs-2"></div>\
     <div class="col-xs-8">\
         <span class="col-xs-8" style="padding:0;">Backup Host Types In Order: {{backuphosttypes}}</span>\
+        <form-warning :alert-text="backupTypesWarning"></form-warning>\
         <span class="col-xs-8" style="padding:0;">You should only enable this feature with capacity-eng approval.</span>\
         <span class="col-xs-8" style="padding:0;">Your enable/disable operation on this feature triggers a notification to capacity-eng.</span>\
     </div>\
@@ -593,6 +594,12 @@ Vue.component('backup-hosttypes', {
     computed: {
         isVisible: function () {
             return this.backuphosttypes !== 'None'
+        },
+        backupTypesWarning: function () {
+            const part1 = "You should only enable this feature with capacity-eng approval.";
+            const part2 = "Your enable/disable operation on this feature triggers a notification to capacity-eng.";
+            text = part1 + part2;
+            return text;
         }
     }
 });
