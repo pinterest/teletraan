@@ -1,54 +1,53 @@
 <div id="stageTabsView">
-<div id="stageFilterOptions">
-    <div id="stageFilterDropdown" class="dropdown" style="float:left">
-        <button
-            id="stageFilterButton"
-            class="deployToolTip dropdown-toggle btn btn-default"
-            type="button"
-            data-toggle="dropdown"
-            title="Filter environmnent stages by stage type">
-                Stage Type Filter
-                <span class="glyphicon glyphicon-chevron-down"/>
-        </button>
-        <ul class="dropdown-menu checkbox-menu allow-focus" >
+    <div id="stageFilterOptions">
+        <div id="stageFilterDropdown" class="dropdown" style="float:left">
+            <button
+                id="stageFilterButton"
+                class="deployToolTip dropdown-toggle btn btn-default"
+                type="button"
+                data-toggle="dropdown"
+                title="Filter environmnent stages by stage type">
+                    Stage Type Filter
+                    <span class="glyphicon glyphicon-chevron-down"/>
+            </button>
+            <ul class="dropdown-menu checkbox-menu allow-focus" >
+                {% for stage in all_stage_types %}
+                    <li >
+                        <label onclick="event.stopPropagation()">
+                            <input data-stagetype="{{stage}}" type="checkbox"/>
+                            <span>{{stage|title}}</span>
+                        </label>
+                    </li>
+                {% endfor %}
+                <div class="divider"></div>
+                <button class="btn btn-default stage-filter-reset-button" onclick="clearFilter()">Reset</button>
+            </ul>
+        </div>
+
+        <ul id="filterTabs" class="filter-wide filter-tabs">
+            <li id="activeFiltersLabel" style="margin-right: 10px;">
+                <span style="line-height: 30px;">Active Filters:</span>
+            </li>
             {% for stage in all_stage_types %}
                 <li >
-                    <label onclick="event.stopPropagation()">
-                        <input data-stagetype="{{stage}}" type="checkbox"/>
-                        <span>{{stage|title}}</span>
-                    </label>
+                    <button onclick="updateFilterSingle(this)" data-stagetype={{stage}} class="btn btn-default" style="display:none;">
+                        {{stage|title}}
+                        <span class="glyphicon glyphicon-remove"/>
+                    </button>
                 </li>
             {% endfor %}
-            <div class="divider"></div>
-            <button class="btn btn-default stage-filter-reset-button" onclick="clearFilter()">Reset</button>
         </ul>
     </div>
-
-    <ul id="filterTabs" class="filter-wide filter-tabs">
-        <li id="activeFiltersLabel" style="margin-right: 10px;">
-            <span style="line-height: 30px;">Active Filters:</span>
-        </li>
-        {% for stage in all_stage_types %}
-            <li >
-                <button onclick="updateFilterSingle(this)" data-stagetype={{stage}} class="btn btn-default" style="display:none;">
-                    {{stage|title}}
-                    <span class="glyphicon glyphicon-remove"/>
-                </button>
-            </li>
-        {% endfor %}
-    </ul>
-</div>
-<ul id="stageTabs" class="nav nav-tabs" style="padding-right:40px;">
-    {% for stage in envs %}
-        <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
-            <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
-            onclick="callback(event, this)"
-            href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
-        </li>
-    {% endfor %}
-</ul>
-<div id="filterOpts" data-filter="{{stagetype_filter}}" />
-
+        <ul id="stageTabs" class="nav nav-tabs" style="padding-right:40px;">
+            {% for stage in envs %}
+                <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
+                    <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
+                    onclick="callback(event, this)"
+                    href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    <div id="filterOpts" data-filter="{{stagetype_filter}}" />
 </div>
 
 
