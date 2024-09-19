@@ -32,7 +32,7 @@ public class PinDeployPipelinePrincipalReplacer implements PrincipalReplacer {
             ServicePrincipal servicePrincipal = (ServicePrincipal) principal;
             if (pinDeploySpiffeIds.contains(servicePrincipal.getName())
                     && StringUtils.isNotEmpty(credentials.getPipelineId())) {
-                return new ServicePrincipal(credentials.getPipelineId());
+                return new ServicePrincipal(StringUtils.join(servicePrincipal.getName(), credentials.getPipelineId(), "/"));
             }
         }
         return principal;
