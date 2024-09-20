@@ -63,7 +63,7 @@ public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCreden
         String user = headers.getFirst(Constants.USER_HEADER);
         String spiffeId = getSpiffeId(headers.getFirst(Constants.CLIENT_CERT_HEADER));
         List<String> groups = getGroups(headers.getFirst(Constants.GROUPS_HEADER));
-        String pipelineId = headers.getFirst(Constants.PIPELINE_HEADER);
+        String pipelineId = headers.getFirst(Constants.PINDEPLOY_PIPELINE_HEADER);
 
         if (StringUtils.isBlank(spiffeId) && StringUtils.isBlank(user)) {
             return null;

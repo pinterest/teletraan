@@ -65,8 +65,8 @@ public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
 
         return new ChainedAuthFilter(
                 Arrays.asList(
-                        createScriptTokenAuthFilter(context),
                         envoyAuthFilter,
+                        createScriptTokenAuthFilter(context),
                         createOauthTokenAuthFilter(context),
                         createJwtTokenAuthFilter(context)));
     }
