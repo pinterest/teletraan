@@ -192,17 +192,26 @@
                                 {% endif %}
                             </a>
                         {% elif report.account == "all" %}
-                            <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ agentStat.agent.hostName }}"
-                               type="button"
-                               class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                               title="{{ agentStat | agentTip }}">
-                                {% if report.showMode != "compact" %}<small>{{ agentStat.agent.hostName }}</small>{% endif %}
-                                {% if report.showMode == "containerStatus" %}
-                                    {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.containerHealthStatus %}
-                                {% else %}
-                                    <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                                {% endif %}
-                            </a>
+                            {% if report.showMode == "containerStatus" %}
+                            {% comment %} {%with agentStat=agentStat|_pick_random_state|_pick_random_healthcheck%} {% endcomment %}
+                                <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ agentStat.agent.hostName }}"
+                                type="button"
+                                class="deployToolTip host-btn btn-default {{ agentStat|hostButtonHtmlClass }}"
+                                title="{% if agentStat.isStale %}Stale agent. Last recorded state: {% endif %}{{ agentStat|hostTooltipTitle }}">
+                                    <small>{{ agentStat.agent.hostName }}-{{agentStat.agent.state}}</small>
+                                    <i class="{{ agentStat|hostHealthcheckIcon }}"></i>
+                                </a>
+                            {% comment %} {% endwith %} {% endcomment %}
+                            {% else %}
+                                <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ agentStat.agent.hostName }}"
+                                type="button"
+                                class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                                title="{{ agentStat | agentTip }}">
+                                    {% if report.showMode != "compact" %}<small>{{ agentStat.agent.hostName }}</small>{% endif %}
+
+                                        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                                </a>
+                            {% endif %}
                         {% endif %}
                     {% endfor %}
                 </div>

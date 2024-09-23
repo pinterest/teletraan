@@ -31,6 +31,7 @@ from deploy_board.webapp.helpers import environs_helper
 from deploy_board.webapp.helpers.tags_helper import TagValue
 from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 import ast
+from deploy_board.webapp.agent_report import AgentStatistics
 
 register = template.Library()
 logger = logging.getLogger(__name__)
@@ -544,7 +545,6 @@ def branchAndCommit(build):
 def percentize(deploy):
     return "%d%%" % round(deploy.succeeded * 100 / deploy.reported)
 
-
 @register.filter("agentTip")
 def agentTip(agentStats):
     agent = agentStats.agent
@@ -610,6 +610,104 @@ def agentButton(agentStats):
 
     return 'btn-warning'
 
+
+# yellow solid blinking = paused_by_user / paused_by_system
+# light blue w/o healthcheck w/ trash icon = delete
+# light blue dotted spining = reset
+# dark red = unreachable
+# yellow dotted spinning = stop
+# diagonal lines through, muted = stale
+
+# import random
+# @register.filter
+# def _pick_random_state(agentStat):
+#     states = [
+#         "PAUSED_BY_SYSTEM",
+#         "PAUSED_BY_USER",
+#         "DELETE",
+#         "RESET",
+#         "STOP",
+#         "UNREACHABLE"
+#     ] + ["ACTIVE"]*10
+#     agentStat.agent['state'] = random.choice(states)
+#     agentStat.isCurrent = True
+#     return agentStat
+
+# @register.filter
+# def _pick_random_healthcheck(agentStat):
+#     healthcheckStatus = [
+#         "healthy",
+#         "unhealthy",
+#         ""
+#     ]
+#     agentStat.agent['containerHealthStatus'] = random.choice(healthcheckStatus)
+#     return agentStat
+
+def _is_agent_failed(agent) -> bool:
+    return agent['status'] != "SUCCEEDED" and agent['status'] != "UNKNOWN" or agent['state'] == "PAUSED_BY_SYSTEM"
+
+@register.filter("hostButtonHtmlClass")
+def hostButtonHtmlClass(agentStat: AgentStatistics) -> str:
+    state = agentStat.agent['state']
+    if state == "UNREACHABLE":
+        return "btn btn-default btn-xs host-stale btn-critical"
+    elif _is_agent_failed(agentStat.agent):
+        return "btn btn-default btn-xs btn-outline-danger"
+    elif state == "DELETE" or state == "RESET":
+        return "btn btn-default btn-xs btn-info"
+    elif state == "STOP":
+        return "btn btn-default btn-xs btn-outline-info"
+    elif state == "PAUSED_BY_USER":
+        return "btn btn-default btn-xs btn-outline-warning"
+    return "btn btn-default btn-xs"
+
+@register.filter("hostHealthcheckIcon")
+def hostHealthcheckIcon(agentStat: AgentStatistics) -> str:
+    state = agentStat.agent['state']
+    if state == "DELETE":
+        return "fa fa-trash"
+    elif state == "RESET":
+        return "fa fa-repeat fa-spin"
+    elif state == "UNREACHABLE":
+        return "fa fa-question"
+    elif state == "STOP":
+        return "fa fa-stop"
+    healthcheckResponse: str = agentStat.agent.get("containerHealthStatus", "")
+    if "unhealthy" in healthcheckResponse:
+        return "fa fa-circle color-red"
+    elif "healthy" in healthcheckResponse:
+        return "fa fa-circle color-green"
+    return ""
+
+@register.filter("hostTooltipTitle")
+def hostTooltipTitle(agentStat: AgentStatistics) -> str:
+    state = agentStat.agent['state']
+    if state == "PAUSED_BY_USER":
+        return "Agent is explicitly paused for any deploys"
+    elif state == "PAUSED_BY_SYSTEM":
+        return "Agent failed to deploy and is paused by the system"
+    elif state == "DELETE":
+        return "Agent is removed from the current environment"
+    elif state == "UNREACHABLE":
+        return "Agent is unreachable after not responding to ping from teletraan server"
+    elif state == "STOP":
+        return "Agent is gracefully shutting down the service"
+    elif state == "RESET":
+        return "Agent is restarting the deployment"
+    elif not agentStat.isCurrent:
+        if state == "SERVING_BUILD":
+            return "Agent is serving older build and waiting for deploy"
+        elif _is_agent_failed(agentStat.agent):
+            return "Agent is serving older build with failures. Click for details"
+        else:
+            return "Agent is serving older build with failures. Click for details"
+    else:
+        if agentStat.agent['deployStage'] == "SERVING_BUILD":
+            return "Agent is serving the current build successfully"
+        elif _is_agent_failed(agentStat.agent):
+            return "Agent is deploying current build with failures. Click for details"
+        else:
+            return "Agent is deploying current build"
 
 @register.filter("agentIcon")
 def agentIcon(agentStats):
