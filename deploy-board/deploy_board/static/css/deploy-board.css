@@ -347,20 +347,122 @@ body {
   display: inline-block;
   border-style: solid;
   border-radius: 25px;
+  border-width: 2px;
   border-color: #ccc;
   padding-left: 5px;
   padding-right: 5px;
   background-color: #fff;
 }
 
-.mr-1 {
+
+.stage-filter-reset-button {
+  float: right;
   margin-right: 5px;
+  border-style: none;
+}
+
+.checkbox-menu li label {
+    display: block;
+    padding: 2px 0;
+    padding-left: 10px;
+    font-weight: normal;
+    margin: 0;
+}
+
+.checkbox-menu li.active label {
+    background-color:#c8e3fa;
+}
+
+.checkbox-menu li.active label:hover {
+    background-color: #b8d0e6;
+}
+
+.checkbox-menu li label:hover {
+    background-color: #f5f5f5;
+}
+
+.checkbox-menu li input{
+    width: 17px;
+    height: 17px;
+    margin-right: 3px;
+    position: relative;
+    top: 2px;
+}
+
+.checkbox-menu li.active label {
+    font-weight: bold;
+}
+
+.checkbox-menu li span {
+    position: relative;
+    bottom: 2px;
+}
+
+.filter-wide {
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+    width: 100%;
+    position: relative;
+}
+
+.filter-wide > li {
+    position: relative;
+    display: block;
+}
+
+.filter-tabs {
+    margin-top: -1px;
+}
+
+.filter-tabs > li {
+    float: left;
+    margin-bottom: -1px;
+}
+
+.filter-tabs > li > button:hover {
+    border-color: #1c1e22 #1c1e22 #1c1e22;
+}
+.filter-tabs > li > button {
+    font-size: inherit;
+}
+
+#stageFilterButton {
+    font-size: inherit;
+    margin-right: 15px;
+}
+
+#stageFilterOptions {
+    width: 100%;
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 5px;
+    padding-right: 0px;
+    font-size: 12px;
+
+    border-bottom: 1px solid #ddd;
+    background-color: #f5f5f5;
+}
+
+#stageFilterDropdown {
+    margin-bottom: 4px;
+    display: block;
+}
+
+#stageTabsView {
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px 4px 0 0;
+}
+
+.mr-1 {
+    margin-right: 5px;
 }
 
 .ml-1 {
-  margin-left: 5px;
+    margin-left: 5px;
 }
 
 .mt-1 {
-  margin-top: 5px;
+    margin-top: 5px;
 }

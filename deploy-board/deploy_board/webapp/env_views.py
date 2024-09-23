@@ -444,6 +444,8 @@ class EnvLandingView(View):
 
         asg_suspended_processes = _get_asg_suspended_processes(request, env) or []
 
+        stagetype_filter = request.GET.get('stageFilter', [])
+
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = deduplicate_hosts(environ_hosts_helper.get_hosts(request, name, stage))
@@ -451,6 +453,8 @@ class EnvLandingView(View):
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
                 "env": env,
+                "all_stage_types": sorted(environs_helper.STAGE_TYPES),
+                "stagetype_filter": stagetype_filter,
                 "env_promote": env_promote,
                 "stages": stages,
                 "metrics": metrics,
@@ -546,6 +550,8 @@ class EnvLandingView(View):
             context = {
                 "envs": envs,
                 "env": env,
+                "all_stage_types": sorted(environs_helper.STAGE_TYPES),
+                "stagetype_filter": stagetype_filter,
                 "env_promote": env_promote,
                 "stages": stages,
                 "report": report,

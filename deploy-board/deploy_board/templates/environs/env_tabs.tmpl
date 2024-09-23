@@ -1,8 +1,182 @@
-<ul class="nav nav-tabs">
-    {% for stage in envs %}
-    <li {% if stage.stageName == env.stageName %}class="active"{% endif %}>
-    <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
-       href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
-    </li>
-    {% endfor %}
-</ul>
+<div id="stageTabsView">
+    <div id="stageFilterOptions">
+        <div id="stageFilterDropdown" class="dropdown" style="float:left">
+            <button
+                id="stageFilterButton"
+                class="deployToolTip dropdown-toggle btn btn-default"
+                type="button"
+                data-toggle="dropdown"
+                title="Filter environmnent stages by stage type">
+                    Stage Type Filter
+                    <span class="glyphicon glyphicon-chevron-down"/>
+            </button>
+            <ul class="dropdown-menu checkbox-menu allow-focus" >
+                {% for stage in all_stage_types %}
+                    <li >
+                        <label onclick="event.stopPropagation()">
+                            <input data-stagetype="{{stage}}" type="checkbox"/>
+                            <span>{{stage|title}}</span>
+                        </label>
+                    </li>
+                {% endfor %}
+                <div class="divider"></div>
+                <button class="btn btn-default stage-filter-reset-button" onclick="clearFilter()">Reset</button>
+            </ul>
+        </div>
+
+        <ul id="filterTabs" class="filter-wide filter-tabs">
+            <li id="activeFiltersLabel" style="margin-right: 10px;">
+                <span style="line-height: 30px;">Active Filters:</span>
+            </li>
+            {% for stage in all_stage_types %}
+                <li >
+                    <button onclick="updateFilterSingle(this)" data-stagetype={{stage}} class="btn btn-default" style="display:none;">
+                        {{stage|title}}
+                        <span class="glyphicon glyphicon-remove"/>
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+        <ul id="stageTabs" class="nav nav-tabs" style="padding-right:40px;">
+            {% for stage in envs %}
+                <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
+                    <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
+                    onclick="callback(event, this)"
+                    href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    <div id="filterOpts" data-filter="{{stagetype_filter}}" />
+</div>
+
+
+<script>
+    let filter;
+    let filterInactive = true;
+
+    try {
+        filter = Array.from(JSON.parse(decodeURIComponent($("#filterOpts").attr("data-filter"))));
+        console.log(filter);
+        if(!Array.isArray(filter)){
+            throw new Error("invalid url filter params");
+        }
+    } catch {
+        filter = [];
+    }
+
+
+   $("#stageFilterDropdown").on("change", "input[type='checkbox']", function() {
+        $(this).closest("li").toggleClass("active", this.checked);
+
+
+        let stageType = $(this).attr("data-stagetype");
+        if(this.checked){
+            filter.push(stageType);
+        } else {
+            //remove from filter
+            let index = filter.indexOf(stageType);
+            if(index > -1){
+                filter.splice(index, 1);
+            }
+        }
+        update();
+    });
+
+    update();
+    function update() {
+        console.log(filter)
+        if(filter.length < 1){
+            filterInactive = true;
+        } else {
+            filterInactive = false;
+        }
+        updateChecklist();
+        updateFilterButtons();
+        runFilter();
+
+        if(filterInactive){
+            $("#activeFiltersLabel").css("display", "none")
+        } else {
+            $("#activeFiltersLabel").css("display", "block")
+        }
+    }
+
+    //set tabs visible by filter
+    function runFilter(){
+         $("#stageTabs").children().each(function() {
+            let stageType = $(this).attr("data-stagetype");
+            if(filter.includes(stageType) || filterInactive){
+                this.style.display = "block";
+            } else {
+                this.style.display = "none";
+            }
+        })
+
+        /// styling to button based on filter active or not
+        $("#stageFilterButton").toggleClass("btn-primary", !filterInactive);
+        updateUrl();
+    }
+
+    //uncheck all filter boxes and turn filter off
+    function clearFilter(){
+        filter=[];
+        update();
+    }
+
+    function updateChecklist(){
+        $('#stageFilterDropdown > ul').children().each(function() {
+            let k = $(this).find("input:first");
+            if(filter.includes(k.attr("data-stagetype"))){
+                k.prop("checked", true);
+                $(this).addClass("active");
+            } else {
+                k.prop("checked", false);
+                $(this).removeClass("active");
+            }
+        })
+    }
+
+    function updateFilterButtons() {
+        $('#filterTabs').children().each(function() {
+            let k = $(this).find("button:first");
+            if(filter.includes(k.attr("data-stagetype"))){
+                k.css("display", "block");
+            } else {
+                k.css("display", "none");
+            }
+        })
+
+    }
+
+    function updateFilterSingle(btn){
+        let stageType = $(btn).attr("data-stagetype");
+        let index = filter.indexOf(stageType);
+        if(index > -1){
+            filter.splice(index, 1);
+        }
+
+        update();
+    }
+
+    //update filter param in url as it changes
+    function updateUrl(){
+        let url = new URL(window.location.href);
+        if(filter.length < 1){
+            url.searchParams.delete("stageFilter");
+        } else {
+            url.searchParams.set("stageFilter", JSON.stringify(filter));
+        }
+            window.history.replaceState(null,null,url);
+    }
+
+    //intercept and add filter parameter to link
+    function callback(e, anchor){
+        if(!filterInactive){
+            e.preventDefault();
+            let url = new URL(anchor.href);
+            url.searchParams.set("stageFilter", JSON.stringify(filter));
+            window.location.href=url;
+        }
+    }
+</script>
