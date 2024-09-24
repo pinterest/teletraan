@@ -25,7 +25,6 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.EnvoyAuthFilter;
 import com.pinterest.teletraan.universal.security.EnvoyAuthenticator;
 import com.pinterest.teletraan.universal.security.PinDeployPipelinePrincipalReplacer;
-import com.pinterest.teletraan.universal.security.PrincipalReplacer;
 import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.dropwizard.auth.AuthFilter;
@@ -45,10 +44,16 @@ public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
-        PrincipalReplacer principalReplacer =
-                new PinDeployPipelinePrincipalReplacer(ImmutableList.copyOf(pinDeploySpiffeIds));
-        Authenticator<EnvoyCredentials, TeletraanPrincipal> authenticator =
-                new EnvoyAuthenticator(ImmutableList.of(principalReplacer));
+        Authenticator<EnvoyCredentials, TeletraanPrincipal> authenticator;
+        if (pinDeploySpiffeIds != null && !pinDeploySpiffeIds.isEmpty()) {
+            authenticator =
+                    new EnvoyAuthenticator(
+                            ImmutableList.of(
+                                    new PinDeployPipelinePrincipalReplacer(
+                                            ImmutableList.copyOf(pinDeploySpiffeIds))));
+        } else {
+            authenticator = new EnvoyAuthenticator();
+        }
 
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
             MetricRegistry registry = SharedMetricRegistries.getDefault();
