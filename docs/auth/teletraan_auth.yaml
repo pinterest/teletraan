@@ -87,6 +87,7 @@ definitions:
           - HOTFIX
           - HOST
           - PROVISION_PREFIX
+          - INSTANCE_TYPE_MAPPING
           - UNSPECIFIED
       resourceName:
         type: string
