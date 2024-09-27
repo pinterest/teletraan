@@ -197,7 +197,7 @@
                                 type="button"
                                 class="deployToolTip host-btn btn-default {{ agentStat|hostButtonHtmlClass }}"
                                 title="{% if agentStat.isStale %}Stale agent. Last recorded state: {% endif %}{{ agentStat|hostTooltipTitle }}">
-                                    <small>{{ agentStat.agent.hostName }}-{{agentStat.agent.state}}</small>
+                                    <small>{{ agentStat.agent.hostName }}</small>
                                     <i class="{{ agentStat|hostHealthcheckIcon }}"></i>
                                 </a>
                             {% else %}
