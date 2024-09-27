@@ -595,8 +595,8 @@ Vue.component('backup-hosttypes', {
         },
         backupTypesWarning: function () {
             const part1 = "You should only enable this feature with capacity-eng approval. ";
-            const part2 = "Your enable/disable operation on this feature triggers a notification to capacity-eng.";
-            const part3 = "For all the instance type mapping information, please go to <a target=\"_blank\">https://deploy.pinadmin.com/clouds/hosttypesmapping</a>";
+            const part2 = "Your enable/disable operation on this feature triggers a notification to capacity-eng. ";
+            const part3 = "For all the instance type mapping information, please go to https://deploy.pinadmin.com/clouds/hosttypesmapping";
             const text = part1 + part2 + part3;
             return text;
         }
