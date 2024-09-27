@@ -20,6 +20,7 @@ from django.conf import settings
 from django import template
 from datetime import datetime, timedelta
 from collections import Mapping
+import random
 import time
 from math import trunc
 import pytz
@@ -618,30 +619,29 @@ def agentButton(agentStats):
 # yellow dotted spinning = stop
 # diagonal lines through, muted = stale
 
-# import random
-# @register.filter
-# def _pick_random_state(agentStat):
-#     states = [
-#         "PAUSED_BY_SYSTEM",
-#         "PAUSED_BY_USER",
-#         "DELETE",
-#         "RESET",
-#         "STOP",
-#         "UNREACHABLE"
-#     ] + ["ACTIVE"]*10
-#     agentStat.agent['state'] = random.choice(states)
-#     agentStat.isCurrent = True
-#     return agentStat
+@register.filter
+def _pick_random_state(agentStat):
+    states = [
+        "PAUSED_BY_SYSTEM",
+        "PAUSED_BY_USER",
+        "DELETE",
+        "RESET",
+        "STOP",
+        "UNREACHABLE"
+    ] + ["ACTIVE"]*5
+    agentStat.agent['state'] = random.choice(states)
+    agentStat.isCurrent = True
+    return agentStat
 
-# @register.filter
-# def _pick_random_healthcheck(agentStat):
-#     healthcheckStatus = [
-#         "healthy",
-#         "unhealthy",
-#         ""
-#     ]
-#     agentStat.agent['containerHealthStatus'] = random.choice(healthcheckStatus)
-#     return agentStat
+@register.filter
+def _pick_random_healthcheck(agentStat):
+    healthcheckStatus = [
+        "healthy",
+        "unhealthy",
+        ""
+    ]
+    agentStat.agent['containerHealthStatus'] = random.choice(healthcheckStatus)
+    return agentStat
 
 def _is_agent_failed(agent) -> bool:
     return agent['status'] != "SUCCEEDED" and agent['status'] != "UNKNOWN" or agent['state'] == "PAUSED_BY_SYSTEM"

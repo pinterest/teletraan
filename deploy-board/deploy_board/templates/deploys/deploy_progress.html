@@ -193,7 +193,7 @@
                             </a>
                         {% elif report.account == "all" %}
                             {% if report.showMode == "containerStatus" %}
-                            {% comment %} {%with agentStat=agentStat|_pick_random_state|_pick_random_healthcheck%} {% endcomment %}
+                            {%with agentStat=agentStat|_pick_random_state|_pick_random_healthcheck%}
                                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ agentStat.agent.hostName }}"
                                 type="button"
                                 class="deployToolTip host-btn btn-default {{ agentStat|hostButtonHtmlClass }}"
@@ -201,7 +201,7 @@
                                     <small>{{ agentStat.agent.hostName }}-{{agentStat.agent.state}}</small>
                                     <i class="{{ agentStat|hostHealthcheckIcon }}"></i>
                                 </a>
-                            {% comment %} {% endwith %} {% endcomment %}
+                            {% endwith %}
                             {% else %}
                                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ agentStat.agent.hostName }}"
                                 type="button"
