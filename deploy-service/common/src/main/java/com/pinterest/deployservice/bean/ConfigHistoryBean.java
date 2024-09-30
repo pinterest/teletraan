@@ -18,7 +18,7 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-public class ConfigHistoryBean implements Updatable {
+public class ConfigHistoryBean extends BaseBean implements Updatable {
     @JsonProperty("id")
     private String config_id;
 
@@ -62,7 +62,7 @@ public class ConfigHistoryBean implements Updatable {
     }
 
     public void setOperator(String operator) {
-        this.operator = operator;
+        this.operator = getStringWithSizeLimit(operator, 64);
     }
 
     public String getOperator() {

@@ -17,7 +17,7 @@ package com.pinterest.deployservice.bean;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-public class DataBean implements Updatable {
+public class DataBean extends BaseBean implements Updatable {
     private String data_id;
     // TODO deprecate data_kind, we should use json all the time
     private String data_kind;
@@ -46,7 +46,7 @@ public class DataBean implements Updatable {
     }
 
     public void setOperator(String operator) {
-        this.operator = operator;
+        this.operator = getStringWithSizeLimit(operator, 64);
     }
 
     public String getData() {

@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.quartz.CronExpression;
 
-public class PromoteBean implements Updatable, Serializable {
+public class PromoteBean extends BaseBean implements Updatable, Serializable {
     @JsonProperty("envId")
     private String env_id;
 
@@ -71,7 +71,7 @@ public class PromoteBean implements Updatable, Serializable {
     }
 
     public void setLast_operator(String last_operator) {
-        this.last_operator = last_operator;
+        this.last_operator = getStringWithSizeLimit(last_operator, 64);
     }
 
     public Long getLast_update() {

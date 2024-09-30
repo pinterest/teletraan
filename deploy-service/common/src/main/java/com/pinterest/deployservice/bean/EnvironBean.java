@@ -22,7 +22,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.validator.constraints.Range;
 
-public class EnvironBean implements Updatable, Serializable {
+public class EnvironBean extends BaseBean implements Updatable, Serializable {
     @JsonProperty("id")
     private String env_id;
 
@@ -309,7 +309,7 @@ public class EnvironBean implements Updatable, Serializable {
     }
 
     public void setLast_operator(String last_operator) {
-        this.last_operator = last_operator;
+        this.last_operator = getStringWithSizeLimit(last_operator, 64);
     }
 
     public Long getLast_update() {
