@@ -12,7 +12,7 @@ public class BaseBean {
      * @return the trimmed string if the input string's length exceeds the limit,
      *         otherwise the original string
      */
-    protected String getStringWithSizeLimit(String value, int limit) {
+    protected String getStringWithinSizeLimit(String value, int limit) {
         if (value != null && value.length() > limit) {
             return value.substring(value.length() - limit, value.length());
         }

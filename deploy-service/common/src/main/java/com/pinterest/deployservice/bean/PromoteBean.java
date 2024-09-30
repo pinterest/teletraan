@@ -71,7 +71,7 @@ public class PromoteBean extends BaseBean implements Updatable, Serializable {
     }
 
     public void setLast_operator(String last_operator) {
-        this.last_operator = getStringWithSizeLimit(last_operator, 64);
+        this.last_operator = getStringWithinSizeLimit(last_operator, 64);
     }
 
     public Long getLast_update() {

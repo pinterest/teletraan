@@ -145,7 +145,7 @@ public class HotfixBean extends BaseBean implements Updatable {
     }
 
     public void setOperator(String operator) {
-        this.operator = getStringWithSizeLimit(operator, 32);
+        this.operator = getStringWithinSizeLimit(operator, 32);
     }
 
     public Long getStart_time() {

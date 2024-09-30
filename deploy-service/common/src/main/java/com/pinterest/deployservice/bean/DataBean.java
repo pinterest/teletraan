@@ -46,7 +46,7 @@ public class DataBean extends BaseBean implements Updatable {
     }
 
     public void setOperator(String operator) {
-        this.operator = getStringWithSizeLimit(operator, 64);
+        this.operator = getStringWithinSizeLimit(operator, 64);
     }
 
     public String getData() {
