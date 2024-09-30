@@ -657,7 +657,7 @@ def hostTooltipTitle(agentStat: AgentStatistics) -> str:
     elif state == "DELETE":
         return "Agent is removed from the current environment"
     elif state == "UNREACHABLE":
-        return "Agent is unreachable after not responding to ping from teletraan server"
+        return "Agent is unreachable after not pinging Teletraan control plane within the threshold"
     elif state == "STOP":
         return "Agent is gracefully shutting down the service"
     elif state == "RESET":
