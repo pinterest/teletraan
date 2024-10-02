@@ -18,7 +18,7 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-public class AgentBean implements Updatable {
+public class AgentBean extends BaseBean implements Updatable {
 
     @JsonProperty("hostId")
     private String host_id;
@@ -161,7 +161,7 @@ public class AgentBean implements Updatable {
     }
 
     public void setLast_operator(String last_operator) {
-        this.last_operator = last_operator;
+        this.last_operator = getStringWithinSizeLimit(last_operator, 64);
     }
 
     public Boolean getFirst_deploy() {

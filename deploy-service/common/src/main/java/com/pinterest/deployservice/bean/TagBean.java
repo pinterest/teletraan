@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.beans.Transient;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-public class TagBean implements Updatable {
+public class TagBean extends BaseBean implements Updatable {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 

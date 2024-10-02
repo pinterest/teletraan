@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.universal.security;
 
+import com.google.common.collect.ImmutableList;
 import com.pinterest.teletraan.universal.security.AuthMetricsFactory.PrincipalType;
 import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
@@ -24,38 +25,48 @@ import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import io.micrometer.core.instrument.Counter;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 /** An authenticator for Envoy credentials. */
+@NoArgsConstructor
+@AllArgsConstructor
 public class EnvoyAuthenticator implements Authenticator<EnvoyCredentials, TeletraanPrincipal> {
-    private final Counter envoyAuthUserSuccessCounter;
-    private final Counter envoyAuthServiceSuccessCounter;
-    private final Counter envoyAuthFailureCounter;
-
-    public EnvoyAuthenticator() {
-        envoyAuthUserSuccessCounter =
-                AuthMetricsFactory.createAuthNCounter(
-                        EnvoyAuthenticator.class, true, PrincipalType.USER);
-        envoyAuthServiceSuccessCounter =
-                AuthMetricsFactory.createAuthNCounter(
-                        EnvoyAuthenticator.class, true, PrincipalType.SERVICE);
-        envoyAuthFailureCounter =
-                AuthMetricsFactory.createAuthNCounter(
-                        EnvoyAuthenticator.class, false, PrincipalType.NA);
-    }
+    private final Counter envoyAuthUserSuccessCounter =
+            AuthMetricsFactory.createAuthNCounter(
+                    EnvoyAuthenticator.class, true, PrincipalType.USER);
+    private final Counter envoyAuthServiceSuccessCounter =
+            AuthMetricsFactory.createAuthNCounter(
+                    EnvoyAuthenticator.class, true, PrincipalType.SERVICE);
+    private final Counter envoyAuthFailureCounter =
+            AuthMetricsFactory.createAuthNCounter(
+                    EnvoyAuthenticator.class, false, PrincipalType.NA);
+    /**
+     * List of principal replacers to be applied to the authenticated principal.
+     *
+     * <p>The default value is an empty list. Note that the order of the replacers matters.
+     */
+    private ImmutableList<PrincipalReplacer> principalReplacers = ImmutableList.of();
 
     @Override
     public Optional<TeletraanPrincipal> authenticate(EnvoyCredentials credentials)
             throws AuthenticationException {
+        TeletraanPrincipal principal = null;
         if (StringUtils.isNotBlank(credentials.getUser())) {
             envoyAuthUserSuccessCounter.increment();
-            return Optional.of(new UserPrincipal(credentials.getUser(), credentials.getGroups()));
-        }
-        if (StringUtils.isNotBlank(credentials.getSpiffeId())) {
+            principal = new UserPrincipal(credentials.getUser(), credentials.getGroups());
+        } else if (StringUtils.isNotBlank(credentials.getSpiffeId())) {
             envoyAuthServiceSuccessCounter.increment();
-            return Optional.of(new ServicePrincipal(credentials.getSpiffeId()));
+            principal = new ServicePrincipal(credentials.getSpiffeId());
+        } else {
+            envoyAuthFailureCounter.increment();
         }
-        envoyAuthFailureCounter.increment();
-        return Optional.empty();
+
+        for (PrincipalReplacer replacer : principalReplacers) {
+            principal = replacer.replace(principal, credentials);
+        }
+
+        return Optional.ofNullable(principal);
     }
 }

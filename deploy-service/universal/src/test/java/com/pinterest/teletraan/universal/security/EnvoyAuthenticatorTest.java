@@ -18,7 +18,12 @@ package com.pinterest.teletraan.universal.security;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
 import com.pinterest.teletraan.universal.security.AuthMetricsFactory.PrincipalType;
 import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
@@ -91,6 +96,25 @@ class EnvoyAuthenticatorTest {
         assertFalse(result.isPresent());
 
         assertCounterValue(false, 1.0, PrincipalType.NA);
+    }
+
+    @Test
+    void testAuthenticate_withPrincipalReplacers() throws AuthenticationException {
+        EnvoyCredentials credentials = new EnvoyCredentials(USER_NAME, null, null);
+        PrincipalReplacer replacer = mock(PrincipalReplacer.class);
+        when(replacer.replace(any(), eq(credentials)))
+                .thenReturn(new UserPrincipal(USER_NAME + "_replaced", null));
+        EnvoyAuthenticator authenticator = new EnvoyAuthenticator(ImmutableList.of(replacer));
+
+        Optional<TeletraanPrincipal> result = authenticator.authenticate(credentials);
+
+        assertTrue(result.isPresent());
+        assertTrue(result.get() instanceof UserPrincipal);
+
+        UserPrincipal userPrincipal = (UserPrincipal) result.get();
+        assertEquals(USER_NAME + "_replaced", userPrincipal.getName());
+
+        assertCounterValue(true, 1.0, PrincipalType.USER);
     }
 
     private void assertCounterValue(Boolean success, double expected, PrincipalType type) {

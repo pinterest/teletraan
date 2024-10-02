@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotEmpty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-public class HotfixBean implements Updatable {
+public class HotfixBean extends BaseBean implements Updatable {
     private String id;
 
     @NotEmpty
@@ -145,7 +145,7 @@ public class HotfixBean implements Updatable {
     }
 
     public void setOperator(String operator) {
-        this.operator = operator;
+        this.operator = getStringWithinSizeLimit(operator, 32);
     }
 
     public Long getStart_time() {

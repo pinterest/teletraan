@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.SecurityContext;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -58,17 +59,17 @@ public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCreden
      */
     @Nullable
     private EnvoyCredentials getCredentials(ContainerRequestContext requestContext) {
-        String user = requestContext.getHeaders().getFirst(Constants.USER_HEADER);
-        String spiffeId =
-                getSpiffeId(requestContext.getHeaders().getFirst(Constants.CLIENT_CERT_HEADER));
-        List<String> groups =
-                getGroups(requestContext.getHeaders().getFirst(Constants.GROUPS_HEADER));
+        MultivaluedMap<String, String> headers = requestContext.getHeaders();
+        String user = headers.getFirst(Constants.USER_HEADER);
+        String spiffeId = getSpiffeId(headers.getFirst(Constants.CLIENT_CERT_HEADER));
+        List<String> groups = getGroups(headers.getFirst(Constants.GROUPS_HEADER));
+        String pipelineId = headers.getFirst(Constants.PINDEPLOY_PIPELINE_HEADER);
 
         if (StringUtils.isBlank(spiffeId) && StringUtils.isBlank(user)) {
             return null;
         }
 
-        return new EnvoyCredentials(user, spiffeId, groups);
+        return new EnvoyCredentials(user, spiffeId, groups, pipelineId);
     }
 
     /**

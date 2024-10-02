@@ -98,6 +98,14 @@ db:
   # (Optional)OAuth token cache
   #tokenCacheSpec: maximumSize=1000,expireAfterWrite=10m
 
+  # pinDeploySpiffeIds:
+  #   - spiffe://pin220.com/teletraan/spin-orca/dev
+  #   - spiffe://pin220.com/teletraan/spin-orca/staging
+  #   - spiffe://pin220.com/teletraan/spin-orca/prod
+  #   - spiffe://pin220.com/teletraan/spin-keel/dev
+  #   - spiffe://pin220.com/teletraan/spin-keel/staging
+  #   - spiffe://pin220.com/teletraan/spin-keel/prod
+
 #
 # Token based Authorization: by default is disabled.
 #
