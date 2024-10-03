@@ -271,6 +271,7 @@ class ClusterConfigurationView(View):
         provider_list = baseimages_helper.get_all_providers(request)
         asg_cluster = autoscaling_groups_helper.get_group_info(request, current_cluster['clusterName'])
         current_cluster['asg_info'] = asg_cluster
+        is_infra_as_code = True
 
         capacity_creation_info = {
             'environment': env,
@@ -311,7 +312,8 @@ class ClusterConfigurationView(View):
             'puppet_repository': PUPPET_CONFIG_REPOSITORY,
             'puppet_hiera_paths': PUPPET_HIERA_PATHS,
             'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
-            'disable_backup_instance_types': TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES
+            'disable_backup_instance_types': TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES,
+            'is_infra_as_code': is_infra_as_code
         })
 
     def post(self, request, name, stage):
