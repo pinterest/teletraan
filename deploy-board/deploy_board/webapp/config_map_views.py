@@ -63,9 +63,11 @@ class EnvConfigMapView(View):
         # otherwise, return a page
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = get_all_stages(envs, stage)
+
         return render(request, 'configs/config_map.html', {
             "envs": envs,
             "env": env,
+            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
             "stages": stages,
             "configs": configs,
             "customization": CUSTOMIZATION[flavor],

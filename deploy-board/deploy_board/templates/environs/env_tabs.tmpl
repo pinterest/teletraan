@@ -38,16 +38,15 @@
             {% endfor %}
         </ul>
     </div>
-        <ul id="stageTabs" class="nav nav-tabs" style="padding-right:40px;">
-            {% for stage in envs %}
-                <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
-                    <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
-                    onclick="callback(event, this)"
-                    href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    <div id="filterOpts" data-filter="{{stagetype_filter}}" />
+    <ul id="stageTabs" class="nav nav-tabs" style="padding-right:40px;">
+        {% for stage in envs %}
+            <li data-stagetype="{{stage.stageType}}" {% if stage.stageName == env.stageName %}class="active"{% endif %}>
+                <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{stage.description}}" data-placement="bottom"
+                onclick="callback(event, this)"
+                href="/env/{{ env.envName }}/{{ stage.stageName }}/{{ envTabKind }}">{{ stage.stageName }}</a>
+            </li>
+        {% endfor %}
+    </ul>
 </div>
 
 
@@ -56,8 +55,7 @@
     let filterInactive = true;
 
     try {
-        filter = Array.from(JSON.parse(decodeURIComponent($("#filterOpts").attr("data-filter"))));
-        console.log(filter);
+        filter = JSON.parse(getUrlParameter("stageFilter"))
         if(!Array.isArray(filter)){
             throw new Error("invalid url filter params");
         }
@@ -85,7 +83,6 @@
 
     update();
     function update() {
-        console.log(filter)
         if(filter.length < 1){
             filterInactive = true;
         } else {
@@ -161,13 +158,62 @@
 
     //update filter param in url as it changes
     function updateUrl(){
-        let url = new URL(window.location.href);
+        let url = new URL(window.location.href)
+        let newUrl;
         if(filter.length < 1){
-            url.searchParams.delete("stageFilter");
+            newUrl = deleteParam(url, "stageFilter")
         } else {
-            url.searchParams.set("stageFilter", JSON.stringify(filter));
+            newUrl = setParam(url, "stageFilter", JSON.stringify(filter))
         }
-            window.history.replaceState(null,null,url);
+        window.history.replaceState(null,null,newUrl);
+    }
+
+    function setParam(url, name, val){
+        let searchString = url.search.substring(1);
+        let vars = searchString.split("&")
+        let modifiedString = "?"
+        let set= false;
+
+        for(let i=0; i < vars.length; i++){
+            if(i>0){
+                modifiedString+="&"
+            }
+            let currParam = vars[i].split('=');
+            if(currParam[0] === name){
+                modifiedString+=name
+                modifiedString+= "=" + encodeURIComponent(val)
+                set=true;
+            } else {
+                modifiedString+=vars[i]
+            }
+        }
+        if(!set){
+            if(modifiedString.length>1){
+                modifiedString+="&"
+            }
+            modifiedString+=name
+            modifiedString+="="+encodeURIComponent(val)
+        }
+        url.search=modifiedString;
+        return url
+    }
+
+    function deleteParam(url, name){
+        let searchString = url.search.substring(1);
+        let vars = searchString.split("&")
+        let modifiedString = "?"
+
+        for(let i=0; i < vars.length; i++){
+           let currParam = vars[i].split('=');
+           if(currParam[0]!==name){
+                if(modifiedString.length>1){
+                    modifiedString+="&"
+                }
+                modifiedString+=vars[i]
+           }
+        }
+        url.search=modifiedString;
+        return url
     }
 
     //intercept and add filter parameter to link
@@ -175,8 +221,8 @@
         if(!filterInactive){
             e.preventDefault();
             let url = new URL(anchor.href);
-            url.searchParams.set("stageFilter", JSON.stringify(filter));
-            window.location.href=url;
+            let newUrl = setParam(url,"stageFilter", JSON.stringify(filter));
+            window.location.href=newUrl;
         }
     }
 </script>
