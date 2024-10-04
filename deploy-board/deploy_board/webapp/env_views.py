@@ -126,6 +126,7 @@ def logging_status(request, name, stage):
 
     html = render_to_string('deploys/deploy_logging_check_landing.tmpl', {
         "envs": envs,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "csrf_token": get_token(request),
         "panel_title": "Kafka logging for %s (%s)" % (name, stage),
         "env": env,
@@ -444,7 +445,6 @@ class EnvLandingView(View):
 
         asg_suspended_processes = _get_asg_suspended_processes(request, env) or []
 
-        stagetype_filter = request.GET.get('stageFilter', [])
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -454,7 +454,6 @@ class EnvLandingView(View):
                 "envs": envs,
                 "env": env,
                 "all_stage_types": sorted(environs_helper.STAGE_TYPES),
-                "stagetype_filter": stagetype_filter,
                 "env_promote": env_promote,
                 "stages": stages,
                 "metrics": metrics,
@@ -551,7 +550,6 @@ class EnvLandingView(View):
                 "envs": envs,
                 "env": env,
                 "all_stage_types": sorted(environs_helper.STAGE_TYPES),
-                "stagetype_filter": stagetype_filter,
                 "env_promote": env_promote,
                 "stages": stages,
                 "report": report,
@@ -941,6 +939,7 @@ def get_env_deploys(request, name, stage):
         return render(request, 'environs/env_history.html', {
             "envs": envs,
             "env": env,
+            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
             "stages": stages,
             "deploy_summaries": [],
             "filter_title": filter_title,
@@ -976,6 +975,7 @@ def get_env_deploys(request, name, stage):
     return render(request, 'environs/env_history.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stages": stages,
         "deploy_summaries": deploy_summaries,
         "filter_title": filter_title,
@@ -1466,6 +1466,7 @@ def get_hosts(request, name, stage):
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stage": stage,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -1493,6 +1494,7 @@ def get_hosts_by_deploy(request, name, stage, deploy_id):
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
@@ -1577,6 +1579,7 @@ def get_unknown_hosts(request, name, stage):
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
@@ -1595,6 +1598,7 @@ def get_provisioning_hosts(request, name, stage):
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
@@ -1613,6 +1617,7 @@ def get_all_hosts(request, name, stage):
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
@@ -1633,6 +1638,7 @@ def get_failed_hosts(request, name, stage):
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
@@ -1668,6 +1674,7 @@ def get_sub_account_hosts(request, name, stage):
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
+        "all_stage_types": sorted(environs_helper.STAGE_TYPES),
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,

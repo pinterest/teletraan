@@ -57,6 +57,7 @@ class EnvConfigView(View):
         return render(request, 'configs/env_config.html', {
             "envs": envs,
             "env": env,
+            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
             "stages": stages,
             "show_remove": show_remove,
             "pinterest": IS_PINTEREST,

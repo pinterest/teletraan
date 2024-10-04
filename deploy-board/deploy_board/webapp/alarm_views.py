@@ -40,9 +40,11 @@ class EnvAlarmView(View):
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
+
         return render(request, 'configs/alarm_config.html', {
             "envs": envs,
             "env": env,
+            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
             "stages": stages,
             "alarms": alarms,
         })

@@ -141,7 +141,7 @@
 
     jQuery(function(){
         var maxCheckedAllowed = 2;
-        var checkboxes = $('input[type="checkbox"]');
+        var checkboxes = $("#deployHistoryTableId").find('input[type="checkbox"]');
             checkboxes.change(function(){
                 var numChecked = checkboxes.filter(':checked').length;
                 checkboxes.filter(':not(:checked)').prop('disabled', numChecked >= maxCheckedAllowed);

@@ -90,11 +90,13 @@ class EnvCapacityConfigView(View):
         stages, env = get_all_stages(envs, stage)
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
         groups = get_env_groups(request, name, stage)
+
         if cluster_name in groups:
             groups.remove(cluster_name)
         data = {
             "envs": envs,
             "env": env,
+            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
             "stages": stages,
             "hosts": hosts,
             "groups": groups,

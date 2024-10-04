@@ -55,6 +55,56 @@ function getUrlParameter(sParam) {
         }
     }
 }
+function setUrlParameter(url, name, val){
+    let searchString = url.search.substring(1);
+    let vars = searchString.split("&")
+    let modifiedString = "?"
+    let set= false;
+
+    for(let i=0; i < vars.length; i++){
+        if(i>0){
+            modifiedString+="&"
+        }
+        let currParam = vars[i].split('=');
+        if(currParam[0] === name){
+            modifiedString+=name
+            modifiedString+= "=" + encodeURIComponent(val)
+            set=true;
+        } else {
+            modifiedString+=vars[i]
+        }
+    }
+    if(!set){
+        if(modifiedString.length>1){
+            modifiedString+="&"
+        }
+        modifiedString+=name
+        modifiedString+="="+encodeURIComponent(val)
+    }
+    url.search=modifiedString;
+    return url
+}
+
+function deleteUrlParameter(url, name){
+    let searchString = url.search.substring(1);
+    let vars = searchString.split("&")
+    let modifiedString = "?"
+
+    for(let i=0; i < vars.length; i++){
+        let currParam = vars[i].split('=');
+        if(currParam[0]!==name){
+            if(modifiedString.length>1){
+                modifiedString+="&"
+            }
+            modifiedString+=vars[i]
+        }
+    }
+    url.search=modifiedString;
+    return url
+}
+
+
+
 
 function getRemainingCapacity(capacityInfo, placementList) {
     if (!capacityInfo || !placementList) {

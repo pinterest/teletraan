@@ -46,6 +46,7 @@ class EnvMetricsView(View):
         return render(request, 'configs/metrics_config.html', {
             "envs": envs,
             "env": env,
+            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
             "stages": stages,
             "metrics": metrics,
         })

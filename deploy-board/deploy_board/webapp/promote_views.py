@@ -47,9 +47,11 @@ class EnvPromoteConfigView(View):
             return HttpResponse(json.dumps({'html': html}), content_type="application/json")
 
         # otherwise, return a page
+
         return render(request, 'configs/promote_config.html', {
             "envs": envs,
             "env": env,
+            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
             "stages": stages,
             "stage_names": stage_names,
             "env_promote": env_promote,
