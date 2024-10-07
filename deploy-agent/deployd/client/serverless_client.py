@@ -26,7 +26,7 @@ from deployd.types.ping_response import PingResponse
 
 log: logging.Logger = logging.getLogger(__name__)
 
-_DEPLOY_STAGE_TRANSITIONS = dict([(i, i+1) for i in range(DeployStage.PRE_DOWNLOAD, DeployStage.SERVING_BUILD)])
+_DEPLOY_STAGE_TRANSITIONS = { DeployStage(i).value : DeployStage(i+1).value for i in range(DeployStage.PRE_DOWNLOAD.value, DeployStage.SERVING_BUILD.value) }
 
 
 class ServerlessClient(BaseClient):
@@ -38,7 +38,7 @@ class ServerlessClient(BaseClient):
       PRE_DOWNLOAD->DOWNLOADING->POST_DOWNLOAD->STAGING->PRE_RESTART
           ->RESTARTING->POST_RESTART->SERVING_BUILD
     """
-    def __init__(self, env_name, stage, build, script_variables, deploy_stage: Optional[DeployStage] = None) -> None:
+    def __init__(self, env_name, stage, build, script_variables, deploy_stage: Optional[int] = None) -> None:
         """build contains build information in json format. It contains information defined in types/build.py.
         """
         self._env_name: str = utils.check_not_none(env_name, 'env_name can not be None')
@@ -47,7 +47,7 @@ class ServerlessClient(BaseClient):
         
         self._script_variables: dict[str, str] = json.loads(utils.check_not_none(script_variables, 'script_variables can not be None'))
         self._deploy_id: str = uuid.uuid4().hex
-        self._deploy_stage: DeployStage = deploy_stage if deploy_stage is not None else DeployStage.PRE_DOWNLOAD
+        self._deploy_stage: int = deploy_stage if deploy_stage is not None else DeployStage.PRE_DOWNLOAD.value
 
     def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         reports: list = [status.report for status in env_reports.values()]
@@ -71,11 +71,11 @@ class ServerlessClient(BaseClient):
         if report.errorCode != 0:
             # terminate the deployment.
             return None
-        numeric_deploy_stage = DeployStage._NAMES_TO_VALUES[report.deployStage] 
+        numeric_deploy_stage = DeployStage[report.deployStage].value
         if report.status == AgentStatus.SUCCEEDED:
             # check if this is the last deploy stage.
-            if numeric_deploy_stage == DeployStage.SERVING_BUILD:
-                return PingResponse({'opCode': OperationCode.NOOP})
+            if DeployStage(numeric_deploy_stage) == DeployStage.SERVING_BUILD:
+                return PingResponse({'opCode': OperationCode.NOOP.value})
 
             # move to next deploy stage
             next_deploy_stage = _DEPLOY_STAGE_TRANSITIONS.get(numeric_deploy_stage)
@@ -88,14 +88,14 @@ class ServerlessClient(BaseClient):
         # terminate deployment
         return None
 
-    def _new_response_value(self, numeric_deploy_stage) -> PingResponse:
-        value= {'opCode': OperationCode.DEPLOY,
+    def _new_response_value(self, numeric_deploy_stage: int) -> PingResponse:
+        value= {'opCode': OperationCode.DEPLOY.value,
                 'deployGoal': {'deployId': self._deploy_id,
                                'envId': self._env_id,
                                'envName': self._env_name,
                                'stageName': self._stage,
                                'build': self._build,
                                'deployStage': numeric_deploy_stage}}
-        if numeric_deploy_stage == DeployStage.PRE_DOWNLOAD:
+        if DeployStage(numeric_deploy_stage) == DeployStage.PRE_DOWNLOAD:
             value['deployGoal']['scriptVariables'] = self._script_variables
         return PingResponse(jsonValue=value)

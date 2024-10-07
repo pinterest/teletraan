@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import enum
 
 
-class DeployType(object):
+class DeployType(enum.Enum):
     # Regular deploy
     REGULAR = 0
     # Special deploy which should go fast
@@ -24,19 +25,3 @@ class DeployType(object):
     RESTART = 3
     # Special deploy to stop service
     STOP = 4
-
-    _VALUES_TO_NAMES = {
-        0: "REGULAR",
-        1: "HOTFIX",
-        2: "ROLLBACK",
-        3: "RESTART",
-        4: "STOP",
-    }
-
-    _NAMES_TO_VALUES = {
-        "REGULAR": 0,
-        "HOTFIX": 1,
-        "ROLLBACK": 2,
-        "RESTART": 3,
-        "STOP": 4,
-    }
