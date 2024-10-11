@@ -99,6 +99,7 @@
                         </label>
                         <div class="col-md-6">
                             <select class="form-control" name="thirdHostType" required id="thirdHostType">
+                                <option value="None">None</option>
                                 {% for type in hosttype_list %}
                                     <option value="{{ type.provider_name }}" >{{ type.provider_name }}</option>
                                 {% endfor %}
