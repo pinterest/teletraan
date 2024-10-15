@@ -665,7 +665,10 @@ def create_host_type_mapping(request):
     params = request.POST
     host_type_mapping_info = {}
     host_type_mapping_info['defaultId'] = params['defaultHostType']
-    host_type_mapping_info['backupIds'] = [params['secondHostType'], params['thirdHostType']]
+    if params["thirdHostType"] == "None":
+        host_type_mapping_info['backupIds'] = [params['secondHostType']]
+    else:
+        host_type_mapping_info['backupIds'] = [params['secondHostType'], params['thirdHostType']]
     hosttypesmapping_helper.create_host_type_mapping(request, host_type_mapping_info)
     return redirect('/clouds/hosttypesmapping/')
 
@@ -674,7 +677,10 @@ def modify_host_type_mapping(request):
     try:
         host_type_mapping_info = json.loads(request.body)
         updated_info = {}
-        updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
+        if host_type_mapping_info['thirdHostType'] == "None":
+            updated_info['backupIds'] = [host_type_mapping_info['secondHostType']]
+        else:
+            updated_info['backupIds'] = [host_type_mapping_info['secondHostType'], host_type_mapping_info['thirdHostType']]
         host_type_id = host_type_mapping_info['id']
         updated_info['defaultId'] = host_type_mapping_info['id']
 
