@@ -119,20 +119,6 @@
                         />
                     </div>
                 </fieldset>
-                {% if is_managed_resource %}
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const checkbox = document.getElementById('isManagedResourceCheckboxId');
-                        const fieldset = document.getElementById('clusterConfigFieldSetId');
-                        const submitBtn = document.getElementById('saveEnvCapacityBtnId');
-
-                        checkbox.addEventListener('change', function() {
-                            fieldset.disabled = !!checkbox.checked;
-                            submitBtn.disabled = !!checkbox.checked;
-                        });
-                    });
-                </script>
-                {% endif %}
             </form>
         </div>
     </div>
@@ -148,7 +134,20 @@
         </div>
     </div>
 </div>
+{% if is_managed_resource %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('isManagedResourceCheckboxId');
+        const fieldset = document.getElementById('clusterConfigFieldSetId');
+        const submitBtn = document.getElementById('saveEnvCapacityBtnId');
 
+        checkbox.addEventListener('change', function() {
+            fieldset.disabled = !!checkbox.checked;
+            submitBtn.disabled = !!checkbox.checked;
+        });
+    });
+</script>
+{% endif %}
 <script>
 /**
  * Chartist.js plugin that generates visually hidden tables for better accessibility. It's also possible to initialize a Chart with data from an existing table.
