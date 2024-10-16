@@ -64,13 +64,13 @@
     <div id="envCapacityId" class="collapse in panel-body" v-on:show.bs.collapse="showcontent" v-on:hide.bs.collapse="hidecontent">
         <div class="container-fluid">
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
-                {% if is_infra_as_code %}
+                {% if is_managed_resource %}
                 <div>
-                    <label for="isInfraAsCodeCheckboxId">Teletraan IaC</label>
-                    <input type="checkbox" id="isInfraAsCodeCheckboxId" {% if is_infra_as_code %}checked{% endif %}>
+                    <label for="isManagedResourceCheckboxId">Teletraan IaC</label>
+                    <input type="checkbox" id="isManagedResourceCheckboxId" {% if is_managed_resource %}checked{% endif %}>
                 </div>
                 {% endif %}
-                <fieldset id="clusterConfigFieldSetId" {% if is_infra_as_code %}disabled{% endif %}>
+                <fieldset id="clusterConfigFieldSetId" {% if is_managed_resource %}disabled{% endif %}>
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
                     <accounts-select v-bind:accounts="accounts" v-bind:value="currentAccountId" v-bind:disabled="!canChangeAccount"></accounts-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
@@ -119,10 +119,10 @@
                         />
                     </div>
                 </fieldset>
-                {% if is_infra_as_code %}
+                {% if is_managed_resource %}
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        const checkbox = document.getElementById('isInfraAsCodeCheckboxId');
+                        const checkbox = document.getElementById('isManagedResourceCheckboxId');
                         const fieldset = document.getElementById('clusterConfigFieldSetId');
                         const submitBtn = document.getElementById('saveEnvCapacityBtnId');
 
@@ -142,7 +142,7 @@
 
     <div class="panel-footer clearfix">
         <div class="pull-right">
-            <button id="saveEnvCapacityBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity" data-target="#updateClusterSettings" data-toggle="modal" data-loading-text="Creating..." {% if is_infra_as_code %}disabled{% endif %}>
+            <button id="saveEnvCapacityBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity" data-target="#updateClusterSettings" data-toggle="modal" data-loading-text="Creating..." {% if is_managed_resource %}disabled{% endif %}>
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
         </div>
