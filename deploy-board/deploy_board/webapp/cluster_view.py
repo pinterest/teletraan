@@ -271,7 +271,7 @@ class ClusterConfigurationView(View):
         provider_list = baseimages_helper.get_all_providers(request)
         asg_cluster = autoscaling_groups_helper.get_group_info(request, current_cluster['clusterName'])
         current_cluster['asg_info'] = asg_cluster
-        is_managed_resource = True
+        is_managed_resource = current_cluster['isManagedResource']
 
         capacity_creation_info = {
             'environment': env,
