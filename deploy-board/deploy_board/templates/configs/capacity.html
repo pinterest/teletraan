@@ -161,7 +161,7 @@ var alert = new Vue({
 
 <div id="mainPanel">
     {% if is_pinterest %}
-        {% include "clusters/cluster_capacity.tmpl" %}
+        {% include "clusters/cluster_capacity.tmpl" with is_managed_resource=is_managed_resource %}
     {% endif %}
     {% include "configs/capacity.tmpl" %}
 </div>

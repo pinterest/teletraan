@@ -2,13 +2,19 @@
     <panel-heading title="Cluster Capacity" target="#clusterConfigId" initcollapse="false"></panel-heading>
     <div id="clusterConfigId" class="collapse in panel-body">
         <div class="container-fluid">
+            {% if is_managed_resource %}
+            <div>
+                <input type="checkbox" id="isManagedResourceCheckboxId">
+                <label for="isManagedResourceCheckboxId"><i>By checking this box, I understand this cluster is managed and updating it through this form is discouraged and will pause management, in which case I will resolve any configuration drift before management can be resumed.<i></label>
+            </div>
+            {% endif %}
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
-                <fieldset id="clusterConfigFieldSetId">
+                <fieldset id="clusterConfigFieldSetId" {% if is_managed_resource %}disabled{% endif %}>
                     <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
                     <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
                     <static-capacity-config v-if="!autoscalingEnabled"
                         :original-capacity="originalCapacity" @change="desiredCapacity = $event"
-                        :remaining-capacity="remainingCapacity" :placements="placements" 
+                        :remaining-capacity="remainingCapacity" :placements="placements"
                         :termination-limit="terminationLimit" :groupName="groupName">
                     </static-capacity-config>
                     <asg-capacity-config v-if="autoscalingEnabled" :current-size="originalCapacity"
@@ -25,7 +31,8 @@
             <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
                     data-toggle="modal"
                     :data-target="`#${confirmDialogId}`"
-                    title="Save cluster capacity configuration">
+                    title="Save cluster capacity configuration"
+                    {% if is_managed_resource %}disabled{% endif %}>
                 <span class="glyphicon glyphicon-floppy-save"></span>
                 Save
             </button>
@@ -36,6 +43,20 @@
     </modal>
 </div>
 
+{% if is_managed_resource %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('isManagedResourceCheckboxId');
+        const fieldset = document.getElementById('clusterConfigFieldSetId');
+        const submitBtn = document.getElementById('saveClusterConfigBtnId');
+
+        checkbox.addEventListener('change', function() {
+            fieldset.disabled = !checkbox.checked;
+            submitBtn.disabled = !checkbox.checked;
+        });
+    });
+</script>
+{% endif %}
 <script>
     var cluster = info.basic_cluster_info;
     const terminationLimit = info.termination_limit;
