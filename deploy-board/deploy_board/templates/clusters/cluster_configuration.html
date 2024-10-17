@@ -142,8 +142,8 @@
         const submitBtn = document.getElementById('saveEnvCapacityBtnId');
 
         checkbox.addEventListener('change', function() {
-            fieldset.disabled = !!checkbox.checked;
-            submitBtn.disabled = !!checkbox.checked;
+            fieldset.disabled = !checkbox.checked;
+            submitBtn.disabled = !checkbox.checked;
         });
     });
 </script>
