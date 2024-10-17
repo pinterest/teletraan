@@ -335,6 +335,7 @@ class ClusterConfigurationView(View):
                         log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
                         raise TeletraanException("Teletraan does not support user to remove %s" % field)
             cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
+            cluster_info['isManagedResource'] = False
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -357,6 +358,9 @@ class ClusterCapacityUpdateView(View):
             maxSize = int(settings['maxsize'])
             clusters_helper.update_cluster_capacity(
                 request, cluster_name, minSize, maxSize)
+            cluster_info = clusters_helper.get_cluster(request, cluster_name)
+            cluster_info['isManagedResource'] = False
+            clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
             return HttpResponse(e, status=403, content_type="application/json")
