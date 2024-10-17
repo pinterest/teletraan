@@ -64,12 +64,6 @@
     <div id="envCapacityId" class="collapse in panel-body" v-on:show.bs.collapse="showcontent" v-on:hide.bs.collapse="hidecontent">
         <div class="container-fluid">
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
-                {% if is_managed_resource %}
-                <div>
-                    <input type="checkbox" id="isManagedResourceCheckboxId">
-                    <label for="isManagedResourceCheckboxId"><i>By checking this box, I understand this cluster is managed and updating it through this form is discouraged and will pause management, in which case I will resolve any configuration drift before management can be resumed.<i></label>
-                </div>
-                {% endif %}
                 <fieldset id="clusterConfigFieldSetId" {% if is_managed_resource %}disabled{% endif %}>
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
                     <accounts-select v-bind:accounts="accounts" v-bind:value="currentAccountId" v-bind:disabled="!canChangeAccount"></accounts-select>
@@ -119,6 +113,14 @@
                         />
                     </div>
                 </fieldset>
+                {% if is_managed_resource %}
+                <div class="form-group">
+                    <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" data-original-title="By checking this box, I understand this cluster is managed and updating it through this form is discouraged and will pause management, in which case I will resolve any configuration drift before management can be resumed." for="isManagedResourceCheckboxId" style="padding-top: 0px">Disable Management</label>
+                    <div class="col-xs-2">
+                        <input type="checkbox" id="isManagedResourceCheckboxId">
+                    </div>
+                </div>
+                {% endif %}
             </form>
         </div>
     </div>
