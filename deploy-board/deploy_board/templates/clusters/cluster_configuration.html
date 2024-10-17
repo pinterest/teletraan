@@ -66,8 +66,8 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 {% if is_managed_resource %}
                 <div>
-                    <label for="isManagedResourceCheckboxId">Teletraan IaC</label>
-                    <input type="checkbox" id="isManagedResourceCheckboxId" {% if is_managed_resource %}checked{% endif %}>
+                    <input type="checkbox" id="isManagedResourceCheckboxId">
+                    <label for="isManagedResourceCheckboxId"><i>By checking this box, I understand this cluster is managed and updating it through this form is discouraged and will pause management, in which case I will resolve any configuration drift before management can be resumed.<i></label>
                 </div>
                 {% endif %}
                 <fieldset id="clusterConfigFieldSetId" {% if is_managed_resource %}disabled{% endif %}>
