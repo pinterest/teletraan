@@ -23,6 +23,11 @@
     .chosen-container-single .chosen-single {
         padding: 0 0 0 16px;
     }
+    .chosen-disabled {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 </style>
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2023.01.30"></script>
@@ -142,10 +147,38 @@
         const checkbox = document.getElementById('isManagedResourceCheckboxId');
         const fieldset = document.getElementById('clusterConfigFieldSetId');
         const submitBtn = document.getElementById('saveEnvCapacityBtnId');
+        const chosenContainerSingle = fieldset.querySelector('.chosen-container-single');
+        const chosenContainerMulti = fieldset.querySelector('.chosen-container-multi');
 
+        if (!checkbox.checked) {
+            if (chosenContainerSingle) {
+                chosenContainerSingle.classList.add('chosen-disabled');
+            }
+            if (chosenContainerMulti) {
+                chosenContainerMulti.classList.add('chosen-disabled');
+            }
+        }
         checkbox.addEventListener('change', function() {
             fieldset.disabled = !checkbox.checked;
             submitBtn.disabled = !checkbox.checked;
+
+            // This disables the fields which are controlled by the jQuery plugin called Chosen,
+            // which generates additional elements that are not handled when disabling the form's fieldset
+            if (!checkbox.checked) {
+                if (chosenContainerSingle) {
+                    chosenContainerSingle.classList.add('chosen-disabled');
+                }
+                if (chosenContainerMulti) {
+                    chosenContainerMulti.classList.add('chosen-disabled');
+                }
+            } else {
+                if (chosenContainerSingle) {
+                    chosenContainerSingle.classList.remove('chosen-disabled');
+                }
+                if (chosenContainerMulti) {
+                    chosenContainerMulti.classList.remove('chosen-disabled');
+                }
+            }
         });
     });
 </script>
