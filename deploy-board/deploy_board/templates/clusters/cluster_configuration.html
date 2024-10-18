@@ -23,6 +23,11 @@
     .chosen-container-single .chosen-single {
         padding: 0 0 0 16px;
     }
+    .chosen-disabled {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 </style>
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2023.01.30"></script>
@@ -63,7 +68,7 @@
     <div id="envCapacityId" class="collapse in panel-body" v-on:show.bs.collapse="showcontent" v-on:hide.bs.collapse="hidecontent">
         <div class="container-fluid">
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
-                <fieldset id="clusterConfigFieldSetId">
+                <fieldset id="clusterConfigFieldSetId" {% if is_managed_resource %}disabled{% endif %}>
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
                     <accounts-select v-bind:accounts="accounts" v-bind:value="currentAccountId" v-bind:disabled="!canChangeAccount"></accounts-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
@@ -112,6 +117,14 @@
                         />
                     </div>
                 </fieldset>
+                {% if is_managed_resource %}
+                <div class="form-group">
+                    <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" data-original-title="By checking this box, I understand this cluster is managed and updating it through this form is discouraged and will pause management, in which case I will resolve any configuration drift before management can be resumed." for="isManagedResourceCheckboxId" style="padding-top: 0px">Disable Management</label>
+                    <div class="col-xs-2">
+                        <input type="checkbox" id="isManagedResourceCheckboxId">
+                    </div>
+                </div>
+                {% endif %}
             </form>
         </div>
     </div>
@@ -121,13 +134,54 @@
 
     <div class="panel-footer clearfix">
         <div class="pull-right">
-            <button id="saveEnvCapacityBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity" data-target="#updateClusterSettings" data-toggle="modal" data-loading-text="Creating...">
+            <button id="saveEnvCapacityBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity" data-target="#updateClusterSettings" data-toggle="modal" data-loading-text="Creating..." {% if is_managed_resource %}disabled{% endif %}>
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
         </div>
     </div>
 </div>
+{% if is_managed_resource %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('isManagedResourceCheckboxId');
+        const fieldset = document.getElementById('clusterConfigFieldSetId');
+        const submitBtn = document.getElementById('saveEnvCapacityBtnId');
+        const chosenContainerSingle = fieldset.querySelector('.chosen-container-single');
+        const chosenContainerMulti = fieldset.querySelector('.chosen-container-multi');
 
+        if (!checkbox.checked) {
+            if (chosenContainerSingle) {
+                chosenContainerSingle.classList.add('chosen-disabled');
+            }
+            if (chosenContainerMulti) {
+                chosenContainerMulti.classList.add('chosen-disabled');
+            }
+        }
+        checkbox.addEventListener('change', function() {
+            fieldset.disabled = !checkbox.checked;
+            submitBtn.disabled = !checkbox.checked;
+
+            // This disables the fields which are controlled by the jQuery plugin called Chosen,
+            // which generates additional elements that are not handled when disabling the form's fieldset
+            if (!checkbox.checked) {
+                if (chosenContainerSingle) {
+                    chosenContainerSingle.classList.add('chosen-disabled');
+                }
+                if (chosenContainerMulti) {
+                    chosenContainerMulti.classList.add('chosen-disabled');
+                }
+            } else {
+                if (chosenContainerSingle) {
+                    chosenContainerSingle.classList.remove('chosen-disabled');
+                }
+                if (chosenContainerMulti) {
+                    chosenContainerMulti.classList.remove('chosen-disabled');
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
 <script>
 /**
  * Chartist.js plugin that generates visually hidden tables for better accessibility. It's also possible to initialize a Chart with data from an existing table.
