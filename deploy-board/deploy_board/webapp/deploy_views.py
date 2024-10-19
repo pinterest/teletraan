@@ -147,6 +147,9 @@ class DeployView(View):
     def get(self, request, deploy_id):
         deploy = deploys_helper.get(request, deploy_id)
         build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
+        log.error("yaqin-test")
+        log.error(build_with_tag)
+        log.error("yaqin-debug")
         env = None
         deploy_accounts = []
         if deploy.get('envId'):

@@ -1364,11 +1364,8 @@ def rollback(request, name, stage):
 def get_deploy(request, name, stage, deploy_id):
     deploy = deploys_helper.get(request, deploy_id)
     build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
-    log.error(build_with_tag)
     env = environs_helper.get_env_by_stage(request, name, stage)
-    log.error("yaqin test")
     deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
-    log.error(deploy_accounts)
     return render(request, 'environs/env_deploy_details.html', {
         "deploy": deploy,
         "csrf_token": get_token(request),
