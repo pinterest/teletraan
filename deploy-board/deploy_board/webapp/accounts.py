@@ -66,7 +66,6 @@ def get_accounts_from_deploy(request, env, deploy, build_with_tag):
     deploy_accounts = []
     if env and env.get("clusterName") is not None:
         cluster = clusters_helper.get_cluster(request, env["clusterName"])
-        log.error(cluster)
         if cluster:
             provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
             if not id:
