@@ -147,14 +147,14 @@ class DeployView(View):
     def get(self, request, deploy_id):
         deploy = deploys_helper.get(request, deploy_id)
         build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
-        log.error("yaqin-test")
-        log.error(build_with_tag)
-        log.error("yaqin-debug")
         env = None
         deploy_accounts = []
         if deploy.get('envId'):
             env = environs_helper.get(request, deploy['envId'])
             deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
+        log.error("yaqin-test")
+        log.error(deploy_accounts)
+        log.error("yaqin-debug")
         return render(request, 'deploys/deploy_details.html', {
             "deploy": deploy,
             "build": build_with_tag['build'],
