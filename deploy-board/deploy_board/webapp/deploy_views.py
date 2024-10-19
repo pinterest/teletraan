@@ -153,6 +153,10 @@ class DeployView(View):
             env = environs_helper.get(request, deploy['envId'])
             deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
         log.error("yaqin-test")
+        log.error(deploy)
+        log.error(build_with_tag)
+        log.error(get_token(request))
+        log.error(env)
         log.error(deploy_accounts)
         log.error("yaqin-debug")
         return render(request, 'deploys/deploy_details.html', {
