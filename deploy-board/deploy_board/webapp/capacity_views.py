@@ -108,7 +108,8 @@ class EnvCapacityConfigView(View):
             'placements': placements,
             'termination_limit': termination_limit,
             'cluster_name': cluster_name,
-            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL
+            'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
+            'is_managed_resource': basic_cluster_info['isManagedResource']
         }
         data['info'] = json.dumps(data)
         return render(request, 'configs/capacity.html', data)
