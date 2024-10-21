@@ -805,15 +805,16 @@ def _gen_deploy_summary(request, deploys, for_env=None):
         account = None
         if env and env.get("clusterName") is not None:
             cluster = clusters_helper.get_cluster(request, env["clusterName"])
-            provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
-            account_key = (provider, cell, id)
-            if account_key in accounts:
-                account = accounts[account_key]
-            else:
-                account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
-                if account is None:
-                    account = accounts_helper.get_default_account(request, cell, provider)
-                accounts[account_key] = account
+            if cluster: 
+                provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
+                account_key = (provider, cell, id)
+                if account_key in accounts:
+                    account = accounts[account_key]
+                else:
+                    account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
+                    if account is None:
+                        account = accounts_helper.get_default_account(request, cell, provider)
+                    accounts[account_key] = account
         deploy_accounts = []
         if account is None and env and deploy and build_with_tag:
             # terraform deploy, get information from deploy report
@@ -924,11 +925,9 @@ def get_env_deploys(request, name, stage):
     filter, filter_title, query_string = \
         _gen_deploy_query_filter(request, from_date, from_time, to_date, to_time, size,
                                  reverse_date, operator, commit, repo, branch)
-    log.error("yaqin test")
-    log.error(env['id'])
+
     result = deploys_helper.get_all(request, envId=[env['id']], pageIndex=1,
                                     pageSize=DEFAULT_ROLLBACK_DEPLOY_NUM)
-    log.error(result)
     deploys = result.get("deploys")
     
     # remove the first deploy if exists
@@ -964,12 +963,10 @@ def get_env_deploys(request, name, stage):
             "pinterest": IS_PINTEREST
         })
 
-    log.error("yaqin test 2")
     filter['envId'] = [env['id']]
     filter['pageIndex'] = index
     filter['pageSize'] = size
     result = deploys_helper.get_all(request, **filter)
-    log.error(result)
     deploy_summaries = _gen_deploy_summary(request, result['deploys'], for_env=env)
 
     page_range, prevPageIndex, nextPageIndex = _compute_range(result['total'], index, size,
