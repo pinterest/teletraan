@@ -805,7 +805,7 @@ def _gen_deploy_summary(request, deploys, for_env=None):
         account = None
         if env and env.get("clusterName") is not None:
             cluster = clusters_helper.get_cluster(request, env["clusterName"])
-            if cluster: 
+            if cluster:
                 provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
                 account_key = (provider, cell, id)
                 if account_key in accounts:
