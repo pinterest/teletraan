@@ -805,15 +805,16 @@ def _gen_deploy_summary(request, deploys, for_env=None):
         account = None
         if env and env.get("clusterName") is not None:
             cluster = clusters_helper.get_cluster(request, env["clusterName"])
-            provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
-            account_key = (provider, cell, id)
-            if account_key in accounts:
-                account = accounts[account_key]
-            else:
-                account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
-                if account is None:
-                    account = accounts_helper.get_default_account(request, cell, provider)
-                accounts[account_key] = account
+            if cluster:
+                provider, cell, id = cluster["provider"], cluster["cellName"], cluster.get("accountId", None)
+                account_key = (provider, cell, id)
+                if account_key in accounts:
+                    account = accounts[account_key]
+                else:
+                    account = accounts_helper.get_by_cell_and_id(request, cell, id, provider)
+                    if account is None:
+                        account = accounts_helper.get_default_account(request, cell, provider)
+                    accounts[account_key] = account
         deploy_accounts = []
         if account is None and env and deploy and build_with_tag:
             # terraform deploy, get information from deploy report
