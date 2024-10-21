@@ -929,7 +929,7 @@ def get_env_deploys(request, name, stage):
     result = deploys_helper.get_all(request, envId=[env['id']], pageIndex=1,
                                     pageSize=DEFAULT_ROLLBACK_DEPLOY_NUM)
     deploys = result.get("deploys")
-    
+
     # remove the first deploy if exists
     current_build_id = None
     if deploys:
@@ -967,6 +967,7 @@ def get_env_deploys(request, name, stage):
     filter['pageIndex'] = index
     filter['pageSize'] = size
     result = deploys_helper.get_all(request, **filter)
+     
     deploy_summaries = _gen_deploy_summary(request, result['deploys'], for_env=env)
 
     page_range, prevPageIndex, nextPageIndex = _compute_range(result['total'], index, size,
