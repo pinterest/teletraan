@@ -24,6 +24,13 @@
                         <input type="checkbox" id="isManagedResourceCheckboxId" checked>
                     </div>
                 </div>
+                <div class="form-group" id="resourceManagedBanner" style="display: none;">
+                    <div class="col-xs-offset-2 col-xs-10">
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> This box cannot be manually re-checked once unchecked. Unchecking this box will disable resource management. The cluster must be re-onboarded to re-enable resource management.
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
             </form>
         </div>
@@ -51,10 +58,12 @@
         const checkbox = document.getElementById('isManagedResourceCheckboxId');
         const fieldset = document.getElementById('clusterConfigFieldSetId');
         const submitBtn = document.getElementById('saveClusterConfigBtnId');
+        const banner = document.getElementById('resourceManagedBanner');
 
         checkbox.addEventListener('change', function() {
             fieldset.disabled = !checkbox.checked;
             submitBtn.disabled = !checkbox.checked;
+            banner.style.display = checkbox.checked ? 'none' : 'block';
         });
     });
 </script>

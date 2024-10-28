@@ -125,6 +125,13 @@
                         <input type="checkbox" id="isManagedResourceCheckboxId" checked>
                     </div>
                 </div>
+                <div class="form-group" id="resourceManagedBanner" style="display: none;">
+                    <div class="col-xs-offset-2 col-xs-10">
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> This box cannot be manually re-checked once unchecked. Unchecking this box will disable resource management. The cluster must be re-onboarded to re-enable resource management.
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
             </form>
         </div>
@@ -149,6 +156,7 @@
         const submitBtn = document.getElementById('saveEnvCapacityBtnId');
         const chosenContainerSingle = fieldset.querySelector('.chosen-container-single');
         const chosenContainerMulti = fieldset.querySelector('.chosen-container-multi');
+        const banner = document.getElementById('resourceManagedBanner');
 
         if (!checkbox.checked) {
             if (chosenContainerSingle) {
@@ -161,6 +169,7 @@
         checkbox.addEventListener('change', function() {
             fieldset.disabled = !checkbox.checked;
             submitBtn.disabled = !checkbox.checked;
+            banner.style.display = checkbox.checked ? 'none' : 'block';
 
             // This disables the fields which are controlled by the jQuery plugin called Chosen,
             // which generates additional elements that are not handled when disabling the form's fieldset
