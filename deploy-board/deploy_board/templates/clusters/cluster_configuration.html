@@ -158,7 +158,7 @@
         const chosenContainerMulti = fieldset.querySelector('.chosen-container-multi');
         const banner = document.getElementById('resourceManagedBanner');
 
-        if (!checkbox.checked) {
+        if (checkbox.checked) {
             if (chosenContainerSingle) {
                 chosenContainerSingle.classList.add('chosen-disabled');
             }
@@ -167,13 +167,13 @@
             }
         }
         checkbox.addEventListener('change', function() {
-            fieldset.disabled = !checkbox.checked;
-            submitBtn.disabled = !checkbox.checked;
+            fieldset.disabled = checkbox.checked;
+            submitBtn.disabled = checkbox.checked;
             banner.style.display = checkbox.checked ? 'none' : 'block';
 
             // This disables the fields which are controlled by the jQuery plugin called Chosen,
             // which generates additional elements that are not handled when disabling the form's fieldset
-            if (!checkbox.checked) {
+            if (checkbox.checked) {
                 if (chosenContainerSingle) {
                     chosenContainerSingle.classList.add('chosen-disabled');
                 }
