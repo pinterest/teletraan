@@ -154,12 +154,16 @@
         const checkbox = document.getElementById('isManagedResourceCheckboxId');
         const fieldset = document.getElementById('clusterConfigFieldSetId');
         const submitBtn = document.getElementById('saveEnvCapacityBtnId');
-        const chosenContainer = fieldset.querySelector('.chosen-container');
+        const chosenContainerSingle = fieldset.querySelector('.chosen-container-single');
+        const chosenContainerMulti = fieldset.querySelector('.chosen-container-multi');
         const banner = document.getElementById('resourceManagedBanner');
 
-        if (!!checkbox.checked) {
-            if (chosenContainer) {
-                chosenContainer.classList.add('chosen-disabled');
+        if (checkbox.checked) {
+            if (chosenContainerSingle) {
+                chosenContainerSingle.classList.add('chosen-disabled');
+            }
+            if (chosenContainerMulti) {
+                chosenContainerMulti.classList.add('chosen-disabled');
             }
         }
         checkbox.addEventListener('change', function() {
@@ -169,13 +173,19 @@
 
             // This disables the fields which are controlled by the jQuery plugin called Chosen,
             // which generates additional elements that are not handled when disabling the form's fieldset
-            if (!checkbox.checked) {
-                if (chosenContainer) {
-                    chosenContainer.classList.remove('chosen-disabled');
+            if (checkbox.checked) {
+                if (chosenContainerSingle) {
+                    chosenContainerSingle.classList.add('chosen-disabled');
+                }
+                if (chosenContainerMulti) {
+                    chosenContainerMulti.classList.add('chosen-disabled');
                 }
             } else {
-                if (chosenContainer) {
-                    chosenContainer.classList.add('chosen-disabled');
+                if (chosenContainerSingle) {
+                    chosenContainerSingle.classList.remove('chosen-disabled');
+                }
+                if (chosenContainerMulti) {
+                    chosenContainerMulti.classList.remove('chosen-disabled');
                 }
             }
         });
