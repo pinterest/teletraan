@@ -19,13 +19,13 @@
                 </fieldset>
                 {% if is_managed_resource %}
                 <div class="form-group">
-                    <label class="control-label col-xs-2" for="isManagedResourceCheckboxId" style="padding-top: 0px">Resource is managed</label>
+                    <label class="control-label col-xs-4" for="isManagedResourceCheckboxId" style="padding-top: 0px">Resource is managed</label>
                     <div class="col-xs-2">
                         <input type="checkbox" id="isManagedResourceCheckboxId" checked>
                     </div>
                 </div>
                 <div class="form-group" id="resourceManagedBanner" style="display: none;">
-                    <div class="col-xs-offset-2 col-xs-10">
+                    <div class="col-xs-offset-4">
                         <div class="alert alert-info">
                             <strong>Note:</strong> This box cannot be manually re-checked once unchecked. Unchecking this box will disable resource management. The cluster must be re-onboarded to re-enable resource management.
                         </div>
