@@ -96,7 +96,7 @@ public class EnvDeploys {
                     String stageName)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        if (StringUtils.isNotBlank(envBean.getDeploy_id())) {
+        if (StringUtils.isBlank(envBean.getDeploy_id())) {
             throw new NotFoundException(
                     String.format("%s/%s doesn't have any deploys", envName, stageName));
         }
