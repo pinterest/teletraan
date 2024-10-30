@@ -95,6 +95,10 @@ public class EnvDeploys {
                     String stageName)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        if (envBean.getDeploy_id() == null) {
+            throw new NotFoundException(
+                    String.format("%s/%s doesn't have any deploys", envName, stageName));
+        }
         return deployHandler.getDeploySafely(envBean.getDeploy_id());
     }
 
@@ -269,7 +273,8 @@ public class EnvDeploys {
         return Response.created(deployUri).entity(deployBean).build();
     }
 
-    // Even though this is PUT, but it really just update progress, no check is needed
+    // Even though this is PUT, but it really just update progress, no check is
+    // needed
     @PUT
     @Timed
     @ExceptionMetered
