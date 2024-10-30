@@ -42,6 +42,7 @@ class EnvCapacityConfigView(View):
         cluster_name = env.get('clusterName')
         termination_limit = env.get('terminationLimit')
         placements = None
+        is_managed_resource = False
         if IS_PINTEREST:
             provider_list = baseimages_helper.get_all_providers(request)
             basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
@@ -51,6 +52,7 @@ class EnvCapacityConfigView(View):
                 asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name)
                 basic_cluster_info['asg_info'] = asg_cluster
                 basic_cluster_info['base_image_info'] = base_image
+                is_managed_resource = basic_cluster_info.get('isManagedResource', False)
                 try:
                     account_id = basic_cluster_info.get('accountId')
                     placements = placements_helper.get_simplified_by_ids(
@@ -109,7 +111,7 @@ class EnvCapacityConfigView(View):
             'termination_limit': termination_limit,
             'cluster_name': cluster_name,
             'conflicting_deploy_service_wiki_url': CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
-            'is_managed_resource': basic_cluster_info['isManagedResource']
+            'is_managed_resource': is_managed_resource,
         }
         data['info'] = json.dumps(data)
         return render(request, 'configs/capacity.html', data)
