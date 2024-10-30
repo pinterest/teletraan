@@ -3,12 +3,12 @@
     <div id="clusterConfigId" class="collapse in panel-body">
         <div class="container-fluid">
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
-                <fieldset id="clusterConfigFieldSetId">
+                <fieldset id="clusterConfigFieldSetId" {% if is_managed_resource %}disabled{% endif %}>
                     <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
                     <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
                     <static-capacity-config v-if="!autoscalingEnabled"
                         :original-capacity="originalCapacity" @change="desiredCapacity = $event"
-                        :remaining-capacity="remainingCapacity" :placements="placements" 
+                        :remaining-capacity="remainingCapacity" :placements="placements"
                         :termination-limit="terminationLimit" :groupName="groupName">
                     </static-capacity-config>
                     <asg-capacity-config v-if="autoscalingEnabled" :current-size="originalCapacity"
@@ -17,6 +17,21 @@
                         :remaining-capacity="remainingCapacity" :placements="placements">
                     </asg-capacity-config>
                 </fieldset>
+                {% if is_managed_resource %}
+                <div class="form-group">
+                    <label class="control-label col-xs-4" for="isManagedResourceCheckboxId" style="padding-top: 0px">Resource is managed</label>
+                    <div class="col-xs-2">
+                        <input type="checkbox" id="isManagedResourceCheckboxId" checked>
+                    </div>
+                </div>
+                <div class="form-group" id="resourceManagedBanner" style="display: none;">
+                    <div class="col-xs-offset-4">
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> This box cannot be manually re-checked once unchecked. Unchecking this box will disable resource management. The cluster must be re-onboarded to re-enable resource management.
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </form>
         </div>
     </div>
@@ -25,7 +40,8 @@
             <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
                     data-toggle="modal"
                     :data-target="`#${confirmDialogId}`"
-                    title="Save cluster capacity configuration">
+                    title="Save cluster capacity configuration"
+                    {% if is_managed_resource %}disabled{% endif %}>
                 <span class="glyphicon glyphicon-floppy-save"></span>
                 Save
             </button>
@@ -36,6 +52,22 @@
     </modal>
 </div>
 
+{% if is_managed_resource %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('isManagedResourceCheckboxId');
+        const fieldset = document.getElementById('clusterConfigFieldSetId');
+        const submitBtn = document.getElementById('saveClusterConfigBtnId');
+        const banner = document.getElementById('resourceManagedBanner');
+
+        checkbox.addEventListener('change', function() {
+            fieldset.disabled = !!checkbox.checked;
+            submitBtn.disabled = !!checkbox.checked;
+            banner.style.display = checkbox.checked ? 'none' : 'block';
+        });
+    });
+</script>
+{% endif %}
 <script>
     var cluster = info.basic_cluster_info;
     const terminationLimit = info.termination_limit;
