@@ -40,6 +40,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +96,7 @@ public class EnvDeploys {
                     String stageName)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        if (envBean.getDeploy_id() == null) {
+        if (StringUtils.isNotBlank(envBean.getDeploy_id())) {
             throw new NotFoundException(
                     String.format("%s/%s doesn't have any deploys", envName, stageName));
         }
