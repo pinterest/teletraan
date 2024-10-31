@@ -139,7 +139,6 @@ public class ConfigHelper {
                 new TeletraanAuthZResourceExtractorFactory(context));
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
-        context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
         context.setBuildTagsManager(new BuildTagsManagerImpl(context.getTagDAO()));
 
         String defaultScmTypeName = configuration.getDefaultScmTypeName();

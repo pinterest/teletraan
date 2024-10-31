@@ -43,7 +43,6 @@ import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.BuildEventPublisher;
-import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
@@ -71,7 +70,6 @@ public class ServiceContext {
     private RatingDAO ratingDAO;
     private PromoteDAO promoteDAO;
     private GroupDAO groupDAO;
-    private HostGroupManager hostGroupDAO;
     private UserRolesDAO userRolesDAO;
     private GroupRolesDAO groupRolesDAO;
     private TokenRolesDAO tokenRolesDAO;
@@ -259,14 +257,6 @@ public class ServiceContext {
 
     public void setGroupDAO(GroupDAO groupDAO) {
         this.groupDAO = groupDAO;
-    }
-
-    public void setHostGroupDAO(HostGroupManager hostGroupDAO) {
-        this.hostGroupDAO = hostGroupDAO;
-    }
-
-    public HostGroupManager getHostGroupDAO() {
-        return hostGroupDAO;
     }
 
     public HostTagDAO getHostTagDAO() {
