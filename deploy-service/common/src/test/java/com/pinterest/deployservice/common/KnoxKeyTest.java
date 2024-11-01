@@ -51,14 +51,11 @@ class KnoxKeyTest {
     private static final String postAnswerTag =
             "{\"i-001\":{\"Name\": \"devapp-example1\"},\"i-002\":{\"Name\": \"devrestricted-example2\"}}";
     private static final String postAnswerArray = "[\"i-001\",\"i-002\"]";
-    private static final String getAnswerValue = "{\"launchLatencyTh\": 10}";
 
     private RodimusManager rodimusManager = null;
     private KnoxKeyReader mockKnoxKeyReader;
-    private HTTPClient mockHttpClient;
     private List<Answer> answerList;
     private String[] testKey = new String[2];
-    private String postAnswerReturn = null;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -70,80 +67,17 @@ class KnoxKeyTest {
         mockKnoxKeyReader = Mockito.mock(KnoxKeyReader.class);
 
         // Create mock for httpClient
-        mockHttpClient = Mockito.mock(HTTPClient.class);
 
         rodimusManager =
                 new RodimusManagerImpl("http://localhost", "teletraan:test", false, "", "");
 
         // Allocate answerList
         answerList = new ArrayList<Answer>();
-        mockClasses(rodimusManager, mockKnoxKeyReader, mockHttpClient);
-
-        when(mockHttpClient.get(
-                        Mockito.anyString(),
-                        Mockito.any(),
-                        Mockito.any(),
-                        Mockito.anyMap(),
-                        Mockito.anyInt()))
-                .thenAnswer(invocation -> this.getAnswer(invocation));
-
-        when(mockHttpClient.post(
-                        Mockito.anyString(),
-                        Mockito.anyString(),
-                        Mockito.anyMap(),
-                        Mockito.anyInt()))
-                .thenAnswer(invocation -> this.postAnswer(invocation));
-
-        when(mockHttpClient.delete(
-                        Mockito.anyString(),
-                        Mockito.anyString(),
-                        Mockito.anyMap(),
-                        Mockito.anyInt()))
-                .thenAnswer(invocation -> this.deleteAnswer(invocation));
+        mockClasses(rodimusManager, mockKnoxKeyReader);
     }
 
-    // ### terminateHostsByClusterName tests ###
 
-    @Test
-    void terminateHostsByClusterName_Ok() throws Exception {
-        // All working as expected
-        when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[1]);
 
-        try {
-            this.rodimusManager.terminateHostsByClusterName(
-                    "cluster", Collections.singletonList("i-001"));
-        } catch (Exception e) {
-            fail("Unexpected exception: " + e);
-        }
-
-        final Answer[] expected = {Answer.NULL};
-        assertArrayEquals(expected, answerList.toArray());
-    }
-
-    @Test
-    void terminateHostsByClusterName_ErrorOk() throws Exception {
-        // Token does not work, refresh and retry, second try works
-        when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
-
-        Exception exception =
-                assertThrows(
-                        DeployInternalException.class,
-                        () -> {
-                            this.rodimusManager.terminateHostsByClusterName(
-                                    "cluster", Collections.singletonList("i-001"));
-                        });
-        assertTrue(exception.getMessage().contains(msgUnauthException));
-
-        try {
-            this.rodimusManager.terminateHostsByClusterName(
-                    "cluster", Collections.singletonList("i-001"));
-        } catch (Exception e) {
-            fail("Unexpected exception: " + e);
-        }
-
-        final Answer[] expected = {Answer.EXCEPTION, Answer.NULL};
-        assertArrayEquals(expected, answerList.toArray());
-    }
 
     @Test
     void terminateHostsByClusterName_MultipleError() {
@@ -359,74 +293,12 @@ class KnoxKeyTest {
     // ### HELPER METHODS ###
 
     private void mockClasses(
-            RodimusManager rodimusMngr, KnoxKeyReader mokKnox, HTTPClient mokHttpClient)
+            RodimusManager rodimusMngr, KnoxKeyReader mokKnox)
             throws Exception {
         // Modify fsKnox to use our mock
         Field classKnox = rodimusMngr.getClass().getDeclaredField("knoxKeyReader");
         classKnox.setAccessible(true);
         classKnox.set(rodimusMngr, mokKnox);
         classKnox.setAccessible(false);
-
-        // Modify httpClient to use our mock
-        Field classHttpClient = rodimusMngr.getClass().getDeclaredField("httpClient");
-        classHttpClient.setAccessible(true);
-        classHttpClient.set(rodimusMngr, mokHttpClient);
-        classHttpClient.setAccessible(false);
-    }
-
-    private String getToken(Map<String, String> headers) {
-        // Get token out of Map of headers
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            if (entry.getKey() == "Authorization") return entry.getValue();
-        }
-        return null;
-    }
-
-    private Object deleteAnswer(InvocationOnMock invocation) throws Exception {
-        // HTTPClient "DELETE" answer method
-        Object[] args = invocation.getArguments();
-
-        Map<String, String> headers = (Map<String, String>) args[2];
-        String token = getToken(headers);
-
-        if (Objects.equals(token, "token bbb")) {
-            this.answerList.add(Answer.NULL);
-            return null;
-        } else {
-            this.answerList.add(Answer.EXCEPTION);
-            throw new DeployInternalException(msgUnauthException);
-        }
-    }
-
-    private Object postAnswer(InvocationOnMock invocation) throws Exception {
-        // HTTPClient "POST" answer method
-        Object[] args = invocation.getArguments();
-
-        Map<String, String> headers = (Map<String, String>) args[2];
-        String token = getToken(headers);
-
-        if (Objects.equals(token, "token bbb")) {
-            this.answerList.add(Answer.ARRAY);
-            return this.postAnswerReturn;
-        } else {
-            this.answerList.add(Answer.EXCEPTION);
-            throw new DeployInternalException(msgUnauthException);
-        }
-    }
-
-    private Object getAnswer(InvocationOnMock invocation) throws Exception {
-        // HTTPClient "GET" answer method
-        Object[] args = invocation.getArguments();
-
-        Map<String, String> headers = (Map<String, String>) args[3];
-        String token = getToken(headers);
-
-        if (Objects.equals(token, "token bbb")) {
-            this.answerList.add(Answer.LATENCY);
-            return getAnswerValue;
-        } else {
-            this.answerList.add(Answer.EXCEPTION);
-            throw new DeployInternalException(msgUnauthException);
-        }
     }
 }

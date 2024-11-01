@@ -43,7 +43,6 @@ import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
-import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
 import com.pinterest.deployservice.dao.AgentDAO;
@@ -56,6 +55,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
+import com.pinterest.teletraan.universal.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -102,6 +102,7 @@ public class DeployHandler implements DeployHandlerInterface {
             "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.";
     static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE =
             "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.";
+    private static final HttpClient httpClient = new HttpClient();
 
     private final DeployDAO deployDAO;
     private final EnvironDAO environDAO;
@@ -126,11 +127,9 @@ public class DeployHandler implements DeployHandlerInterface {
         private final EnvironBean envBean;
         private final DeployBean newDeployBean;
         private final DeployBean oldDeployBean;
-        private final HTTPClient httpClient;
         private final CommonHandler commonHandler;
         private final String deployBoardUrlPrefix;
         private final String changeFeedUrl;
-        private static final int RETRIES = 3;
 
         public NotifyJob(
                 EnvironBean envBean,
@@ -142,7 +141,6 @@ public class DeployHandler implements DeployHandlerInterface {
             this.envBean = envBean;
             this.newDeployBean = newDeployBean;
             this.oldDeployBean = oldDeployBean;
-            this.httpClient = new HTTPClient();
             this.commonHandler = commonHandler;
             this.deployBoardUrlPrefix = deployBoardUrlPrefix;
             this.changeFeedUrl = changeFeedUrl;
@@ -165,7 +163,7 @@ public class DeployHandler implements DeployHandlerInterface {
                                 envBean.getExternal_id());
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                httpClient.post(changeFeedUrl, feedPayload, headers, RETRIES);
+                httpClient.post(changeFeedUrl, feedPayload, headers);
                 LOG.info("Send change feed {} to {} successfully", feedPayload, changeFeedUrl);
             } catch (Exception e) {
                 LOG.error(
@@ -397,7 +395,7 @@ public class DeployHandler implements DeployHandlerInterface {
         EnvWebHookBean webhook =
                 dataHandler.getDataById(envBean.getWebhooks_config_id(), WebhookDataFactory.class);
         if (webhook != null && !CollectionUtils.isEmpty(webhook.getPreDeployHooks())) {
-            jobPool.submit(new WebhookJob(webhook.getPreDeployHooks(), deployBean, envBean));
+            jobPool.submit(new WebhookJob(webhook.getPreDeployHooks(), deployBean));
         }
 
         LOG.info("Submitted notify job for deploy {}", deployId);

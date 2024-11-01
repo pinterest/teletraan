@@ -363,8 +363,7 @@ public class CommonHandler {
                         dataHandler.getDataById(
                                 envBean.getWebhooks_config_id(), WebhookDataFactory.class);
                 if (webhooks != null && !CollectionUtils.isEmpty(webhooks.getPostDeployHooks())) {
-                    jobPool.submit(
-                            new WebhookJob(webhooks.getPostDeployHooks(), deployBean, envBean));
+                    jobPool.submit(new WebhookJob(webhooks.getPostDeployHooks(), deployBean));
                     LOG.info("Submitted post deploy hook job for deploy {}.", deployId);
                 }
 

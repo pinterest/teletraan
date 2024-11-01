@@ -17,9 +17,8 @@ package com.pinterest.deployservice.handler;
 
 import com.google.common.base.Splitter;
 import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.WebHookBean;
-import com.pinterest.deployservice.common.HTTPClient;
+import com.pinterest.teletraan.universal.http.HttpClient;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -29,22 +28,17 @@ import org.slf4j.LoggerFactory;
 
 public class WebhookJob implements Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(WebhookJob.class);
+    private static final HttpClient httpClient = new HttpClient();
     private List<WebHookBean> webhooks;
     private DeployBean deployBean;
-    private EnvironBean envBean;
-    private HTTPClient httpClient;
-    private final int RETRIES = 3;
 
-    public WebhookJob(List<WebHookBean> webhooks, DeployBean deployBean, EnvironBean envBean) {
+    public WebhookJob(List<WebHookBean> webhooks, DeployBean deployBean) {
         this.webhooks = webhooks;
         this.deployBean = deployBean;
-        this.envBean = envBean;
-        httpClient = new HTTPClient();
     }
 
     public Void call() {
         for (WebHookBean webhook : webhooks) {
-            // TODO use method, version and headers, use jersey or apache http client
             // TODO we transform $TELETRAAN_NAME into the actual values, currently we support
             // $TELETRAAN_DEPLOY_ID, $TELETRAAN_DEPLOY_START, $TELETRAAN_NUMERIC_DEPLOY_STATE
             // We should support more such as $TELETRAAN_COMMIT, $TELETRAAN_ENV_NAME etc.
@@ -97,13 +91,13 @@ public class WebhookJob implements Callable<Void> {
             try {
                 // Supports http GET, PUT, POST, DELETE
                 if (method.equalsIgnoreCase("GET")) {
-                    httpClient.get(url, null, null, headers, RETRIES);
+                    httpClient.get(url, null, headers);
                 } else if (method.equalsIgnoreCase("POST")) {
-                    httpClient.post(url, bodyString, headers, RETRIES);
+                    httpClient.post(url, bodyString, headers);
                 } else if (method.equalsIgnoreCase("PUT")) {
-                    httpClient.put(url, bodyString, headers, RETRIES);
+                    httpClient.put(url, bodyString, headers);
                 } else if (method.equalsIgnoreCase("DELETE")) {
-                    httpClient.delete(url, bodyString, headers, RETRIES);
+                    httpClient.delete(url, bodyString, headers);
                 } else {
                     LOG.error("Current http method " + method + " is not supported!");
                 }

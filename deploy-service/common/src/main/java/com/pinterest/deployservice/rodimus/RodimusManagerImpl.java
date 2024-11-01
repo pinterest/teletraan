@@ -22,9 +22,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
-import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
+import com.pinterest.teletraan.universal.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,16 +36,9 @@ import org.slf4j.LoggerFactory;
 
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
-    private static final int RETRIES = 3;
-
-    protected static enum Verb {
-        GET,
-        POST,
-        DELETE
-    };
+    private final HttpClient httpClient;
 
     private String rodimusUrl;
-    private HTTPClient httpClient;
     private Map<String, String> headers;
     private Gson gson;
     private KeyReader knoxKeyReader = new KnoxKeyReader();
@@ -58,22 +51,25 @@ public class RodimusManagerImpl implements RodimusManager {
             String httpProxyPort)
             throws Exception {
         this.rodimusUrl = rodimusUrl;
-        this.httpClient = new HTTPClient();
         this.headers = new HashMap<>();
-        this.headers.put("Content-Type", "application/json");
         this.headers.put("Accept", "*/*");
         int httpProxyPortInt;
 
-        if (Boolean.TRUE.equals(useProxy)) {
+        if (useProxy) {
             try {
                 httpProxyPortInt = Integer.parseInt(httpProxyPort);
             } catch (NumberFormatException exception) {
                 LOG.error(httpProxyPort, exception);
                 throw exception;
             }
-            this.httpClient = new HTTPClient(useProxy, httpProxyAddr, httpProxyPortInt);
+            this.httpClient =
+                    new HttpClient(
+                            useProxy,
+                            httpProxyAddr,
+                            httpProxyPortInt,
+                            this::authorizationHeaderSupplier);
         } else {
-            this.httpClient = new HTTPClient();
+            this.httpClient = new HttpClient(this::authorizationHeaderSupplier);
         }
 
         if (StringUtils.isNotBlank(knoxKey)) {
@@ -99,35 +95,12 @@ public class RodimusManagerImpl implements RodimusManager {
         }
     }
 
-    private void setAuthorization() throws Exception {
+    private String authorizationHeaderSupplier() throws IllegalStateException {
         String knoxKey = knoxKeyReader.getKey();
-        if (knoxKey == null) {
-            throw new IllegalStateException("Rodimus knoxKey is null");
+        if (StringUtils.isBlank(knoxKey)) {
+            throw new IllegalStateException("Rodimus knoxKey is blank");
         }
-        this.headers.put("Authorization", String.format("token %s", knoxKey));
-    }
-
-    private String switchHttpClient(Verb verb, String url, String payload) throws Exception {
-        String res = null;
-
-        switch (verb) {
-            case GET:
-                res = httpClient.get(url, payload, null, this.headers, RETRIES);
-                break;
-            case POST:
-                res = httpClient.post(url, payload, this.headers, RETRIES);
-                break;
-            case DELETE:
-                res = httpClient.delete(url, payload, this.headers, RETRIES);
-                break;
-        }
-
-        return res;
-    }
-
-    protected String callHttpClient(Verb verb, String url, String payload) throws Exception {
-        setAuthorization();
-        return switchHttpClient(verb, url, payload);
+        return String.format("token %s", knoxKey);
     }
 
     @Override
@@ -147,8 +120,8 @@ public class RodimusManagerImpl implements RodimusManager {
                 String.format(
                         "%s/v1/clusters/%s/hosts?replaceHost=%s",
                         this.rodimusUrl, clusterName, replaceHost);
-        callHttpClient(Verb.DELETE, url, gson.toJson(hostIds));
-    } // terminateHostsByClusterName
+        httpClient.delete(url, gson.toJson(hostIds), headers);
+    }
 
     @Override
     public Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception {
@@ -158,14 +131,14 @@ public class RodimusManagerImpl implements RodimusManager {
 
         // NOTE: it's better to call this function with single host id
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
-        String res = callHttpClient(Verb.POST, url, gson.toJson(hostIds));
+        String res = httpClient.post(url, gson.toJson(hostIds), headers);
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
-    } // getTerminatedHosts
+    }
 
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
         String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
-        String res = callHttpClient(Verb.GET, url, null);
+        String res = httpClient.get(url, null, null);
 
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
         if (jsonObject == null || jsonObject.isJsonNull()) {
@@ -178,14 +151,14 @@ public class RodimusManagerImpl implements RodimusManager {
         }
 
         return launchGracePeriod.getAsLong();
-    } // getClusterInstanceLaunchGracePeriod
+    }
 
     @Override
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds)
             throws Exception {
         String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
-        String res = callHttpClient(Verb.POST, url, gson.toJson(hostIds));
+        String res = httpClient.post(url, gson.toJson(hostIds), headers);
 
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>() {}.getType());
-    } // getEc2Tags
-} // class RodimusManagerImpl
+    }
+}
