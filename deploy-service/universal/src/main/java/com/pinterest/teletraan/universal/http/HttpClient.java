@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -34,15 +35,12 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+@Slf4j
 public class HttpClient {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json");
     private static final ObservationRegistry observationRegistry = ObservationRegistry.create();
     private static final OkHttpClient sharedOkHttpClient = new OkHttpClient();
-    /**
-     * The HTTP client used for making network requests. This client is an instance of {@link
-     * OkHttpClient}.
-     */
-    @Getter private final OkHttpClient httpClient;
+    @Getter private final OkHttpClient okHttpClient;
 
     public HttpClient() {
         this(false, null, 0, null);
@@ -78,7 +76,8 @@ public class HttpClient {
                     new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyAddr, proxyPort)));
         }
         if (authorizationSupplier != null) {
-            clientBuilder.addInterceptor(
+            clientBuilder
+            .addInterceptor(
                     (chain) -> {
                         Request request = chain.request();
                         return chain.proceed(
@@ -87,7 +86,7 @@ public class HttpClient {
                                         .build());
                     });
         }
-        httpClient = clientBuilder.build();
+        okHttpClient = clientBuilder.build();
     }
 
     private static OkHttpObservationInterceptor.Builder observationInterceptorBuilder() {
@@ -151,11 +150,37 @@ public class HttpClient {
     }
 
     String makeCall(Request request) throws IOException {
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response);
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            int responseCode = response.code();
+            String responseBody = response.body().string();
+
+            if (responseCode >= 200 && responseCode < 300) {
+                return responseBody;
+            } else if (responseCode >= 400 && responseCode < 500) {
+                log.error("Client error: {} - {}", responseCode, responseBody);
+                throw new ClientErrorException(
+                        "Client error: " + responseCode + " - " + responseBody);
+            } else if (responseCode >= 500) {
+                log.error("Server error: {} - {}", responseCode, responseBody);
+                throw new ServerErrorException(
+                        "Server error: " + responseCode + " - " + responseBody);
+            } else {
+                log.error("Unexpected response code: {} - {}", responseCode, responseBody);
+                throw new IOException(
+                        "Unexpected response code: " + responseCode + " - " + responseBody);
             }
-            return response.body().string();
+        }
+    }
+
+    public static class ClientErrorException extends IOException {
+        public ClientErrorException(String message) {
+            super(message);
+        }
+    }
+
+    public static class ServerErrorException extends IOException {
+        public ServerErrorException(String message) {
+            super(message);
         }
     }
 }
