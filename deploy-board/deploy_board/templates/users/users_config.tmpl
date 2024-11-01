@@ -10,6 +10,7 @@
 </div>
 
 <div class="panel-body">
+{% include "users/script_token_deprecation.html" %}
 <form id="usersFormId" class="form-horizontal" method="post"
     action="/env/{{ env_name }}/update_users_config/?user_types={{ user_types }}" role="form">
 {% csrf_token %}
@@ -83,6 +84,7 @@
                     {% endif %}
                 </div>
                 <div class="modal-body">
+                    {% include "users/script_token_deprecation.html" %}
                     <div class="form-group">
                         <label for="newName"
                                class="deployToolTip control-label col-md-2">Name</label>
