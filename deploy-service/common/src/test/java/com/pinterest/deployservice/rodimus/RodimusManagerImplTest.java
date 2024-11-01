@@ -15,30 +15,26 @@
  */
 package com.pinterest.deployservice.rodimus;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.when;
 
-import java.io.IOException;
+import com.pinterest.teletraan.universal.http.HttpClient.ClientErrorException;
+import com.pinterest.teletraan.universal.http.HttpClient.ServerErrorException;
+import java.util.Arrays;
 import java.util.Collections;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
-
-import com.pinterest.deployservice.common.DeployInternalException;
 
 class RodimusManagerImplTest {
     private RodimusManagerImpl sut;
     private static MockWebServer mockWebServer;
-    private String TEST_URL = "testUrl";
+    private String TEST_URL = "testUrl/";
 
     @BeforeAll
     public static void setUp() throws Exception {
@@ -76,26 +72,50 @@ class RodimusManagerImplTest {
 
     @Test
     void terminateHostsByClusterName_Ok() throws Exception {
-        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        mockWebServer.enqueue(new MockResponse());
         try {
-            sut.terminateHostsByClusterName(
-                    "cluster", Collections.singletonList("i-001"));
+            sut.terminateHostsByClusterName("cluster", Collections.singletonList("i-001"));
         } catch (Exception e) {
             fail("Unexpected exception: " + e);
         }
     }
 
-        @Test
-    void terminateHostsByClusterName_ErrorOk() throws Exception {
+    @Test
+    void terminateHostsByClusterName_Error() throws Exception {
         mockWebServer.enqueue(new MockResponse().setResponseCode(401));
 
         Exception exception =
                 assertThrows(
-                        IOException.class,
+                        ClientErrorException.class,
                         () -> {
                             sut.terminateHostsByClusterName(
                                     "cluster", Collections.singletonList("i-001"));
                         });
-        assertTrue(exception.getMessage().contains("unauthenticated"));
+        assertTrue(exception.getMessage().contains("401"));
+    }
+
+    @Test
+    void terminateHostsByClusterName_ServerError() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+        Exception exception =
+                assertThrows(
+                        ServerErrorException.class,
+                        () -> {
+                            sut.terminateHostsByClusterName(
+                                    "cluster", Collections.singletonList("i-001"));
+                        });
+        assertTrue(exception.getMessage().contains("500"));
+    }
+
+    @Test
+    void getTerminatedHosts_Ok() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setBody("[]"));
+
+        try {
+            sut.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
+        }
     }
 }
