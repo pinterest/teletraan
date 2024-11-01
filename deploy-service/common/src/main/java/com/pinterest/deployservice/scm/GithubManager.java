@@ -19,8 +19,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.common.EncryptionUtils;
-import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.KnoxKeyReader;
+import com.pinterest.teletraan.universal.http.HttpClient;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
     private static final String UNKNOWN_LOGIN = "UNKNOWN";
+    private static final HttpClient httpClient = new HttpClient();
     private static final long TOKEN_TTL_MILLIS = 600000; // token expires after 10 minutes
     private final String apiPrefix;
     private final String urlPrefix;
@@ -179,14 +180,13 @@ public class GithubManager extends BaseManager {
 
     @Override
     public CommitBean getCommit(String repo, String sha) throws Exception {
-        HTTPClient httpClient = new HTTPClient();
         String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
         setHeaders();
         String jsonPayload;
         try {
-            jsonPayload = httpClient.get(url, null, null, headers, 1);
+            jsonPayload = httpClient.get(url, null, headers);
         } catch (IOException e) {
             // an IOException (and its subclasses) in this case indicates that the commit hash is
             // not found in the repo.
@@ -208,7 +208,6 @@ public class GithubManager extends BaseManager {
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
             throws Exception {
-        HTTPClient httpClient = new HTTPClient();
         String url = String.format("%s/repos/%s/commits", apiPrefix, repo);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
@@ -217,7 +216,7 @@ public class GithubManager extends BaseManager {
         params.put("path", path);
 
         setHeaders();
-        String jsonPayload = httpClient.get(url, null, params, headers, 1);
+        String jsonPayload = httpClient.get(url, params, headers);
         Queue<CommitBean> CommitBeans = new LinkedList<>();
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>[] jsonMaps =

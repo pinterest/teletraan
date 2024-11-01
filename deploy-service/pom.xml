@@ -20,6 +20,7 @@
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
         <googleJavaFormat.version>1.7</googleJavaFormat.version>
         <spotless.version>2.30.0</spotless.version>
+        <okhttp.version>4.12.0</okhttp.version>
         <source_dir>${maven.repo.local}/com/pinterest/teletraan/${project.artifactId}/${project.version}</source_dir>
     </properties>
 
@@ -33,8 +34,10 @@
         <dependencies>
             <dependency>
                 <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-core</artifactId>
+                <artifactId>micrometer-bom</artifactId>
                 <version>${micrometer.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>io.projectreactor</groupId>
@@ -64,6 +67,11 @@
                 <groupId>com.pinterest.teletraan</groupId>
                 <artifactId>common</artifactId>
                 <version>0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.12.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

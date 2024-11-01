@@ -15,55 +15,87 @@
  */
 package com.pinterest.deployservice.rodimus;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.when;
 
-import com.pinterest.deployservice.common.HTTPClient;
-import com.pinterest.deployservice.rodimus.RodimusManagerImpl.Verb;
-import java.lang.reflect.Field;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Collections;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
-public class RodimusManagerImplTest {
+import com.pinterest.deployservice.common.DeployInternalException;
+
+class RodimusManagerImplTest {
     private RodimusManagerImpl sut;
-    private HTTPClient mockHttpClient;
+    private static MockWebServer mockWebServer;
     private String TEST_URL = "testUrl";
 
+    @BeforeAll
+    public static void setUp() throws Exception {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+    }
+
     @BeforeEach
-    public void setUp() throws Exception {
-        sut = new RodimusManagerImpl("http://localhost", null, false, "", "");
-
-        mockHttpClient = Mockito.mock(HTTPClient.class);
-        Field classHttpClient = sut.getClass().getDeclaredField("httpClient");
-        classHttpClient.setAccessible(true);
-        classHttpClient.set(sut, mockHttpClient);
-        classHttpClient.setAccessible(false);
+    public void setUpEach() throws Exception {
+        sut = new RodimusManagerImpl(mockWebServer.url(TEST_URL).toString(), null, false, "", "");
     }
 
     @Test
-    public void nullKnoxKey_defaultKeyIsUsed() throws Exception {
-        sut.callHttpClient(Verb.DELETE, TEST_URL, null);
+    void nullKnoxKey_defaultKeyIsUsed() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setBody("[]"));
+        sut.getTerminatedHosts(Collections.singletonList("testHost"));
 
-        ArgumentCaptor<Map<String, String>> argument =
-                ArgumentCaptor.forClass((Class<Map<String, String>>) (Class) Map.class);
-        verify(mockHttpClient).delete(eq(TEST_URL), eq(null), argument.capture(), eq(3));
-
-        Map<String, String> headers = argument.getValue();
-        assertTrue(headers.containsKey("Authorization"));
-        assertEquals("token defaultKeyContent", headers.get("Authorization"));
+        RecordedRequest request = mockWebServer.takeRequest();
+        assertEquals("token defaultKeyContent", request.getHeader("Authorization"));
     }
 
     @Test
-    public void invalidKnoxKey_exceptionThrown() throws Exception {
+    void invalidKnoxKey_exceptionThrown() throws Exception {
         RodimusManagerImpl sut =
-                new RodimusManagerImpl("http://localhost", "invalidRodimusKnoxKey", false, "", "");
+                new RodimusManagerImpl(
+                        mockWebServer.url(TEST_URL).toString(),
+                        "invalidRodimusKnoxKey",
+                        false,
+                        "",
+                        "");
         assertThrows(
-                IllegalStateException.class, () -> sut.callHttpClient(Verb.DELETE, TEST_URL, null));
+                IllegalStateException.class,
+                () -> sut.getTerminatedHosts(Collections.singletonList("")));
+    }
+
+    @Test
+    void terminateHostsByClusterName_Ok() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        try {
+            sut.terminateHostsByClusterName(
+                    "cluster", Collections.singletonList("i-001"));
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
+        }
+    }
+
+        @Test
+    void terminateHostsByClusterName_ErrorOk() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(401));
+
+        Exception exception =
+                assertThrows(
+                        IOException.class,
+                        () -> {
+                            sut.terminateHostsByClusterName(
+                                    "cluster", Collections.singletonList("i-001"));
+                        });
+        assertTrue(exception.getMessage().contains("unauthenticated"));
     }
 }
