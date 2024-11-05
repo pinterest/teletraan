@@ -23,6 +23,18 @@ class TestClient(TestCase):
         self.assertIsNotNone(client._ip)
         self.assertTrue(return_value)
 
+    def test_read_host_info_normandie(self):
+        client = Client(config=Config())
+        client._ec2_tags = {}
+        client._availability_zone = "us-east-1"
+        return_value: bool = client._read_host_info()
+        self.assertTrue(return_value)
+
+        # On a host with normandie, the normandie status should be set to OK
+        # On a host without, such as build agents, the normandie status should be ERROR
+        self.assertIsNotNone(client._normandie_status)
+        self.assertTrue(client._normandie_status == "OK" or client._normandie_status == "ERROR")
+
     def test_read_host_info_no_ec2_tags_provided(self):
         client = Client(config=Config())
         with self.assertRaises(AttributeError):

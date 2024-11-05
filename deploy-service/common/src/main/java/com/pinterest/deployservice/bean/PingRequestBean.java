@@ -41,6 +41,10 @@ public class PingRequestBean {
 
     private String accountId;
 
+    private String normandieStatus;
+
+    private String knoxStatus;
+
     private List<PingReportBean> reports;
 
     public String getHostId() {
@@ -126,6 +130,14 @@ public class PingRequestBean {
     public void setAccountId(String accountId) {
         this.accountId = accountId;
     }
+
+    public String getNormandieStatus() { return normandieStatus; }
+
+    public void setNormandieStatus(String normandieStatus) { this.normandieStatus = normandieStatus; }
+
+    public String getKnoxStatus() { return knoxStatus; }
+
+    public void setKnoxStatus(String knoxStatus) { this.knoxStatus = knoxStatus; }
 
     public void setReports(List<PingReportBean> reports) {
         this.reports = reports;

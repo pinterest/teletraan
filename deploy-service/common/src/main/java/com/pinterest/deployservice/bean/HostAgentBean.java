@@ -16,8 +16,17 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
+import lombok.Data;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class HostAgentBean implements Updatable {
     @JsonProperty("hostName")
     private String host_name;
@@ -40,61 +49,11 @@ public class HostAgentBean implements Updatable {
     @JsonProperty("autoScalingGroup")
     private String auto_scaling_group;
 
-    public String getHost_name() {
-        return host_name;
-    }
+    @JsonProperty("normandieStatus")
+    private String normandie_status;
 
-    public void setHost_name(String host_name) {
-        this.host_name = host_name;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getHost_id() {
-        return host_id;
-    }
-
-    public void setHost_id(String host_id) {
-        this.host_id = host_id;
-    }
-
-    public Long getCreate_date() {
-        return create_date;
-    }
-
-    public void setCreate_date(Long create_date) {
-        this.create_date = create_date;
-    }
-
-    public Long getLast_update() {
-        return last_update;
-    }
-
-    public void setLast_update(Long last_update) {
-        this.last_update = last_update;
-    }
-
-    public String getAgent_Version() {
-        return agent_version;
-    }
-
-    public void setAgent_Version(String agent_version) {
-        this.agent_version = agent_version;
-    }
-
-    public String getAuto_scaling_group() {
-        return this.auto_scaling_group;
-    }
-
-    public void setAuto_scaling_group(String asg) {
-        this.auto_scaling_group = asg;
-    }
+    @JsonProperty("knoxStatus")
+    private String knox_status;
 
     @Override
     public SetClause genSetClause() {
@@ -106,6 +65,8 @@ public class HostAgentBean implements Updatable {
         clause.addColumn("last_update", last_update);
         clause.addColumn("agent_version", agent_version);
         clause.addColumn("auto_scaling_group", auto_scaling_group);
+        clause.addColumn("normandie_status", normandie_status);
+        clause.addColumn("knox_status", knox_status);
         return clause;
     }
 
@@ -115,7 +76,9 @@ public class HostAgentBean implements Updatable {
                     + "host_id=VALUES(host_id),"
                     + "last_update=VALUES(last_update),"
                     + "agent_version=VALUES(agent_version),"
-                    + "auto_scaling_group=VALUES(auto_scaling_group)";
+                    + "auto_scaling_group=VALUES(auto_scaling_group),"
+                    + "normandie_status=VALUES(normandie_status),"
+                    + "knox_status=VALUES(knox_status)";
 
     @Override
     public String toString() {

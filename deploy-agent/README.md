@@ -5,6 +5,7 @@ See https://github.com/pinterest/teletraan/wiki for more details.
 
 1. Install [pre-commit](https://pre-commit.com/#install)
 ```bash
+cd teletraan
 pip install pre-commit
 pre-commit install
 ```
@@ -15,6 +16,7 @@ Ensure that your python version is at least python3.8.
 
 ## Building
 ```bash
+cd teletraan/deploy-agent/
 sudo bazel build //deployd:deploy-agent
 ```
 

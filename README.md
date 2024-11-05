@@ -22,6 +22,16 @@ Check out [Integrate with Teletraan](https://github.com/pinterest/teletraan/wiki
 
 [Quick start guide!](https://github.com/pinterest/teletraan/wiki/Quickstart-Guide)
 
+#### Before you commit new code
+
+1. Install [pre-commit](https://pre-commit.com/#install)
+```bash
+cd teletraan
+pip install pre-commit
+pre-commit install
+```
+
+
 ### Documentation
 
 [Check out our wiki!](https://github.com/pinterest/teletraan/wiki)
