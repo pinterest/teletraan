@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -499,7 +499,6 @@ class TestDeployAgent(TestCase):
         status.report = PingReport(jsonValue=self.deploy_goal1)
 
         envs = {'abc': status}
-        client = mock.Mock()
         estatus = mock.Mock()
         estatus.load_envs = mock.Mock(return_value=envs)
         ping_response_list = [
@@ -513,8 +512,14 @@ class TestDeployAgent(TestCase):
         agent = DeployAgent(client=client, estatus=estatus, conf=self.config,
                             executor=self.executor, helper=self.helper)
         agent.serve_build()
-        mock_create_sc.assert_called_once_with('deployd.stats.deploy.status.sum', tags={
-                                               'first_run': False, 'deploy_stage': 'PRE_DOWNLOAD', 'env_name': 'abc', 'stage_name': 'beta', 'status_code': 'SUCCEEDED'})
+        mock_create_sc.assert_called_once_with(
+            'deployd.stats.deploy.status.sum',
+            tags={
+                'first_run': False,
+                'deploy_stage': 'PRE_DOWNLOAD',
+                'env_name': 'abc',
+                'stage_name': 'beta',
+                'status_code': 'SUCCEEDED'})
         self.assertEqual(agent._curr_report.report.deployStage, DeployStage.PRE_DOWNLOAD)
         self.assertEqual(agent._curr_report.report.status, AgentStatus.SUCCEEDED)
 

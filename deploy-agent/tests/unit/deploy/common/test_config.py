@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from unittest import mock
 import os
 import os.path
 import tempfile
@@ -78,10 +78,10 @@ class TestConfigFunctions(tests.TestCase):
     def test_get_config_filename(self):
         filename = os.path.join(self.dirname, "test_file1.conf")
         open(os.path.join(self.dirname, "test_file1.conf"), "w")
-            
-        config = Config(filenames=filename) 
+
+        config = Config(filenames=filename)
         self.assertEqual(config.get_config_filename(), filename)
-    
+
     def test_get_deploy_type_from_op_code(self):
         config = Config()
         self.assertEqual(config._get_deploy_type_from_opcode(opCode="NOOP"), DeployType.REGULAR)
