@@ -68,8 +68,8 @@ class HttpClientTest {
 
     @ParameterizedTest
     @ValueSource(ints = {429, 500, 502, 503, 504})
-    void testRetry(int responseStatus) throws IOException {
-        mockWebServer.setDispatcher(new ServerErrorDispatcher(responseStatus));
+    void testRetry(int responseCode) throws IOException {
+        mockWebServer.setDispatcher(new ServerErrorDispatcher(responseCode));
         WebApplicationException exception =
                 assertThrows(
                         WebApplicationException.class,
@@ -79,7 +79,7 @@ class HttpClientTest {
                                     TEST_PARAMS,
                                     TEST_HEADERS);
                         });
-        assertEquals(responseStatus, exception.getResponse().getStatus());
+        assertEquals(responseCode, exception.getResponse().getStatus());
         assertEquals(3, mockWebServer.getRequestCount());
     }
 
@@ -117,6 +117,25 @@ class HttpClientTest {
         assertEquals(TEST_HEADERS.get("h1"), request.getHeader("h1"));
         assertEquals(TEST_HEADERS.get("h2"), request.getHeader("h2"));
         assertEquals(host, request.getHeader("host"));
+    }
+
+    @Test
+    void testAuthentication() throws IOException, InterruptedException {
+        String authHeader = "Bearer token";
+        HttpClient sut =
+                new HttpClient.HttpClientBuilder().authorizationSupplier(() -> authHeader).build();
+
+        mockWebServer.enqueue(new MockResponse().setResponseCode(401));
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+
+        sut.get(mockWebServer.url(TEST_PATH).toString(), TEST_PARAMS, TEST_HEADERS);
+
+        // First request triggers authentication flow
+        RecordedRequest request1 = mockWebServer.takeRequest();
+        assertNull(request1.getHeader("Authorization"));
+
+        RecordedRequest request2 = mockWebServer.takeRequest();
+        assertEquals(authHeader, request2.getHeader("Authorization"));
     }
 
     @Test
@@ -256,15 +275,15 @@ class HttpClientTest {
     }
 
     static class ServerErrorDispatcher extends Dispatcher {
-        private int responseStatus;
+        private int responseCode;
 
-        ServerErrorDispatcher(int responseStatus) {
-            this.responseStatus = responseStatus;
+        ServerErrorDispatcher(int responseCode) {
+            this.responseCode = responseCode;
         }
 
         @Override
         public MockResponse dispatch(RecordedRequest request) {
-            return new MockResponse().setResponseCode(responseStatus);
+            return new MockResponse().setResponseCode(responseCode);
         }
     }
 }
