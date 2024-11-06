@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -55,6 +56,10 @@ public class DBHostDAOImpl implements HostDAO {
             "SELECT COUNT(host_id) FROM hosts WHERE group_name=?";
     private static final String GET_ALL_HOSTS_BY_GROUP =
             "SELECT * FROM hosts WHERE group_name=? AND state!='TERMINATING'";
+
+    private static final String GET_ACTIVE_HOST_IDS_BY_HOST_IDS =
+            "SELECT DISTINCT(host_id) FROM hosts WHERE host_id IN (%s) AND state = 'ACTIVE'";
+
     private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts WHERE host_name=?";
     private static final String GET_HOST_BY_HOSTID =
             "SELECT * FROM hosts WHERE host_id=? ORDER BY create_date";
@@ -245,6 +250,18 @@ public class DBHostDAOImpl implements HostDAO {
     public List<HostBean> getHostsByHostId(String hostId) throws Exception {
         ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_HOST_BY_HOSTID, h, hostId);
+    }
+
+    @Override
+    public List<String> getActiveHostIdsByHostIds(Collection<String> hostIds) throws Exception {
+        String params = hostIds.stream().map(it -> "?").collect(Collectors.joining(","));
+        String sql = String.format(GET_ACTIVE_HOST_IDS_BY_HOST_IDS, params);
+
+        return new QueryRunner(dataSource)
+                .query(
+                        sql,
+                        SingleResultSetHandlerFactory.newListObjectHandler(),
+                        hostIds.toArray());
     }
 
     @Override

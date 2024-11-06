@@ -58,6 +58,8 @@ public interface HostDAO {
 
     List<HostBean> getHostsByHostId(String hostId) throws Exception;
 
+    List<String> getActiveHostIdsByHostIds(Collection<String> hostId) throws Exception;
+
     List<HostBean> getTerminatingHosts() throws Exception;
 
     List<String> getStaleAgentlessHostIds(long lastUpdateBefore, int limit) throws SQLException;
