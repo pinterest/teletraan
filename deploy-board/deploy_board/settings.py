@@ -406,4 +406,4 @@ if IS_PINTEREST:
     #Sub Account
     AWS_SUB_ACCOUNT = os.getenv("AWS_SUB_ACCOUNT", "562567494283")
 
-    UNAUTHORIZED_ERROR_TEXT = "Access denied. Please check if you have the required permissions. For details see: http://pinch.pinadmin.com/teletraan-auth-tsg"
+    UNAUTHORIZED_ERROR_TEXT = "Access denied. To resolve this issue, please follow: http://pinch.pinadmin.com/teletraan-auth-tsg"

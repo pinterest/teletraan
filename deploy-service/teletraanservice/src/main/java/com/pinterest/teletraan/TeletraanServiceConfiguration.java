@@ -26,10 +26,8 @@ import com.pinterest.teletraan.config.ChatFactory;
 import com.pinterest.teletraan.config.DataSourceFactory;
 import com.pinterest.teletraan.config.DefaultChatFactory;
 import com.pinterest.teletraan.config.DefaultEmailFactory;
-import com.pinterest.teletraan.config.DefaultHostGroupFactory;
 import com.pinterest.teletraan.config.EmailFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
-import com.pinterest.teletraan.config.HostGroupFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.MicrometerMetricsFactory;
 import com.pinterest.teletraan.config.OpenAuthorizationFactory;
@@ -74,10 +72,6 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("email")
     private EmailFactory emailFactory;
-
-    @Valid
-    @JsonProperty("hostgroup")
-    private HostGroupFactory hostGroupFactory;
 
     @Valid
     @JsonProperty("event")
@@ -189,17 +183,6 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setAuthorizationFactory(AuthorizationFactory authorizationFactory) {
         this.authorizationFactory = authorizationFactory;
-    }
-
-    public HostGroupFactory getHostGroupFactory() {
-        if (hostGroupFactory == null) {
-            return new DefaultHostGroupFactory();
-        }
-        return hostGroupFactory;
-    }
-
-    public void setHostGroupFactory(HostGroupFactory hostGroupFactory) {
-        this.hostGroupFactory = hostGroupFactory;
     }
 
     public AppEventFactory getAppEventFactory() {
