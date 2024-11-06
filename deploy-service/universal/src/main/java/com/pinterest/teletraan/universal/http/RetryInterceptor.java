@@ -47,7 +47,8 @@ public class RetryInterceptor implements Interceptor {
             }
 
             try {
-                TimeUnit.MILLISECONDS.sleep(retryInterval);
+                long backoff = (long) Math.pow(2, i) * retryInterval;
+                TimeUnit.MILLISECONDS.sleep(backoff);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IOException("Retry interrupted", e);
@@ -63,6 +64,6 @@ public class RetryInterceptor implements Interceptor {
 
     private boolean shouldRetry(Response response) {
         int code = response.code();
-        return code == 500 || code == 502 || code == 503 || code == 504;
+        return code == 429 || code == 500 || code == 502 || code == 503 || code == 504;
     }
 }

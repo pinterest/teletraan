@@ -28,7 +28,6 @@ import com.pinterest.teletraan.universal.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,10 +37,9 @@ public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
     private final HttpClient httpClient;
 
-    private String rodimusUrl;
-    private Map<String, String> headers;
-    private Gson gson;
-    private KeyReader knoxKeyReader = new KnoxKeyReader();
+    private final String rodimusUrl;
+    private final Gson gson;
+    private final KeyReader knoxKeyReader = new KnoxKeyReader();
 
     public RodimusManagerImpl(
             String rodimusUrl,
@@ -51,10 +49,9 @@ public class RodimusManagerImpl implements RodimusManager {
             String httpProxyPort)
             throws Exception {
         this.rodimusUrl = rodimusUrl;
-        this.headers = new HashMap<>();
-        this.headers.put("Accept", "*/*");
         int httpProxyPortInt;
 
+        HttpClient.HttpClientBuilder clientBuilder = HttpClient.builder();
         if (useProxy) {
             try {
                 httpProxyPortInt = Integer.parseInt(httpProxyPort);
@@ -62,15 +59,10 @@ public class RodimusManagerImpl implements RodimusManager {
                 LOG.error(httpProxyPort, exception);
                 throw exception;
             }
-            this.httpClient =
-                    new HttpClient(
-                            useProxy,
-                            httpProxyAddr,
-                            httpProxyPortInt,
-                            this::authorizationHeaderSupplier);
-        } else {
-            this.httpClient = new HttpClient(this::authorizationHeaderSupplier);
+            clientBuilder.httpProxyAddr(httpProxyAddr).httpProxyPort(httpProxyPortInt);
         }
+        this.httpClient =
+                clientBuilder.authorizationSupplier(this::authorizationHeaderSupplier).build();
 
         if (StringUtils.isNotBlank(knoxKey)) {
             knoxKeyReader.init(knoxKey);
@@ -83,7 +75,7 @@ public class RodimusManagerImpl implements RodimusManager {
                         .create();
     }
 
-    private class CustomExclusionStrategy implements ExclusionStrategy {
+    private static class CustomExclusionStrategy implements ExclusionStrategy {
         @Override
         public boolean shouldSkipField(FieldAttributes f) {
             return f.getName().equals("__isset_bit_vector");
@@ -120,7 +112,7 @@ public class RodimusManagerImpl implements RodimusManager {
                 String.format(
                         "%s/v1/clusters/%s/hosts?replaceHost=%s",
                         this.rodimusUrl, clusterName, replaceHost);
-        httpClient.delete(url, gson.toJson(hostIds), headers);
+        httpClient.delete(url, gson.toJson(hostIds), null);
     }
 
     @Override
@@ -131,7 +123,7 @@ public class RodimusManagerImpl implements RodimusManager {
 
         // NOTE: it's better to call this function with single host id
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
-        String res = httpClient.post(url, gson.toJson(hostIds), headers);
+        String res = httpClient.post(url, gson.toJson(hostIds), null);
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
     }
 
@@ -157,7 +149,7 @@ public class RodimusManagerImpl implements RodimusManager {
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds)
             throws Exception {
         String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
-        String res = httpClient.post(url, gson.toJson(hostIds), headers);
+        String res = httpClient.post(url, gson.toJson(hostIds), null);
 
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>() {}.getType());
     }

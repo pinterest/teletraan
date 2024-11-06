@@ -25,6 +25,10 @@ import java.net.Proxy;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
@@ -40,25 +44,43 @@ public class HttpClient {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json");
     private static final ObservationRegistry observationRegistry = ObservationRegistry.create();
     private static final OkHttpClient sharedOkHttpClient = new OkHttpClient();
+
+    private static final int DEFAULT_MAX_RETRIES = 3;
+    private static final boolean DEFAULT_USE_PROXY = false;
+    private static final String DEFAULT_HTTP_PROXY_ADDR = "localhost";
+    private static final int DEFAULT_PROXY_PORT = 19193;
+    private static final long RETRY_INTERVAL = 500;
+
     @Getter private final OkHttpClient okHttpClient;
 
     public HttpClient() {
-        this(false, null, 0, null);
+        this(null, null, null, null, null, null);
     }
 
-    public HttpClient(Supplier<String> authorizationSupplier) {
-        this(false, null, 0, authorizationSupplier);
-    }
-
-    public HttpClient(boolean useProxy, String httpProxyAddr, int httpProxyPort) {
-        this(useProxy, httpProxyAddr, httpProxyPort, null);
-    }
-
+    @Builder(access = AccessLevel.PUBLIC)
     public HttpClient(
-            boolean useProxy,
+            Integer maxRetries,
+            Long retryInterval,
+            Boolean useProxy,
             String httpProxyAddr,
-            int httpProxyPort,
+            Integer httpProxyPort,
             Supplier<String> authorizationSupplier) {
+        if (maxRetries == null) {
+            maxRetries = DEFAULT_MAX_RETRIES;
+        }
+        if (useProxy == null) {
+            useProxy = DEFAULT_USE_PROXY;
+        }
+        if (httpProxyAddr == null) {
+            httpProxyAddr = DEFAULT_HTTP_PROXY_ADDR;
+        }
+        if (httpProxyPort == null) {
+            httpProxyPort = DEFAULT_PROXY_PORT;
+        }
+        if (retryInterval == null) {
+            retryInterval = RETRY_INTERVAL;
+        }
+
         observationRegistry
                 .observationConfig()
                 .observationHandler(new DefaultMeterObservationHandler(Metrics.globalRegistry));
@@ -68,29 +90,32 @@ public class HttpClient {
                         .newBuilder()
                         .connectTimeout(Duration.ofSeconds(15))
                         .readTimeout(Duration.ofSeconds(15))
-                        .addInterceptor(observationInterceptorBuilder().build());
+                        .addInterceptor(observationInterceptorBuilder().build())
+                        .addInterceptor(new RetryInterceptor(maxRetries, retryInterval));
         if (useProxy) {
-            String proxyAddr = httpProxyAddr != null ? httpProxyAddr : "localhost";
-            int proxyPort = httpProxyPort > 0 ? httpProxyPort : 19193;
             clientBuilder.proxy(
-                    new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyAddr, proxyPort)));
+                    new Proxy(
+                            Proxy.Type.HTTP, new InetSocketAddress(httpProxyAddr, httpProxyPort)));
         }
         if (authorizationSupplier != null) {
-            clientBuilder
-            .addInterceptor(
-                    (chain) -> {
-                        Request request = chain.request();
-                        return chain.proceed(
-                                request.newBuilder()
-                                        .header("Authorization", authorizationSupplier.get())
-                                        .build());
+            clientBuilder.authenticator(
+                    (route, response) -> {
+                        if (response.request().header("Authorization") != null) {
+                            return null; // Give up, we've already failed to authenticate.
+                        }
+
+                        String credential = authorizationSupplier.get();
+                        return response.request()
+                                .newBuilder()
+                                .header("Authorization", credential)
+                                .build();
                     });
         }
         okHttpClient = clientBuilder.build();
     }
 
     private static OkHttpObservationInterceptor.Builder observationInterceptorBuilder() {
-        return OkHttpObservationInterceptor.builder(observationRegistry, "okhttp.requests");
+        return OkHttpObservationInterceptor.builder(observationRegistry, "okhttp");
     }
 
     public String get(String url, Map<String, String> params, Map<String, String> headers)
@@ -108,7 +133,7 @@ public class HttpClient {
                 new Request.Builder()
                         .url(buildUrl(url, null))
                         .headers(buildHeaders(headers))
-                        .post(RequestBody.create(body, MEDIA_TYPE_JSON))
+                        .post(buildJsonBody(body))
                         .build();
         return makeCall(request);
     }
@@ -118,7 +143,7 @@ public class HttpClient {
                 new Request.Builder()
                         .url(buildUrl(url, null))
                         .headers(buildHeaders(headers))
-                        .put(RequestBody.create(body, MEDIA_TYPE_JSON))
+                        .put(buildJsonBody(body))
                         .build();
         return makeCall(request);
     }
@@ -128,7 +153,7 @@ public class HttpClient {
                 new Request.Builder()
                         .url(buildUrl(url, null))
                         .headers(buildHeaders(headers))
-                        .delete(RequestBody.create(body, MEDIA_TYPE_JSON))
+                        .delete(buildJsonBody(body))
                         .build();
         return makeCall(request);
     }
@@ -149,38 +174,25 @@ public class HttpClient {
         return urlBuilder.build();
     }
 
+    public RequestBody buildJsonBody(String json) {
+        if (json == null) {
+            return null;
+        }
+        return RequestBody.create(json, MEDIA_TYPE_JSON);
+    }
+
     String makeCall(Request request) throws IOException {
         try (Response response = okHttpClient.newCall(request).execute()) {
             int responseCode = response.code();
-            String responseBody = response.body().string();
+            String responseBody = response.body() != null ? response.body().string() : "";
 
-            if (responseCode >= 200 && responseCode < 300) {
+            if (response.isSuccessful()) {
                 return responseBody;
             } else if (responseCode >= 400 && responseCode < 500) {
-                log.error("Client error: {} - {}", responseCode, responseBody);
-                throw new ClientErrorException(
-                        "Client error: " + responseCode + " - " + responseBody);
-            } else if (responseCode >= 500) {
-                log.error("Server error: {} - {}", responseCode, responseBody);
-                throw new ServerErrorException(
-                        "Server error: " + responseCode + " - " + responseBody);
+                throw new ClientErrorException(responseBody, responseCode);
             } else {
-                log.error("Unexpected response code: {} - {}", responseCode, responseBody);
-                throw new IOException(
-                        "Unexpected response code: " + responseCode + " - " + responseBody);
+                throw new ServerErrorException(responseBody, responseCode);
             }
-        }
-    }
-
-    public static class ClientErrorException extends IOException {
-        public ClientErrorException(String message) {
-            super(message);
-        }
-    }
-
-    public static class ServerErrorException extends IOException {
-        public ServerErrorException(String message) {
-            super(message);
         }
     }
 }
