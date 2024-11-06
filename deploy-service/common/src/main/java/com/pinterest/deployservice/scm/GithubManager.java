@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
     private static final String UNKNOWN_LOGIN = "UNKNOWN";
-    private static final HttpClient httpClient = new HttpClient();
+    private static final HttpClient httpClient = HttpClient.builder().maxRetries(1).build();
     private static final long TOKEN_TTL_MILLIS = 600000; // token expires after 10 minutes
     private final String apiPrefix;
     private final String urlPrefix;
