@@ -80,3 +80,11 @@ MANIFEST
 # Virtual Environments
 .venv
 docs/docs_generator/bin/
+
+# Bazel
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-weave
+bazel-deploy-agent
+MODULE.bazel*

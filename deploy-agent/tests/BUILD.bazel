@@ -8,6 +8,13 @@ py_test(
 )
 
 py_test(
+    name = "test_client",
+    srcs = ['unit/deploy/client/test_client.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
     name = "test_serverless_client",
     srcs = ['unit/deploy/client/test_serverless_client.py'],
     deps = ["test_lib"],
@@ -15,8 +22,22 @@ py_test(
 )
 
 py_test(
-    name = "test_agent",
-    srcs = ['unit/deploy/server/test_agent.py'],
+    name = "test_config",
+    srcs = ['unit/deploy/common/test_config.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_helper",
+    srcs = ['unit/deploy/common/test_helper.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_stats",
+    srcs = ['unit/deploy/common/test_stats.py'],
     deps = ["test_lib"],
     python_version = "PY3",
 )
@@ -29,8 +50,8 @@ py_test(
 )
 
 py_test(
-    name = "test_s3_download_helper",
-    srcs = ['unit/deploy/download/test_s3_download_helper.py'],
+    name = "test_download_helper",
+    srcs = ['unit/deploy/download/test_download_helper.py'],
     deps = ["test_lib"],
     python_version = "PY3",
 )
@@ -38,6 +59,41 @@ py_test(
 py_test(
     name = "test_http_download_helper",
     srcs = ['unit/deploy/download/test_http_download_helper.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_local_download_helper",
+    srcs = ['unit/deploy/download/test_local_download_helper.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_s3_download_helper",
+    srcs = ['unit/deploy/download/test_s3_download_helper.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_agent",
+    srcs = ['unit/deploy/server/test_agent.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_staging_helper",
+    srcs = ['unit/deploy/staging/test_staging_helper.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_transformer",
+    srcs = ['unit/deploy/staging/test_transformer.py'],
     deps = ["test_lib"],
     python_version = "PY3",
 )

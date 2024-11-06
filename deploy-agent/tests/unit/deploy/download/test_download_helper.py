@@ -14,7 +14,7 @@
 
 from deployd.download.s3_download_helper import S3DownloadHelper
 import os
-import mock
+from unittest import mock
 import shutil
 import tempfile
 import unittest
