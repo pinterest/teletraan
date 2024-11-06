@@ -21,6 +21,7 @@ import com.pinterest.teletraan.universal.security.ScriptTokenProvider;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
+import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,12 @@ import org.slf4j.LoggerFactory;
 public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBasedRole> {
     private static final Logger LOG = LoggerFactory.getLogger(TeletraanScriptTokenProvider.class);
 
-    private ServiceContext context;
+    private final ServiceContext context;
+    private final boolean checkTokenExpiry;
 
-    public TeletraanScriptTokenProvider(ServiceContext context) {
+    public TeletraanScriptTokenProvider(ServiceContext context, Boolean checkTokenExpiry) {
         this.context = context;
+        this.checkTokenExpiry = Boolean.TRUE.equals(checkTokenExpiry);
     }
 
     @Override
@@ -39,7 +42,7 @@ public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBa
         try {
             TokenRolesBean tokenRolesBean = context.getTokenRolesDAO().getByToken(token);
 
-            if (tokenRolesBean != null) {
+            if (tokenRolesBean != null && isTokenValid(tokenRolesBean.getExpire_date())) {
                 return Optional.of(
                         new ScriptTokenPrincipal<ValueBasedRole>(
                                 tokenRolesBean.getScript_name(),
@@ -52,5 +55,10 @@ public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBa
             LOG.error("failed to get Script token principal", e);
         }
         return Optional.empty();
+    }
+
+    private boolean isTokenValid(Long expire_date) {
+        return !checkTokenExpiry
+                || expire_date != null && Instant.now().toEpochMilli() < expire_date;
     }
 }

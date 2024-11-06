@@ -1,3 +1,5 @@
+{% load utils %}
+
 <div class="panel-heading clearfix">
     <h4 class="panel-title pull-left">
         {% if user_types == 'user_roles' %}
@@ -10,6 +12,7 @@
 </div>
 
 <div class="panel-body">
+{% include "users/script_token_deprecation.html" %}
 <form id="usersFormId" class="form-horizontal" method="post"
     action="/env/{{ env_name }}/update_users_config/?user_types={{ user_types }}" role="form">
 {% csrf_token %}
@@ -19,16 +22,16 @@
     <input type="hidden" name="TELETRAAN_ORIGIN_{{ user.name }}" value="{{ user.role }}"/>
 {% endfor %}
 {% for user in users %}
-    <div class="form-group">
-        <label class="control-label col-md-4">{{ user.name }}</label>
-        <div class="col-md-4">
+    <div class="form-group row">
+        <label class="control-label col-md-2">{{ user.name }}</label>
+        <div class="col-md-2">
             <select class="form-control" name="TELETRAAN_NEW_{{ user.name }}">
                 {% for role in roles %}
                 {% if user.role == role %}
-                <option value="{{ role }}" selected="selected">{{ role }}</option>
+                    <option value="{{ role }}" selected="selected">{{ role }}</option>
                 {% else %}
-                <option value="{{ role }}">{{ role }}</option>
-                {% endif %}>
+                    <option value="{{ role }}">{{ role }}</option>
+                {% endif %}
                 {% endfor %}
             </select>
         </div>
@@ -36,8 +39,11 @@
                 title="Revoke this permission"> Revoke
         </button>
         {% if user_types == 'token_roles' %}
-        <button type="button" class="showTokenBtn deployToolTip btn btn-default"
-                title="Show the token in clear text">Show Token</button>
+            <button type="button" class="showTokenBtn deployToolTip btn btn-default"
+                    title="Show the token in clear text">Show Token</button>
+            <div class="control-label col-md-2" >
+                Expires on {{ user.expireDate|convertTimestamp }}
+            </div>
         {% endif %}
     </div>
 {% endfor %}
@@ -83,6 +89,7 @@
                     {% endif %}
                 </div>
                 <div class="modal-body">
+                    {% include "users/script_token_deprecation.html" %}
                     <div class="form-group">
                         <label for="newName"
                                class="deployToolTip control-label col-md-2">Name</label>

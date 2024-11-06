@@ -21,6 +21,8 @@ import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import java.net.URI;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import javax.ws.rs.core.*;
 import org.slf4j.Logger;
@@ -28,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class TokenRoles {
     private static final Logger LOG = LoggerFactory.getLogger(TokenRoles.class);
-    public static final long VALIDATE_TIME = 10 * 365 * 24 * 60 * 60 * 1000L;
+    public static final long VALIDATE_TIME = 180;
     private final TokenRolesDAO tokenRolesDAO;
 
     protected TokenRoles(TeletraanServiceContext context) {
@@ -70,7 +72,7 @@ public abstract class TokenRoles {
         bean.setToken(token);
         bean.setResource_id(resourceId);
         bean.setResource_type(resourceType);
-        bean.setExpire_date(System.currentTimeMillis() + VALIDATE_TIME);
+        bean.setExpire_date(Instant.now().plus(VALIDATE_TIME, ChronoUnit.DAYS).toEpochMilli());
         tokenRolesDAO.insert(bean);
         bean.setToken("xxxxxxxx");
         LOG.info(

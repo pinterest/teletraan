@@ -28,6 +28,7 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,12 +47,13 @@ class TeletraanScriptTokenProviderTest {
         context = new ServiceContext();
         tokenRolesDAO = mock(TokenRolesDAO.class);
         context.setTokenRolesDAO(tokenRolesDAO);
-        sut = new TeletraanScriptTokenProvider(context);
+        sut = new TeletraanScriptTokenProvider(context, false);
         tokenRolesBean = new TokenRolesBean();
         tokenRolesBean.setScript_name("scriptName");
         tokenRolesBean.setResource_id("resourceId");
         tokenRolesBean.setRole(TeletraanPrincipalRole.ADMIN);
         tokenRolesBean.setResource_type(AuthZResource.Type.SYSTEM);
+        tokenRolesBean.setExpire_date(Instant.now().plusSeconds(100).toEpochMilli());
 
         when(tokenRolesDAO.getByToken(GOOD_TOKEN)).thenReturn(tokenRolesBean);
     }
@@ -63,8 +65,10 @@ class TeletraanScriptTokenProviderTest {
         assertFalse(principal.isPresent());
     }
 
-    @Test
-    void testGetPrincipal_validToken() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testGetPrincipal_validToken(boolean checkTokenExpiry) {
+        sut = new TeletraanScriptTokenProvider(context, checkTokenExpiry);
         ScriptTokenPrincipal<ValueBasedRole> principal = sut.getPrincipal(GOOD_TOKEN).get();
         assertEquals(TeletraanPrincipalRole.ADMIN.getRole(), principal.getRole());
         assertEquals(AuthZResource.Type.SYSTEM, principal.getResource().getType());
@@ -77,6 +81,14 @@ class TeletraanScriptTokenProviderTest {
         String token = "exceptionToken";
         when(tokenRolesDAO.getByToken(token)).thenThrow(SQLException.class);
         Optional<?> principal = sut.getPrincipal(token);
+        assertFalse(principal.isPresent());
+    }
+
+    @Test
+    void testGetPrincipal_expiredToken() {
+        sut = new TeletraanScriptTokenProvider(context, true);
+        tokenRolesBean.setExpire_date(Instant.now().minusSeconds(1).toEpochMilli());
+        Optional<?> principal = sut.getPrincipal(GOOD_TOKEN);
         assertFalse(principal.isPresent());
     }
 }
