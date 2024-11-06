@@ -59,7 +59,10 @@ public class RodimusManagerImpl implements RodimusManager {
                 LOG.error(httpProxyPort, exception);
                 throw exception;
             }
-            clientBuilder.httpProxyAddr(httpProxyAddr).httpProxyPort(httpProxyPortInt);
+            clientBuilder
+                    .useProxy(true)
+                    .httpProxyAddr(httpProxyAddr)
+                    .httpProxyPort(httpProxyPortInt);
         }
         this.httpClient =
                 clientBuilder.authorizationSupplier(this::authorizationHeaderSupplier).build();
