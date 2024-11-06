@@ -48,7 +48,7 @@ public class HttpClient {
     private static final int DEFAULT_MAX_RETRIES = 3;
     private static final boolean DEFAULT_USE_PROXY = false;
     private static final String DEFAULT_HTTP_PROXY_ADDR = "localhost";
-    private static final int DEFAULT_PROXY_PORT = 19194;
+    private static final int DEFAULT_PROXY_PORT = 19193;
     private static final long RETRY_INTERVAL = 500;
 
     @Getter private final OkHttpClient okHttpClient;

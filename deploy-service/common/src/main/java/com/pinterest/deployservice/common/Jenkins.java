@@ -21,13 +21,13 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.pinterest.teletraan.universal.http.HttpClient;
 
 // TODO: make it generic
 /** Wrapper for Jenkins API calls */
 public class Jenkins {
     private static final Logger LOG = LoggerFactory.getLogger(Jenkins.class);
-    private static final int RETRIES = 3;
-    private HTTPClient httpClient = new HTTPClient();
+    private static final HttpClient httpClient = HttpClient.builder().maxRetries(3).build();
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
 
@@ -87,9 +87,8 @@ public class Jenkins {
 
     String getJenkinsToken() throws Exception {
         String url = String.format("%s/%s", this.jenkinsUrl, "crumbIssuer/api/json");
-        String ret = httpClient.get(url, null, null, null, RETRIES);
-        JsonParser parser = new JsonParser();
-        JsonObject json = (JsonObject) parser.parse(ret);
+        String ret = httpClient.get(url, null, null);
+        JsonObject json = (JsonObject) JsonParser.parseString(ret);
         return json.get("crumb").getAsString();
     }
 
@@ -98,7 +97,7 @@ public class Jenkins {
         Map<String, String> headers = new HashMap<>(1);
         headers.put(".crumb", token);
         LOG.debug("Calling jenkins with url " + url + " and token " + token);
-        httpClient.post(url, null, headers, RETRIES);
+        httpClient.post(url, null, headers);
     }
 
     public void startBuild(String jobName, String buildParams) throws Exception {
@@ -110,18 +109,16 @@ public class Jenkins {
                 String.format(
                         "%s/job/%s/buildWithParameters?%s%s",
                         this.jenkinsUrl, jobName, tokenString, buildParams);
-        // startBuild(url);
         // Use GET instead, which is the same as POST but no need for token
-        httpClient.get(url, null, null, null, RETRIES);
+        httpClient.get(url, null, null);
         LOG.info("Successfully post to jenkins for job " + jobName);
     }
 
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", this.jenkinsUrl, jobName, jobNum);
         LOG.debug("Calling jenkins with url " + url);
-        String ret = httpClient.get(url, null, null, null, RETRIES);
-        JsonParser parser = new JsonParser();
-        JsonObject json = (JsonObject) parser.parse(ret);
+        String ret = httpClient.get(url, null, null);
+        JsonObject json = (JsonObject) JsonParser.parseString(ret);
         return new Build(
                 json.get("number").toString(),
                 json.get("result").toString(),
