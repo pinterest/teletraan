@@ -38,6 +38,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
+import okhttp3.logging.HttpLoggingInterceptor.Logger;
 
 @Slf4j
 public class HttpClient {
@@ -90,6 +93,7 @@ public class HttpClient {
                         .newBuilder()
                         .connectTimeout(Duration.ofSeconds(15))
                         .readTimeout(Duration.ofSeconds(15))
+                        .addInterceptor(createHttpLoggingInterceptor())
                         .addInterceptor(observationInterceptorBuilder().build())
                         .addInterceptor(new RetryInterceptor(maxRetries, retryInterval));
         if (useProxy) {
@@ -108,6 +112,31 @@ public class HttpClient {
                     });
         }
         okHttpClient = clientBuilder.build();
+    }
+
+    private static HttpLoggingInterceptor createHttpLoggingInterceptor() {
+        HttpLoggingInterceptor logging =
+                new HttpLoggingInterceptor(
+                        new Logger() {
+                            @Override
+                            public void log(String message) {
+                                if (log.isTraceEnabled()) {
+                                    log.trace(message);
+                                } else {
+                                    log.debug(message);
+                                }
+                            }
+                        });
+        if (log.isTraceEnabled()) {
+            logging.setLevel(Level.BODY);
+        } else if (log.isDebugEnabled()) {
+            logging.setLevel(Level.BASIC);
+        } else {
+            logging.setLevel(Level.NONE);
+        }
+        logging.redactHeader("Authorization");
+        logging.redactHeader("Cookie");
+        return logging;
     }
 
     private static OkHttpObservationInterceptor.Builder observationInterceptorBuilder() {
