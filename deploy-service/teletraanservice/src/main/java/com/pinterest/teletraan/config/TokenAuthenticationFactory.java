@@ -51,6 +51,8 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     @JsonProperty private String tokenCacheSpec;
 
+    @JsonProperty private Boolean checkTokenExpiry = false;
+
     public String getUserDataUrl() {
         return userDataUrl;
     }
@@ -91,6 +93,14 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         this.groupDataUrl = groupDataUrl;
     }
 
+    public Boolean getCheckTokenExpiry() {
+        return checkTokenExpiry;
+    }
+
+    public void setCheckTokenExpiry(Boolean checkTokenExpiry) {
+        this.checkTokenExpiry = checkTokenExpiry;
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
@@ -105,7 +115,8 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthFilter(
             TeletraanServiceContext context) {
         Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthenticator =
-                new ScriptTokenAuthenticator<>(new TeletraanScriptTokenProvider(context));
+                new ScriptTokenAuthenticator<>(
+                        new TeletraanScriptTokenProvider(context, checkTokenExpiry));
         if (StringUtils.isNotBlank(getTokenCacheSpec())) {
             scriptTokenAuthenticator =
                     new CachingAuthenticator<>(
