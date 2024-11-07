@@ -17,11 +17,11 @@ package com.pinterest.deployservice.common;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.pinterest.teletraan.universal.http.HttpClient;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.pinterest.teletraan.universal.http.HttpClient;
 
 // TODO: make it generic
 /** Wrapper for Jenkins API calls */

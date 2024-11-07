@@ -66,21 +66,15 @@ class RodimusManagerImplTest {
 
     @Test
     void testNullKnoxKeyUsesDefaultKey() throws Exception {
-        // return 401 to trigger authentication flow
-        mockWebServer.enqueue(new MockResponse().setResponseCode(401));
         mockWebServer.enqueue(new MockResponse().setBody("[]"));
         sut.getTerminatedHosts(Collections.singletonList("testHost"));
 
-        // discard first request
         RecordedRequest request = mockWebServer.takeRequest();
-        request = mockWebServer.takeRequest();
         assertEquals("token defaultKeyContent", request.getHeader("Authorization"));
     }
 
     @Test
     void testInvalidKnoxKeyThrowsException() throws Exception {
-        // return 401 to trigger authentication flow
-        mockWebServer.enqueue(new MockResponse().setResponseCode(401));
         RodimusManagerImpl sut =
                 new RodimusManagerImpl(
                         mockWebServer.url(TEST_PATH).toString(),
@@ -89,7 +83,7 @@ class RodimusManagerImplTest {
                         "",
                         "");
         assertThrows(IllegalStateException.class, () -> sut.getTerminatedHosts(HOST_IDS));
-        assertEquals(1, mockWebServer.getRequestCount());
+        assertEquals(0, mockWebServer.getRequestCount());
     }
 
     @Test

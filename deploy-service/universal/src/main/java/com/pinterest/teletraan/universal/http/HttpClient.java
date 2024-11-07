@@ -98,17 +98,13 @@ public class HttpClient {
                             Proxy.Type.HTTP, new InetSocketAddress(httpProxyAddr, httpProxyPort)));
         }
         if (authorizationSupplier != null) {
-            clientBuilder.authenticator(
-                    (route, response) -> {
-                        if (response.request().header("Authorization") != null) {
-                            return null; // Give up, we've already failed to authenticate.
-                        }
-
-                        String credential = authorizationSupplier.get();
-                        return response.request()
-                                .newBuilder()
-                                .header("Authorization", credential)
-                                .build();
+            clientBuilder.addInterceptor(
+                    (chain) -> {
+                        Request request = chain.request();
+                        return chain.proceed(
+                                request.newBuilder()
+                                        .header("Authorization", authorizationSupplier.get())
+                                        .build());
                     });
         }
         okHttpClient = clientBuilder.build();

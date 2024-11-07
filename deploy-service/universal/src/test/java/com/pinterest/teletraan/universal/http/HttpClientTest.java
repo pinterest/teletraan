@@ -125,17 +125,12 @@ class HttpClientTest {
         HttpClient sut =
                 new HttpClient.HttpClientBuilder().authorizationSupplier(() -> authHeader).build();
 
-        mockWebServer.enqueue(new MockResponse().setResponseCode(401));
         mockWebServer.enqueue(new MockResponse().setResponseCode(200));
 
         sut.get(mockWebServer.url(TEST_PATH).toString(), TEST_PARAMS, TEST_HEADERS);
 
-        // First request triggers authentication flow
-        RecordedRequest request1 = mockWebServer.takeRequest();
-        assertNull(request1.getHeader("Authorization"));
-
-        RecordedRequest request2 = mockWebServer.takeRequest();
-        assertEquals(authHeader, request2.getHeader("Authorization"));
+        RecordedRequest request = mockWebServer.takeRequest();
+        assertEquals(authHeader, request.getHeader("Authorization"));
     }
 
     @Test
