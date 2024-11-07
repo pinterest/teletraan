@@ -861,6 +861,77 @@ public class DBDAOTest {
     }
 
     @Test
+    public void returnActiveHostIdsIfThemExists() throws Exception {
+        // GIVEN
+        Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
+        String activeHostId1 = "id-active-1";
+        String activeHostId2 = "id-active-2";
+        String terminatedHostId = "id-terminated-1";
+
+        hostDAO.insertOrUpdate(
+                "host-active-1",
+                "1.1.1.1",
+                activeHostId1,
+                HostState.ACTIVE.toString(),
+                groups,
+                "test");
+        hostDAO.insertOrUpdate(
+                "host-active-2",
+                "1.1.1.1",
+                activeHostId2,
+                HostState.ACTIVE.toString(),
+                groups,
+                "test");
+        hostDAO.insertOrUpdate(
+                "host-terminated-1",
+                "1.1.1.1",
+                terminatedHostId,
+                HostState.TERMINATED.toString(),
+                groups,
+                "test");
+
+        // WHEN
+        List<String> actual =
+                hostDAO.getActiveHostIdsByHostIds(Arrays.asList(activeHostId1, activeHostId2));
+
+        // THEN
+        assertEquals(2, actual.size());
+        assertTrue(actual.contains(activeHostId1));
+        assertTrue(actual.contains(activeHostId2));
+    }
+
+    @Test
+    public void returnEmptyHostIdsIfThemNotExists() throws Exception {
+        // GIVEN
+        Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
+        String terminatedHostId = "id-terminated-2";
+        String terminatingHostId = "id-terminating-1";
+
+        hostDAO.insertOrUpdate(
+                "host-terminated-2",
+                "1.1.1.1",
+                terminatedHostId,
+                HostState.TERMINATED.toString(),
+                groups,
+                "test");
+        hostDAO.insertOrUpdate(
+                "host-terminating-1",
+                "1.1.1.1",
+                terminatingHostId,
+                HostState.TERMINATING.toString(),
+                groups,
+                "test");
+
+        // WHEN
+        List<String> actual =
+                hostDAO.getActiveHostIdsByHostIds(
+                        Arrays.asList(terminatedHostId, terminatingHostId));
+
+        // THEN
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
     public void testDataDAO() throws Exception {
         DataBean dataBean = genDefaultDataBean("foo1", "name1=value1,name2=value2");
         dataDAO.insert(dataBean);

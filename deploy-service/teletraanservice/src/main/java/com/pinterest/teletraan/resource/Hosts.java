@@ -128,4 +128,14 @@ public class Hosts {
     public Collection<HostBean> getById(@PathParam("hostId") String hostId) throws Exception {
         return hostDAO.getHostsByHostId(hostId);
     }
+
+    @POST
+    @Path("/active")
+    @ApiOperation(
+            value = "Get active host ids by host ids",
+            notes =
+                    "Checks if hosts are active in the Teletraan service by it's id. POST operation because host ids may be too long for a GET request.")
+    public Collection<String> getActiveHostsIdsByIds(Collection<String> hostIds) throws Exception {
+        return hostDAO.getActiveHostIdsByHostIds(hostIds);
+    }
 }
