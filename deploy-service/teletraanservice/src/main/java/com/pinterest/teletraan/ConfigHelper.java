@@ -64,12 +64,10 @@ import com.pinterest.teletraan.worker.HotfixStateTransitioner;
 import com.pinterest.teletraan.worker.MetricsEmitter;
 import com.pinterest.teletraan.worker.SimpleAgentJanitor;
 import com.pinterest.teletraan.worker.StateTransitioner;
-
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -104,8 +102,8 @@ public class ConfigHelper {
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
     private static final int DEFAULT_MAX_BUILDS_TO_KEEP = 1000;
 
-    public static TeletraanServiceContext setupContext(TeletraanServiceConfiguration configuration, Environment environment)
-            throws Exception {
+    public static TeletraanServiceContext setupContext(
+            TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
         TeletraanServiceContext context = new TeletraanServiceContext();
 
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
@@ -227,9 +225,11 @@ public class ConfigHelper {
         int poolSize = Runtime.getRuntime().availableProcessors();
         String jobPoolName = "jobPool";
         ExecutorService jobPool =
-                environment.lifecycle().executorService(jobPoolName)
-                        .minThreads(poolSize*4)
-                        .maxThreads(poolSize*8)
+                environment
+                        .lifecycle()
+                        .executorService(jobPoolName)
+                        .minThreads(poolSize * 4)
+                        .maxThreads(poolSize * 8)
                         .keepAliveTime(Duration.seconds(30))
                         .workQueue(new ArrayBlockingQueue<>(poolSize * 5000, false))
                         .shutdownTime(Duration.seconds(30))

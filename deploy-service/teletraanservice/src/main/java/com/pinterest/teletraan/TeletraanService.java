@@ -129,7 +129,6 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
                 "allowedHeaders",
                 "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
         filter.setInitParameter("allowCredentials", "true");
-
     }
 
     public static void main(String[] args) throws Exception {
