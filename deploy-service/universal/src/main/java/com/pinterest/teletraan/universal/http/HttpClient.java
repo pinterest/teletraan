@@ -87,6 +87,8 @@ public class HttpClient {
         okHttpClient = clientBuilder.build();
     }
 
+    // Partial builder implementation to allow for default values and custom build method
+    // lombok will generate the rest of the builder
     public static class HttpClientBuilder {
         private int maxRetries = 3;
         private long retryInterval = 500;
