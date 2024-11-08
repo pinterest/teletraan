@@ -51,7 +51,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment)
             throws Exception {
-        TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
+        TeletraanServiceContext context = ConfigHelper.setupContext(configuration, environment);
 
         environment.jersey().register(context);
         environment
@@ -129,6 +129,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
                 "allowedHeaders",
                 "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
         filter.setInitParameter("allowCredentials", "true");
+
     }
 
     public static void main(String[] args) throws Exception {

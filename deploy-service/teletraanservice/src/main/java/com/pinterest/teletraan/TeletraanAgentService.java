@@ -44,7 +44,7 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment)
             throws Exception {
-        TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
+        TeletraanServiceContext context = ConfigHelper.setupContext(configuration, environment);
         environment.jersey().register(context);
         environment
                 .jersey()
