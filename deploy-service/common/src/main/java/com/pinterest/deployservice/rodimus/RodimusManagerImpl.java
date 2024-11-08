@@ -65,7 +65,7 @@ public class RodimusManagerImpl implements RodimusManager {
                     .httpProxyPort(httpProxyPortInt);
         }
         this.httpClient =
-                clientBuilder.authorizationSupplier(this::authorizationHeaderSupplier).build();
+                clientBuilder.authorizationSupplier(this::fetchAuthorizationHeader).build();
 
         if (StringUtils.isNotBlank(knoxKey)) {
             knoxKeyReader.init(knoxKey);
@@ -90,7 +90,7 @@ public class RodimusManagerImpl implements RodimusManager {
         }
     }
 
-    private String authorizationHeaderSupplier() throws IllegalStateException {
+    private String fetchAuthorizationHeader() throws IllegalStateException {
         String knoxKey = knoxKeyReader.getKey();
         if (StringUtils.isBlank(knoxKey)) {
             throw new IllegalStateException("Rodimus knoxKey is blank");
