@@ -487,12 +487,12 @@ public class CommonHandler {
         String lockName = String.format("STATE_TRANSITION-%s", deployId);
         Connection connection = utilDAO.getLock(lockName);
         if (connection != null) {
-            LOG.info(String.format("DB lock operation is successful: get lock %s", lockName));
+            LOG.trace(String.format("DB lock operation is successful: get lock %s", lockName));
             try {
                 internalTransition(deployId, envBean);
             } finally {
                 utilDAO.releaseLock(lockName, connection);
-                LOG.info(
+                LOG.trace(
                         String.format(
                                 "DB lock operation is successful: release lock %s", lockName));
             }
