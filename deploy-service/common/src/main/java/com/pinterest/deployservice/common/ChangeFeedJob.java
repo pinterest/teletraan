@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public final class ChangeFeedJob implements Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(ChangeFeedJob.class);
-    private static final HttpClient httpClient = new HttpClient();
+    private static final HttpClient httpClient = HttpClient.builder().build();
     private String payload;
     private String changeFeedUrl;
     private Object oriObj;

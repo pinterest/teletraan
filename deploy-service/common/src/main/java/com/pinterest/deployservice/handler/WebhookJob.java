@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 public class WebhookJob implements Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(WebhookJob.class);
-    private static final HttpClient httpClient = new HttpClient();
+    private static final HttpClient httpClient = HttpClient.builder().build();
     private List<WebHookBean> webhooks;
     private DeployBean deployBean;
 

@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -48,42 +47,16 @@ public class HttpClient {
     private static final ObservationRegistry observationRegistry = ObservationRegistry.create();
     private static final OkHttpClient sharedOkHttpClient = new OkHttpClient();
 
-    private static final int DEFAULT_MAX_RETRIES = 3;
-    private static final boolean DEFAULT_USE_PROXY = false;
-    private static final String DEFAULT_HTTP_PROXY_ADDR = "localhost";
-    private static final int DEFAULT_PROXY_PORT = 19193;
-    private static final long RETRY_INTERVAL = 500;
-
     @Getter private final OkHttpClient okHttpClient;
 
-    public HttpClient() {
-        this(null, null, null, null, null, null);
-    }
-
-    @Builder(access = AccessLevel.PUBLIC)
-    public HttpClient(
-            Integer maxRetries,
-            Long retryInterval,
-            Boolean useProxy,
+    @Builder(buildMethodName = "buildInternal")
+    private HttpClient(
+            int maxRetries,
+            long retryInterval,
+            boolean useProxy,
             String httpProxyAddr,
-            Integer httpProxyPort,
+            int httpProxyPort,
             Supplier<String> authorizationSupplier) {
-        if (maxRetries == null) {
-            maxRetries = DEFAULT_MAX_RETRIES;
-        }
-        if (useProxy == null) {
-            useProxy = DEFAULT_USE_PROXY;
-        }
-        if (httpProxyAddr == null) {
-            httpProxyAddr = DEFAULT_HTTP_PROXY_ADDR;
-        }
-        if (httpProxyPort == null) {
-            httpProxyPort = DEFAULT_PROXY_PORT;
-        }
-        if (retryInterval == null) {
-            retryInterval = RETRY_INTERVAL;
-        }
-
         observationRegistry
                 .observationConfig()
                 .observationHandler(new DefaultMeterObservationHandler(Metrics.globalRegistry));
@@ -112,6 +85,19 @@ public class HttpClient {
                     });
         }
         okHttpClient = clientBuilder.build();
+    }
+
+    public static class HttpClientBuilder {
+        private int maxRetries = 3;
+        private long retryInterval = 500;
+        private boolean useProxy = false;
+        private String httpProxyAddr = "localhost";
+        private int httpProxyPort = 19193;
+
+        public HttpClient build() {
+            log.info("building HttpClient with configs: {}", this.toString());
+            return buildInternal();
+        }
     }
 
     private static HttpLoggingInterceptor createHttpLoggingInterceptor() {

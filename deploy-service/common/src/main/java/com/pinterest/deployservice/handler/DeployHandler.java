@@ -102,7 +102,7 @@ public class DeployHandler implements DeployHandlerInterface {
             "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.";
     static final String ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE =
             "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.";
-    private static final HttpClient httpClient = new HttpClient();
+    private static final HttpClient httpClient = HttpClient.builder().build();
 
     private final DeployDAO deployDAO;
     private final EnvironDAO environDAO;
