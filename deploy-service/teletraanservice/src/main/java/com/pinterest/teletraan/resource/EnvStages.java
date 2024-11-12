@@ -132,6 +132,8 @@ public class EnvStages {
 
         if (environBean.getStage_type() == EnvType.DEV) {
             environBean.setAllow_private_build(true);
+        } else if (origBean.getStage_type() == EnvType.DEV) {
+            environBean.setAllow_private_build(false);
         }
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
