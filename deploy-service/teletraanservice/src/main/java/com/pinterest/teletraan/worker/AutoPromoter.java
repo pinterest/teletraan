@@ -536,7 +536,7 @@ public class AutoPromoter implements Runnable {
                 if (buildTagBean.getTag() != null
                         && buildTagBean.getTag().getValue() == TagValue.BAD_BUILD) {
                     // bad build,  do not include
-                    LOG.info(
+                    LOG.debug(
                             "Env {} Build {} is tagged as BAD_BUILD, ignore",
                             envBean.getEnv_id(),
                             buildTagBean.getBuild());
