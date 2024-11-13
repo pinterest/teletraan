@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 /** Wrapper for Jenkins API calls */
 public class Jenkins {
     private static final Logger LOG = LoggerFactory.getLogger(Jenkins.class);
-    private static final HttpClient httpClient = HttpClient.builder().maxRetries(3).build();
+    private static final HttpClient httpClient = HttpClient.builder().build();
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
 

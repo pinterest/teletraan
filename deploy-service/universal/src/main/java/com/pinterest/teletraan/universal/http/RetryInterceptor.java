@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.universal.http;
 
+import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Interceptor;
@@ -22,6 +23,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class RetryInterceptor implements Interceptor {
+    private static final ImmutableList<Integer> RETRY_CODES =
+            ImmutableList.of(429, 500, 502, 503, 504);
     private final int maxRetries;
     private final long retryInterval;
 
@@ -39,11 +42,15 @@ public class RetryInterceptor implements Interceptor {
         for (int i = 0; i < maxRetries; i++) {
             try {
                 response = chain.proceed(request);
-                if (response.isSuccessful() || !shouldRetry(response)) {
+                if (response.isSuccessful()) {
                     return response;
                 }
             } catch (IOException e) {
                 lastException = e;
+            }
+
+            if (!shouldRetry(response) || i == maxRetries - 1) {
+                break;
             }
 
             try {
@@ -63,7 +70,6 @@ public class RetryInterceptor implements Interceptor {
     }
 
     private boolean shouldRetry(Response response) {
-        int code = response.code();
-        return code == 429 || code == 500 || code == 502 || code == 503 || code == 504;
+        return RETRY_CODES.contains(response.code());
     }
 }
