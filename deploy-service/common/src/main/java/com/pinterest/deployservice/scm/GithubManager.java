@@ -19,8 +19,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.common.EncryptionUtils;
-import com.pinterest.deployservice.common.HTTPClient;
+import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
+import com.pinterest.teletraan.universal.http.HttpClient;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -49,8 +50,8 @@ public class GithubManager extends BaseManager {
     private final String githubAppPrivateKeyKnox;
     private final String githubAppOrganization;
     private final String token;
-
-    public Map<String, String> headers = new HashMap<>();
+    private final HttpClient httpClient;
+    private final KeyReader knoxKeyReader = new KnoxKeyReader();
 
     public GithubManager(
             String token,
@@ -67,19 +68,24 @@ public class GithubManager extends BaseManager {
         this.githubAppPrivateKeyKnox = appPrivateKeyKnox;
         this.githubAppOrganization = appOrganization;
         this.token = token;
+        if (StringUtils.isNotBlank(githubAppPrivateKeyKnox)) {
+            // get private key PEM from knox
+            knoxKeyReader.init(githubAppPrivateKeyKnox);
+        }
+        httpClient =
+                HttpClient.builder()
+                        .authorizationSupplier(this::fetchAuthorizationHeader)
+                        .maxRetries(1)
+                        .build();
     }
 
-    private void setHeaders() throws Exception {
+    private String fetchAuthorizationHeader() {
         // if token is specified, use token auth, otherwise, use GitHub app auth
-        if (StringUtils.isEmpty(this.token)) {
+        if (StringUtils.isBlank(this.token)) {
             try {
-                // get private key PEM from knox
-                KnoxKeyReader knoxKey = new KnoxKeyReader();
-                knoxKey.init(this.githubAppPrivateKeyKnox);
-                String githubAppPrivateKey = knoxKey.getKey();
-                if (StringUtils.isEmpty(githubAppPrivateKey)) {
-                    LOG.error("Failed to get Github Knox key");
-                    throw new IllegalArgumentException("Failed to get Github Knox key");
+                String githubAppPrivateKey = knoxKeyReader.getKey();
+                if (StringUtils.isBlank(githubAppPrivateKey)) {
+                    throw new IllegalStateException("Github Knox key is blank");
                 }
 
                 // generate jwt token by signing with GitHub app id and private key
@@ -97,17 +103,13 @@ public class GithubManager extends BaseManager {
                         appInstallation.createToken().create();
 
                 // always use the newly created GitHub app token as the token will expire
-                this.headers.put(
-                        "Authorization",
-                        String.format("Token %s", appInstallationToken.getToken()));
+                return String.format("Token %s", appInstallationToken.getToken());
             } catch (Exception e) {
-                // e.printStackTrace();
-                LOG.error("Exception when getting Github token: ", e);
-                throw e;
+                throw new IllegalStateException("Failed to get Github token", e);
             }
         } else {
             // this is the token that does not expire
-            this.headers.put("Authorization", String.format("Token %s", this.token));
+            return String.format("Token %s", this.token);
         }
     }
 
@@ -179,14 +181,12 @@ public class GithubManager extends BaseManager {
 
     @Override
     public CommitBean getCommit(String repo, String sha) throws Exception {
-        HTTPClient httpClient = new HTTPClient();
         String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
-        setHeaders();
         String jsonPayload;
         try {
-            jsonPayload = httpClient.get(url, null, null, headers, 1);
+            jsonPayload = httpClient.get(url, null, null);
         } catch (IOException e) {
             // an IOException (and its subclasses) in this case indicates that the commit hash is
             // not found in the repo.
@@ -208,7 +208,6 @@ public class GithubManager extends BaseManager {
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
             throws Exception {
-        HTTPClient httpClient = new HTTPClient();
         String url = String.format("%s/repos/%s/commits", apiPrefix, repo);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
@@ -216,8 +215,7 @@ public class GithubManager extends BaseManager {
         params.put("sha", startSha);
         params.put("path", path);
 
-        setHeaders();
-        String jsonPayload = httpClient.get(url, null, params, headers, 1);
+        String jsonPayload = httpClient.get(url, params, null);
         Queue<CommitBean> CommitBeans = new LinkedList<>();
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>[] jsonMaps =
