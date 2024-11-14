@@ -22,6 +22,7 @@ import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -55,7 +56,7 @@ public class ScriptTokenAuthenticator<R extends Role<R>>
                                 "principal",
                                 principal.get().getName(),
                                 "env",
-                                principal.get().getResource().getEnvName())
+                                Objects.toString(principal.get().getResource().getEnvName(), "NA"))
                         .register(Metrics.globalRegistry)
                         .increment();
             } else {
