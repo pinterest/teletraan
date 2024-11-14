@@ -51,7 +51,11 @@ public class ScriptTokenAuthenticator<R extends Role<R>>
             Optional<ScriptTokenPrincipal<R>> principal = tokenProvider.getPrincipal(credentials);
             if (principal.isPresent()) {
                 scriptTokenSuccessCounterBuilder
-                        .tags("principal", principal.get().getName())
+                        .tags(
+                                "principal",
+                                principal.get().getName(),
+                                "env",
+                                principal.get().getResource().getEnvName())
                         .register(Metrics.globalRegistry)
                         .increment();
             } else {
