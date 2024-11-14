@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import io.dropwizard.auth.AuthenticationException;
@@ -50,12 +51,14 @@ class ScriptTokenAuthenticatorTest {
         registry = new SimpleMeterRegistry();
         Metrics.addRegistry(registry);
 
+        scriptTokenPrincipal =
+                new ScriptTokenPrincipal<ValueBasedRole>(
+                        PRINCIPAL_NAME, new ValueBasedRole(1), new AuthZResource("rId", "rType"));
+
         scriptTokenProvider = mock(ScriptTokenProvider.class);
-        scriptTokenPrincipal = mock(ScriptTokenPrincipal.class);
         when(scriptTokenProvider.getPrincipal(anyString())).thenReturn(Optional.empty());
         when(scriptTokenProvider.getPrincipal(CREDENTIALS))
                 .thenReturn(Optional.of(scriptTokenPrincipal));
-        when(scriptTokenPrincipal.getName()).thenReturn(PRINCIPAL_NAME);
 
         sut = new ScriptTokenAuthenticator<>(scriptTokenProvider);
     }
