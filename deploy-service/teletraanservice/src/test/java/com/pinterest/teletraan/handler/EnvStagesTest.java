@@ -67,7 +67,7 @@ public class EnvStagesTest {
         origBean.setStage_type(EnvType.DEV);
         envBean.setStage_type(EnvType.STAGING);
         Mockito.when(environDAO.getByStage(Mockito.anyString(), Mockito.anyString()))
-            .thenReturn(origBean);
+                .thenReturn(origBean);
         SecurityContext mockSC = mock(SecurityContext.class);
         Principal mockPrincipal = mock(Principal.class);
         Mockito.when(mockSC.getUserPrincipal()).thenReturn(mockPrincipal);
