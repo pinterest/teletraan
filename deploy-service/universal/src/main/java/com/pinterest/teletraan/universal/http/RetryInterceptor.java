@@ -36,19 +36,11 @@ public class RetryInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
-        Response response = null;
+        Response response = chain.proceed(request);
+        int tryCount = 1;
 
-        for (int i = 0; i < maxRetries; i++) {
-            response = chain.proceed(request);
-            if (response.isSuccessful()) {
-                return response;
-            }
-
-            if (!shouldRetry(response) || i == maxRetries - 1) {
-                break;
-            }
-
-            long backoff = (long) Math.pow(2, i) * retryInterval;
+        while (shouldRetry(response) && tryCount < maxRetries) {
+            long backoff = (long) Math.pow(2, (tryCount - 1)) * retryInterval;
             response.close();
             try {
                 TimeUnit.MILLISECONDS.sleep(backoff);
@@ -56,6 +48,8 @@ public class RetryInterceptor implements Interceptor {
                 Thread.currentThread().interrupt();
                 throw new IOException("Retry interrupted", e);
             }
+            response = chain.proceed(request);
+            tryCount++;
         }
 
         return response;
