@@ -19,7 +19,8 @@ from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 rodimus_client = RodimusClient()
 
 
-TerminationPolicy = ["Default", "OldestInstance", "NewestInstance", "ClosestToNextInstanceHour"]
+TerminationPolicy = ["Default", "OldestInstance", "NewestInstance", "ClosestToNextInstanceHour", 'OldestLaunchTemplate', 'AllocationStrategy']
+
 
 Comparator = [{"value": "GreaterThanOrEqualToThreshold", "symbol": "≥"},
               {"value": "GreaterThanThreshold", "symbol": ">"},
