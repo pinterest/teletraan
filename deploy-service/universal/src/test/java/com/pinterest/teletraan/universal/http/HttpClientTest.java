@@ -278,7 +278,7 @@ class HttpClientTest {
 
         @Override
         public MockResponse dispatch(RecordedRequest request) {
-            return new MockResponse().setResponseCode(responseCode);
+            return new MockResponse().setResponseCode(responseCode).setBody(TEST_BODY);
         }
     }
 }
