@@ -374,10 +374,12 @@ public class CommonHandler {
                 }
             }
             newDeployBean.setState(DeployState.SUCCEEDING);
-            LOG.info(
-                    "Set deploy {} as SUCCEEDING since {} agents are succeeded.",
-                    deployId,
-                    succeeded);
+            if (!DeployState.SUCCEEDING.equals(oldState)) {
+                LOG.info(
+                        "Set deploy {} as SUCCEEDING since {} agents are succeeded.",
+                        deployId,
+                        succeeded);
+            }
             return;
         }
 
