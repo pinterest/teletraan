@@ -18,6 +18,7 @@ package com.pinterest.deployservice;
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
+import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.dao.AgentCountDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
@@ -96,8 +97,7 @@ public class ServiceContext {
     private boolean deployCacheEnabled;
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
-    private String jenkinsUrl;
-    private String jenkinsRemoteToken;
+    private Jenkins jenkins;
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
@@ -395,20 +395,12 @@ public class ServiceContext {
         this.changeFeedUrl = changeFeedUrl;
     }
 
-    public String getJenkinsUrl() {
-        return jenkinsUrl;
+    public Jenkins getJenkins() {
+        return jenkins;
     }
 
-    public void setJenkinsUrl(String jenkinsUrl) {
-        this.jenkinsUrl = jenkinsUrl;
-    }
-
-    public String getJenkinsRemoteToken() {
-        return jenkinsRemoteToken;
-    }
-
-    public void setJenkinsRemoteToken(String jenkinsRemoteToken) {
-        this.jenkinsRemoteToken = jenkinsRemoteToken;
+    public void setJenkins(Jenkins jenkins) {
+        this.jenkins = jenkins;
     }
 
     public TagDAO getTagDAO() {
