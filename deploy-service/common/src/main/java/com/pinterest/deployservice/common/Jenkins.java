@@ -81,25 +81,6 @@ public class Jenkins {
         }
     }
 
-    public boolean isPinterestJenkinsUrl(String url) {
-        return url.startsWith(this.jenkinsUrl);
-    }
-
-    String getJenkinsToken() throws Exception {
-        String url = String.format("%s/%s", this.jenkinsUrl, "crumbIssuer/api/json");
-        String ret = httpClient.get(url, null, null);
-        JsonObject json = (JsonObject) JsonParser.parseString(ret);
-        return json.get("crumb").getAsString();
-    }
-
-    public void startBuild(String url) throws Exception {
-        String token = getJenkinsToken();
-        Map<String, String> headers = new HashMap<>(1);
-        headers.put(".crumb", token);
-        LOG.debug("Calling jenkins with url " + url + " and token " + token);
-        httpClient.post(url, null, headers);
-    }
-
     public void startBuild(String jobName, String buildParams) throws Exception {
         String tokenString = "";
         if (this.jenkinsRemoteToken != null)
