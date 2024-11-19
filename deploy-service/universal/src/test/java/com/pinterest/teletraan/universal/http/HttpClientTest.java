@@ -178,14 +178,16 @@ class HttpClientTest {
     void testGetSuccess() throws IOException, InterruptedException {
         mockWebServer.enqueue(new MockResponse().setBody(TEST_BODY));
 
-        String result = sut.get(mockWebServer.url(TEST_PATH).toString(), null, TEST_HEADERS);
+        String result = sut.get(mockWebServer.url(TEST_PATH).toString(), TEST_PARAMS, TEST_HEADERS);
         assertEquals(TEST_BODY, result);
 
         RecordedRequest request = mockWebServer.takeRequest();
-        assertEquals(TEST_PATH, request.getPath());
+        assertEquals(TEST_PATH + "?p1=v1&p2=v2", request.getPath());
         assertEquals("GET", request.getMethod());
         assertEquals(TEST_HEADERS.get("h1"), request.getHeader("h1"));
         assertEquals(TEST_HEADERS.get("h2"), request.getHeader("h2"));
+        assertEquals(TEST_PARAMS.get("p1"), request.getRequestUrl().queryParameter("p1"));
+        assertEquals(TEST_PARAMS.get("p2"), request.getRequestUrl().queryParameter("p2"));
     }
 
     @Test

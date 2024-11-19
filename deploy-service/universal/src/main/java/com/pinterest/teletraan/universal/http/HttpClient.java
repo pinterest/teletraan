@@ -133,23 +133,25 @@ public class HttpClient {
 
     public String get(String url, Map<String, String> params, Map<String, String> headers)
             throws IOException {
-        return makeCall(createRequestBuilder(url, headers).build());
+        return makeCall(createRequestBuilder(url, params, headers).build());
     }
 
     public String post(String url, String body, Map<String, String> headers) throws IOException {
-        return makeCall(createRequestBuilder(url, headers).post(buildJsonBody(body)).build());
+        return makeCall(createRequestBuilder(url, null, headers).post(buildJsonBody(body)).build());
     }
 
     public String put(String url, String body, Map<String, String> headers) throws IOException {
-        return makeCall(createRequestBuilder(url, headers).put(buildJsonBody(body)).build());
+        return makeCall(createRequestBuilder(url, null, headers).put(buildJsonBody(body)).build());
     }
 
     public String delete(String url, String body, Map<String, String> headers) throws IOException {
-        return makeCall(createRequestBuilder(url, headers).delete(buildJsonBody(body)).build());
+        return makeCall(
+                createRequestBuilder(url, null, headers).delete(buildJsonBody(body)).build());
     }
 
-    private Request.Builder createRequestBuilder(String url, Map<String, String> headers) {
-        return new Request.Builder().url(buildUrl(url, null)).headers(buildHeaders(headers));
+    private Request.Builder createRequestBuilder(
+            String url, Map<String, String> params, Map<String, String> headers) {
+        return new Request.Builder().url(buildUrl(url, params)).headers(buildHeaders(headers));
     }
 
     public Headers buildHeaders(Map<String, String> rawHeaders) {
