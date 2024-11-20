@@ -152,14 +152,7 @@ public class Deploys {
         LOG.info("{} successfully updated deploy {} with {}", userName, id, deployBean);
     }
 
-    @DELETE
-    @Timed
-    @ExceptionMetered
-    @Path("/{id : [a-zA-Z0-9\\-_]+}")
-    @ApiOperation(value = "Delete deploy info", notes = "Delete deploy info given a deploy id")
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.DEPLOY, idLocation = Location.PATH)
-    public void delete(
+    private void delete(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true) @PathParam("id") String id)
             throws Exception {
