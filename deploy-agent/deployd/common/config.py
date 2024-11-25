@@ -91,12 +91,12 @@ class Config(object):
         # TODO: This is only used for migration, should clean them up
         if isinstance(deploy_status.report.deployStage, int):
             self._environ['DEPLOY_STEP'] = \
-                DeployStage._VALUES_TO_NAMES[deploy_status.report.deployStage]
+                DeployStage(deploy_status.report.deployStage).name
         else:
             self._environ['DEPLOY_STEP'] = deploy_status.report.deployStage
 
         if isinstance(deploy_status.op_code, int):
-            op_code = OperationCode._VALUES_TO_NAMES[deploy_status.op_code]
+            op_code = OperationCode(deploy_status.op_code).name
         else:
             op_code = deploy_status.op_code
         self._environ['OPCODE'] = op_code

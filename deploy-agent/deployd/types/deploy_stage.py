@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import enum
 
-class DeployStage(object):
+
+class DeployStage(enum.Enum):
     # Reserved by deploy system
     UNKNOWN = 0
     # (Optional) Unregister with LB/ZK, drain traffic, shut down service etc.
@@ -36,31 +38,3 @@ class DeployStage(object):
     STOPPING = 9
     # Complete shutting down the service
     STOPPED = 10
-
-    _VALUES_TO_NAMES = {
-        0: "UNKNOWN",
-        1: "PRE_DOWNLOAD",
-        2: "DOWNLOADING",
-        3: "POST_DOWNLOAD",
-        4: "STAGING",
-        5: "PRE_RESTART",
-        6: "RESTARTING",
-        7: "POST_RESTART",
-        8: "SERVING_BUILD",
-        9: "STOPPING",
-        10: "STOPPED",
-    }
-
-    _NAMES_TO_VALUES = {
-        "UNKNOWN": 0,
-        "PRE_DOWNLOAD": 1,
-        "DOWNLOADING": 2,
-        "POST_DOWNLOAD": 3,
-        "STAGING": 4,
-        "PRE_RESTART": 5,
-        "RESTARTING": 6,
-        "POST_RESTART": 7,
-        "SERVING_BUILD": 8,
-        "STOPPING": 9,
-        "STOPPED": 10,
-    }

@@ -16,10 +16,11 @@ from typing import Optional
 import unittest
 from tests import TestCase
 
-from deployd.client.serverless_client import ServerlessClient
-from deployd.common.types import DeployStage, DeployStatus, AgentStatus
+from deployd.client.serverless_client import ServerlessClient, _DEPLOY_STAGE_TRANSITIONS
+from deployd.common.types import DeployStatus, AgentStatus
 from deployd.types.ping_report import PingReport
 from deployd.types.ping_response import PingResponse
+from deployd.types.deploy_stage import DeployStage
 
 
 class TestServerlessClient(TestCase):
@@ -64,7 +65,7 @@ class TestServerlessClient(TestCase):
  
     def test_run_with_defined_deploy_stage(self) -> None:
         self.client = ServerlessClient(env_name=self.env_name, stage=self.stage, build=self.build,
-                                       script_variables=self.script_variables, deploy_stage=DeployStage.PRE_RESTART)
+                                       script_variables=self.script_variables, deploy_stage=DeployStage.PRE_RESTART.value)
         report: PingReport = self._new_report()
         report.deployId = None
         deploy_status = DeployStatus()
@@ -103,6 +104,10 @@ class TestServerlessClient(TestCase):
 
         response = self.client.send_reports(env_status)
         self.assertEqual(response.deployGoal.deployStage, 'PRE_DOWNLOAD')
+
+    def test_deploy_stage_transitions(self):
+        expected: dict[int, int] = dict([(i, i+1) for i in range(DeployStage.PRE_DOWNLOAD.value, DeployStage.SERVING_BUILD.value)])
+        self.assertDictEqual(_DEPLOY_STAGE_TRANSITIONS, expected)
     
     def test_create_response_last_deploy_stage(self):
         report = self._new_report()

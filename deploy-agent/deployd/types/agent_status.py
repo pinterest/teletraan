@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import enum
 
 
-class AgentStatus(object):
+class AgentStatus(enum.Enum):
     # Deploy step successfully completed
     SUCCEEDED = 0
     # Deploy step is in unknown status, mostly set in the beginning of the step
@@ -35,29 +36,3 @@ class AgentStatus(object):
     RUNTIME_MISMATCH = 8
     # Use for deploy-agent internally
     ABORTED_BY_SERVER = 9
-
-    _VALUES_TO_NAMES = {
-        0: "SUCCEEDED",
-        1: "UNKNOWN",
-        2: "AGENT_FAILED",
-        3: "RETRYABLE_AGENT_FAILED",
-        4: "SCRIPT_FAILED",
-        5: "ABORTED_BY_SERVICE",
-        6: "SCRIPT_TIMEOUT",
-        7: "TOO_MANY_RETRY",
-        8: "RUNTIME_MISMATCH",
-        9: "ABORTED_BY_SERVER",
-    }
-
-    _NAMES_TO_VALUES = {
-        "SUCCEEDED": 0,
-        "UNKNOWN": 1,
-        "AGENT_FAILED": 2,
-        "RETRYABLE_AGENT_FAILED": 3,
-        "SCRIPT_FAILED": 4,
-        "ABORTED_BY_SERVICE": 5,
-        "SCRIPT_TIMEOUT": 6,
-        "TOO_MANY_RETRY": 7,
-        "RUNTIME_MISMATCH": 8,
-        "ABORTED_BY_SERVER": 9,
-    }

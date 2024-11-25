@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import enum
 
 
-class OperationCode(object):
+class OperationCode(enum.Enum):
     # No action needed
     NOOP = 0
     # Agent need to install new build
@@ -33,27 +34,3 @@ class OperationCode(object):
     ROLLBACK = 7
     # Agent needs to shutdown service
     STOP = 8
-
-    _VALUES_TO_NAMES = {
-        0: "NOOP",
-        1: "DEPLOY",
-        2: "UPDATE",
-        3: "RESTART",
-        4: "DELETE",
-        5: "TERMINATE",
-        6: "WAIT",
-        7: "ROLLBACK",
-        8: "STOP",
-    }
-
-    _NAMES_TO_VALUES = {
-        "NOOP": 0,
-        "DEPLOY": 1,
-        "UPDATE": 2,
-        "RESTART": 3,
-        "DELETE": 4,
-        "TERMINATE": 5,
-        "WAIT": 6,
-        "ROLLBACK": 7,
-        "STOP": 8,
-    }
