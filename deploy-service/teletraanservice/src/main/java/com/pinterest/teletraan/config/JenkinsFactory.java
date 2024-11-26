@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Pinterest, Inc.
+ * Copyright (c) 2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,12 @@ public class JenkinsFactory {
 
     @JsonProperty private String remoteToken;
 
+    @JsonProperty private boolean useProxy;
+
+    @JsonProperty private String httpProxyAddr;
+
+    @JsonProperty private String httpProxyPort;
+
     public String getJenkinsUrl() {
         return jenkinsUrl;
     }
@@ -36,5 +42,29 @@ public class JenkinsFactory {
 
     public void setRemoteToken(String remoteToken) {
         this.remoteToken = remoteToken;
+    }
+
+    public boolean getUseProxy() {
+        return useProxy;
+    }
+
+    public void setUseProxy(boolean useProxy) {
+        this.useProxy = useProxy;
+    }
+
+    public String getHttpProxyAddr() {
+        return httpProxyAddr;
+    }
+
+    public void setHttpProxyAddr(String httpProxyAddr) {
+        this.httpProxyAddr = httpProxyAddr;
+    }
+
+    public String getHttpProxyPort() {
+        return httpProxyPort;
+    }
+
+    public void setHttpProxyPort(String httpProxyPort) {
+        this.httpProxyPort = httpProxyPort;
     }
 }

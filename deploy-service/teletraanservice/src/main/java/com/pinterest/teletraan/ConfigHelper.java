@@ -17,6 +17,7 @@ package com.pinterest.teletraan;
 
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
+import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
 import com.pinterest.deployservice.db.DBAgentDAOImpl;
 import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
@@ -191,8 +192,13 @@ public class ConfigHelper {
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
         if (jenkinsFactory != null) {
-            context.setJenkinsUrl(jenkinsFactory.getJenkinsUrl());
-            context.setJenkinsRemoteToken(jenkinsFactory.getRemoteToken());
+            context.setJenkins(
+                    new Jenkins(
+                            jenkinsFactory.getJenkinsUrl(),
+                            jenkinsFactory.getRemoteToken(),
+                            jenkinsFactory.getUseProxy(),
+                            jenkinsFactory.getHttpProxyAddr(),
+                            jenkinsFactory.getHttpProxyPort()));
         }
 
         LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());
