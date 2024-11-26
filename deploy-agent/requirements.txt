@@ -2,7 +2,7 @@
 
 PyYAML==5.3.1; python_version < '3.12'
 PyYAML==6.0.1; python_version >= '3.12'
-zipp==1.2.0
+zipp==3.19.1
 configparser==4.0.2
 python-daemon==2.0.6
 setuptools==44.1.1; python_version < '3'
