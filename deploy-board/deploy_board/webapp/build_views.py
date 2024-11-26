@@ -34,13 +34,15 @@ def builds_landing(request):
 def get_build_names(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
-    build_names = builds_helper.get_build_names(request, start=index, size=size)
+    filter = request.GET.get('filter', None)
+    build_names = builds_helper.get_build_names(request, start=index, size=size, filter=filter)
     return render(request, 'builds/build_names.html', {
         'build_names': build_names,
         "pageIndex": index,
-        "pageSize": common.DEFAULT_BUILD_SIZE,
+        "pageSize": size,
         "disablePrevious": index <= 1,
-        "disableNext": len(build_names) < common.DEFAULT_BUILD_SIZE,
+        "disableNext": len(build_names) < size,
+        "filter": filter,
     })
 
 
@@ -63,9 +65,9 @@ def list_builds(request, name):
         'build_name': name,
         'builds': builds,
         "pageIndex": index,
-        "pageSize": common.DEFAULT_BUILD_SIZE,
+        "pageSize": size,
         "disablePrevious": index <= 1,
-        "disableNext": len(builds) < common.DEFAULT_BUILD_SIZE,
+        "disableNext": len(builds) < size,
     })
 
 
@@ -100,9 +102,9 @@ def get_all_builds(request):
         "buildName": name,
         "branch": branch,
         "pageIndex": index,
-        "pageSize": common.DEFAULT_BUILD_SIZE,
+        "pageSize": size,
         "disablePrevious": index <= 1,
-        "disableNext": len(builds) < common.DEFAULT_BUILD_SIZE,
+        "disableNext": len(builds) < size,
         "overridePolicy": override_policy,
         "deployState": deploy_state,
     })
@@ -152,7 +154,7 @@ def compare_commits(request):
     repo = request.GET.get('repo')
     scm = request.GET.get('scm')
     commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
-                                                                 startSha, endSha, 
+                                                                 startSha, endSha,
                                                                  keep_first=True)
     html = render_to_string('builds/commits.tmpl', {
         "commits": commits,
@@ -170,7 +172,7 @@ def compare_commits_datatables(request):
     startSha = request.GET.get('start_sha')
     endSha = request.GET.get('end_sha')
     repo = request.GET.get('repo')
-    scm = request.GET.get('scm')    
+    scm = request.GET.get('scm')
     commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
                                                                  startSha, endSha,
                                                                  size=2000,
