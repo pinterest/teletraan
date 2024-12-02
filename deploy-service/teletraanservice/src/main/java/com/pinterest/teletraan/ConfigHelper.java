@@ -17,6 +17,7 @@ package com.pinterest.teletraan;
 
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
+import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
 import com.pinterest.deployservice.db.DBAgentDAOImpl;
 import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
@@ -64,16 +65,20 @@ import com.pinterest.teletraan.worker.HotfixStateTransitioner;
 import com.pinterest.teletraan.worker.MetricsEmitter;
 import com.pinterest.teletraan.worker.SimpleAgentJanitor;
 import com.pinterest.teletraan.worker.StateTransitioner;
+import io.dropwizard.setup.Environment;
+import io.dropwizard.util.Duration;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -98,8 +103,8 @@ public class ConfigHelper {
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
     private static final int DEFAULT_MAX_BUILDS_TO_KEEP = 1000;
 
-    public static TeletraanServiceContext setupContext(TeletraanServiceConfiguration configuration)
-            throws Exception {
+    public static TeletraanServiceContext setupContext(
+            TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
         TeletraanServiceContext context = new TeletraanServiceContext();
 
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
@@ -187,8 +192,13 @@ public class ConfigHelper {
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
         if (jenkinsFactory != null) {
-            context.setJenkinsUrl(jenkinsFactory.getJenkinsUrl());
-            context.setJenkinsRemoteToken(jenkinsFactory.getRemoteToken());
+            context.setJenkins(
+                    new Jenkins(
+                            jenkinsFactory.getJenkinsUrl(),
+                            jenkinsFactory.getRemoteToken(),
+                            jenkinsFactory.getUseProxy(),
+                            jenkinsFactory.getHttpProxyAddr(),
+                            jenkinsFactory.getHttpProxyPort()));
         }
 
         LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());
@@ -218,20 +228,20 @@ public class ConfigHelper {
             context.setAccountAllowList(configuration.getAccountAllowList());
         }
 
-        /*
-        Lastly, let us create the in-process background job executor, all transient, long
-        running background jobs can be handled by this executor
-        Currently we hard coded the parameters as:
-
-        corePoolSize - the number of threads to keep in the pool, even if they are idle, unless allowCoreThreadTimeOut is set
-        maximumPoolSize - the maximum number of threads to allow in the pool
-        keepAliveTime - when the number of threads is greater than the core, this is the maximum time that excess idle threads will wait for new tasks before terminating.
-        unit - the time unit for the keepAliveTime argument
-        workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
-        */
-        // TODO make the thread configurable
+        int poolSize = Runtime.getRuntime().availableProcessors();
+        String jobPoolName = "jobPool";
         ExecutorService jobPool =
-                new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+                environment
+                        .lifecycle()
+                        .executorService(jobPoolName)
+                        .minThreads(poolSize * 4)
+                        .maxThreads(poolSize * 8)
+                        .keepAliveTime(Duration.seconds(30))
+                        .workQueue(new ArrayBlockingQueue<>(poolSize * 5000, false))
+                        .shutdownTime(Duration.seconds(30))
+                        .rejectedExecutionHandler(new AbortPolicy())
+                        .build();
+        new ExecutorServiceMetrics(jobPool, jobPoolName, null).bindTo(Metrics.globalRegistry);
         context.setJobPool(jobPool);
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());

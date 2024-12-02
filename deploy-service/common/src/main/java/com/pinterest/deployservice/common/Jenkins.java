@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@ package com.pinterest.deployservice.common;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.util.HashMap;
-import java.util.Map;
+import com.pinterest.teletraan.universal.http.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,14 +25,34 @@ import org.slf4j.LoggerFactory;
 /** Wrapper for Jenkins API calls */
 public class Jenkins {
     private static final Logger LOG = LoggerFactory.getLogger(Jenkins.class);
-    private static final int RETRIES = 3;
-    private HTTPClient httpClient = new HTTPClient();
-    private String jenkinsUrl;
-    private String jenkinsRemoteToken;
+    private final HttpClient httpClient;
+    private final String jenkinsUrl;
+    private final String jenkinsRemoteToken;
 
-    public Jenkins(String jenkinsUrl, String jenkinsRemoteToken) {
+    public Jenkins(
+            String jenkinsUrl,
+            String jenkinsRemoteToken,
+            boolean useProxy,
+            String httpProxyAddr,
+            String httpProxyPort) {
         this.jenkinsUrl = jenkinsUrl;
         this.jenkinsRemoteToken = jenkinsRemoteToken;
+
+        int httpProxyPortInt;
+        HttpClient.HttpClientBuilder clientBuilder = HttpClient.builder();
+        if (useProxy) {
+            try {
+                httpProxyPortInt = Integer.parseInt(httpProxyPort);
+            } catch (NumberFormatException exception) {
+                LOG.error("Failed to parse Jenkins port: {}", httpProxyPort, exception);
+                throw exception;
+            }
+            clientBuilder
+                    .useProxy(true)
+                    .httpProxyAddr(httpProxyAddr)
+                    .httpProxyPort(httpProxyPortInt);
+        }
+        this.httpClient = clientBuilder.build();
     }
 
     public static class Build {
@@ -81,24 +100,8 @@ public class Jenkins {
         }
     }
 
-    public boolean isPinterestJenkinsUrl(String url) {
-        return url.startsWith(this.jenkinsUrl);
-    }
-
-    String getJenkinsToken() throws Exception {
-        String url = String.format("%s/%s", this.jenkinsUrl, "crumbIssuer/api/json");
-        String ret = httpClient.get(url, null, null, null, RETRIES);
-        JsonParser parser = new JsonParser();
-        JsonObject json = (JsonObject) parser.parse(ret);
-        return json.get("crumb").getAsString();
-    }
-
-    public void startBuild(String url) throws Exception {
-        String token = getJenkinsToken();
-        Map<String, String> headers = new HashMap<>(1);
-        headers.put(".crumb", token);
-        LOG.debug("Calling jenkins with url " + url + " and token " + token);
-        httpClient.post(url, null, headers, RETRIES);
+    public String getJenkinsUrl() {
+        return jenkinsUrl;
     }
 
     public void startBuild(String jobName, String buildParams) throws Exception {
@@ -110,18 +113,16 @@ public class Jenkins {
                 String.format(
                         "%s/job/%s/buildWithParameters?%s%s",
                         this.jenkinsUrl, jobName, tokenString, buildParams);
-        // startBuild(url);
         // Use GET instead, which is the same as POST but no need for token
-        httpClient.get(url, null, null, null, RETRIES);
+        httpClient.get(url, null, null);
         LOG.info("Successfully post to jenkins for job " + jobName);
     }
 
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", this.jenkinsUrl, jobName, jobNum);
         LOG.debug("Calling jenkins with url " + url);
-        String ret = httpClient.get(url, null, null, null, RETRIES);
-        JsonParser parser = new JsonParser();
-        JsonObject json = (JsonObject) parser.parse(ret);
+        String ret = httpClient.get(url, null, null);
+        JsonObject json = (JsonObject) JsonParser.parseString(ret);
         return new Build(
                 json.get("number").toString(),
                 json.get("result").toString(),

@@ -17,6 +17,7 @@ package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.Pings;
+import com.pinterest.teletraan.universal.security.PrincipalNameInjector;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfoFeature;
 import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
@@ -44,7 +45,7 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment)
             throws Exception {
-        TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
+        TeletraanServiceContext context = ConfigHelper.setupContext(configuration, environment);
         environment.jersey().register(context);
         environment
                 .jersey()
@@ -54,6 +55,7 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
         environment.jersey().register(RolesAllowedDynamicFeature.class);
         environment.jersey().register(ResourceAuthZInfoFeature.class);
         environment.jersey().register(Pings.class);
+        environment.jersey().register(PrincipalNameInjector.class);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
     }

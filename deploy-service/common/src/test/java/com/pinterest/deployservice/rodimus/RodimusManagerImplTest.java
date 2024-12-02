@@ -15,55 +15,181 @@
  */
 package com.pinterest.deployservice.rodimus;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 
-import com.pinterest.deployservice.common.HTTPClient;
-import com.pinterest.deployservice.rodimus.RodimusManagerImpl.Verb;
-import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+import okhttp3.mockwebserver.Dispatcher;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
-public class RodimusManagerImplTest {
+class RodimusManagerImplTest {
+    private static final String TEST_CLUSTER = "cluster1";
+    private static final List<String> HOST_IDS = Collections.singletonList("i-001");
+    private static final String TEST_PATH = "/testUrl";
+
+    private static MockWebServer mockWebServer;
     private RodimusManagerImpl sut;
-    private HTTPClient mockHttpClient;
-    private String TEST_URL = "testUrl";
 
     @BeforeEach
-    public void setUp() throws Exception {
-        sut = new RodimusManagerImpl("http://localhost", null, false, "", "");
+    public void setUpEach() throws Exception {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+        sut = new RodimusManagerImpl(mockWebServer.url(TEST_PATH).toString(), null, false, "", "");
+    }
 
-        mockHttpClient = Mockito.mock(HTTPClient.class);
-        Field classHttpClient = sut.getClass().getDeclaredField("httpClient");
-        classHttpClient.setAccessible(true);
-        classHttpClient.set(sut, mockHttpClient);
-        classHttpClient.setAccessible(false);
+    @AfterEach
+    public void tearDown() throws Exception {
+        mockWebServer.shutdown();
     }
 
     @Test
-    public void nullKnoxKey_defaultKeyIsUsed() throws Exception {
-        sut.callHttpClient(Verb.DELETE, TEST_URL, null);
-
-        ArgumentCaptor<Map<String, String>> argument =
-                ArgumentCaptor.forClass((Class<Map<String, String>>) (Class) Map.class);
-        verify(mockHttpClient).delete(eq(TEST_URL), eq(null), argument.capture(), eq(3));
-
-        Map<String, String> headers = argument.getValue();
-        assertTrue(headers.containsKey("Authorization"));
-        assertEquals("token defaultKeyContent", headers.get("Authorization"));
-    }
-
-    @Test
-    public void invalidKnoxKey_exceptionThrown() throws Exception {
-        RodimusManagerImpl sut =
-                new RodimusManagerImpl("http://localhost", "invalidRodimusKnoxKey", false, "", "");
+    void testConstructorInValidProxyConfig() {
         assertThrows(
-                IllegalStateException.class, () -> sut.callHttpClient(Verb.DELETE, TEST_URL, null));
+                NumberFormatException.class,
+                () -> {
+                    new RodimusManagerImpl(TEST_PATH, null, true, "localhost", "invalidPort");
+                });
+    }
+
+    @Test
+    void testNullKnoxKeyUsesDefaultKey() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setBody("[]"));
+        sut.getTerminatedHosts(Collections.singletonList("testHost"));
+
+        RecordedRequest request = mockWebServer.takeRequest();
+        assertEquals("token defaultKeyContent", request.getHeader("Authorization"));
+    }
+
+    @Test
+    void testInvalidKnoxKeyThrowsException() throws Exception {
+        RodimusManagerImpl sut =
+                new RodimusManagerImpl(
+                        mockWebServer.url(TEST_PATH).toString(),
+                        "invalidRodimusKnoxKey",
+                        false,
+                        "",
+                        "");
+        assertThrows(IllegalStateException.class, () -> sut.getTerminatedHosts(HOST_IDS));
+        assertEquals(0, mockWebServer.getRequestCount());
+    }
+
+    @Test
+    void testTerminateHostsByClusterNameOk() {
+        mockWebServer.enqueue(new MockResponse());
+
+        assertDoesNotThrow(
+                () -> {
+                    sut.terminateHostsByClusterName(TEST_CLUSTER, HOST_IDS);
+                });
+    }
+
+    @Test
+    void testTerminateHostsByClusterNameEmptyHosts() {
+        assertDoesNotThrow(
+                () -> {
+                    sut.terminateHostsByClusterName(TEST_CLUSTER, Collections.emptyList());
+                });
+    }
+
+    @Test
+    void testTerminateHostsByClusterNameClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+
+        ClientErrorException exception =
+                assertThrows(
+                        ClientErrorException.class,
+                        () -> {
+                            sut.terminateHostsByClusterName(TEST_CLUSTER, HOST_IDS);
+                        });
+        assertEquals(404, exception.getResponse().getStatus());
+        assertEquals(1, mockWebServer.getRequestCount());
+    }
+
+    @Test
+    void testTerminateHostsByClusterNameServerError() {
+        mockWebServer.setDispatcher(new ServerErrorDispatcher());
+        ServerErrorException exception =
+                assertThrows(
+                        ServerErrorException.class,
+                        () -> {
+                            sut.terminateHostsByClusterName(TEST_CLUSTER, HOST_IDS);
+                        });
+        assertEquals(500, exception.getResponse().getStatus());
+        assertEquals(3, mockWebServer.getRequestCount());
+    }
+
+    @Test
+    void testGetTerminatedHostsOk() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setBody(HOST_IDS.toString()));
+
+        Collection<String> terminatedHosts = sut.getTerminatedHosts(HOST_IDS);
+        assertArrayEquals(HOST_IDS.toArray(), terminatedHosts.toArray());
+    }
+
+    @Test
+    void testGetTerminatedHostEmptyHostIds() throws Exception {
+        Collection<String> terminatedHosts = sut.getTerminatedHosts(Collections.emptyList());
+        assertArrayEquals(new String[] {}, terminatedHosts.toArray());
+    }
+
+    @Test
+    void testGetClusterInstanceLaunchGracePeriodOk() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setBody("{\"launchLatencyTh\": 300}"));
+
+        Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
+        assertEquals(300L, gracePeriod);
+    }
+
+    @Test
+    void testGetClusterInstanceLaunchGracePeriodNullResponse() throws Exception {
+        mockWebServer.enqueue(new MockResponse());
+
+        Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
+        assertEquals(null, gracePeriod);
+    }
+
+    @Test
+    void testGetClusterInstanceLaunchGracePeriodNoLaunchLatencyTh() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setBody("{}"));
+
+        Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
+        assertEquals(null, gracePeriod);
+    }
+
+    @Test
+    void testGetEc2TagsOk() throws Exception {
+        String responseBody = "{\"i-001\": {\"Name\": \"test-instance\"}}";
+        mockWebServer.enqueue(new MockResponse().setBody(responseBody));
+
+        Map<String, Map<String, String>> ec2Tags = sut.getEc2Tags(HOST_IDS);
+        assertEquals("test-instance", ec2Tags.get("i-001").get("Name"));
+    }
+
+    @Test
+    void testGetEc2TagsEmptyResponse() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setBody("{}"));
+
+        Map<String, Map<String, String>> ec2Tags = sut.getEc2Tags(HOST_IDS);
+        assertTrue(ec2Tags.isEmpty());
+    }
+
+    static class ServerErrorDispatcher extends Dispatcher {
+        @Override
+        public MockResponse dispatch(RecordedRequest request) {
+            return new MockResponse().setResponseCode(500);
+        }
     }
 }

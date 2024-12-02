@@ -40,7 +40,7 @@ public class TeletraanWorker extends Application<TeletraanServiceConfiguration> 
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment)
             throws Exception {
-        TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
+        TeletraanServiceContext context = ConfigHelper.setupContext(configuration, environment);
         ConfigHelper.scheduleWorkers(configuration, context);
         environment.healthChecks().register("generic", new WorkerHealthCheck(context));
     }

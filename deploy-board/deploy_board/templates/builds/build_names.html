@@ -24,13 +24,13 @@
         </div>
         <ul class="pager">
             <li>
-                <a href='/builds/names/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                <a href='/builds/names/?{% if filter %}filter={{ filter }}&{% endif %}page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
                    class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
                     <span class="glyphicon glyphicon-chevron-left"></span> Previous
                 </a>
             </li>
             <li>
-                <a href='/builds/names/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                <a href='/builds/names/?{% if filter %}filter={{ filter }}&{% endif %}page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
                    class="btn btn-default {% if disableNext %}disabled{% endif %}">
                     Next <span class="glyphicon glyphicon-chevron-right"></span>
                 </a>

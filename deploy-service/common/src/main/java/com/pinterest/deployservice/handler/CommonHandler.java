@@ -363,8 +363,7 @@ public class CommonHandler {
                         dataHandler.getDataById(
                                 envBean.getWebhooks_config_id(), WebhookDataFactory.class);
                 if (webhooks != null && !CollectionUtils.isEmpty(webhooks.getPostDeployHooks())) {
-                    jobPool.submit(
-                            new WebhookJob(webhooks.getPostDeployHooks(), deployBean, envBean));
+                    jobPool.submit(new WebhookJob(webhooks.getPostDeployHooks(), deployBean));
                     LOG.info("Submitted post deploy hook job for deploy {}.", deployId);
                 }
 
@@ -375,10 +374,12 @@ public class CommonHandler {
                 }
             }
             newDeployBean.setState(DeployState.SUCCEEDING);
-            LOG.info(
-                    "Set deploy {} as SUCCEEDING since {} agents are succeeded.",
-                    deployId,
-                    succeeded);
+            if (!DeployState.SUCCEEDING.equals(oldState)) {
+                LOG.info(
+                        "Set deploy {} as SUCCEEDING since {} agents are succeeded.",
+                        deployId,
+                        succeeded);
+            }
             return;
         }
 
@@ -487,12 +488,12 @@ public class CommonHandler {
         String lockName = String.format("STATE_TRANSITION-%s", deployId);
         Connection connection = utilDAO.getLock(lockName);
         if (connection != null) {
-            LOG.info(String.format("DB lock operation is successful: get lock %s", lockName));
+            LOG.trace(String.format("DB lock operation is successful: get lock %s", lockName));
             try {
                 internalTransition(deployId, envBean);
             } finally {
                 utilDAO.releaseLock(lockName, connection);
-                LOG.info(
+                LOG.trace(
                         String.format(
                                 "DB lock operation is successful: release lock %s", lockName));
             }

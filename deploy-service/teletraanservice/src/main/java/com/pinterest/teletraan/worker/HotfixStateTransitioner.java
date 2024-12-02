@@ -43,8 +43,7 @@ public class HotfixStateTransitioner implements Runnable {
     private UtilDAO utilDAO;
     private EnvironDAO environDAO;
     private CommonHandler commonHandler;
-    private String jenkinsUrl;
-    private String jenkinsRemoteToken;
+    private Jenkins jenkins;
     private Counter errorBudgetSuccess;
     private Counter errorBudgetFailure;
     // TODO make this configurable
@@ -57,8 +56,7 @@ public class HotfixStateTransitioner implements Runnable {
         utilDAO = serviceContext.getUtilDAO();
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
-        jenkinsUrl = serviceContext.getJenkinsUrl();
-        jenkinsRemoteToken = serviceContext.getJenkinsRemoteToken();
+        jenkins = serviceContext.getJenkins();
 
         errorBudgetSuccess =
                 ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
@@ -128,7 +126,6 @@ public class HotfixStateTransitioner implements Runnable {
                 HotfixState state = hotBean.getState();
                 String hotfixId = hotBean.getId();
                 String jobNum = hotBean.getJob_num();
-                Jenkins jenkins = new Jenkins(jenkinsUrl, jenkinsRemoteToken);
                 DeployBean deployBean = deployDAO.getById(hotBean.getBase_deploy());
                 BuildBean buildBean = buildDAO.getById(deployBean.getBuild_id());
 
@@ -196,7 +193,7 @@ public class HotfixStateTransitioner implements Runnable {
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message(
                                     "Failed to create hotfix, see "
-                                            + jenkinsUrl
+                                            + jenkins.getJenkinsUrl()
                                             + "/"
                                             + hotBean.getJob_name()
                                             + "/"
@@ -233,7 +230,7 @@ public class HotfixStateTransitioner implements Runnable {
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message(
                                     "Failed to build hotfix, see "
-                                            + jenkinsUrl
+                                            + jenkins.getJenkinsUrl()
                                             + hotBean.getJob_name()
                                             + "/"
                                             + hotBean.getJob_num()

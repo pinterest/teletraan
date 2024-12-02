@@ -29,8 +29,13 @@
     });
 
     function search_builds() {
-        commit = $('#buildSearchInputId').val();
-        window.location = "/builds/search_commit/" + commit;
+        const term = $('#buildSearchInputId').val();
+        const commitRegex = /^[0-9a-f]{7,40}$/i;
+        if (commitRegex.test(term)) {
+            window.location = "/builds/search_commit/" + term;
+        } else {
+            window.location = "/builds/names/?filter=" + term;
+        }
     }
 </script>
 {% endblock %}

@@ -15,9 +15,9 @@
  */
 package com.pinterest.deployservice.common;
 
+import com.pinterest.teletraan.universal.http.HttpClient;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,19 +30,17 @@ import org.slf4j.LoggerFactory;
 
 public final class ChangeFeedJob implements Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(ChangeFeedJob.class);
-    private final int RETRIES = 3;
+    private static final HttpClient httpClient = HttpClient.builder().build();
     private String payload;
     private String changeFeedUrl;
     private Object oriObj;
     private Object curObj;
-    private HTTPClient httpClient;
 
     public ChangeFeedJob(String payload, String changeFeedUrl, Object oriObj, Object curObj) {
         this.payload = payload;
         this.changeFeedUrl = changeFeedUrl;
         this.oriObj = oriObj;
         this.curObj = curObj;
-        this.httpClient = new HTTPClient();
     }
 
     private static String toStringRepresentation(Object object) throws IllegalAccessException {
@@ -184,9 +182,7 @@ public final class ChangeFeedJob implements Callable<Void> {
 
             if (!StringUtils.isEmpty(changeFeedUrl)) {
                 LOG.info(String.format("Send change feed %s to %s", payload, changeFeedUrl));
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                httpClient.post(changeFeedUrl, payload, headers, RETRIES);
+                httpClient.post(changeFeedUrl, payload, null);
             }
         } catch (Throwable t) {
             LOG.error(String.format("Failed to send change feed: %s", payload), t);
