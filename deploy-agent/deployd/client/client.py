@@ -37,6 +37,9 @@ log = logging.getLogger(__name__)
 
 NORMANDIE_CERT_FILEPATH = "/var/lib/normandie/fuse/cert/generic"
 SAN_URI_PATTERN = r"URI:(\S+),?"
+STATUSERRNO_PATTERN = r"StatusErrno=(\d+)"
+ACTIVESTATE_PATTERN = r"ActiveState=(\S+)"
+SUBSTATE_PATTERN = r"SubState=(\S+)"
 
 
 class Client(BaseClient):
@@ -204,15 +207,8 @@ class Client(BaseClient):
                     info = json.loads(ec2_metadata)
                     self._account_id = info.get('AccountId', None)
 
-        # Retrieve Normandie status
-        spiffId = self.get_spiffe_id_from_normandie()
-        if spiffId:
-            self._normandie_status = 'OK'
-        else:
-            self._normandie_status = 'ERROR'
-
-        # TODO retrieve knox status
-        self._knox_status = 'NotImplementedYet'
+        self._normandie_status = self.get_normandie_status()
+        self._knox_status = self.get_knox_status()
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
@@ -227,7 +223,7 @@ class Client(BaseClient):
 
         return True
 
-    def get_spiffe_id_from_normandie(self) -> Optional[str]:
+    def get_normandie_status(self) -> Optional[str]:
         path = Path(NORMANDIE_CERT_FILEPATH)
         cmd = [
             "openssl",
@@ -239,19 +235,50 @@ class Client(BaseClient):
             "-certopt",
             "no_subject,no_header,no_version,no_serial,no_signame,no_validity,no_issuer,no_pubkey,no_sigdump,no_aux",
         ]
-        matcher = None
         try:
             cert = subprocess.check_output(cmd).decode("utf-8")
         except subprocess.CalledProcessError as e:
             log.exception(f"failed to get spiffe id from normandie: {e}")
-            return None
+            return 'ERROR'
+
+        matcher = re.search(SAN_URI_PATTERN, cert)
+        spiff_id = matcher.group(1)
+
+        if spiff_id:
+            return 'OK'
         else:
-            matcher = re.search(SAN_URI_PATTERN, cert)
+            return 'ERROR'
 
-        if matcher:
-            return matcher.group(1)
+    def get_knox_status(self) -> Optional[str]:
+        cmd = [
+            "systemctl",
+            "show",
+            "knox",
+            "--property=Result",
+            "--property=StatusErrno",
+            "--property=ActiveState",
+            "--property=SubState"
+        ]
+        try:
+            status = subprocess.check_output(cmd).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            log.exception(f"failed to get knox service status from systemctl: {e}")
+            return 'ERROR'
 
-        return None
+        # Use three different matchers and pattern to not make assumptions on the order of the properties
+        matcher = re.search(STATUSERRNO_PATTERN, status)
+        statusErrNo = matcher.group(1)
+
+        matcher = re.search(ACTIVESTATE_PATTERN, status)
+        activeState = matcher.group(1)
+
+        matcher = re.search(SUBSTATE_PATTERN, status)
+        subState = matcher.group(1)
+
+        if statusErrNo == "0" and activeState == "active" and subState == "running":
+            return "OK"
+        else:
+            return "ERROR"
 
     def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         try:
