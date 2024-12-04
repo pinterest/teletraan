@@ -209,7 +209,8 @@ public class PingHandler {
     }
 
     void updateHostStatus(
-            String hostId, String hostName, String hostIp, String agentVersion, String asg)
+            String hostId, String hostName, String hostIp, String agentVersion, String asg,
+            String normandieStatus, String knoxStatus)
             throws Exception {
         HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
         long currentTime = System.currentTimeMillis();
@@ -223,8 +224,10 @@ public class PingHandler {
         hostAgentBean.setHost_name(hostName);
         hostAgentBean.setIp(hostIp);
         hostAgentBean.setLast_update(currentTime);
-        hostAgentBean.setAgent_Version(agentVersion);
+        hostAgentBean.setAgent_version(agentVersion);
         hostAgentBean.setAuto_scaling_group(asg);
+        hostAgentBean.setNormandie_status(normandieStatus);
+        hostAgentBean.setKnox_status(knoxStatus);
 
         if (!isExisting) {
             // First ping
@@ -830,7 +833,10 @@ public class PingHandler {
         String agentVersion =
                 pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
-        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg);
+        String normandieStatus = pingRequest.getNormandieStatus() != null ? pingRequest.getNormandieStatus() : "UNKNOWN";
+        String knoxStatus = pingRequest.getKnoxStatus() != null ? pingRequest.getKnoxStatus() : "UNKNOWN";
+
+        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus);
 
         // update the host <-> groups mapping
         this.updateHosts(hostName, hostIp, hostId, groups, accountId);
