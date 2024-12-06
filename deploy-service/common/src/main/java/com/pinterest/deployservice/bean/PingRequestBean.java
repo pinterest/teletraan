@@ -18,8 +18,17 @@ package com.pinterest.deployservice.bean;
 import java.util.List;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class PingRequestBean {
     @NotEmpty private String hostId;
 
@@ -46,105 +55,4 @@ public class PingRequestBean {
     private String knoxStatus;
 
     private List<PingReportBean> reports;
-
-    public String getHostId() {
-        return hostId;
-    }
-
-    public void setHostId(String hostId) {
-        this.hostId = hostId;
-    }
-
-    public String getHostName() {
-        return hostName;
-    }
-
-    public void setHostName(String hostName) {
-        this.hostName = hostName;
-    }
-
-    public String getHostIp() {
-        return hostIp;
-    }
-
-    public void setHostIp(String hostIp) {
-        this.hostIp = hostIp;
-    }
-
-    public String getAutoscalingGroup() {
-        return this.autoscalingGroup;
-    }
-
-    public void setAutoscalingGroup(String autoscalingGroup) {
-        this.autoscalingGroup = autoscalingGroup;
-    }
-
-    public String getAvailabilityZone() {
-        return availabilityZone;
-    }
-
-    public void setAvailabilityZone(String availabilityZone) {
-        this.availabilityZone = availabilityZone;
-    }
-
-    public String getEc2Tags() {
-        return ec2Tags;
-    }
-
-    public void setEc2Tags(String ec2Tags) {
-        this.ec2Tags = ec2Tags;
-    }
-
-    public String getAgentVersion() {
-        return agentVersion;
-    }
-
-    public void setAgentVersion(String agentVersion) {
-        this.agentVersion = agentVersion;
-    }
-
-    public EnvType getStageType() {
-        return stageType;
-    }
-
-    public void setStageType(EnvType stageType) {
-        this.stageType = stageType;
-    }
-
-    public Set<String> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Set<String> groups) {
-        this.groups = groups;
-    }
-
-    public List<PingReportBean> getReports() {
-        return reports;
-    }
-
-    public String getAccountId() {
-        return accountId;
-    }
-
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
-    }
-
-    public String getNormandieStatus() { return normandieStatus; }
-
-    public void setNormandieStatus(String normandieStatus) { this.normandieStatus = normandieStatus; }
-
-    public String getKnoxStatus() { return knoxStatus; }
-
-    public void setKnoxStatus(String knoxStatus) { this.knoxStatus = knoxStatus; }
-
-    public void setReports(List<PingReportBean> reports) {
-        this.reports = reports;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
 }

@@ -8,5 +8,5 @@ ALTER TABLE hosts_and_agents ADD COLUMN normandie_status VARCHAR(64) DEFAULT NUL
 ALTER TABLE hosts_and_agents ADD COLUMN knox_status VARCHAR(64) DEFAULT NULL;
 
 
--- make sure to update the schema version to 13
+-- make sure to update the schema version to 20
 UPDATE schema_versions SET version=20;

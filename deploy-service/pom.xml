@@ -21,6 +21,7 @@
         <googleJavaFormat.version>1.7</googleJavaFormat.version>
         <spotless.version>2.30.0</spotless.version>
         <okhttp.version>4.12.0</okhttp.version>
+        <lombok.version>1.18.28</lombok.version>
         <source_dir>${maven.repo.local}/com/pinterest/teletraan/${project.artifactId}/${project.version}</source_dir>
     </properties>
 
