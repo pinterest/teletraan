@@ -37,9 +37,13 @@ import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.GroupRolesBean;
+import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostBeanWithStatuses;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.HostTagBean;
+import com.pinterest.deployservice.bean.KnoxStatus;
+import com.pinterest.deployservice.bean.NormandieStatus;
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.PromoteType;
 import com.pinterest.deployservice.bean.RatingBean;
@@ -62,6 +66,7 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
@@ -109,6 +114,7 @@ public class DBDAOTest {
     private static TagDAO tagDAO;
     private static ScheduleDAO scheduleDAO;
     private static UtilDAO utilDAO;
+    private static HostAgentDAO hostAgentDAO;
     private static BasicDataSource dataSource;
 
     @BeforeAll
@@ -132,6 +138,7 @@ public class DBDAOTest {
         configHistoryDAO = new DBConfigHistoryDAOImpl(dataSource);
         tagDAO = new DBTagDAOImpl(dataSource);
         scheduleDAO = new DBScheduleDAOImpl(dataSource);
+        hostAgentDAO = new DBHostAgentDAOImpl(dataSource);
         utilDAO = new DBUtilDAOImpl(dataSource);
     }
 
@@ -691,6 +698,7 @@ public class DBDAOTest {
                 "host-2", "1.1.1.2", "id-2", HostState.ACTIVE.toString(), groups, "test");
         hostDAO.insertOrUpdate(
                 "host-3", "1.1.1.3", "id-3", HostState.ACTIVE.toString(), groups, "test");
+
         /*
         host-1 : group1, group2
         host-2 : group1
@@ -731,7 +739,7 @@ public class DBDAOTest {
         agentErrorDAO.insert(agentErrorBean);
 
         hostDAO.deleteAllById("id-1");
-        List<HostBean> hostBeans1 = hostDAO.getHosts("host-1");
+        List<HostBeanWithStatuses> hostBeans1 = hostDAO.getHosts("host-1");
         assertTrue(hostBeans1.isEmpty());
         List<AgentBean> agentBeans = agentDAO.getByHost("host-1");
         assertTrue(agentBeans.isEmpty());
@@ -766,7 +774,7 @@ public class DBDAOTest {
         hostBean1.setState(HostState.PROVISIONED);
         hostDAO.insert(hostBean1);
         hostDAO.insert(hostBean1);
-        List<HostBean> hostBeans3 = hostDAO.getHosts("i-9");
+        List<HostBeanWithStatuses> hostBeans3 = hostDAO.getHosts("i-9");
         assertEquals(hostBeans3.size(), 1);
         assertEquals(hostBeans3.get(0).getHost_name(), "i-9");
 
@@ -783,7 +791,7 @@ public class DBDAOTest {
                 groups9,
                 "test");
 
-        List<HostBean> hostBeans4 = hostDAO.getHosts("h-9");
+        List<HostBeanWithStatuses> hostBeans4 = hostDAO.getHosts("h-9");
         assertEquals(hostBeans4.size(), 1);
         assertEquals(hostBeans4.get(0).getHost_name(), "h-9");
         assertEquals(hostBeans4.get(0).getHost_id(), "i-9");
@@ -859,6 +867,23 @@ public class DBDAOTest {
             Collection<String> newHostIds = hostDAO.getNewHostIdsByGroup("retire-group");
             assertEquals(0, newHostIds.size());
         }
+
+        // Test support for normandie and knox statuses in hostDAO.getHosts
+        hostDAO.insertOrUpdate(
+            "host-normandie", "1.1.1.1", "id-normandie", HostState.ACTIVE.toString(), groups, "test");
+        hostAgentDAO.insert(HostAgentBean.builder()
+            .host_name("host-normandie")
+            .host_id("id-normandie")
+            .normandie_status(NormandieStatus.OK)
+            .knox_status(KnoxStatus.ERROR)
+            .build());
+
+        List<HostBeanWithStatuses> hostBeansNormandie = hostDAO.getHosts("host-normandie");
+        assertEquals(1, hostBeansNormandie.size());
+        assertEquals("host-normandie", hostBeansNormandie.get(0).getHost_name());
+        assertEquals("id-normandie", hostBeansNormandie.get(0).getHost_id());
+        assertEquals(NormandieStatus.OK, hostBeansNormandie.get(0).getNormandie_status());
+        assertEquals(KnoxStatus.ERROR, hostBeansNormandie.get(0).getKnox_status());
     }
 
     @Test
