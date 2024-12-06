@@ -19,6 +19,7 @@ import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.AgentStatus;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostBeanWithStatuses;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.HostDAO;
@@ -60,7 +61,8 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_ACTIVE_HOST_IDS_BY_HOST_IDS =
             "SELECT DISTINCT(host_id) FROM hosts WHERE host_id IN (%s) AND state = 'ACTIVE'";
 
-    private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts WHERE host_name=?";
+    private static final String GET_HOST_BY_NAME =
+            "SELECT hosts.*, hosts_and_agents.normandie_status, hosts_and_agents.knox_status FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE hosts.host_name=?";
     private static final String GET_HOST_BY_HOSTID =
             "SELECT * FROM hosts WHERE host_id=? ORDER BY create_date";
     private static final String GET_HOSTS_BY_STATES =
@@ -241,8 +243,8 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public List<HostBean> getHosts(String hostName) throws Exception {
-        ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
+    public List<HostBeanWithStatuses> getHosts(String hostName) throws Exception {
+        ResultSetHandler<List<HostBeanWithStatuses>> h = new BeanListHandler<>(HostBeanWithStatuses.class);
         return new QueryRunner(dataSource).query(GET_HOST_BY_NAME, h, hostName);
     }
 
