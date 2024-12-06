@@ -17,6 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostBeanWithStatuses;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.HostDAO;
@@ -117,7 +118,7 @@ public class Hosts {
             notes = "Returns a list of host info objects given a host name",
             response = HostBean.class,
             responseContainer = "List")
-    public List<HostBean> get(
+    public List<HostBeanWithStatuses> get(
             @ApiParam(value = "Host name", required = true) @PathParam("hostName") String hostName)
             throws Exception {
         return hostDAO.getHosts(hostName);
