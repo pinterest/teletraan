@@ -20,13 +20,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class HostBean implements Updatable {
+public class HostBeanWithStatuses {
     @JsonProperty("hostName")
     private String host_name;
 
@@ -60,38 +59,11 @@ public class HostBean implements Updatable {
     // TO_BE_REPLACED(1) = marked by cluster replace event to be replaced
     // HEALTH_CHECK(2) = host only launch for health check purpose and not to be replaced/retired
 
-    public Boolean isPendingTerminate() {
-        return this.state == HostState.PENDING_TERMINATE
-                || this.state == HostState.PENDING_TERMINATE_NO_REPLACE;
-    }
+    // Normandie and Knox Statuses are NOT in the hosts table, but instead on the hosts_and_agents table
+    @JsonProperty("normandieStatus")
+    private NormandieStatus normandie_status;
 
-    @Override
-    public SetClause genSetClause() {
-        SetClause clause = new SetClause();
-        clause.addColumn("host_name", host_name);
-        clause.addColumn("group_name", group_name);
-        clause.addColumn("ip", ip);
-        clause.addColumn("host_id", host_id);
-        clause.addColumn("create_date", create_date);
-        clause.addColumn("last_update", last_update);
-        clause.addColumn("state", state);
-        clause.addColumn("can_retire", can_retire);
-        clause.addColumn("account_id", account_id);
-        return clause;
-    }
+    @JsonProperty("knoxStatus")
+    private KnoxStatus knox_status;
 
-    public static final String UPDATE_CLAUSE =
-            "host_name=VALUES(host_name),"
-                    + "group_name=VALUES(group_name),"
-                    + "ip=VALUES(ip),"
-                    + "host_id=VALUES(host_id),"
-                    + "create_date=VALUES(create_date),"
-                    + "last_update=VALUES(last_update),"
-                    + "state=VALUES(state),"
-                    + "can_retire=VALUES(can_retire)";
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
 }

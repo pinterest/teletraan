@@ -18,6 +18,7 @@ package com.pinterest.teletraan.resource;
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.ChatMessageBean;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostBeanWithStatuses;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.HostDAO;
@@ -92,7 +93,7 @@ public class Systems {
             notes = "Returns a list of host info objects given a host name",
             response = HostBean.class,
             responseContainer = "List")
-    public List<HostBean> getHosts(
+    public List<HostBeanWithStatuses> getHosts(
             @ApiParam(value = "Host name", required = true) @PathParam("hostName") String hostName)
             throws Exception {
         return hostDAO.getHosts(hostName);
