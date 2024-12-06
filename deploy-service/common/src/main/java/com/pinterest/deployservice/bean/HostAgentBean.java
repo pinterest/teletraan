@@ -50,10 +50,10 @@ public class HostAgentBean implements Updatable {
     private String auto_scaling_group;
 
     @JsonProperty("normandieStatus")
-    private String normandie_status;
+    private NormandieStatus normandie_status;
 
     @JsonProperty("knoxStatus")
-    private String knox_status;
+    private KnoxStatus knox_status;
 
     @Override
     public SetClause genSetClause() {

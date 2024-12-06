@@ -50,9 +50,9 @@ public class PingRequestBean {
 
     private String accountId;
 
-    private String normandieStatus;
+    private NormandieStatus normandieStatus;
 
-    private String knoxStatus;
+    private KnoxStatus knoxStatus;
 
     private List<PingReportBean> reports;
 }

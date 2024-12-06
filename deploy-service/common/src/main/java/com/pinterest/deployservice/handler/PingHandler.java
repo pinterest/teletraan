@@ -38,6 +38,8 @@ import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.HostTagBean;
+import com.pinterest.deployservice.bean.KnoxStatus;
+import com.pinterest.deployservice.bean.NormandieStatus;
 import com.pinterest.deployservice.bean.OpCode;
 import com.pinterest.deployservice.bean.PingReportBean;
 import com.pinterest.deployservice.bean.PingRequestBean;
@@ -209,8 +211,8 @@ public class PingHandler {
     }
 
     void updateHostStatus(
-            String hostId, String hostName, String hostIp, String agentVersion, String asg,
-            String normandieStatus, String knoxStatus)
+        String hostId, String hostName, String hostIp, String agentVersion, String asg,
+        NormandieStatus normandieStatus, KnoxStatus knoxStatus)
             throws Exception {
         HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
         long currentTime = System.currentTimeMillis();
@@ -833,8 +835,8 @@ public class PingHandler {
         String agentVersion =
                 pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
-        String normandieStatus = pingRequest.getNormandieStatus() != null ? pingRequest.getNormandieStatus() : "UNKNOWN";
-        String knoxStatus = pingRequest.getKnoxStatus() != null ? pingRequest.getKnoxStatus() : "UNKNOWN";
+        NormandieStatus normandieStatus = pingRequest.getNormandieStatus() != null ? pingRequest.getNormandieStatus() : NormandieStatus.UNKNOWN;
+        KnoxStatus knoxStatus = pingRequest.getKnoxStatus() != null ? pingRequest.getKnoxStatus() : KnoxStatus.UNKNOWN;
 
         this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus);
 

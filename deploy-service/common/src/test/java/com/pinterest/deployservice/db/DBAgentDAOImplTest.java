@@ -1,6 +1,8 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.bean.KnoxStatus;
+import com.pinterest.deployservice.bean.NormandieStatus;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.jupiter.api.AfterEach;
@@ -86,8 +88,8 @@ public class DBAgentDAOImplTest {
             .last_update(System.currentTimeMillis())
             .agent_version("1.0")
             .auto_scaling_group("auto-scaling-group")
-            .normandie_status("normandie status normal")
-            .knox_status("knox status")
+            .normandie_status(NormandieStatus.OK)
+            .knox_status(KnoxStatus.OK)
             .build();
     }
 
