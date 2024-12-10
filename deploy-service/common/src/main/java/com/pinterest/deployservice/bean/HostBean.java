@@ -15,14 +15,16 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -60,6 +62,7 @@ public class HostBean implements Updatable {
     // TO_BE_REPLACED(1) = marked by cluster replace event to be replaced
     // HEALTH_CHECK(2) = host only launch for health check purpose and not to be replaced/retired
 
+    @JsonIgnore
     public Boolean isPendingTerminate() {
         return this.state == HostState.PENDING_TERMINATE
                 || this.state == HostState.PENDING_TERMINATE_NO_REPLACE;

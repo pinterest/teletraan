@@ -495,7 +495,7 @@ public class EnvironHandler {
 
         List<HostBean> newHosts = new ArrayList<>();
         for (String hostName : capacityHosts) {
-            Collection<HostBean> hostBeans =
+            Collection<HostBeanWithStatuses> hostBeans =
                     hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), hostName);
             if (!hostBeans.isEmpty()) {
                 newHosts.add(hostBeans.iterator().next());

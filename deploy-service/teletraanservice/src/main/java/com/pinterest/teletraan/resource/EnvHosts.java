@@ -17,6 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostBeanWithStatuses;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
@@ -88,7 +89,7 @@ public class EnvHosts {
             notes = "Returns a host given an environment, stage and host name",
             response = HostBean.class,
             responseContainer = "List")
-    public Collection<HostBean> getHostByHostName(
+    public Collection<HostBeanWithStatuses> getHostByHostName(
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")
                     String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName")

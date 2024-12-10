@@ -755,7 +755,7 @@ public class DBDAOTest {
                 "host-3", "3.3.3.3", "id-3", HostState.TERMINATING.toString(), groups2, "test");
         assertEquals(environDAO.getMissingHosts("e-3").size(), 0);
 
-        Collection<HostBean> hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
+        Collection<HostBeanWithStatuses> hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
         assertEquals(hostBean3.iterator().next().getHost_name(), "host-3");
 
         groupDAO.addGroupCapacity("e-3", "new_group");
@@ -884,6 +884,16 @@ public class DBDAOTest {
         assertEquals("id-normandie", hostBeansNormandie.get(0).getHost_id());
         assertEquals(NormandieStatus.OK, hostBeansNormandie.get(0).getNormandie_status());
         assertEquals(KnoxStatus.ERROR, hostBeansNormandie.get(0).getKnox_status());
+
+        // Test support for normandie and knox statuses in hostDAO.getByEnvIdAndHostName
+        groupDAO.addHostCapacity("e-3", "host-normandie");
+        Collection<HostBeanWithStatuses> hostBeansNormandie2 =
+            hostDAO.getByEnvIdAndHostName("e-3", "host-normandie");
+        assertEquals(1, hostBeansNormandie2.size());
+        HostBeanWithStatuses hostBeanNormandie2 = hostBeansNormandie2.iterator().next();
+        assertEquals(hostBeanNormandie2.getHost_name(), "host-normandie");
+        assertEquals(NormandieStatus.OK, hostBeanNormandie2.getNormandie_status());
+        assertEquals(KnoxStatus.ERROR, hostBeanNormandie2.getKnox_status());
     }
 
     @Test

@@ -72,7 +72,7 @@ public interface HostDAO {
 
     HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
 
-    Collection<HostBean> getByEnvIdAndHostName(String envId, String hostName) throws Exception;
+    Collection<HostBeanWithStatuses> getByEnvIdAndHostName(String envId, String hostName) throws Exception;
 
     Collection<String> getToBeRetiredHostIdsByGroup(String groupName) throws Exception;
 
