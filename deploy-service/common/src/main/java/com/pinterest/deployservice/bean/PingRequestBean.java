@@ -55,4 +55,9 @@ public class PingRequestBean {
     private KnoxStatus knoxStatus;
 
     private List<PingReportBean> reports;
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
 }
