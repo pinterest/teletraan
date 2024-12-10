@@ -161,9 +161,7 @@ public class DeployHandler implements DeployHandlerInterface {
                                 newDeployBean.getOperator(),
                                 autoPromote,
                                 envBean.getExternal_id());
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                httpClient.post(changeFeedUrl, feedPayload, headers);
+                httpClient.post(changeFeedUrl, feedPayload, null);
                 LOG.info("Send change feed {} to {} successfully", feedPayload, changeFeedUrl);
             } catch (Exception e) {
                 LOG.error(
