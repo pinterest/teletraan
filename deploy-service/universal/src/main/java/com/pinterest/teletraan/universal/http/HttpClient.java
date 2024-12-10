@@ -209,9 +209,9 @@ public class HttpClient {
             case 400:
                 throw new BadRequestException(responseBody);
             case 401:
-                throw new ForbiddenException(responseBody);
-            case 403:
                 throw new NotAuthorizedException(responseBody);
+            case 403:
+                throw new ForbiddenException(responseBody);
             case 404:
                 throw new NotFoundException(responseBody);
             default:

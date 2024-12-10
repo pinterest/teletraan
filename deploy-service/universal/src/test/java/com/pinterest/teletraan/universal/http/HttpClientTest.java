@@ -264,8 +264,8 @@ class HttpClientTest {
     void testMapResponseToException() {
         String response = "error";
         assertThrows(BadRequestException.class, () -> sut.mapResponseToException(400, response));
-        assertThrows(ForbiddenException.class, () -> sut.mapResponseToException(401, response));
-        assertThrows(NotAuthorizedException.class, () -> sut.mapResponseToException(403, response));
+        assertThrows(NotAuthorizedException.class, () -> sut.mapResponseToException(401, response));
+        assertThrows(ForbiddenException.class, () -> sut.mapResponseToException(403, response));
         assertThrows(NotFoundException.class, () -> sut.mapResponseToException(404, response));
         assertThrows(ClientErrorException.class, () -> sut.mapResponseToException(429, response));
         assertThrows(ServerErrorException.class, () -> sut.mapResponseToException(500, response));
