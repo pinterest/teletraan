@@ -51,6 +51,7 @@ public class HttpClient {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json");
     private static final ObservationRegistry observationRegistry = ObservationRegistry.create();
     private static final OkHttpClient sharedOkHttpClient = new OkHttpClient();
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(20);
 
     @Getter private final OkHttpClient okHttpClient;
 
@@ -61,16 +62,18 @@ public class HttpClient {
             boolean useProxy,
             String httpProxyAddr,
             int httpProxyPort,
+            Duration callTimeout,
             Supplier<String> authorizationSupplier) {
         observationRegistry
                 .observationConfig()
                 .observationHandler(new DefaultMeterObservationHandler(Metrics.globalRegistry));
 
+        callTimeout = callTimeout == null ? DEFAULT_TIMEOUT : callTimeout;
+
         OkHttpClient.Builder clientBuilder =
                 sharedOkHttpClient
                         .newBuilder()
-                        .connectTimeout(Duration.ofSeconds(15))
-                        .readTimeout(Duration.ofSeconds(15))
+                        .callTimeout(callTimeout)
                         .addInterceptor(createHttpLoggingInterceptor())
                         .addInterceptor(observationInterceptorBuilder().build())
                         .addInterceptor(new RetryInterceptor(maxRetries, retryInterval));
@@ -89,6 +92,7 @@ public class HttpClient {
                                         .build());
                     });
         }
+
         okHttpClient = clientBuilder.build();
     }
 
