@@ -25,8 +25,12 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.IOException;
 import java.util.Map;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.WebApplicationException;
 import okhttp3.mockwebserver.Dispatcher;
@@ -254,6 +258,19 @@ class HttpClientTest {
                         ServerErrorException.class,
                         () -> requestWithBody(method, "", TEST_HEADERS));
         assertEquals(500, exception.getResponse().getStatus());
+    }
+
+    @Test
+    void testMapResponseToException() {
+        String response = "error";
+        assertThrows(BadRequestException.class, () -> sut.mapResponseToException(400, response));
+        assertThrows(NotAuthorizedException.class, () -> sut.mapResponseToException(401, response));
+        assertThrows(ForbiddenException.class, () -> sut.mapResponseToException(403, response));
+        assertThrows(NotFoundException.class, () -> sut.mapResponseToException(404, response));
+        assertThrows(ClientErrorException.class, () -> sut.mapResponseToException(429, response));
+        assertThrows(ServerErrorException.class, () -> sut.mapResponseToException(500, response));
+        assertThrows(
+                WebApplicationException.class, () -> sut.mapResponseToException(600, response));
     }
 
     String requestWithBody(String method, String body, Map<String, String> headers)

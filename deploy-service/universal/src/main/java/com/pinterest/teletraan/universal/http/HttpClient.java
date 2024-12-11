@@ -25,8 +25,13 @@ import java.net.Proxy;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.WebApplicationException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +51,13 @@ public class HttpClient {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json");
     private static final ObservationRegistry observationRegistry = ObservationRegistry.create();
     private static final OkHttpClient sharedOkHttpClient = new OkHttpClient();
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(20);
+
+    static {
+        observationRegistry
+                .observationConfig()
+                .observationHandler(new DefaultMeterObservationHandler(Metrics.globalRegistry));
+    }
 
     @Getter private final OkHttpClient okHttpClient;
 
@@ -56,16 +68,14 @@ public class HttpClient {
             boolean useProxy,
             String httpProxyAddr,
             int httpProxyPort,
+            Duration callTimeout,
             Supplier<String> authorizationSupplier) {
-        observationRegistry
-                .observationConfig()
-                .observationHandler(new DefaultMeterObservationHandler(Metrics.globalRegistry));
+        callTimeout = callTimeout == null ? DEFAULT_TIMEOUT : callTimeout;
 
         OkHttpClient.Builder clientBuilder =
                 sharedOkHttpClient
                         .newBuilder()
-                        .connectTimeout(Duration.ofSeconds(15))
-                        .readTimeout(Duration.ofSeconds(15))
+                        .callTimeout(callTimeout)
                         .addInterceptor(createHttpLoggingInterceptor())
                         .addInterceptor(observationInterceptorBuilder().build())
                         .addInterceptor(new RetryInterceptor(maxRetries, retryInterval));
@@ -84,6 +94,7 @@ public class HttpClient {
                                         .build());
                     });
         }
+
         okHttpClient = clientBuilder.build();
     }
 
@@ -182,13 +193,37 @@ public class HttpClient {
             int responseCode = response.code();
             String responseBody = response.body() != null ? response.body().string() : "";
 
-            if (response.isSuccessful()) {
-                return responseBody;
-            } else if (responseCode >= 400 && responseCode < 500) {
-                throw new ClientErrorException(responseBody, responseCode);
-            } else {
-                throw new ServerErrorException(responseBody, responseCode);
+            if (!response.isSuccessful()) {
+                mapResponseToException(responseCode, responseBody);
             }
+            return responseBody;
+        }
+    }
+
+    protected void mapResponseToException(int responseCode, String responseBody)
+            throws WebApplicationException {
+        log.info(
+                "Egress HTTP failed with response code: {}, response body: {}",
+                responseCode,
+                responseBody);
+
+        switch (responseCode) {
+            case 400:
+                throw new BadRequestException(responseBody);
+            case 401:
+                throw new NotAuthorizedException(responseBody);
+            case 403:
+                throw new ForbiddenException(responseBody);
+            case 404:
+                throw new NotFoundException(responseBody);
+            default:
+                if (responseCode < 500) {
+                    throw new ClientErrorException(responseBody, responseCode);
+                } else if (responseCode < 600) {
+                    throw new ServerErrorException(responseBody, responseCode);
+                } else {
+                    throw new WebApplicationException(responseBody, responseCode);
+                }
         }
     }
 }
