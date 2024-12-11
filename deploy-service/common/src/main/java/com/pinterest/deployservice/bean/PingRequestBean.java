@@ -18,7 +18,6 @@ package com.pinterest.deployservice.bean;
 import java.util.List;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

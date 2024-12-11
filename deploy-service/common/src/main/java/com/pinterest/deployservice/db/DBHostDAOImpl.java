@@ -244,7 +244,8 @@ public class DBHostDAOImpl implements HostDAO {
 
     @Override
     public List<HostBeanWithStatuses> getHosts(String hostName) throws Exception {
-        ResultSetHandler<List<HostBeanWithStatuses>> h = new BeanListHandler<>(HostBeanWithStatuses.class);
+        ResultSetHandler<List<HostBeanWithStatuses>> h =
+                new BeanListHandler<>(HostBeanWithStatuses.class);
         return new QueryRunner(dataSource).query(GET_HOST_BY_NAME, h, hostName);
     }
 
@@ -324,7 +325,8 @@ public class DBHostDAOImpl implements HostDAO {
     @Override
     public Collection<HostBeanWithStatuses> getByEnvIdAndHostName(String envId, String hostName)
             throws Exception {
-        ResultSetHandler<List<HostBeanWithStatuses>> h = new BeanListHandler<>(HostBeanWithStatuses.class);
+        ResultSetHandler<List<HostBeanWithStatuses>> h =
+                new BeanListHandler<>(HostBeanWithStatuses.class);
         Collection<HostBeanWithStatuses> hostBeans =
                 new QueryRunner(dataSource)
                         .query(GET_HOST_BY_ENVID_AND_HOSTNAME1, h, envId, hostName);

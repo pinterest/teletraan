@@ -211,8 +211,13 @@ public class PingHandler {
     }
 
     void updateHostStatus(
-        String hostId, String hostName, String hostIp, String agentVersion, String asg,
-        NormandieStatus normandieStatus, KnoxStatus knoxStatus)
+            String hostId,
+            String hostName,
+            String hostIp,
+            String agentVersion,
+            String asg,
+            NormandieStatus normandieStatus,
+            KnoxStatus knoxStatus)
             throws Exception {
         HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
         long currentTime = System.currentTimeMillis();
@@ -835,10 +840,17 @@ public class PingHandler {
         String agentVersion =
                 pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
-        NormandieStatus normandieStatus = pingRequest.getNormandieStatus() != null ? pingRequest.getNormandieStatus() : NormandieStatus.UNKNOWN;
-        KnoxStatus knoxStatus = pingRequest.getKnoxStatus() != null ? pingRequest.getKnoxStatus() : KnoxStatus.UNKNOWN;
+        NormandieStatus normandieStatus =
+                pingRequest.getNormandieStatus() != null
+                        ? pingRequest.getNormandieStatus()
+                        : NormandieStatus.UNKNOWN;
+        KnoxStatus knoxStatus =
+                pingRequest.getKnoxStatus() != null
+                        ? pingRequest.getKnoxStatus()
+                        : KnoxStatus.UNKNOWN;
 
-        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus);
+        this.updateHostStatus(
+                hostId, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus);
 
         // update the host <-> groups mapping
         this.updateHosts(hostName, hostIp, hostId, groups, accountId);

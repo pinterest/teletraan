@@ -86,7 +86,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.DateTime;
@@ -870,13 +869,19 @@ public class DBDAOTest {
 
         // Test support for normandie and knox statuses in hostDAO.getHosts
         hostDAO.insertOrUpdate(
-            "host-normandie", "1.1.1.1", "id-normandie", HostState.ACTIVE.toString(), groups, "test");
-        hostAgentDAO.insert(HostAgentBean.builder()
-            .host_name("host-normandie")
-            .host_id("id-normandie")
-            .normandie_status(NormandieStatus.OK)
-            .knox_status(KnoxStatus.ERROR)
-            .build());
+                "host-normandie",
+                "1.1.1.1",
+                "id-normandie",
+                HostState.ACTIVE.toString(),
+                groups,
+                "test");
+        hostAgentDAO.insert(
+                HostAgentBean.builder()
+                        .host_name("host-normandie")
+                        .host_id("id-normandie")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.ERROR)
+                        .build());
 
         List<HostBeanWithStatuses> hostBeansNormandie = hostDAO.getHosts("host-normandie");
         assertEquals(1, hostBeansNormandie.size());
@@ -888,7 +893,7 @@ public class DBDAOTest {
         // Test support for normandie and knox statuses in hostDAO.getByEnvIdAndHostName
         groupDAO.addHostCapacity("e-3", "host-normandie");
         Collection<HostBeanWithStatuses> hostBeansNormandie2 =
-            hostDAO.getByEnvIdAndHostName("e-3", "host-normandie");
+                hostDAO.getByEnvIdAndHostName("e-3", "host-normandie");
         assertEquals(1, hostBeansNormandie2.size());
         HostBeanWithStatuses hostBeanNormandie2 = hostBeansNormandie2.iterator().next();
         assertEquals(hostBeanNormandie2.getHost_name(), "host-normandie");
