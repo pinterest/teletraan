@@ -15,6 +15,15 @@
  */
 package com.pinterest.teletraan.resource;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.bean.HostBean;
@@ -27,31 +36,17 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.AnonymousAuthFilter;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
 public class HostsTest {
@@ -68,81 +63,91 @@ public class HostsTest {
         hostDAOMock = mock(HostDAO.class);
         context.setHostDAO(hostDAOMock);
 
-        resourceExtension = ResourceExtension.builder()
-            .addResource(new Hosts(context))
-            .addProvider(new AnonymousAuthFilter())
-            .build();
+        resourceExtension =
+                ResourceExtension.builder()
+                        .addResource(new Hosts(context))
+                        .addProvider(new AnonymousAuthFilter())
+                        .build();
     }
 
     @BeforeEach
     public void setup() {
-        // the mock is static due to resourceExtension requirements, so we need to reset it before each test
+        // the mock is static due to resourceExtension requirements, so we need to reset it before
+        // each test
         reset(hostDAOMock);
     }
 
     @ParameterizedTest
     @MethodSource("validHostBeansSource")
     public void postValidHostBeans() throws Exception {
-        HostBean hostBean = HostBean.builder()
-            .host_id("hostId")
-            .host_name("hostName")
-            .state(HostState.ACTIVE)
-            .account_id("accountId")
-            .group_name("groupName")
-            .build();
+        HostBean hostBean =
+                HostBean.builder()
+                        .host_id("hostId")
+                        .host_name("hostName")
+                        .state(HostState.ACTIVE)
+                        .account_id("accountId")
+                        .group_name("groupName")
+                        .build();
 
         final Response put =
-            resourceExtension.target(Target.V1_HOSTS).request().post(Entity.json(hostBean));
+                resourceExtension.target(Target.V1_HOSTS).request().post(Entity.json(hostBean));
 
         assertNotEquals(422, put.getStatus());
 
-        verify(hostDAOMock).insert(
-            refEq(hostBean, "create_date", "last_update"));
+        verify(hostDAOMock).insert(refEq(hostBean, "create_date", "last_update"));
     }
 
     @ParameterizedTest
     @MethodSource("validHostBeansSource")
     public void putValidHostBeans() throws Exception {
-        HostBean hostBean = HostBean.builder()
-            .host_id("hostId")
-            .host_name("hostName")
-            .state(HostState.ACTIVE)
-            .account_id("accountId")
-            .group_name("groupName")
-            .build();
+        HostBean hostBean =
+                HostBean.builder()
+                        .host_id("hostId")
+                        .host_name("hostName")
+                        .state(HostState.ACTIVE)
+                        .account_id("accountId")
+                        .group_name("groupName")
+                        .build();
 
         final Response put =
-            resourceExtension.target(Target.V1_HOSTS + "/" + "hostId").request().put(Entity.json(hostBean));
+                resourceExtension
+                        .target(Target.V1_HOSTS + "/" + "hostId")
+                        .request()
+                        .put(Entity.json(hostBean));
 
         assertNotEquals(422, put.getStatus());
 
-        verify(hostDAOMock).updateHostById(
-            eq(hostBean.getHost_id()),
-            refEq(hostBean, "last_update"));
+        verify(hostDAOMock)
+                .updateHostById(eq(hostBean.getHost_id()), refEq(hostBean, "last_update"));
     }
 
     @Test
     public void getByHostName() throws Exception {
-        HostBeanWithStatuses hostBean = HostBeanWithStatuses.builder()
-            .host_id("hostId")
-            .host_name("hostName")
-            .state(HostState.ACTIVE)
-            .account_id("accountId")
-            .group_name("groupName")
-            .normandie_status(NormandieStatus.OK)
-            .knox_status(KnoxStatus.ERROR)
-            .build();
+        HostBeanWithStatuses hostBean =
+                HostBeanWithStatuses.builder()
+                        .host_id("hostId")
+                        .host_name("hostName")
+                        .state(HostState.ACTIVE)
+                        .account_id("accountId")
+                        .group_name("groupName")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.ERROR)
+                        .build();
 
         when(hostDAOMock.getHosts("hostName")).thenReturn(ImmutableList.of(hostBean));
 
         final Response get =
-            resourceExtension.target(Target.V1_HOSTS + "/" + hostBean.getHost_name()).request().get();
+                resourceExtension
+                        .target(Target.V1_HOSTS + "/" + hostBean.getHost_name())
+                        .request()
+                        .get();
 
         assertNotEquals(422, get.getStatus());
 
         // GET returns a list of maps, so we need to convert it to a HostBeanWithStatuses
         List<Map> list = get.readEntity(List.class);
-        HostBeanWithStatuses resultBean = mapper.convertValue(list.get(0), HostBeanWithStatuses.class);
+        HostBeanWithStatuses resultBean =
+                mapper.convertValue(list.get(0), HostBeanWithStatuses.class);
         assertEquals(hostBean, resultBean);
     }
 
@@ -152,19 +157,17 @@ public class HostsTest {
         // All fields are null - host is still valid
         HostBean hostBean2 = HostBean.builder().build();
 
-        return Stream.of(
-                Arguments.of(hostBean),
-                Arguments.of(hostBean2));
+        return Stream.of(Arguments.of(hostBean), Arguments.of(hostBean2));
     }
 
     private static HostBean validHostBean() {
         return HostBean.builder()
-            .host_id("hostId")
-            .host_name("hostName")
-            .state(HostState.ACTIVE)
-            .account_id("accountId")
-            .group_name("groupName")
-            .build();
+                .host_id("hostId")
+                .host_name("hostName")
+                .state(HostState.ACTIVE)
+                .account_id("accountId")
+                .group_name("groupName")
+                .build();
     }
 
     private static class Target {

@@ -17,7 +17,6 @@ package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -27,7 +26,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Data
 public class HostBeanWithStatuses extends HostBean {
-    // Normandie and Knox Statuses are NOT in the hosts table, but instead on the hosts_and_agents table
+    // Normandie and Knox Statuses are NOT in the hosts table, but instead on the hosts_and_agents
+    // table
     @JsonProperty("normandieStatus")
     private NormandieStatus normandie_status;
 

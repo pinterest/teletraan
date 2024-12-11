@@ -17,7 +17,6 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostBeanWithStatuses;
-
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
@@ -72,7 +71,8 @@ public interface HostDAO {
 
     HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
 
-    Collection<HostBeanWithStatuses> getByEnvIdAndHostName(String envId, String hostName) throws Exception;
+    Collection<HostBeanWithStatuses> getByEnvIdAndHostName(String envId, String hostName)
+            throws Exception;
 
     Collection<String> getToBeRetiredHostIdsByGroup(String groupName) throws Exception;
 
