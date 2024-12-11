@@ -100,6 +100,8 @@
         <th class="col-lg-1">State</th>
         <th class="col-lg-2">Create Date</th>
         <th class="col-lg-2">Last Update</th>
+        <th class="col-lg-2">Normandie</th>
+        <th class="col-lg-2">Knox</th>
     </tr>
     {% for host in hosts %}
     <tr class="{{ host.state|hostStateClass}}">
@@ -113,6 +115,8 @@
         <td><span class="deployToolTip pointer-cursor" data-toggle="tooltip" title="{{ host|hostTip }}">{{ host.state }}</span></td>
         <td>{{ host.createDate|convertTimestamp }}</td>
         <td>{{ host.lastUpdateDate|convertTimestamp }}</td>
+        <td>{{ host.normandieStatus }}</td>
+        <td>{{ host.knoxStatus }}</td>
     </tr>
     {% endfor %}
 </table>
