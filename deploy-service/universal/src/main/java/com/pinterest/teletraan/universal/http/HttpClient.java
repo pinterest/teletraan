@@ -53,6 +53,12 @@ public class HttpClient {
     private static final OkHttpClient sharedOkHttpClient = new OkHttpClient();
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(20);
 
+    static {
+        observationRegistry
+                .observationConfig()
+                .observationHandler(new DefaultMeterObservationHandler(Metrics.globalRegistry));
+    }
+
     @Getter private final OkHttpClient okHttpClient;
 
     @Builder(buildMethodName = "buildInternal")
@@ -64,10 +70,6 @@ public class HttpClient {
             int httpProxyPort,
             Duration callTimeout,
             Supplier<String> authorizationSupplier) {
-        observationRegistry
-                .observationConfig()
-                .observationHandler(new DefaultMeterObservationHandler(Metrics.globalRegistry));
-
         callTimeout = callTimeout == null ? DEFAULT_TIMEOUT : callTimeout;
 
         OkHttpClient.Builder clientBuilder =
