@@ -27,3 +27,7 @@ jobs:
       working-directory: deploy-service
       run: |
         mvn clean package --file pom.xml -P-pinterest-dependenies,exclude-pinterest-only-classes
+    - name: Build with Maven
+      working-directory: deploy-service
+      run: |
+        mvn spotless:check --file pom.xml
