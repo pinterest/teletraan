@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,16 +76,16 @@ class PingRequest(object):
             ping_report["deployAlias"] = report.deployAlias
             ping_report["containerHealthStatus"] = report.containerHealthStatus
             ping_report["agentState"] = report.state
-            
+
             if report.extraInfo:
                 ping_report["extraInfo"] = \
                     json.dumps(report.extraInfo, ensure_ascii=False).encode('utf8')
-            
+
             ping_requests["reports"].append(ping_report)
         return ping_requests
 
     def __str__(self):
         return "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, " \
-            "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, reports={})".format(self.hostId, self.hostName, 
+            "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, reports={})".format(self.hostId, self.hostName,
             self.hostIp, self.agentVersion, self.autoscalingGroup, self.availabilityZone, self.ec2Tags, self.stageType,
             self.groups, self.accountId, ",".join(str(v) for v in self.reports))
