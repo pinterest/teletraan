@@ -82,5 +82,9 @@ MANIFEST
 docs/docs_generator/bin/
 
 # Bazel
-bazel-*
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-weave
+bazel-deploy-agent
 MODULE.bazel*
