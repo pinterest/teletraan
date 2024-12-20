@@ -63,10 +63,12 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
     }
 
     @Override
-    public void update(String id, HostAgentBean bean) throws Exception {
-        SetClause setClause = bean.genSetClause();
+    public void updateChanged(String hostId, HostAgentBean oldBean, HostAgentBean newBean)
+            throws SQLException {
+        SetClause setClause =
+                oldBean == null ? newBean.genSetClause() : newBean.genChangedSetClause(oldBean);
         String clause = String.format(UPDATE_HOST_BY_ID, setClause.getClause());
-        setClause.addValue(id);
+        setClause.addValue(hostId);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
