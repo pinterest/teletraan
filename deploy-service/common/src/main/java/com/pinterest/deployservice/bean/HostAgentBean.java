@@ -22,7 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -67,6 +67,33 @@ public class HostAgentBean implements Updatable {
         clause.addColumn("normandie_status", normandie_status);
         clause.addColumn("knox_status", knox_status);
         return clause;
+    }
+
+    public SetClause genChangedSetClause(HostAgentBean originalBean) {
+        SetClause clause = new SetClause();
+        // host_id is the primary key, create_date is the creation time, so they should not be
+        // updated
+        addChangedColumn(clause, "host_name", host_name, originalBean.getHost_name());
+        addChangedColumn(clause, "ip", ip, originalBean.getIp());
+        addChangedColumn(clause, "create_date", create_date, originalBean.getCreate_date());
+        addChangedColumn(clause, "last_update", last_update, originalBean.getLast_update());
+        addChangedColumn(clause, "agent_version", agent_version, originalBean.getAgent_version());
+        addChangedColumn(
+                clause,
+                "auto_scaling_group",
+                auto_scaling_group,
+                originalBean.getAuto_scaling_group());
+        addChangedColumn(
+                clause, "normandie_status", normandie_status, originalBean.getNormandie_status());
+        addChangedColumn(clause, "knox_status", knox_status, originalBean.getKnox_status());
+        return clause;
+    }
+
+    private void addChangedColumn(
+            SetClause clause, String columnName, Object newValue, Object originalValue) {
+        if (newValue != null && !newValue.equals(originalValue)) {
+            clause.addColumn(columnName, newValue);
+        }
     }
 
     public static final String UPDATE_CLAUSE =
