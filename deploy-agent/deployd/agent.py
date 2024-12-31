@@ -165,7 +165,6 @@ class DeployAgent(object):
                         )
                     )
                     continue
-            self._env_status.dump_envs(self._envs)
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
         # we only need to send RESET once in one deploy-agent run
