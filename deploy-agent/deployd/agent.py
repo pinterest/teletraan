@@ -269,7 +269,8 @@ class DeployAgent(object):
                 log.info(
                     "Randomly sleep {} seconds before starting.".format(sleep_secs)
                 )
-                time.sleep(sleep_secs)
+                log.info("osorianolog skip random sleep")
+                # time.sleep(sleep_secs)
             else:
                 log.info("No status file. Could be first time agent ran")
             self.serve_build()
