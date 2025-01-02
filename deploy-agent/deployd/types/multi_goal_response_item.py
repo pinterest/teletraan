@@ -15,15 +15,12 @@
 import json
 
 from deployd.types.deploy_goal import DeployGoal
-from deployd.types.multi_goal_response_item import MultiGoalResponseItem
-from deployd.common.types import OpCode
 
 
-class PingResponse(object):
+class MultiGoalResponseItem(object):
     def __init__(self, jsonValue=None) -> None:
-        self.opCode = OpCode.NOOP
+        self.opCode = None
         self.deployGoal = None
-        self.multiGoalResponse = None
 
         if jsonValue:
             self.opCode = jsonValue.get("opCode")
@@ -31,14 +28,7 @@ class PingResponse(object):
             if jsonValue.get("deployGoal"):
                 self.deployGoal = DeployGoal(jsonValue=jsonValue.get("deployGoal"))
 
-            if jsonValue.get("multiGoalResponse"):
-                self.multiGoalResponse = []
-                for jsonItem in jsonValue.get("multiGoalResponse"):
-                    self.multiGoalResponse.append(
-                        MultiGoalResponseItem(jsonValue=jsonItem)
-                    )
-
-    def to_dict(self) -> str:
+    def to_dict(self):
         json_dict = self.__dict__.copy()
 
         # Ensure deployGoal field is json serializable
@@ -46,14 +36,6 @@ class PingResponse(object):
         if isinstance(deployGoal, DeployGoal):
             json_dict["deployGoal"] = deployGoal.to_dict()
 
-        # Ensure multiGoalResponse field is json serializable
-        multiGoalResponse = json_dict.get("multiGoalResponse")
-        if isinstance(multiGoalResponse, list):
-            json_dict["multiGoalResponse"] = []
-            for multiGoalResponseItem in multiGoalResponse:
-                if isinstance(multiGoalResponseItem, MultiGoalResponseItem):
-                    multiGoalResponseItem = multiGoalResponseItem.to_dict()
-                json_dict["multiGoalResponse"].append(multiGoalResponseItem)
         return json_dict
 
     def __str__(self) -> str:

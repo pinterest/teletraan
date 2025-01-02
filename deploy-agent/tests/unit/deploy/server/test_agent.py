@@ -417,7 +417,7 @@ class TestDeployAgent(TestCase):
             helper=self.helper,
         )
         agent.serve_build()
-        calls = [mock.call(envs), mock.call({})]
+        calls = [mock.call(envs), mock.call({}, multi_goal_response_item=None)]
         client.send_reports.assert_has_calls(calls)
         self.assertIsNone(agent._curr_report)
         self.assertEqual(agent._envs, {})

@@ -79,6 +79,7 @@ class EnvStatus(object):
 
     def dump_envs(self, envs) -> bool:
         try:
+            log.exception("osorianolog dumping env info")
             json_data = {}
             if envs:
                 json_data = {key: value.to_json() for key, value in envs.items()}

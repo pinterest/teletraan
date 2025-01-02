@@ -27,6 +27,7 @@ class PingRequest(object):
         autoscalingGroup=None,
         availabilityZone=None,
         ec2Tags=None,
+        processSingleEnvId=None,
         stageType=None,
         accountId=None,
     ):
@@ -39,6 +40,7 @@ class PingRequest(object):
         self.autoscalingGroup = autoscalingGroup
         self.availabilityZone = availabilityZone
         self.ec2Tags = ec2Tags
+        self.processSingleEnvId = processSingleEnvId
         self.stageType = stageType
         self.accountId = accountId
 
@@ -61,6 +63,8 @@ class PingRequest(object):
             ping_requests["accountId"] = self.accountId
         if self.ec2Tags:
             ping_requests["ec2Tags"] = self.ec2Tags
+        if self.processSingleEnvId:
+            ping_requests["processSingleEnvId"] = self.processSingleEnvId
 
         ping_requests["reports"] = []
         for report in self.reports:

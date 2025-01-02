@@ -193,7 +193,11 @@ class Executor(object):
     ) -> Tuple[datetime.datetime, DeployReport]:
         now = datetime.datetime.now()
         processed_time = (now - start).seconds
-        log.debug("start: {}, now: {}, process: {}".format(start, now, processed_time))
+        log.debug(
+            "start: {}, now: {}, process: {}, cmd: {}".format(
+                start, now, processed_time, cmd_str
+            )
+        )
         if processed_time >= self.MIN_RUNNING_TIME and self._ping_server:
             start = now
             log.info(
