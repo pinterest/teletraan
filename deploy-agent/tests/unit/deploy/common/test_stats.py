@@ -20,11 +20,7 @@ import os
 import json
 import socket
 from time import sleep
-try:
-    from unittest import mock
-except ImportError:
-    # python2 support
-    import mock
+from unittest import mock
 
 
 class TestMetricCacheExceptions(unittest.TestCase):
@@ -114,7 +110,7 @@ class TestStat(unittest.TestCase):
                     sample_rate=None,
                     tags=None,
                     ins=invalid_str)
-        with self.assertRaises(stat.JSONDecodeError):
+        with self.assertRaises(json.decoder.JSONDecodeError):
             stat._deserialize()
         invalid_prop = b'{\x48:\x69}'
         stat = Stat(mtype=None,
@@ -123,7 +119,7 @@ class TestStat(unittest.TestCase):
                     sample_rate=None,
                     tags=None,
                     ins=invalid_prop)
-        with self.assertRaises(stat.JSONDecodeError):
+        with self.assertRaises(json.decoder.JSONDecodeError):
             stat._deserialize()
         invalid_type_1 = list()
         stat = Stat(mtype=None,

@@ -201,11 +201,6 @@ class Stat:
         self.sample_rate = sample_rate
         self.tags = tags
         self.ins = ins
-        try:
-            self.JSONDecodeError = json.decoder.JSONDecodeError
-        except AttributeError:
-            # python2 support
-            self.JSONDecodeError = ValueError
 
     def serialize(self) -> str:
         """ serialize for cache writing """
@@ -244,7 +239,7 @@ class Stat:
             valid = self._deserialize()
             if valid:
                 return True
-        except self.JSONDecodeError:
+        except json.decoder.JSONDecodeError:
             return False
         except TypeError:
             return False
