@@ -20,7 +20,7 @@ from deployd.types.agent_status import AgentStatus
 class PingRequest(object):
 
     def __init__(self, hostId=None, hostName=None, hostIp=None, groups=None, reports=None,
-                agentVersion=None, autoscalingGroup=None, availabilityZone=None, ec2Tags=None, stageType=None,
+                 agentVersion=None, autoscalingGroup=None, availabilityZone=None, ec2Tags=None, stageType=None,
                  accountId=None, normandieStatus=None, knoxStatus=None):
         self.hostId = hostId
         self.hostName = hostName
