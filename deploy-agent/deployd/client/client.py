@@ -211,7 +211,7 @@ class Client(BaseClient):
         try:
             self._normandie_status = self.get_normandie_status()
         except Exception as e:
-            log.exception(f"Failed to get normandie status.: {e}")
+            log.exception(f"Failed to get normandie status: {e}")
             self._normandie_status = 'ERROR'
 
         # Retrieve Knox Status, swallowing exceptions if any: Ping should always be sent.
