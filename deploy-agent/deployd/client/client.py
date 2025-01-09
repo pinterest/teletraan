@@ -218,7 +218,7 @@ class Client(BaseClient):
         try:
             self._knox_status = self.get_knox_status()
         except Exception as e:
-            log.exception(f"Failed to get knox status.: {e}")
+            log.exception(f"Failed to get knox status: {e}")
             self._knox_status = 'ERROR'
 
         log.info("Host information is loaded. "
