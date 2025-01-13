@@ -20,6 +20,7 @@ import socket
 import traceback
 import json
 
+from deployd import __version__
 from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient
 from deployd.common.decorators import retry
@@ -43,7 +44,6 @@ class Client(BaseClient):
         self._config = config
         self._use_facter = use_facter
         self._use_host_info = use_host_info
-        self._agent_version = self._config.get_deploy_agent_version()
         self._autoscaling_group = None
         self._availability_zone = None
         self._stage_type = None
@@ -199,7 +199,7 @@ class Client(BaseClient):
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
                  "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {}".format(self._hostname, self._ip, self._id,
-                 self._agent_version, self._autoscaling_group, self._availability_zone, self._ec2_tags, self._stage_type, self._hostgroup, self._account_id))
+                 __version__, self._autoscaling_group, self._availability_zone, self._ec2_tags, self._stage_type, self._hostgroup, self._account_id))
 
         if not self._availability_zone:
             log.error("Fail to read host info: availablity zone")
@@ -224,7 +224,7 @@ class Client(BaseClient):
                         report.errorMessage = report.errorMessage.encode('ascii', 'ignore').decode()
                 ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
                                         groups=self._hostgroup, reports=reports,
-                                        agentVersion=self._agent_version,
+                                        agentVersion=__version__,
                                         autoscalingGroup=self._autoscaling_group,
                                         availabilityZone=self._availability_zone,
                                         ec2Tags=self._ec2_tags,
