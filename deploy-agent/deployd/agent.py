@@ -210,7 +210,7 @@ class DeployAgent(object):
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
                                              AgentStatus.TOO_MANY_RETRY,
                                              AgentStatus.SCRIPT_TIMEOUT]:
-                log.error('Unexpeted exceptions: {}, error message {}'.format(
+                log.error('Unexpected exceptions: {}, error message {}'.format(
                     deploy_report.status_code, deploy_report.output_msg))
                 return
 
