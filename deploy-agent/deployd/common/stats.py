@@ -302,10 +302,6 @@ class MetricClient:
         func = getattr(sc, self.stat.mtype)
         func_v2 = getattr(sc_v2, self.stat.mtype)
 
-        # remove specific tags
-        if isinstance(self.stat.tags, dict):
-            self.stat.tags.pop("host", None)
-
         # name suffix to differentiate sc from sc_v2
         name_sc_v2 = "{}.cluster".format(self.stat.name)
 
