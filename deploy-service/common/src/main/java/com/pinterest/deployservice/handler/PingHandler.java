@@ -887,7 +887,8 @@ public class PingHandler {
                         envs,
                         reports,
                         agents,
-                        ec2Tags);
+                        ec2Tags,
+                        pingRequest.getProcessSingleEnvId());
         analyst.analysis();
 
         PingResponseBean response = null;

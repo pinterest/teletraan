@@ -53,6 +53,8 @@ public class PingRequestBean {
 
     private KnoxStatus knoxStatus;
 
+    private String processSingleEnvId;
+
     private List<PingReportBean> reports;
 
     @Override

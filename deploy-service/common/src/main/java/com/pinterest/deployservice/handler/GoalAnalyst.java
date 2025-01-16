@@ -72,6 +72,8 @@ public class GoalAnalyst {
 
     private String ec2Tags;
 
+    private String processSingleEnvId;
+
     // input maps, all keyed by envId
     private Map<String, EnvironBean> envs;
     private Map<String, PingReportBean> reports;
@@ -237,7 +239,8 @@ public class GoalAnalyst {
             Map<String, EnvironBean> envs,
             Map<String, PingReportBean> reports,
             Map<String, AgentBean> agents,
-            String ec2Tags) {
+            String ec2Tags,
+            String processSingleEnvId) {
         this.deployDAO = deployDAO;
         this.host = host;
         this.host_id = host_id;
@@ -245,6 +248,7 @@ public class GoalAnalyst {
         this.reports = reports;
         this.agents = agents;
         this.ec2Tags = ec2Tags;
+        this.processSingleEnvId = processSingleEnvId;
         this.hostTagDAO = hostTagDAO;
         this.deployConstraintDAO = deployConstraintDAO;
         this.hostDAO = hostDAO;
@@ -970,7 +974,9 @@ public class GoalAnalyst {
 
         // Handle all the cases, for all possible envs
         for (String envId : envIds) {
-            process(envId, envs.get(envId), reports.get(envId), agents.get(envId));
+            if (StringUtils.isEmpty(processSingleEnvId) || envId.equals(processSingleEnvId)) {
+                process(envId, envs.get(envId), reports.get(envId), agents.get(envId));
+            }
         }
 
         // Sort the install candidates
