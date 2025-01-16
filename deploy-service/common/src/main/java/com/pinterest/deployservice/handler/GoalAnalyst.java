@@ -923,6 +923,7 @@ public class GoalAnalyst {
             AgentBean tempBean = genNewUpdateBean(env, agent);
             boolean needWait =
                     agent == null || agent.getDeploy_stage() == DeployStage.SERVING_BUILD;
+            LOG.info("osorianolog new update bean host={} envId={}", host, env.getEnv_id());
             LOG.debug(
                     "GoalAnalyst case 2.1 - add env {} as a candidate for host {} to install new deploy {} from scratch since we do not have a report, needWait={}",
                     env.getEnv_id(),
