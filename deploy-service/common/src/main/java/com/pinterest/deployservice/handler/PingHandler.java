@@ -31,6 +31,7 @@ import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployConstraintBean;
 import com.pinterest.deployservice.bean.DeployConstraintType;
 import com.pinterest.deployservice.bean.DeployGoalBean;
+import com.pinterest.deployservice.bean.MultiGoalResponseItemBean;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
@@ -897,6 +898,8 @@ public class PingHandler {
 
         // The current thinking is to try the first candidate, even it needs to wait
         if (!installCandidates.isEmpty()) {
+
+            boolean isMultiGoalResponse = isMultiGoalResponseForInstallCandidates(hostName, installCandidates);
             for (GoalAnalyst.InstallCandidate installCandidate : installCandidates) {
                 AgentBean updateBean = installCandidate.updateBean;
                 EnvironBean env = installCandidate.env;
@@ -930,14 +933,23 @@ public class PingHandler {
                                 hostName,
                                 updateBean);
                         updateBeans.put(updateBean.getEnv_id(), updateBean);
-                        response = generateInstallResponse(installCandidate);
-                        break;
+                        if (isMultiGoalResponse) {
+                            if (response == null) {
+                                response = new PingResponseBean();
+                            }
+                            appendToMultiGoalResponse(response, installCandidate);
+                        } else {
+                            response = generateInstallResponse(installCandidate);
+                            break;
+                        }
                     } else if (updateBean.getFirst_deploy()) {
                         LOG.debug(
                                 "Host {} needs to wait for first deploy of env {}",
                                 hostName,
                                 updateBean.getEnv_id());
-                        break;
+                        if (!isMultiGoalResponse) {
+                            break;
+                        }
                     } else {
                         LOG.debug(
                                 "Host {} needs to wait for env {}. Try next env",
@@ -950,8 +962,15 @@ public class PingHandler {
                             hostName,
                             updateBean);
                     updateBeans.put(updateBean.getEnv_id(), updateBean);
-                    response = generateInstallResponse(installCandidate);
-                    break;
+                    if (isMultiGoalResponse) {
+                        if (response == null) {
+                            response = new PingResponseBean();
+                        }
+                        appendToMultiGoalResponse(response, installCandidate);
+                    } else {
+                        response = generateInstallResponse(installCandidate);
+                        break;
+                    }
                 }
             }
         }
@@ -1193,5 +1212,48 @@ public class PingHandler {
             ret = (int) totalHosts;
         }
         return ret;
+    }
+
+    /**
+     * Determine whether a multigoal response is sent.
+     *
+     * The multigoal response is an optimization for new hosts and contains
+     * multiple deploy goals and may run in parallel
+     */
+    private boolean isMultiGoalResponseForInstallCandidates(String hostName, List<GoalAnalyst.InstallCandidate> installCandidates) {
+        if (installCandidates.size() > 1 && installCandidates.stream().allMatch(
+                    installCandidate -> installCandidate.updateBean.getFirst_deploy())) {
+            LOG.info("Using multi goal optimization for new host deploy: {}", hostName);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Append the installCandidate to the multiGoalResponse field
+     */
+    private void appendToMultiGoalResponse(
+            PingResponseBean response,
+            GoalAnalyst.InstallCandidate installCandidate) throws Exception {
+
+        List<MultiGoalResponseItemBean> multiGoalResponse = response.getMultiGoalResponse();
+        if (multiGoalResponse == null) {
+            multiGoalResponse = new ArrayList<>();
+            response.setMultiGoalResponse(multiGoalResponse);
+        }
+
+        PingResponseBean installResponse = generateInstallResponse(installCandidate);
+        MultiGoalResponseItemBean installDeploy = new MultiGoalResponseItemBean(
+                installResponse.getOpCode(),
+                installResponse.getDeployGoal());
+
+        multiGoalResponse.add(installDeploy);
+
+        // Keep the response backward compatible by including the non-multigoal fields
+        if (response.getOpCode() == null && response.getDeployGoal() == null) {
+            response.setOpCode(installResponse.getOpCode());
+            response.setDeployGoal(installResponse.getDeployGoal());
+        }
+
     }
 }

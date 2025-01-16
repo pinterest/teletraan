@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright (c) 2016-2025 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,9 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class PingResponseBean {
+public class MultiGoalResponseItemBean {
     private OpCode opCode;
     private DeployGoalBean deployGoal;
-    private List<MultiGoalResponseItemBean> multiGoalResponse;
 
     @Override
     public String toString() {
