@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from deployd.types.deploy_stage import DeployStage
 from deployd.types.agent_status import AgentStatus
 
 
@@ -38,12 +37,7 @@ class PingReport(object):
         if jsonValue:
             self.deployId = jsonValue.get("deployId")
             self.envId = jsonValue.get("envId")
-            if isinstance(jsonValue.get("deployStage"), int):
-                self.deployStage = DeployStage._VALUES_TO_NAMES[
-                    jsonValue.get("deployStage")
-                ]
-            else:
-                self.deployStage = jsonValue.get("deployStage")
+            self.deployStage = jsonValue.get("deployStage")
 
             if isinstance(jsonValue.get("status"), int):
                 self.status = AgentStatus._VALUES_TO_NAMES[jsonValue.get("status")]

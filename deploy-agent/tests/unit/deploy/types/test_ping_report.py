@@ -1,3 +1,4 @@
+from deployd.common.types import DeployStage
 from deployd.types.ping_report import PingReport
 import unittest
 
@@ -6,7 +7,7 @@ class TestPingReport(unittest.TestCase):
     def test_init_enums(self):
         report = PingReport(
             jsonValue={
-                "deployStage": 0,
+                "deployStage": DeployStage.UNKNOWN,
                 "status": 0,
             }
         )
@@ -15,7 +16,7 @@ class TestPingReport(unittest.TestCase):
 
         report = PingReport(
             jsonValue={
-                "deployStage": 10,
+                "deployStage": DeployStage.STOPPED,
                 "status": 7,
             }
         )

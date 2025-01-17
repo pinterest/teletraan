@@ -1,3 +1,4 @@
+from deployd.common.types import DeployStage
 from deployd.types.ping_request import PingRequest
 from deployd.types.ping_report import PingReport
 import unittest
@@ -8,7 +9,7 @@ class TestPingRequest(unittest.TestCase):
         reports = [
             PingReport(
                 {
-                    "deployStage": 7,
+                    "deployStage": DeployStage.POST_RESTART,
                     "status": 4,
                 }
             ),
