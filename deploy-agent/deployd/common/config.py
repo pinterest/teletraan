@@ -22,7 +22,6 @@ from typing import Any, List, Optional
 from deployd.common.exceptions import DeployConfigException
 from deployd.common.types import DeployType
 from deployd.common.utils import exit_abruptly
-from deployd.types.deploy_stage import DeployStage
 from deployd.types.opcode import OperationCode
 
 from configparser import ConfigParser
@@ -85,14 +84,7 @@ class Config(object):
 
         # update environment variables
         self._environ["DEPLOY_ID"] = deploy_status.report.deployId
-
-        # TODO: This is only used for migration, should clean them up
-        if isinstance(deploy_status.report.deployStage, int):
-            self._environ["DEPLOY_STEP"] = DeployStage._VALUES_TO_NAMES[
-                deploy_status.report.deployStage
-            ]
-        else:
-            self._environ["DEPLOY_STEP"] = deploy_status.report.deployStage
+        self._environ["DEPLOY_STEP"] = deploy_status.report.deployStage
 
         if isinstance(deploy_status.op_code, int):
             op_code = OperationCode._VALUES_TO_NAMES[deploy_status.op_code]
