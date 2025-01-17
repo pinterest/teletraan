@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-from deployd.types.deploy_stage import DeployStage
 from deployd.types.agent_status import AgentStatus
 
 
@@ -77,14 +76,7 @@ class PingRequest(object):
             ping_report = {}
             ping_report["deployId"] = report.deployId
             ping_report["envId"] = report.envId
-
-            # TODO: Only used for migration, should remove later
-            if isinstance(report.deployStage, int):
-                ping_report["deployStage"] = DeployStage._VALUES_TO_NAMES[
-                    report.deployStage
-                ]
-            else:
-                ping_report["deployStage"] = report.deployStage
+            ping_report["deployStage"] = report.deployStage
 
             if isinstance(report.status, int):
                 ping_report["agentStatus"] = AgentStatus._VALUES_TO_NAMES[report.status]

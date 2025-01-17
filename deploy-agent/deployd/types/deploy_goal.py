@@ -14,7 +14,6 @@
 
 from typing import Tuple
 from deployd.types.build import Build
-from deployd.types.deploy_stage import DeployStage
 
 
 class DeployGoal(object):
@@ -38,13 +37,7 @@ class DeployGoal(object):
             self.envName = jsonValue.get("envName")
             self.stageName = jsonValue.get("stageName")
             self.stageType = jsonValue.get("stageType")
-            # TODO: Only used for migration, should remove later
-            if isinstance(jsonValue.get("deployStage"), int):
-                self.deployStage = DeployStage._VALUES_TO_NAMES[
-                    jsonValue.get("deployStage")
-                ]
-            else:
-                self.deployStage = jsonValue.get("deployStage")
+            self.deployStage = jsonValue.get("deployStage")
 
             if jsonValue.get("build"):
                 self.build = Build(jsonValue=jsonValue.get("build"))

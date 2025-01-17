@@ -75,10 +75,6 @@ class TestDeployGoal(unittest.TestCase):
         self.assertIsInstance(deploy_goal.build, Build)
 
     def test__deploy_stage(self):
-        data = {self.deployStage: 1}
-        deploy_goal = DeployGoal(jsonValue=data)
-        self.assertIsInstance(deploy_goal.deployStage, str)
-
         data = {self.deployStage: self.deployStage}
         deploy_goal = DeployGoal(jsonValue=data)
         self.assertIsInstance(deploy_goal.deployStage, str)
