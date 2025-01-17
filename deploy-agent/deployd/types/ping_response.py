@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from deployd.types.deploy_goal import DeployGoal
-from deployd.types.opcode import OperationCode
 from deployd.common.types import OpCode
 
 
@@ -23,11 +22,7 @@ class PingResponse(object):
         self.deployGoal = None
 
         if jsonValue:
-            # TODO: Only used for migration, should remove later
-            if isinstance(jsonValue.get("opCode"), int):
-                self.opCode = OperationCode._VALUES_TO_NAMES[jsonValue.get("opCode")]
-            else:
-                self.opCode = jsonValue.get("opCode")
+            self.opCode = jsonValue.get("opCode")
 
             if jsonValue.get("deployGoal"):
                 self.deployGoal = DeployGoal(jsonValue=jsonValue.get("deployGoal"))
