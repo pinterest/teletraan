@@ -20,9 +20,8 @@ import json
 from typing import Any, List, Optional
 
 from deployd.common.exceptions import DeployConfigException
-from deployd.common.types import DeployType
+from deployd.common.types import DeployType, OpCode
 from deployd.common.utils import exit_abruptly
-from deployd.types.opcode import OperationCode
 
 from configparser import ConfigParser
 
@@ -60,12 +59,11 @@ class Config(object):
         return self._filenames
 
     def _get_deploy_type_from_opcode(self, opCode) -> str:
-        # TODO: Should use common.types.OpCode for next version
-        if opCode == "RESTART":
+        if opCode == OpCode.RESTART:
             return DeployType.RESTART
-        elif opCode == "ROLLBACK":
+        elif opCode == OpCode.ROLLBACK:
             return DeployType.ROLLBACK
-        elif opCode == "STOP" or opCode == "TERMINATE":
+        elif opCode == OpCode.STOP or opCode == OpCode.TERMINATE:
             return DeployType.STOP
         else:
             return DeployType.REGULAR
@@ -85,14 +83,11 @@ class Config(object):
         # update environment variables
         self._environ["DEPLOY_ID"] = deploy_status.report.deployId
         self._environ["DEPLOY_STEP"] = deploy_status.report.deployStage
+        self._environ["OPCODE"] = deploy_status.op_code
 
-        if isinstance(deploy_status.op_code, int):
-            op_code = OperationCode._VALUES_TO_NAMES[deploy_status.op_code]
-        else:
-            op_code = deploy_status.op_code
-        self._environ["OPCODE"] = op_code
-
-        self._environ["DEPLOY_TYPE"] = self._get_deploy_type_from_opcode(op_code)
+        self._environ["DEPLOY_TYPE"] = self._get_deploy_type_from_opcode(
+            deploy_status.op_code
+        )
 
         if deploy_status.report.envName:
             self._environ["ENV_NAME"] = deploy_status.report.envName
