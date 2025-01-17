@@ -85,19 +85,4 @@ class PingRequest(object):
         return ping_requests
 
     def __str__(self):
-        return (
-            "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, "
-            "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, reports={})".format(
-                self.hostId,
-                self.hostName,
-                self.hostIp,
-                self.agentVersion,
-                self.autoscalingGroup,
-                self.availabilityZone,
-                self.ec2Tags,
-                self.stageType,
-                self.groups,
-                self.accountId,
-                ",".join(str(v) for v in self.reports),
-            )
-        )
+        return json.dumps(self.to_json(), indent=2)

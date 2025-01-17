@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from typing import Tuple
 from deployd.types.build import Build
 
@@ -75,22 +77,15 @@ class DeployGoal(object):
         """compare DeployGoals"""
         return not (isinstance(other, DeployGoal) and self.__key() == other.__key())
 
+    def to_dict(self):
+        json_dict = self.__dict__.copy()
+
+        # Ensure build field is serializable
+        build = json_dict.get("build")
+        if isinstance(build, Build):
+            json_dict["build"] = build.__dict__
+
+        return json_dict
+
     def __str__(self) -> str:
-        return (
-            "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, stageType={}, "
-            "deployStage={}, build={}, deployAlias={}, agentConfig={},"
-            "scriptVariables={}, firstDeploy={}, isDocker={})".format(
-                self.deployId,
-                self.envId,
-                self.envName,
-                self.stageName,
-                self.stageType,
-                self.deployStage,
-                self.build,
-                self.deployAlias,
-                self.config,
-                self.scriptVariables,
-                self.firstDeploy,
-                self.isDocker,
-            )
-        )
+        return json.dumps(self.to_dict(), indent=2)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Optional
+import datetime
 import lockfile
 import logging
 import os
@@ -239,6 +240,19 @@ class Client(BaseClient):
 
         return True
 
+    def write_ping(self, ts, suffix, obj):
+        """
+        Write the ping request/response obj to the /var/log/deployd/pings
+        directory.
+
+        obj is a expected to be a ping request or response object which is printed as json
+
+        The file name will include the specified suffix and ts timestamp
+        """
+        file_path = f"/var/log/deployd/pings/{ts}-{suffix}.json"
+        with open(file_path, "w") as f:
+            f.write(str(obj))
+
     def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         try:
             if self._read_host_info():
@@ -268,10 +282,16 @@ class Client(BaseClient):
                     accountId=self._account_id,
                 )
 
+                now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                log.debug(f"PingRequest: {ping_request}")
+                self.write_ping(now, "req", ping_request)
+                env_data = {key: value.to_json() for key, value in env_reports.items()}
+                self.write_ping(now, "env", json.dumps(env_data, indent=2))
                 with create_stats_timer("deploy.agent.request.latency"):
                     ping_response = self.send_reports_internal(ping_request)
 
-                log.debug("%s -> %s" % (ping_request, ping_response))
+                log.debug(f"PingResponse: {ping_response}")
+                self.write_ping(now, "resp", ping_response)
                 return ping_response
             else:
                 log.error("Fail to read host info")

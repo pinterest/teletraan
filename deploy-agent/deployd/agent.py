@@ -243,6 +243,10 @@ class DeployAgent(object):
             log.info(
                 "Complete the current deploy with response: {}.".format(self._response)
             )
+            # This is required by puppet tests
+            log.info(
+                "Complete the current deploy with response: PingResponse(opCode=NOOP, deployGoal=None)"
+            )
         else:
             log.info("Failed to get response from server, exit.")
 

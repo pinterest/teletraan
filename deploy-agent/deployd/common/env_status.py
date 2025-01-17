@@ -40,7 +40,7 @@ class EnvStatus(object):
         try:
             with self._lock, open(self._status_fn, "r+") as config_fn:
                 data = json.load(config_fn)
-                log.debug("load status file: {}".format(data))
+                log.debug("load status file: {}".format(json.dumps(data, indent=2)))
                 envs = {key: DeployStatus(json_value=d) for key, d in data.items()}
         except IOError:
             log.info(

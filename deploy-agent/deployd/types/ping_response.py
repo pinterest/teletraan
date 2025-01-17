@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from deployd.types.deploy_goal import DeployGoal
 from deployd.common.types import OpCode
 
@@ -27,7 +29,15 @@ class PingResponse(object):
             if jsonValue.get("deployGoal"):
                 self.deployGoal = DeployGoal(jsonValue=jsonValue.get("deployGoal"))
 
+    def to_dict(self):
+        json_dict = self.__dict__.copy()
+
+        # Ensure deployGoal field is json serializable
+        deployGoal = json_dict.get("deployGoal")
+        if isinstance(deployGoal, DeployGoal):
+            json_dict["deployGoal"] = deployGoal.to_dict()
+
+        return json_dict
+
     def __str__(self) -> str:
-        return "PingResponse(opCode={}, deployGoal={})".format(
-            self.opCode, self.deployGoal
-        )
+        return json.dumps(self.to_dict(), indent=2)

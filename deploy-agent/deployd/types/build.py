@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import json
 from typing import Tuple
 
 
@@ -73,21 +74,4 @@ class Build(object):
         return not (isinstance(other, Build) and self.__key() == other.__key())
 
     def __str__(self) -> str:
-        return (
-            "Build(buildId={}, buildName={}, buildVersion={}, artifactUrl={}, scm={}, "
-            "scmRepo={}, scmBranch={}, scmCommit={}, scmInfo={}, commitDate={}, publishInfo={}, "
-            "publishDate={})".format(
-                self.buildId,
-                self.buildName,
-                self.buildVersion,
-                self.artifactUrl,
-                self.scm,
-                self.scmRepo,
-                self.scmBranch,
-                self.scmCommit,
-                self.scmInfo,
-                self.commitDate,
-                self.publishInfo,
-                self.publishDate,
-            )
-        )
+        return json.dumps(self.__dict__, indent=2)
