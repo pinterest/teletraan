@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 
 class Config(object):
-    _DEFAULT_CONFIG_SECTION = 'default_config'
+    _DEFAULT_CONFIG_SECTION = "default_config"
     _configs = {}
 
     def __init__(self, filenames=None, config_reader=None) -> None:
@@ -48,13 +48,13 @@ class Config(object):
             return
 
         if not os.path.exists(filenames):
-            print('Cannot find config files: {}'.format(filenames))
+            print("Cannot find config files: {}".format(filenames))
             exit_abruptly(1)
 
         self._filenames = filenames
         loaded_filenames = self._config_reader.read(self._filenames)
         if len(loaded_filenames) == 0:
-            print('Cannot read config files: {}'.format(self._filenames))
+            print("Cannot read config files: {}".format(self._filenames))
             exit_abruptly(1)
 
     def get_config_filename(self) -> Optional[List[str]]:
@@ -62,11 +62,11 @@ class Config(object):
 
     def _get_deploy_type_from_opcode(self, opCode) -> str:
         # TODO: Should use common.types.OpCode for next version
-        if opCode == 'RESTART':
+        if opCode == "RESTART":
             return DeployType.RESTART
-        elif opCode == 'ROLLBACK':
+        elif opCode == "ROLLBACK":
             return DeployType.ROLLBACK
-        elif opCode == 'STOP' or opCode == 'TERMINATE':
+        elif opCode == "STOP" or opCode == "TERMINATE":
             return DeployType.STOP
         else:
             return DeployType.REGULAR
@@ -84,34 +84,39 @@ class Config(object):
             self._configs.update(deploy_status.runtime_config)
 
         # update environment variables
-        self._environ['DEPLOY_ID'] = deploy_status.report.deployId
+        self._environ["DEPLOY_ID"] = deploy_status.report.deployId
 
         # TODO: This is only used for migration, should clean them up
         if isinstance(deploy_status.report.deployStage, int):
-            self._environ['DEPLOY_STEP'] = \
-                DeployStage._VALUES_TO_NAMES[deploy_status.report.deployStage]
+            self._environ["DEPLOY_STEP"] = DeployStage._VALUES_TO_NAMES[
+                deploy_status.report.deployStage
+            ]
         else:
-            self._environ['DEPLOY_STEP'] = deploy_status.report.deployStage
+            self._environ["DEPLOY_STEP"] = deploy_status.report.deployStage
 
         if isinstance(deploy_status.op_code, int):
             op_code = OperationCode._VALUES_TO_NAMES[deploy_status.op_code]
         else:
             op_code = deploy_status.op_code
-        self._environ['OPCODE'] = op_code
+        self._environ["OPCODE"] = op_code
 
-        self._environ['DEPLOY_TYPE'] = self._get_deploy_type_from_opcode(op_code)
+        self._environ["DEPLOY_TYPE"] = self._get_deploy_type_from_opcode(op_code)
 
         if deploy_status.report.envName:
-            self._environ['ENV_NAME'] = deploy_status.report.envName
+            self._environ["ENV_NAME"] = deploy_status.report.envName
         if deploy_status.report.stageName:
-            self._environ['STAGE_NAME'] = deploy_status.report.stageName
+            self._environ["STAGE_NAME"] = deploy_status.report.stageName
         if deploy_status.report.stageType:
-            self._environ['COMPUTE_ENV_TYPE'] = "PRODUCTION" if deploy_status.report.stageType == "DEFAULT" else deploy_status.report.stageType
+            self._environ["COMPUTE_ENV_TYPE"] = (
+                "PRODUCTION"
+                if deploy_status.report.stageType == "DEFAULT"
+                else deploy_status.report.stageType
+            )
         if deploy_status.first_deploy:
-            self._environ['FIRST_DEPLOY'] = str(deploy_status.first_deploy)
+            self._environ["FIRST_DEPLOY"] = str(deploy_status.first_deploy)
         if deploy_status.is_docker:
-            self._environ['IS_DOCKER'] = str(deploy_status.is_docker)
-        self._environ['TARGET'] = self.get_target()
+            self._environ["IS_DOCKER"] = str(deploy_status.is_docker)
+        self._environ["TARGET"] = self.get_target()
 
         # export script var to environment
         if deploy_status.script_variables:
@@ -120,19 +125,19 @@ class Config(object):
 
         if deploy_status.build_info:
             if deploy_status.build_info.build_commit:
-                self._environ['BUILD_COMMIT'] = deploy_status.build_info.build_commit
+                self._environ["BUILD_COMMIT"] = deploy_status.build_info.build_commit
             if deploy_status.build_info.build_name:
-                self._environ['BUILD_NAME'] = deploy_status.build_info.build_name
+                self._environ["BUILD_NAME"] = deploy_status.build_info.build_name
             if deploy_status.build_info.build_repo:
-                self._environ['BUILD_REPO'] = deploy_status.build_info.build_repo
+                self._environ["BUILD_REPO"] = deploy_status.build_info.build_repo
             if deploy_status.build_info.build_branch:
-                self._environ['BUILD_BRANCH'] = deploy_status.build_info.build_branch
+                self._environ["BUILD_BRANCH"] = deploy_status.build_info.build_branch
             if deploy_status.build_info.build_id:
-                self._environ['BUILD_ID'] = deploy_status.build_info.build_id
+                self._environ["BUILD_ID"] = deploy_status.build_info.build_id
             if deploy_status.build_info.build_url:
-                self._environ['BUILD_URL'] = deploy_status.build_info.build_url
+                self._environ["BUILD_URL"] = deploy_status.build_info.build_url
 
-        self._environ['BUILDS_DIR'] = self.get_builds_directory()
+        self._environ["BUILDS_DIR"] = self.get_builds_directory()
         os.environ.update(self._environ)
 
     def get_var(self, var_name, default_value=None) -> Any:
@@ -144,27 +149,29 @@ class Config(object):
         except Exception:
             if default_value is not None:
                 return default_value
-            raise DeployConfigException('{} cannot be found.'.format(var_name))
+            raise DeployConfigException("{} cannot be found.".format(var_name))
 
     def get_intvar(self, var_name, default_value=None) -> int:
         return int(self.get_var(var_name, default_value))
 
     def get_target(self) -> Optional[str]:
         target_default_dir = self.get_var("target_default_dir", "/tmp")
-        if not (self._configs and self._configs.get('target')):
-            return os.path.join(target_default_dir, self._environ['ENV_NAME'])
+        if not (self._configs and self._configs.get("target")):
+            return os.path.join(target_default_dir, self._environ["ENV_NAME"])
 
-        return self._configs.get('target')
+        return self._configs.get("target")
 
     def get_subprocess_log_name(self) -> str:
-        if 'ENV_NAME' in self._environ:
-            return '{}/{}.log'.format(self.get_log_directory(), self._environ['ENV_NAME'])
+        if "ENV_NAME" in self._environ:
+            return "{}/{}.log".format(
+                self.get_log_directory(), self._environ["ENV_NAME"]
+            )
         else:
             return os.path.join(self.get_log_directory(), "deploy_subprocess.log")
 
     def get_script_directory(self):
-        script_dir = '{}/teletraan/'.format(self.get_target())
-        subscript_dir = os.path.join(script_dir, self._environ['ENV_NAME'])
+        script_dir = "{}/teletraan/".format(self.get_target())
+        subscript_dir = os.path.join(script_dir, self._environ["ENV_NAME"])
         if os.path.exists(subscript_dir):
             return subscript_dir
         else:
@@ -189,39 +196,39 @@ class Config(object):
         return self.get_var("user_role", getpass.getuser())
 
     def get_restful_service_url(self) -> str:
-        return self.get_var('teletraan_service_url', 'http://localhost:8080')
+        return self.get_var("teletraan_service_url", "http://localhost:8080")
 
     def get_restful_service_version(self) -> str:
-        return self.get_var('teletraan_service_version', 'v1')
+        return self.get_var("teletraan_service_version", "v1")
 
     def get_restful_service_token(self) -> str:
-        return self.get_var('teletraan_service_token', '')
+        return self.get_var("teletraan_service_token", "")
 
     # aws specific configuration
     def get_aws_access_key(self) -> Optional[str]:
-        return self.get_var('aws_access_key_id', None)
+        return self.get_var("aws_access_key_id", None)
 
     def get_aws_access_secret(self) -> Optional[str]:
-        return self.get_var('aws_secret_access_key', None)
+        return self.get_var("aws_secret_access_key", None)
 
     # agent process configs
     def get_agent_ping_interval(self) -> int:
-        return self.get_intvar('min_running_time', 60)
+        return self.get_intvar("min_running_time", 60)
 
     def get_subprocess_running_timeout(self) -> int:
-        return self.get_intvar('process_timeout', 1800)
+        return self.get_intvar("process_timeout", 1800)
 
     def get_subprocess_terminate_timeout(self) -> int:
-        return self.get_intvar('termination_timeout', 30)
+        return self.get_intvar("termination_timeout", 30)
 
     def get_subproces_max_retry(self) -> int:
-        return self.get_intvar('max_retry', 3)
+        return self.get_intvar("max_retry", 3)
 
     def get_subprocess_max_log_bytes(self) -> int:
-        return self.get_intvar('max_tail_bytes', 10240)
+        return self.get_intvar("max_tail_bytes", 10240)
 
     def get_subprocess_max_sleep_interval(self) -> int:
-        return self.get_intvar('max_sleep_interval', 60)
+        return self.get_intvar("max_sleep_interval", 60)
 
     def get_subprocess_poll_interval(self) -> int:
         return self.get_intvar("process_wait_interval", 2)
@@ -239,10 +246,14 @@ class Config(object):
         return self.get_var("puppet_file_path", None)
 
     def get_puppet_summary_file_path(self) -> str:
-        return self.get_var("puppet_summary_file_path", "/var/cache/puppet/state/last_run_summary.yaml")
+        return self.get_var(
+            "puppet_summary_file_path", "/var/cache/puppet/state/last_run_summary.yaml"
+        )
 
     def get_puppet_exit_code_file_path(self) -> str:
-        return self.get_var("puppet_exit_code_file_path", "/var/log/puppet/puppet_exit_code")
+        return self.get_var(
+            "puppet_exit_code_file_path", "/var/log/puppet/puppet_exit_code"
+        )
 
     def get_daemon_sleep_time(self) -> int:
         return self.get_intvar("daemon_sleep_time", 30)
@@ -251,7 +262,7 @@ class Config(object):
         return self.get_intvar("init_sleep_time", 50)
 
     def get_log_level(self) -> int:
-        log_level = self.get_var("log_level", 'DEBUG')
+        log_level = self.get_var("log_level", "DEBUG")
         if log_level == "INFO":
             return logging.INFO
         elif log_level == "ERROR":
@@ -259,51 +270,56 @@ class Config(object):
         return logging.DEBUG
 
     def get_facter_id_key(self) -> Optional[str]:
-        return self.get_var('agent_id_key', None)
+        return self.get_var("agent_id_key", None)
 
     def get_facter_ip_key(self) -> Optional[str]:
-        return self.get_var('agent_ip_key', None)
+        return self.get_var("agent_ip_key", None)
 
     def get_facter_name_key(self) -> Optional[str]:
-        return self.get_var('agent_name_key', None)
+        return self.get_var("agent_name_key", None)
 
     def get_facter_group_key(self) -> Optional[str]:
-        return self.get_var('agent_group_key', None)
+        return self.get_var("agent_group_key", None)
 
     def get_verify_https_certificate(self) -> Optional[str]:
-        return self.get_var('verify_https_certificate', 'False')
+        return self.get_var("verify_https_certificate", "False")
 
     def get_facter_az_key(self) -> Optional[str]:
-        return self.get_var('availability_zone_key', None)
+        return self.get_var("availability_zone_key", None)
 
     def get_facter_secondary_az_key(self) -> Optional[str]:
-        return self.get_var('secondary_availability_zone_key', 'ec2_metadata.placement.availability-zone')
+        return self.get_var(
+            "secondary_availability_zone_key",
+            "ec2_metadata.placement.availability-zone",
+        )
 
     def get_facter_ec2_tags_key(self) -> Optional[str]:
-        return self.get_var('ec2_tags_key', None)
+        return self.get_var("ec2_tags_key", None)
 
     def get_facter_asg_tag_key(self) -> Optional[str]:
-        return self.get_var('autoscaling_tag_key', None)
+        return self.get_var("autoscaling_tag_key", None)
 
     def get_stage_type_key(self) -> Optional[str]:
-        return self.get_var('stage_type_key', None)
+        return self.get_var("stage_type_key", None)
 
     def get_facter_account_id_key(self) -> str:
-        return self.get_var('account_id_key', 'ec2_metadata.identity-credentials.ec2.info')
+        return self.get_var(
+            "account_id_key", "ec2_metadata.identity-credentials.ec2.info"
+        )
 
     def _get_download_allow_list(self, key: str) -> List:
-        allow_list_str = self.get_var(key, '[]')
+        allow_list_str = self.get_var(key, "[]")
         allow_list = []
         try:
             allow_list = json.loads(allow_list_str)
         except json.JSONDecodeError:
-            log.error(f"Error: The string {allow_list_str} could not be converted to a list.")
+            log.error(
+                f"Error: The string {allow_list_str} could not be converted to a list."
+            )
         return allow_list
 
-
     def get_http_download_allow_list(self) -> List:
-        return self._get_download_allow_list('http_download_allow_list')
-
+        return self._get_download_allow_list("http_download_allow_list")
 
     def get_s3_download_allow_list(self) -> List:
-        return self._get_download_allow_list('s3_download_allow_list')
+        return self._get_download_allow_list("s3_download_allow_list")

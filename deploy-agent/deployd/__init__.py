@@ -16,15 +16,19 @@ import os
 
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
-METRIC_PORT_HEALTH = int(os.getenv('METRIC_PORT_HEALTH')) if os.getenv('METRIC_PORT_HEALTH', False) else None
-METRIC_CACHE_PATH = os.getenv('METRIC_CACHE_PATH', None)
-TELEFIG_BINARY = os.getenv('TELEFIG_BINARY', None)
+METRIC_PORT_HEALTH = (
+    int(os.getenv("METRIC_PORT_HEALTH"))
+    if os.getenv("METRIC_PORT_HEALTH", False)
+    else None
+)
+METRIC_CACHE_PATH = os.getenv("METRIC_CACHE_PATH", None)
+TELEFIG_BINARY = os.getenv("TELEFIG_BINARY", None)
 MAIN_LOGGER = "deployd"
-STATSBOARD_URL=os.getenv('STATSBOARD_URL', "https://statsboard.pinadmin.com/api/v1/")
+STATSBOARD_URL = os.getenv("STATSBOARD_URL", "https://statsboard.pinadmin.com/api/v1/")
 REDEPLOY_MAX_RETRY = 3
 
 # 0: puppet applied successfully with no changes
 # 2: puppet applied successfully with changes
 PUPPET_SUCCESS_EXIT_CODES = [0, 2]
 
-__version__ = '1.2.68'
+__version__ = "1.2.68"

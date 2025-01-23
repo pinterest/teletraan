@@ -30,8 +30,13 @@ class Caller(object):
         output = ""
         start = time.time()
         try:
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, encoding='utf-8', **kwargs)
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+                **kwargs,
+            )
             while process.poll() is None:
                 line = process.stdout.readline()
                 if line:

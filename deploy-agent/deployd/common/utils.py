@@ -28,7 +28,12 @@ import requests
 
 import json
 from deployd import IS_PINTEREST, PUPPET_SUCCESS_EXIT_CODES, REDEPLOY_MAX_RETRY
-from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing, send_statsboard_metric
+from deployd.common.stats import (
+    TimeElapsed,
+    create_sc_increment,
+    create_sc_timing,
+    send_statsboard_metric,
+)
 
 log = logging.getLogger(__name__)
 
@@ -43,7 +48,7 @@ def exit_abruptly(status=0) -> None:
     :param status: exit code
     """
     # if we are testing we want to test gracefully or this will abort the tests
-    if os.environ.get('DEPLOY_TESTING'):
+    if os.environ.get("DEPLOY_TESTING"):
         sys.exit(status)
 
     os._exit(status)
@@ -51,18 +56,18 @@ def exit_abruptly(status=0) -> None:
 
 def touch(fname, times=None) -> None:
     try:
-        with open(fname, 'a'):
+        with open(fname, "a"):
             os.utime(fname, times)
     except IOError:
-        log.error('Failed touching host type file {}'.format(fname))
+        log.error("Failed touching host type file {}".format(fname))
 
 
 def hash_file(filepath) -> str:
-    """ hash the file content
+    """hash the file content
     :param filepath: the full path of the file
     :return:the sha1 of the file data
     """
-    with open(filepath, 'rb') as f:
+    with open(filepath, "rb") as f:
         return hashlib.sha1(f.read()).hexdigest()
 
 
@@ -72,13 +77,13 @@ def hash_file(filepath) -> str:
 def debug(sig, frame) -> None:
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
-    d = {'_frame': frame}      # Allow access to frame object.
+    d = {"_frame": frame}  # Allow access to frame object.
     d.update(frame.f_globals)  # Unless shadowed by global
     d.update(frame.f_locals)
 
     i = code.InteractiveConsole(d)
     message = "Signal recieved : entering python shell.\nTraceback:\n"
-    message += ''.join(traceback.format_stack(frame))
+    message += "".join(traceback.format_stack(frame))
     i.interact(message)
 
 
@@ -98,10 +103,10 @@ def mkdir_p(path) -> None:
 
 
 def uptime() -> int:
-    """ return int: seconds of uptime in int, default 0 """
+    """return int: seconds of uptime in int, default 0"""
     sec = 0
-    if sys.platform.startswith('linux'):
-        with open('/proc/uptime') as proc:
+    if sys.platform.startswith("linux"):
+        with open("/proc/uptime") as proc:
             line = proc.readline().split()
             sec = int(float(line[0]))
     return sec
@@ -167,7 +172,9 @@ def load_puppet_summary(config) -> dict:
     summary_file = config.get_puppet_summary_file_path()
     summary = {}
     if not os.path.exists(summary_file):
-        log.warning(f"{summary_file} does not exist. This could be the first puppet run")
+        log.warning(
+            f"{summary_file} does not exist. This could be the first puppet run"
+        )
         return summary
 
     with open(summary_file) as f:
@@ -190,13 +197,19 @@ def check_first_puppet_run_success(config) -> bool:
 
     # If failed, double check with puppet last summary
     puppet_summary = load_puppet_summary(config)
-    puppet_failures = puppet_summary.get('events', {}).get(
-        'failure', None) if puppet_summary else None
+    puppet_failures = (
+        puppet_summary.get("events", {}).get("failure", None)
+        if puppet_summary
+        else None
+    )
     log.info(f"Puppet failures: {puppet_failures}")
 
     if puppet_failures != 0:
-        send_statsboard_metric(name='deployd.first_puppet_failed', value=1,
-                               tags={"puppet_exit_code": puppet_exit_code})
+        send_statsboard_metric(
+            name="deployd.first_puppet_failed",
+            value=1,
+            tags={"puppet_exit_code": puppet_exit_code},
+        )
     return puppet_failures == 0
 
 
@@ -204,14 +217,15 @@ def get_info_from_facter(keys) -> Optional[dict]:
     try:
         time_facter = TimeElapsed()
         # increment stats - facter calls
-        create_sc_increment('deployd.stats.internal.facter_calls_sum', 1)
+        create_sc_increment("deployd.stats.internal.facter_calls_sum", 1)
         log.info(f"Fetching {keys} keys from facter")
-        cmd = ['facter', '-jp']
+        cmd = ["facter", "-jp"]
         cmd.extend(keys)
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         # timing stats - facter run time
-        create_sc_timing('deployd.stats.internal.time_elapsed_facter_calls_sec',
-                         time_facter.get())
+        create_sc_timing(
+            "deployd.stats.internal.time_elapsed_facter_calls_sec", time_facter.get()
+        )
         if output:
             return json.loads(output)
         else:
@@ -226,31 +240,41 @@ def redeploy_check_for_container(labels, service, redeploy) -> int:
     max_retry = REDEPLOY_MAX_RETRY
     for label in labels:
         if "redeploy_max_retry" in label:
-            max_retry = int(label.split('=')[1])
+            max_retry = int(label.split("=")[1])
     if redeploy < max_retry:
         return redeploy + 1
     return 0
 
+
 def redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs):
     if healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY") == "True":
         log.info(f"Auto redeployment is enabled on service {service}")
-        max_retry = int(healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_MAX_RETRY", REDEPLOY_MAX_RETRY))
+        max_retry = int(
+            healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_MAX_RETRY", REDEPLOY_MAX_RETRY)
+        )
         if redeploy < max_retry:
             log.info(f"redeploy is {redeploy}; max retry is {max_retry}")
-            create_sc_increment(name='deployd.service_health_status',
-                tags={"status": "redeploy", "service": service, "commit": commit})
+            create_sc_increment(
+                name="deployd.service_health_status",
+                tags={"status": "redeploy", "service": service, "commit": commit},
+            )
             return "redeploy-" + str(redeploy + 1)
-    create_sc_increment(name='deployd.service_health_status',
-        tags={"status": "unhealthy", "service": service, "commit": commit})
+    create_sc_increment(
+        name="deployd.service_health_status",
+        tags={"status": "unhealthy", "service": service, "commit": commit},
+    )
     return service + ":unhealthy"
+
 
 def redeploy_check_without_container_status(commit, service, redeploy):
     log.info(f"Get health info for service {service} with commit {commit}")
     fn = os.path.join("/mnt/deployd/", "{}_HEALTHCHECK".format(service))
     if not os.path.isfile(fn):
         return None
-    with open(fn, 'r') as f:
-        healthcheckConfigs = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
+    with open(fn, "r") as f:
+        healthcheckConfigs = dict(
+            (n.strip("\"\n' ") for n in line.split("=", 1)) for line in f
+        )
         if "HEALTHCHECK_HTTP" not in healthcheckConfigs:
             return None
         log.info(f"Healthcheck is enabled on service {service}")
@@ -260,47 +284,77 @@ def redeploy_check_without_container_status(commit, service, redeploy):
         try:
             resp = requests.get(url)
             if resp.status_code >= 200 and resp.status_code < 300:
-                create_sc_increment(name='deployd.service_health_status',
-                    tags={"status": "healthy", "service": service, "commit": commit})
+                create_sc_increment(
+                    name="deployd.service_health_status",
+                    tags={"status": "healthy", "service": service, "commit": commit},
+                )
                 return service + ":healthy"
         except requests.ConnectionError:
-            return redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs)
-        return redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs)
+            return redeploy_check_for_non_container(
+                commit, service, redeploy, healthcheckConfigs
+            )
+        return redeploy_check_for_non_container(
+            commit, service, redeploy, healthcheckConfigs
+        )
+
 
 def get_container_health_info(commit, service, redeploy) -> Optional[str]:
     try:
         log.info(f"Get health info for service {service} with commit {commit}")
         result = []
-        cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}};{{.Labels}}']
+        cmd = ["docker", "ps", "--format", "{{.Image}};{{.Names}};{{.Labels}}"]
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         if output:
             lines = output.decode().strip().splitlines()
             for line in lines:
                 if commit in line:
-                    parts = line.split(';')
+                    parts = line.split(";")
                     name = parts[1]
                     try:
-                        command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
-                        status = subprocess.run(command, check=True, stdout=subprocess.PIPE).stdout
+                        command = [
+                            "docker",
+                            "inspect",
+                            "-f",
+                            "{{.State.Health.Status}}",
+                            name,
+                        ]
+                        status = subprocess.run(
+                            command, check=True, stdout=subprocess.PIPE
+                        ).stdout
                         if status:
                             status = status.decode().strip()
-                            if status == "unhealthy" and "redeploy_when_unhealthy=enabled" in parts[2]:
-                                labels = parts[2].split(',')
-                                ret = redeploy_check_for_container(labels, service, redeploy)
+                            if (
+                                status == "unhealthy"
+                                and "redeploy_when_unhealthy=enabled" in parts[2]
+                            ):
+                                labels = parts[2].split(",")
+                                ret = redeploy_check_for_container(
+                                    labels, service, redeploy
+                                )
                                 if ret > 0:
-                                    create_sc_increment(name='deployd.service_health_status',
-                                            tags={"status": "redeploy", "service": service, "commit": commit})
+                                    create_sc_increment(
+                                        name="deployd.service_health_status",
+                                        tags={
+                                            "status": "redeploy",
+                                            "service": service,
+                                            "commit": commit,
+                                        },
+                                    )
                                     return "redeploy-" + str(ret)
                             result.append(f"{name}:{status}")
                     except Exception:
                         continue
             returnValue = ";".join(result) if result else None
             if returnValue and "unhealthy" in returnValue:
-                create_sc_increment(name='deployd.service_health_status',
-                                            tags={"status": "unhealthy", "service": service, "commit": commit})
+                create_sc_increment(
+                    name="deployd.service_health_status",
+                    tags={"status": "unhealthy", "service": service, "commit": commit},
+                )
             elif returnValue and "unhealthy" not in returnValue:
-                create_sc_increment(name='deployd.service_health_status',
-                                            tags={"status": "healthy", "service": service, "commit": commit})
+                create_sc_increment(
+                    name="deployd.service_health_status",
+                    tags={"status": "healthy", "service": service, "commit": commit},
+                )
             if returnValue:
                 return returnValue
         # if no check happens for the current service, check if it is a non container with healthcheck enabled
@@ -314,7 +368,7 @@ def get_telefig_version() -> Optional[str]:
     if not IS_PINTEREST:
         return None
     try:
-        cmd = ['configure-serviceset', '-v']
+        cmd = ["configure-serviceset", "-v"]
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         if output:
             return output.decode().strip()
@@ -323,6 +377,7 @@ def get_telefig_version() -> Optional[str]:
     except Exception:
         log.error("Error when fetching teletraan configure manager version")
         return None
+
 
 def check_not_none(arg, msg=None) -> Any:
     if arg is None:

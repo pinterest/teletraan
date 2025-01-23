@@ -18,10 +18,10 @@ import logging
 
 log = logging.getLogger(__name__)
 
-DOWNLOAD_VALIDATE_METRICS = 'deployd.stats.download.validate'
+DOWNLOAD_VALIDATE_METRICS = "deployd.stats.download.validate"
+
 
 class DownloadHelper(metaclass=abc.ABCMeta):
-
     def __init__(self, url) -> None:
         self._url = url
 

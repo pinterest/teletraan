@@ -1,19 +1,23 @@
-from deployd.types.ping_request import PingRequest 
-from deployd.types.ping_report import PingReport 
+from deployd.types.ping_request import PingRequest
+from deployd.types.ping_report import PingReport
 import unittest
 
 
 class TestPingRequest(unittest.TestCase):
     def test_to_json_enums(self):
         reports = [
-            PingReport({
-                "deployStage": 7,
-                "status": 4,
-            }),
-            PingReport({
-                "deployStage": "POST_RESTART",
-                "status": "SCRIPT_FAILED",
-            }),
+            PingReport(
+                {
+                    "deployStage": 7,
+                    "status": 4,
+                }
+            ),
+            PingReport(
+                {
+                    "deployStage": "POST_RESTART",
+                    "status": "SCRIPT_FAILED",
+                }
+            ),
         ]
         request = PingRequest(reports=reports)
         json_request = request.to_json()
