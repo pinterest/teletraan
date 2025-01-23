@@ -20,9 +20,7 @@ from deployd.client.base_client import BaseClient
 
 
 class TestBaseClient(TestCase):
-
     def test_missing_abstract_method_impl_cause_error(self):
-
         class MyClient(BaseClient):
             pass
 
@@ -33,12 +31,14 @@ class TestBaseClient(TestCase):
         """
         Make sure that new changes to base client extend the original class
         """
+
         class OldBaseClient(ABC):
             @abstractmethod
             def send_reports(self, env_reports=None):
                 pass
+
         self.assertLessEqual(set(dir(OldBaseClient)), set(dir(BaseClient)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -16,12 +16,13 @@ from deployd import __version__
 from setuptools import setup
 import os
 
-markdown_contents = open(os.path.join(os.path.dirname(__file__),
-                                      'README.md')).read()
+markdown_contents = open(os.path.join(os.path.dirname(__file__), "README.md")).read()
 
-console_scripts = ['deploy-agent = deployd.agent:main',
-                   'deploy-downloader = deployd.download.downloader:main',
-                   'deploy-stager = deployd.staging.stager:main']
+console_scripts = [
+    "deploy-agent = deployd.agent:main",
+    "deploy-downloader = deployd.download.downloader:main",
+    "deploy-stager = deployd.staging.stager:main",
+]
 
 install_requires = [
     "requests==2.29.0; python_version < '3.12'",
@@ -30,27 +31,27 @@ install_requires = [
     "gevent==24.2.1; python_version >= '3.12'",
     "lockfile==0.10.2",
     "boto3==1.34.134",
-    "python-daemon==2.0.6"
+    "python-daemon==2.0.6",
 ]
 
 setup(
-    name='deploy-agent',
+    name="deploy-agent",
     version=__version__,
-    scripts=['bin/{}'.format(p) for p in os.listdir('bin')],
+    scripts=["bin/{}".format(p) for p in os.listdir("bin")],
     long_description=markdown_contents,
     entry_points={
-        'console_scripts': console_scripts,
+        "console_scripts": console_scripts,
     },
     install_requires=install_requires,
     author="Pinterest",
     packages=[
-        'deployd',
-        'deployd.download',
-        'deployd.common',
-        'deployd.staging',
-        'deployd.client',
-        'deployd.types',
+        "deployd",
+        "deployd.download",
+        "deployd.common",
+        "deployd.staging",
+        "deployd.client",
+        "deployd.types",
     ],
     include_package_data=True,
-    package_data={'deployd/conf': ['*.conf']}
+    package_data={"deployd/conf": ["*.conf"]},
 )

@@ -28,19 +28,24 @@ log: Logger = getLogger(__name__)
 
 
 class DownloadHelperFactory(object):
-
     @staticmethod
     def gen_downloader(url, config) -> Optional[DownloadHelper]:
         url_parse = urlparse(url)
-        if url_parse.scheme == 's3':
+        if url_parse.scheme == "s3":
             aws_access_key_id = config.get_aws_access_key()
             aws_secret_access_key = config.get_aws_access_secret()
             if aws_access_key_id is None or aws_secret_access_key is None:
                 log.error("aws access key id and secret access key not found")
                 return None
-            s3_client = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-            return S3DownloadHelper(local_full_fn=url, s3_client=s3_client, url=None, config=config)
-        elif url_parse.scheme == 'file':
+            s3_client = boto3.client(
+                "s3",
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+            )
+            return S3DownloadHelper(
+                local_full_fn=url, s3_client=s3_client, url=None, config=config
+            )
+        elif url_parse.scheme == "file":
             return LocalDownloadHelper(url=url)
         else:
             return HTTPDownloadHelper(url=url, config=config)

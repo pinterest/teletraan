@@ -24,5 +24,6 @@ class TestClient(TestCase):
         with self.assertRaises(AttributeError):
             client._read_host_info()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

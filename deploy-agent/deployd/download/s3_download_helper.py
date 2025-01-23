@@ -28,17 +28,22 @@ log = logging.getLogger(__name__)
 
 
 class S3DownloadHelper(DownloadHelper):
-
     def __init__(self, local_full_fn, s3_client=None, url=None, config=None) -> None:
         super(S3DownloadHelper, self).__init__(local_full_fn)
-        self._s3_matcher = "^s3://(?P<BUCKET>[a-zA-Z0-9\-_]+)/(?P<KEY>[a-zA-Z0-9\-_/\.]+)/?"
+        self._s3_matcher = (
+            "^s3://(?P<BUCKET>[a-zA-Z0-9\-_]+)/(?P<KEY>[a-zA-Z0-9\-_/\.]+)/?"
+        )
         self._config = config if config else Config()
         if s3_client:
             self._s3_client = s3_client
         else:
             aws_access_key_id = self._config.get_aws_access_key()
             aws_secret_access_key = self._config.get_aws_access_secret()
-            self._s3_client = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            self._s3_client = boto3.client(
+                "s3",
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+            )
 
         if url:
             self._url = url
@@ -46,11 +51,12 @@ class S3DownloadHelper(DownloadHelper):
             self._bucket_name = s3url_parse.group("BUCKET")
             self._key = s3url_parse.group("KEY")
 
-
     def download(self, local_full_fn) -> int:
-        log.info(f"Start to download file {self._key} from s3 bucket {self._bucket_name} to {local_full_fn}")
+        log.info(
+            f"Start to download file {self._key} from s3 bucket {self._bucket_name} to {local_full_fn}"
+        )
         if not self.validate_source():
-            log.error(f'Invalid url: {self._url}. Skip downloading.')
+            log.error(f"Invalid url: {self._url}. Skip downloading.")
             return Status.FAILED
 
         try:
@@ -70,12 +76,16 @@ class S3DownloadHelper(DownloadHelper):
                     log.error("MD5 verification failed. tarball is corrupt.")
                     return Status.FAILED
             else:
-                log.info("MD5 verification currently not supported on multipart uploads.")
+                log.info(
+                    "MD5 verification currently not supported on multipart uploads."
+                )
 
             log.info("Successfully downloaded to {}".format(local_full_fn))
             return Status.SUCCEEDED
         except Exception:
-            log.error("Failed to get package from s3: {}".format(traceback.format_exc()))
+            log.error(
+                "Failed to get package from s3: {}".format(traceback.format_exc())
+            )
             return Status.FAILED
 
     def _get_object_metadata(self):
@@ -85,16 +95,16 @@ class S3DownloadHelper(DownloadHelper):
         try:
             return self._s3_client.head_object(Bucket=self._bucket_name, Key=self._key)
         except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == "404":
+            if e.response["Error"]["Code"] == "404":
                 # The key does not exist.
                 return None
             else:
-              # Something else has gone wrong.
-              raise
+                # Something else has gone wrong.
+                raise
 
     def validate_source(self) -> bool:
         allow_list = self._config.get_s3_download_allow_list()
-        tags = {'type': 's3', 'url': self._url, 'bucket' : self._bucket_name}
+        tags = {"type": "s3", "url": self._url, "bucket": self._bucket_name}
         create_sc_increment(DOWNLOAD_VALIDATE_METRICS, tags=tags)
 
         if not allow_list or self._bucket_name in allow_list:

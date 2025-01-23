@@ -18,15 +18,16 @@ import stat
 import fcntl
 from . import utils
 import tempfile
+
 log = logging.getLogger(__name__)
-LOCKFILE_DIR = '/var/lock'
+LOCKFILE_DIR = "/var/lock"
 
 
 class SingleInstance(object):
     def __init__(self) -> None:
         # Establish lock file settings
-        appname = 'deploy-agent'
-        lockfile_name = '.{}.lock'.format(appname)
+        appname = "deploy-agent"
+        lockfile_name = ".{}.lock".format(appname)
         self._create_lock_dir()
         # Backward compatibility as old deploy agent versions use lock file in /tmp.
         # Use the old lock file if it exists
@@ -50,8 +51,12 @@ class SingleInstance(object):
         try:
             fcntl.lockf(lockfile_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
-            log.error(('Error: {0} may already be running. Only one instance of it '
-                       'can run at a time.').format(appname))
+            log.error(
+                (
+                    "Error: {0} may already be running. Only one instance of it "
+                    "can run at a time."
+                ).format(appname)
+            )
             # noinspection PyTypeChecker
             os.close(lockfile_fd)
             utils.exit_abruptly(1)
