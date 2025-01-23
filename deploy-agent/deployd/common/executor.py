@@ -252,7 +252,9 @@ class Executor(object):
                 """
                 error_msg = (
                     "teletraan directory cannot be found "
-                    "in the tar ball in step {}!".format(deploy_step)
+                    "in the tar ball in step {} and dir {}!".format(
+                        deploy_step, self._config.get_script_directory()
+                    )
                 )
                 if deploy_step in PRE_STAGE_STEPS:
                     log.warning(error_msg)
