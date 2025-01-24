@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-from deployd.types.agent_status import AgentStatus
 
 
 class PingRequest(object):
@@ -69,12 +68,7 @@ class PingRequest(object):
             ping_report["deployId"] = report.deployId
             ping_report["envId"] = report.envId
             ping_report["deployStage"] = report.deployStage
-
-            if isinstance(report.status, int):
-                ping_report["agentStatus"] = AgentStatus._VALUES_TO_NAMES[report.status]
-            else:
-                ping_report["agentStatus"] = report.status
-
+            ping_report["agentStatus"] = report.status
             ping_report["errorCode"] = report.errorCode
             ping_report["errorMessage"] = report.errorMessage
             ping_report["failCount"] = report.failCount
