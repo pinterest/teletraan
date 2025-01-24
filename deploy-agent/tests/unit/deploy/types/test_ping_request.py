@@ -1,4 +1,4 @@
-from deployd.common.types import DeployStage
+from deployd.common.types import AgentStatus, DeployStage
 from deployd.types.ping_request import PingRequest
 from deployd.types.ping_report import PingReport
 import unittest
@@ -10,7 +10,7 @@ class TestPingRequest(unittest.TestCase):
             PingReport(
                 {
                     "deployStage": DeployStage.POST_RESTART,
-                    "status": 4,
+                    "status": AgentStatus.SCRIPT_FAILED,
                 }
             ),
             PingReport(

@@ -1,4 +1,4 @@
-from deployd.common.types import DeployStage
+from deployd.common.types import AgentStatus, DeployStage
 from deployd.types.ping_report import PingReport
 import unittest
 
@@ -8,7 +8,7 @@ class TestPingReport(unittest.TestCase):
         report = PingReport(
             jsonValue={
                 "deployStage": DeployStage.UNKNOWN,
-                "status": 0,
+                "status": AgentStatus.SUCCEEDED,
             }
         )
         self.assertEqual(report.deployStage, "UNKNOWN")
@@ -17,7 +17,7 @@ class TestPingReport(unittest.TestCase):
         report = PingReport(
             jsonValue={
                 "deployStage": DeployStage.STOPPED,
-                "status": 7,
+                "status": AgentStatus.TOO_MANY_RETRY,
             }
         )
         self.assertEqual(report.deployStage, "STOPPED")
