@@ -113,6 +113,20 @@ class TestConfigFunctions(tests.TestCase):
             config._get_deploy_type_from_opcode(opCode="STOP"), DeployType.STOP
         )
 
+    def test_config_first_run(self):
+        config = Config()
+        with mock.patch("os.path.exists") as os_path_exists:
+            # first run
+            os_path_exists.return_value = False
+            self.assertTrue(config.first_run)
+
+            # first run stickiness
+            os_path_exists.return_value = True
+            self.assertTrue(config.first_run)
+
+            # subsequent run
+            self.assertFalse(Config().first_run)
+
 
 if __name__ == "__main__":
     unittest.main()
