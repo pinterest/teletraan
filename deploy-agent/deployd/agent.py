@@ -28,11 +28,17 @@ from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
 from deployd.common.env_status import EnvStatus
 from deployd.common.single_instance import SingleInstance
-from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
+from deployd.common.stats import (
+    TimeElapsed,
+    create_sc_timing,
+    create_sc_increment,
+    add_default_tag,
+)
 from deployd.common.utils import (
     get_telefig_version,
     get_container_health_info,
     check_prereqs,
+    is_first_run,
 )
 from deployd.common.utils import uptime as utils_uptime, listen as utils_listen
 from deployd.common.executor import Executor
@@ -77,14 +83,12 @@ class DeployAgent(object):
         self.stat_time_elapsed_total = TimeElapsed()
         self.stat_stage_time_elapsed = None
         self.deploy_goal_previous = None
-        self._first_run = False
         self._helper = helper or Helper(self._config)
         self._STATUS_FILE = self._config.get_env_status_fn()
         self._client = client
         self._env_status = estatus or EnvStatus(self._STATUS_FILE)
         # load environment deploy status file from local disk
         self.load_status_file()
-        self._telefig_version = get_telefig_version()
 
     def load_status_file(self) -> None:
         self._envs = self._env_status.load_envs()
@@ -96,22 +100,11 @@ class DeployAgent(object):
         self._curr_report = list(self._envs.values())[0]
         self._config.update_variables(self._curr_report)
 
-    @property
-    def first_run(self) -> bool:
-        """check if this the very first run of agent on this instance.
-        first_run will evaluate to True, even if self._envs is set, until the process has exited.
-        self._envs is not populated when running for the first time on a new instance
-        return: bool self._first_run
-        """
-        if self._first_run or not self._envs:
-            self._first_run = True
-        return self._first_run
-
     def _send_deploy_status_stats(self, deploy_report) -> None:
         if not self._response.deployGoal or not deploy_report:
             return
 
-        tags = {"first_run": self.first_run}
+        tags = {}
         if self._response.deployGoal.deployStage:
             tags["deploy_stage"] = self._response.deployGoal.deployStage
         if self._response.deployGoal.envName:
@@ -120,8 +113,6 @@ class DeployAgent(object):
             tags["stage_name"] = self._response.deployGoal.stageName
         if deploy_report.status_code:
             tags["status_code"] = deploy_report.status_code
-        if self._telefig_version:
-            tags["telefig_version"] = self._telefig_version
         create_sc_increment("deployd.stats.deploy.status.sum", tags=tags)
 
     def serve_build(self) -> None:
@@ -461,7 +452,7 @@ class DeployAgent(object):
             and self.deploy_goal_previous.deployStage
             and self.stat_stage_time_elapsed
         ):
-            tags = {"first_run": self.first_run}
+            tags = {}
             if self.deploy_goal_previous.deployStage:
                 tags["deploy_stage"] = self.deploy_goal_previous.deployStage
             if self.deploy_goal_previous.envName:
@@ -507,7 +498,7 @@ class DeployAgent(object):
         # timing stats - deploy stage start
         if deploy_goal != self.deploy_goal_previous:
             # a deploy goal has changed
-            tags = {"first_run": self.first_run}
+            tags = {}
 
             # deploy stage has changed, close old previous timer
             self._timing_stats_deploy_stage_time_elapsed()
@@ -638,12 +629,15 @@ def main():
     args: argparse.Namespace = parser.parse_args()
 
     config = Config(filenames=args.config_file)
+    first_run = is_first_run(config)
 
     if IS_PINTEREST:
         import pinlogger
 
         pinlogger.initialize_logger(logger_filename="deploy-agent.log")
         pinlogger.LOG_TO_STDERR = True
+        add_default_tag("telefig_version", get_telefig_version())
+        add_default_tag("first_run", first_run)
     else:
         log_filename = os.path.join(config.get_log_directory(), "deploy-agent.log")
         logging.basicConfig(
@@ -652,7 +646,7 @@ def main():
             format="%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s",
         )
 
-    if not check_prereqs(config):
+    if not check_prereqs(config, first_run):
         log.warning(
             "Deploy agent cannot start because the prerequisites on puppet did not meet."
         )
@@ -671,9 +665,7 @@ def main():
 
     uptime = utils_uptime()
     agent = DeployAgent(client=client, conf=config)
-    create_sc_timing(
-        "deployd.stats.ec2_uptime_sec", uptime, tags={"first_run": agent.first_run}
-    )
+    create_sc_timing("deployd.stats.ec2_uptime_sec", uptime)
     utils_listen()
     if args.daemon:
         logger = logging.getLogger()
@@ -689,13 +681,11 @@ def main():
     create_sc_timing(
         "deployd.stats.internal.time_elapsed_proc_sec",
         agent.stat_time_elapsed_internal.get(),
-        tags={"first_run": agent.first_run},
     )
     # timing stats - agent total run time
     create_sc_timing(
         "deployd.stats.internal.time_elapsed_proc_total_sec",
         agent.stat_time_elapsed_total.get(),
-        tags={"first_run": agent.first_run},
     )
     # timing stats - agent exit time
     create_sc_timing("deployd.stats.internal.time_end_sec", int(time.time()))

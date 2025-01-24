@@ -42,11 +42,10 @@ class TestCommonUtils(TestCase):
 
     @mock.patch("deployd.common.utils.IS_PINTEREST", False)
     def test_check_prereqs_not_pins(self):
-        result = check_prereqs(self.config)
+        result = check_prereqs(self.config, False)
         self.assertTrue(result)
 
     @mock.patch("deployd.common.utils.IS_PINTEREST", True)
-    @mock.patch("deployd.common.utils.is_first_run", new=mock.Mock(return_value=True))
     @mock.patch(
         "deployd.common.utils.load_puppet_summary",
         new=mock.Mock(return_value={"events": {"failure": 0}}),
@@ -55,13 +54,12 @@ class TestCommonUtils(TestCase):
         "deployd.common.utils.get_puppet_exit_code", new=mock.Mock(return_value=5)
     )
     def test_check_prereqs_no_failures(self):
-        first_puppet_run_result = check_first_puppet_run_success(self.config)
+        first_puppet_run_result = check_first_puppet_run_success(self.config, True)
         self.assertTrue(first_puppet_run_result)
-        result = check_prereqs(self.config)
+        result = check_prereqs(self.config, True)
         self.assertTrue(result)
 
     @mock.patch("deployd.common.utils.IS_PINTEREST", True)
-    @mock.patch("deployd.common.utils.is_first_run", new=mock.Mock(return_value=True))
     @mock.patch(
         "deployd.common.utils.load_puppet_summary",
         new=mock.Mock(return_value={"events": {"failure": 0}}),
@@ -70,11 +68,10 @@ class TestCommonUtils(TestCase):
         "deployd.common.utils.get_puppet_exit_code", new=mock.Mock(return_value=999)
     )
     def test_check_prereqs_no_exit_code_file(self):
-        result = check_prereqs(self.config)
+        result = check_prereqs(self.config, True)
         self.assertTrue(result)
 
     @mock.patch("deployd.common.utils.IS_PINTEREST", True)
-    @mock.patch("deployd.common.utils.is_first_run", new=mock.Mock(return_value=True))
     @mock.patch(
         "deployd.common.utils.load_puppet_summary",
         new=mock.Mock(return_value={"events": {"failure": 3}}),
@@ -83,13 +80,12 @@ class TestCommonUtils(TestCase):
         "deployd.common.utils.get_puppet_exit_code", new=mock.Mock(return_value=999)
     )
     def test_check_prereqs_with_failures(self):
-        first_puppet_run_result = check_first_puppet_run_success(self.config)
+        first_puppet_run_result = check_first_puppet_run_success(self.config, True)
         self.assertFalse(first_puppet_run_result)
-        result = check_prereqs(self.config)
+        result = check_prereqs(self.config, True)
         self.assertFalse(result)
 
     @mock.patch("deployd.common.utils.IS_PINTEREST", True)
-    @mock.patch("deployd.common.utils.is_first_run", new=mock.Mock(return_value=False))
     @mock.patch(
         "deployd.common.utils.load_puppet_summary",
         new=mock.Mock(return_value={"events": {"failure": 2}}),
@@ -99,13 +95,12 @@ class TestCommonUtils(TestCase):
     )
     def test_check_prereqs_no_state_file(self):
         self.config.get_puppet_state_file_path = mock.Mock(return_value=None)
-        result = check_prereqs(self.config)
+        result = check_prereqs(self.config, False)
         self.assertTrue(result)
 
     @mock.patch("deployd.common.utils.IS_PINTEREST", True)
-    @mock.patch("deployd.common.utils.is_first_run", new=mock.Mock(return_value=False))
     def test_check_prereqs_not_first_run(self):
-        result = check_prereqs(self.config)
+        result = check_prereqs(self.config, False)
         self.assertTrue(result)
 
 

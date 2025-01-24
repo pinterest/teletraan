@@ -124,7 +124,7 @@ def is_first_run(config) -> bool:
     return not os.path.exists(env_status_file)
 
 
-def check_prereqs(config) -> bool:
+def check_prereqs(config, first_run) -> bool:
     """
     Check prerequisites before deploy agent can run
 
@@ -138,7 +138,7 @@ def check_prereqs(config) -> bool:
             if puppet_state_file_path and (not os.path.exists(puppet_state_file_path)):
                 log.error("Waiting for first puppet run.")
                 return False
-            if not check_first_puppet_run_success(config):
+            if not check_first_puppet_run_success(config, first_run):
                 log.error("First puppet run failed.")
                 return False
 
@@ -182,13 +182,13 @@ def load_puppet_summary(config) -> dict:
     return summary
 
 
-def check_first_puppet_run_success(config) -> bool:
+def check_first_puppet_run_success(config, first_run) -> bool:
     """
     Check first puppet run success from exit code and last run summary
 
     :return: returns True if success else False
     """
-    if not is_first_run(config):
+    if not first_run:
         return True
 
     puppet_exit_code = get_puppet_exit_code(config)
