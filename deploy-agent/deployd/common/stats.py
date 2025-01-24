@@ -51,6 +51,8 @@ else:
 log = logging.getLogger(__name__)
 default_tags = {
     "deploy_agent_version": __version__,
+    # todo check if null values can be sent
+    "osorianolog": None,
 }
 
 
