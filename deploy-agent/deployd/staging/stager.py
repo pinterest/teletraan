@@ -20,7 +20,6 @@ import shutil
 import traceback
 import logging
 from typing import Optional
-import subprocess
 
 from deployd.common import LOG_FORMAT
 from deployd.common.caller import Caller
@@ -47,15 +46,6 @@ class Stager(object):
         self._target = target
         self._env_name = env_name
 
-    def _remove_symlink(self, p):
-        subprocess.run(["sudo", "rm", p], check=True)
-
-    def _create_symlink(self, src, dst):
-        subprocess.run(["sudo", "ln", "-s", src, dst], check=True)
-
-    def _rename_file(self, src, dst):
-        subprocess.run(["sudo", "mv", src, dst], check=True)
-
     def enable_package(self) -> int:
         """Set the enabled build."""
         old_build = self.get_enabled_build()
@@ -64,28 +54,29 @@ class Stager(object):
             log.info("Build already at {}".format(self._build))
             return Status.SUCCEEDED
 
+        old_build = self.get_enabled_build()
         build_dir = os.path.join(self._build_dir, self._build)
         # Make a tmp_symlink
         tmp_symlink = "{}_tmp".format(self._target)
         if os.path.exists(tmp_symlink):
-            self._remove_symlink(tmp_symlink)
+            os.remove(tmp_symlink)
 
         status_code = Status.SUCCEEDED
         try:
             # change the owner of the directory
             uinfo = getpwnam(self._user_role)
             owner = "{}:{}".format(uinfo.pw_uid, uinfo.pw_gid)
-            commands = ["sudo", "chown", "-R", owner, build_dir]
+            commands = ["chown", "-R", owner, build_dir]
             log.info("Running command: {}".format(" ".join(commands)))
             output, error, status = Caller().call_and_log(commands)
             if status != 0:
-                log.error(f"error running command. output: {output} error: {error}")
+                log.error(error)
                 return Status.FAILED
 
             # setup symlink
-            self._create_symlink(build_dir, tmp_symlink)
+            os.symlink(build_dir, tmp_symlink)
             # Move tmp_symlink over existing symlink.
-            self._rename_file(tmp_symlink, self._target)
+            os.rename(tmp_symlink, self._target)
             log.info(
                 "{} points to {} (previously {})".format(
                     self._target, self.get_enabled_build(), old_build
