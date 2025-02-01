@@ -899,7 +899,7 @@ public class PingHandler {
         // The current thinking is to try the first candidate, even it needs to wait
         if (!installCandidates.isEmpty()) {
 
-            boolean isMultiGoalResponse = isMultiGoalResponseForInstallCandidates(hostName, installCandidates);
+            boolean isMultiGoalResponse = isMultiGoalResponseForInstallCandidates(hostName, installCandidates, reports);
             for (GoalAnalyst.InstallCandidate installCandidate : installCandidates) {
                 AgentBean updateBean = installCandidate.updateBean;
                 EnvironBean env = installCandidate.env;
@@ -1220,11 +1220,17 @@ public class PingHandler {
      * The multigoal response is an optimization for new hosts and contains
      * multiple deploy goals and may run in parallel
      */
-    private boolean isMultiGoalResponseForInstallCandidates(String hostName, List<GoalAnalyst.InstallCandidate> installCandidates) {
-        if (installCandidates.size() > 1 && installCandidates.stream().allMatch(
-                    installCandidate -> installCandidate.updateBean.getFirst_deploy())) {
-            LOG.info("Using multi goal optimization for new host deploy: {}", hostName);
-            return true;
+    private boolean isMultiGoalResponseForInstallCandidates(String hostName, List<GoalAnalyst.InstallCandidate> installCandidates, Map<String, PingReportBean> reports) {
+        if (installCandidates.size() > 1) {
+            if (installCandidates.stream().allMatch(installCandidate -> installCandidate.updateBean.getFirst_deploy())) {
+                LOG.info("Using multi goal optimization for new host env deploy: {}", hostName);
+                return true;
+            }
+            if (reports == null || reports.size() == 0) {
+                LOG.info("Using multi goal optimization for empty host env deploy: {}", hostName);
+                return true;
+            }
+            LOG.info("unable to use multi goal optimizaiton for host env deploy: {}", hostName);
         }
         return false;
     }
