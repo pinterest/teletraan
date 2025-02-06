@@ -1,3 +1,5 @@
 # .git-blame-ignore-revs
 # Format all java code (#1684)
 26186160fca06439b7baacba318cc3f42993b9eb
+# Format deploy-agent code (#1776)
+565a18c7a83eb1613bfef51f68cd74b0d45acce5
