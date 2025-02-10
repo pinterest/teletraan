@@ -22,6 +22,7 @@ deploy_client = DeployClient()
 class TagValue(object):
     BAD_BUILD="BAD_BUILD"
     GOOD_BUILD="GOOD_BUILD"
+    CERTIFIED_BUILD="CERTIFIED_BUILD"
 
 def get_latest_by_target_id(request, target_id):
     return deploy_client.get("/tags/targets/%s/latest" % target_id, request.teletraan_user_id.token)
