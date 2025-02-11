@@ -31,7 +31,7 @@ class PingRequest(object):
         ec2Tags=None,
         stageType=None,
         accountId=None,
-        normandieStatus=None, 
+        normandieStatus=None,
         knoxStatus=None
     ):
         self.hostId = hostId
@@ -120,7 +120,7 @@ class PingRequest(object):
                 self.stageType,
                 self.groups,
                 self.accountId,
-                self.normandieStatus, 
+                self.normandieStatus,
                 self.knoxStatus,
                 ",".join(str(v) for v in self.reports),
             )

@@ -240,7 +240,7 @@ class Client(BaseClient):
         log.info(
             "Host information is loaded. "
             "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-            "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {}," 
+            "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {},"
             "normandie_status: {}, knox_status: {}".format(
                 self._hostname,
                 self._ip,
@@ -252,7 +252,7 @@ class Client(BaseClient):
                 self._stage_type,
                 self._hostgroup,
                 self._account_id,
-                self._normandie_status, 
+                self._normandie_status,
                 self._knox_status
             )
         )
