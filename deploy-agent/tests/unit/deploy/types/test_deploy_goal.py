@@ -18,18 +18,18 @@ import unittest
 
 
 class TestDeployGoal(unittest.TestCase):
-    deployId = 'deployId'
-    envId = 'envId'
-    envName = 'envName'
-    stageName = 'stageName'
-    deployStage = 'deployStage'
-    build = 'build'
-    deployAlias = 'deployAlias'
-    config = 'agentConfigs'
-    j_agentConfigs = 'agentConfigs'
-    scriptVariables = 'scriptVariables'
-    firstDeploy = 'firstDeploy'
-    isDocker = 'isDocker'
+    deployId = "deployId"
+    envId = "envId"
+    envName = "envName"
+    stageName = "stageName"
+    deployStage = "deployStage"
+    build = "build"
+    deployAlias = "deployAlias"
+    config = "agentConfigs"
+    j_agentConfigs = "agentConfigs"
+    scriptVariables = "scriptVariables"
+    firstDeploy = "firstDeploy"
+    isDocker = "isDocker"
 
     def test__no_values(self):
         deploy_goal = DeployGoal(jsonValue=None)
@@ -45,16 +45,18 @@ class TestDeployGoal(unittest.TestCase):
         self.assertIsNone(deploy_goal.isDocker)
 
     def test__values(self):
-        data = {self.deployId: self.deployId,
-                self.envId: self.envId,
-                self.envName: self.envName,
-                self.stageName: self.stageName,
-                self.deployStage: self.deployStage,
-                self.deployAlias: self.deployAlias,
-                self.j_agentConfigs: self.config,
-                self.scriptVariables: self.scriptVariables,
-                self.firstDeploy: self.firstDeploy,
-                self.isDocker: self.isDocker}
+        data = {
+            self.deployId: self.deployId,
+            self.envId: self.envId,
+            self.envName: self.envName,
+            self.stageName: self.stageName,
+            self.deployStage: self.deployStage,
+            self.deployAlias: self.deployAlias,
+            self.j_agentConfigs: self.config,
+            self.scriptVariables: self.scriptVariables,
+            self.firstDeploy: self.firstDeploy,
+            self.isDocker: self.isDocker,
+        }
         deploy_goal = DeployGoal(jsonValue=data)
         self.assertEqual(self.deployId, deploy_goal.deployId)
         self.assertEqual(self.envId, deploy_goal.envId)
@@ -68,7 +70,7 @@ class TestDeployGoal(unittest.TestCase):
         self.assertEqual(self.isDocker, deploy_goal.isDocker)
 
     def test__build(self):
-        data = {self.build: {'id': 1}}
+        data = {self.build: {"id": 1}}
         deploy_goal = DeployGoal(jsonValue=data)
         self.assertIsInstance(deploy_goal.build, Build)
 
@@ -82,54 +84,70 @@ class TestDeployGoal(unittest.TestCase):
         self.assertIsInstance(deploy_goal.deployStage, str)
 
     def test____eq__(self):
-        data_1 = {self.deployId: self.deployId,
-                  self.envId: self.envId,
-                  self.envName: self.envName,
-                  self.stageName: self.stageName,
-                  self.deployStage: self.deployStage,
-                  self.deployAlias: self.deployAlias,
-                  self.j_agentConfigs: self.config,
-                  self.scriptVariables: self.scriptVariables,
-                  self.firstDeploy: self.firstDeploy,
-                  self.isDocker: self.isDocker}
+        data_1 = {
+            self.deployId: self.deployId,
+            self.envId: self.envId,
+            self.envName: self.envName,
+            self.stageName: self.stageName,
+            self.deployStage: self.deployStage,
+            self.deployAlias: self.deployAlias,
+            self.j_agentConfigs: self.config,
+            self.scriptVariables: self.scriptVariables,
+            self.firstDeploy: self.firstDeploy,
+            self.isDocker: self.isDocker,
+        }
         deploy_goal_1 = DeployGoal(jsonValue=data_1)
-        data_2 = {self.deployId: self.deployId,
-                  self.envId: self.envId,
-                  self.envName: self.envName,
-                  self.stageName: self.stageName,
-                  self.deployStage: self.deployStage,
-                  self.deployAlias: self.deployAlias,
-                  self.j_agentConfigs: self.config,
-                  self.scriptVariables: self.scriptVariables,
-                  self.firstDeploy: self.firstDeploy,
-                  self.isDocker: self.isDocker}
+        data_2 = {
+            self.deployId: self.deployId,
+            self.envId: self.envId,
+            self.envName: self.envName,
+            self.stageName: self.stageName,
+            self.deployStage: self.deployStage,
+            self.deployAlias: self.deployAlias,
+            self.j_agentConfigs: self.config,
+            self.scriptVariables: self.scriptVariables,
+            self.firstDeploy: self.firstDeploy,
+            self.isDocker: self.isDocker,
+        }
         deploy_goal_2 = DeployGoal(jsonValue=data_2)
         self.assertEqual(deploy_goal_1, deploy_goal_2)
         self.assertTrue(DeployGoal(jsonValue=None) == DeployGoal(jsonValue=None))
         self.assertFalse(DeployGoal(jsonValue=None) is None)
 
     def test____ne__(self):
-        data = {self.deployId: self.deployId,
-                self.envId: self.envId,
-                self.envName: self.envName,
-                self.stageName: self.stageName,
-                self.deployStage: self.deployStage,
-                self.deployAlias: self.deployAlias,
-                self.j_agentConfigs: self.config,
-                self.scriptVariables: self.scriptVariables,
-                self.firstDeploy: self.firstDeploy,
-                self.isDocker: self.isDocker}
+        data = {
+            self.deployId: self.deployId,
+            self.envId: self.envId,
+            self.envName: self.envName,
+            self.stageName: self.stageName,
+            self.deployStage: self.deployStage,
+            self.deployAlias: self.deployAlias,
+            self.j_agentConfigs: self.config,
+            self.scriptVariables: self.scriptVariables,
+            self.firstDeploy: self.firstDeploy,
+            self.isDocker: self.isDocker,
+        }
         deploy_goal = DeployGoal(jsonValue=data)
-        other = 'other'
+        other = "other"
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.deployId: other}))
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.envId: other}))
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.envName: other}))
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.stageName: other}))
-        self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.deployStage: other}))
-        self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.deployAlias: other}))
-        self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.j_agentConfigs: other}))
-        self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.scriptVariables: other}))
-        self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.firstDeploy: other}))
+        self.assertNotEqual(
+            deploy_goal, DeployGoal(jsonValue={self.deployStage: other})
+        )
+        self.assertNotEqual(
+            deploy_goal, DeployGoal(jsonValue={self.deployAlias: other})
+        )
+        self.assertNotEqual(
+            deploy_goal, DeployGoal(jsonValue={self.j_agentConfigs: other})
+        )
+        self.assertNotEqual(
+            deploy_goal, DeployGoal(jsonValue={self.scriptVariables: other})
+        )
+        self.assertNotEqual(
+            deploy_goal, DeployGoal(jsonValue={self.firstDeploy: other})
+        )
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.isDocker: other}))
         self.assertTrue(DeployGoal(jsonValue=None) is not None)
         self.assertFalse(DeployGoal(jsonValue=None) == "")

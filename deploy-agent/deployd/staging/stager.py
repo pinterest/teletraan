@@ -39,15 +39,15 @@ class Stager(object):
         self._build_dir = config.get_builds_directory()
         self._user_role = config.get_user_role()
         agent_dir = config.get_agent_directory()
-        self._transformer = \
-            transformer or Transformer(agent_dir=agent_dir, env_name=env_name)
+        self._transformer = transformer or Transformer(
+            agent_dir=agent_dir, env_name=env_name
+        )
         self._build = build
         self._target = target
         self._env_name = env_name
 
     def enable_package(self) -> int:
-        """Set the enabled build.
-        """
+        """Set the enabled build."""
         old_build = self.get_enabled_build()
         if self._build == old_build:
             self.transform_script()
@@ -65,9 +65,9 @@ class Stager(object):
         try:
             # change the owner of the directory
             uinfo = getpwnam(self._user_role)
-            owner = '{}:{}'.format(uinfo.pw_uid, uinfo.pw_gid)
-            commands = ['chown', '-R', owner, build_dir]
-            log.info('Running command: {}'.format(' '.join(commands)))
+            owner = "{}:{}".format(uinfo.pw_uid, uinfo.pw_gid)
+            commands = ["chown", "-R", owner, build_dir]
+            log.info("Running command: {}".format(" ".join(commands)))
             output, error, status = Caller().call_and_log(commands)
             if status != 0:
                 log.error(error)
@@ -77,15 +77,18 @@ class Stager(object):
             os.symlink(build_dir, tmp_symlink)
             # Move tmp_symlink over existing symlink.
             os.rename(tmp_symlink, self._target)
-            log.info("{} points to {} (previously {})".format(
-                self._target,
-                self.get_enabled_build(),
-                old_build))
+            log.info(
+                "{} points to {} (previously {})".format(
+                    self._target, self.get_enabled_build(), old_build
+                )
+            )
             self.transform_script()
         except Exception:
             log.error(traceback.format_exc())
-            create_sc_increment(name='deploy.failed.stager.symlink',
-                                tags={'env': self._env_name, 'build': self._build})
+            create_sc_increment(
+                name="deploy.failed.stager.symlink",
+                tags={"env": self._env_name, "build": self._build},
+            )
             status_code = Status.FAILED
         finally:
             return status_code
@@ -93,11 +96,13 @@ class Stager(object):
     def get_enabled_build(self) -> Optional[str]:
         """Figure out what build is enabled by looking at symlinks."""
         if not os.path.exists(self._target):
-            if (os.path.islink(self._target) and not
-                    os.path.lexists(self._target)):
+            if os.path.islink(self._target) and not os.path.lexists(self._target):
                 symlink_target = os.readlink(self._target)
-                log.info("{} points to {} which does not exist".format(
-                    self._target, symlink_target))
+                log.info(
+                    "{} points to {} which does not exist".format(
+                        self._target, symlink_target
+                    )
+                )
             else:
                 log.info("{} does not exist".format(self._target))
             return None
@@ -120,36 +125,61 @@ class Stager(object):
         if not os.path.exists(template_dir):
             shutil.copytree(script_dir, template_dir)
 
-        self._transformer.transform_scripts(script_dir=template_dir,
-                                            template_dirname=self._template_dirname,
-                                            script_dirname=self._script_dirname)
+        self._transformer.transform_scripts(
+            script_dir=template_dir,
+            template_dirname=self._template_dirname,
+            script_dirname=self._script_dirname,
+        )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-f', '--config-file', dest='config_file', default=None,
-                        help="the deploy agent conf file filename path. If none, "
-                             "/etc/deployagent.conf will be used")
-    parser.add_argument('-v', '--build-id', dest='build', required=True,
-                        help="the current deploying build version for the current environment.")
-    parser.add_argument('-t', '--target', dest='target', required=True,
-                        help="The deploy target directory name.")
-    parser.add_argument('-e', '--env-name', dest='env_name', required=True,
-                        help="the environment name currently in deploy.")
+    parser.add_argument(
+        "-f",
+        "--config-file",
+        dest="config_file",
+        default=None,
+        help="the deploy agent conf file filename path. If none, "
+        "/etc/deployagent.conf will be used",
+    )
+    parser.add_argument(
+        "-v",
+        "--build-id",
+        dest="build",
+        required=True,
+        help="the current deploying build version for the current environment.",
+    )
+    parser.add_argument(
+        "-t",
+        "--target",
+        dest="target",
+        required=True,
+        help="The deploy target directory name.",
+    )
+    parser.add_argument(
+        "-e",
+        "--env-name",
+        dest="env_name",
+        required=True,
+        help="the environment name currently in deploy.",
+    )
     args = parser.parse_args()
     config = Config(args.config_file)
     logging.basicConfig(format=LOG_FORMAT, level=config.get_log_level())
 
     log.info("Start to stage the package.")
-    result = Stager(config=config, build=args.build,
-                    target=args.target, env_name=args.env_name).enable_package()
+    result = Stager(
+        config=config, build=args.build, target=args.target, env_name=args.env_name
+    ).enable_package()
     if result == Status.SUCCEEDED:
         return 0
     else:
-        create_sc_increment(name='deploy.failed.stager.enable_package',
-                            tags={'env': args.env_name, 'build': args.build})
+        create_sc_increment(
+            name="deploy.failed.stager.enable_package",
+            tags={"env": args.env_name, "build": args.build},
+        )
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

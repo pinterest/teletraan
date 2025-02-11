@@ -47,7 +47,7 @@
         <td>
            {% if build.publishInfo != "UNKNOWN" %}
            <a class="deployToolTip" data-toggle="tooltip"
-           title="Click to see the details of jenkins build job"
+           title="Click to see the details of the build job"
            href='{{ build.publishInfo }}'>
            <i class="fa fa-wrench"></i>
             Publisher Information
@@ -81,10 +81,9 @@
         <td>Tag Created Date</td>
         <td>{{ tag.createdDate|convertTimestamp }}</td>
     </tr>
-    {%if tag.value == "BAD_BUILD" %} 
+    {%if tag.value == "BAD_BUILD" %}
         <div id="buildErrorMsg" style="display: none;">The build is marked as {{tag.value}} by {{tag.operator}} on {{ tag.createdDate|convertTimestamp }}</div>
     {% endif %}
 {% endif %}
 {% endif %}
 </table>
-

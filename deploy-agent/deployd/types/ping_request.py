@@ -18,10 +18,22 @@ from deployd.types.agent_status import AgentStatus
 
 
 class PingRequest(object):
-
-    def __init__(self, hostId=None, hostName=None, hostIp=None, groups=None, reports=None,
-                 agentVersion=None, autoscalingGroup=None, availabilityZone=None, ec2Tags=None, stageType=None,
-                 accountId=None, normandieStatus=None, knoxStatus=None):
+    def __init__(
+        self,
+        hostId=None,
+        hostName=None,
+        hostIp=None,
+        groups=None,
+        reports=None,
+        agentVersion=None,
+        autoscalingGroup=None,
+        availabilityZone=None,
+        ec2Tags=None,
+        stageType=None,
+        accountId=None,
+        normandieStatus=None, 
+        knoxStatus=None
+    ):
         self.hostId = hostId
         self.hostName = hostName
         self.hostIp = hostIp
@@ -68,7 +80,9 @@ class PingRequest(object):
 
             # TODO: Only used for migration, should remove later
             if isinstance(report.deployStage, int):
-                ping_report["deployStage"] = DeployStage._VALUES_TO_NAMES[report.deployStage]
+                ping_report["deployStage"] = DeployStage._VALUES_TO_NAMES[
+                    report.deployStage
+                ]
             else:
                 ping_report["deployStage"] = report.deployStage
 
@@ -85,14 +99,29 @@ class PingRequest(object):
             ping_report["agentState"] = report.state
 
             if report.extraInfo:
-                ping_report["extraInfo"] = \
-                    json.dumps(report.extraInfo, ensure_ascii=False).encode('utf8')
+                ping_report["extraInfo"] = json.dumps(
+                    report.extraInfo, ensure_ascii=False
+                ).encode("utf8")
 
             ping_requests["reports"].append(ping_report)
         return ping_requests
 
     def __str__(self):
-        return "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, " \
-            "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, normandieStatus={}, knoxStatus={}, reports={})".format(self.hostId, self.hostName,
-            self.hostIp, self.agentVersion, self.autoscalingGroup, self.availabilityZone, self.ec2Tags, self.stageType,
-            self.groups, self.accountId, self.normandieStatus, self.knoxStatus, ",".join(str(v) for v in self.reports))
+        return (
+            "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, "
+            "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, normandieStatus={}, knoxStatus={}, reports={})".format(
+                self.hostId,
+                self.hostName,
+                self.hostIp,
+                self.agentVersion,
+                self.autoscalingGroup,
+                self.availabilityZone,
+                self.ec2Tags,
+                self.stageType,
+                self.groups,
+                self.accountId,
+                self.normandieStatus, 
+                self.knoxStatus,
+                ",".join(str(v) for v in self.reports),
+            )
+        )

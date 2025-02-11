@@ -23,6 +23,7 @@ from pathlib import Path
 import re
 import subprocess
 
+from deployd import __version__
 from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient
 from deployd.common.decorators import retry
@@ -43,8 +44,16 @@ SUBSTATE_PATTERN = r"SubState=(\S+)"
 
 
 class Client(BaseClient):
-    def __init__(self, config=None, hostname=None, ip=None, hostgroup=None,
-                host_id=None, use_facter=None, use_host_info=False) -> None:
+    def __init__(
+        self,
+        config=None,
+        hostname=None,
+        ip=None,
+        hostgroup=None,
+        host_id=None,
+        use_facter=None,
+        use_host_info=False,
+    ) -> None:
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
@@ -52,7 +61,6 @@ class Client(BaseClient):
         self._config = config
         self._use_facter = use_facter
         self._use_host_info = use_host_info
-        self._agent_version = self._config.get_deploy_agent_version()
         self._autoscaling_group = None
         self._availability_zone = None
         self._stage_type = None
@@ -103,11 +111,13 @@ class Client(BaseClient):
         else:
             # read host_info file
             host_info_fn = self._config.get_host_info_fn()
-            lock_fn = '{}.lock'.format(host_info_fn)
+            lock_fn = "{}.lock".format(host_info_fn)
             lock = lockfile.FileLock(lock_fn)
             if os.path.exists(host_info_fn):
                 with lock, open(host_info_fn, "r+") as f:
-                    host_info = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
+                    host_info = dict(
+                        (n.strip("\"\n' ") for n in line.split("=", 1)) for line in f
+                    )
 
                 if not self._hostname and "hostname" in host_info:
                     self._hostname = host_info.get("hostname")
@@ -133,7 +143,11 @@ class Client(BaseClient):
                 if not self._stage_type:
                     self._stage_type = host_info.get("stage-type", None)
             else:
-                log.warn("Cannot find host information file {}. See doc for more details".format(host_info_fn))
+                log.warn(
+                    "Cannot find host information file {}. See doc for more details".format(
+                        host_info_fn
+                    )
+                )
 
         # patch missing part
         if not self._hostname:
@@ -141,7 +155,7 @@ class Client(BaseClient):
 
         if not self._id:
             if self._use_facter:
-                #Must fail here as it cannot identify the host if id is missing
+                # Must fail here as it cannot identify the host if id is missing
                 return False
             else:
                 self._id = self._hostname
@@ -150,7 +164,7 @@ class Client(BaseClient):
             try:
                 self._ip = socket.gethostbyname(self._hostname)
             except Exception:
-                log.warn('Host ip information does not exist.')
+                log.warn("Host ip information does not exist.")
                 pass
 
         if IS_PINTEREST and self._use_host_info is False:
@@ -193,9 +207,11 @@ class Client(BaseClient):
             if not self._autoscaling_group:
                 ec2_tags = facter_data.get(ec2_tags_key)
                 if ec2_tags:
-                    ec2_tags['availability_zone'] = self._availability_zone
+                    ec2_tags["availability_zone"] = self._availability_zone
                 self._ec2_tags = json.dumps(ec2_tags) if ec2_tags else None
-                self._autoscaling_group = ec2_tags.get(asg_tag_key) if ec2_tags else None
+                self._autoscaling_group = (
+                    ec2_tags.get(asg_tag_key) if ec2_tags else None
+                )
 
             if not self._stage_type and not self._stage_type_fetched:
                 self._stage_type = facter_data.get(stage_type_key, None)
@@ -221,15 +237,32 @@ class Client(BaseClient):
             log.exception(f"Failed to get knox status: {e}")
             self._knox_status = 'ERROR'
 
-        log.info("Host information is loaded. "
-                 "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-                 "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {}, normandie_status: {}, knox_status: {}".format(self._hostname, self._ip, self._id,
-                 self._agent_version, self._autoscaling_group, self._availability_zone, self._ec2_tags, self._stage_type, self._hostgroup, self._account_id, self._normandie_status, self._knox_status))
+        log.info(
+            "Host information is loaded. "
+            "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
+            "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {}," 
+            "normandie_status: {}, knox_status: {}".format(
+                self._hostname,
+                self._ip,
+                self._id,
+                __version__,
+                self._autoscaling_group,
+                self._availability_zone,
+                self._ec2_tags,
+                self._stage_type,
+                self._hostgroup,
+                self._account_id,
+                self._normandie_status, 
+                self._knox_status
+            )
+        )
 
         if not self._availability_zone:
             log.error("Fail to read host info: availablity zone")
-            create_sc_increment(name='deploy.failed.agent.hostinfocollection',
-                                tags={'host': self._hostname, 'info': 'availability_zone'})
+            create_sc_increment(
+                name="deploy.failed.agent.hostinfocollection",
+                tags={"host": self._hostname, "info": "availability_zone"},
+            )
             return False
 
         return True
@@ -305,38 +338,49 @@ class Client(BaseClient):
                 reports = [status.report for status in env_reports.values()]
                 for report in reports:
                     if isinstance(report.errorMessage, bytes):
-                        report.errorMessage = report.errorMessage.decode('utf-8')
+                        report.errorMessage = report.errorMessage.decode("utf-8")
 
                     # We ignore non-ascii charater for now, we should further solve this problem on
                     # the server side:
                     # https://app.asana.com/0/11815463290546/40714916594784
                     if report.errorMessage:
-                        report.errorMessage = report.errorMessage.encode('ascii', 'ignore').decode()
-                ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
-                                        groups=self._hostgroup, reports=reports,
-                                        agentVersion=self._agent_version,
-                                        autoscalingGroup=self._autoscaling_group,
-                                        availabilityZone=self._availability_zone,
-                                        ec2Tags=self._ec2_tags,
-                                        stageType=self._stage_type,
-                                        accountId=self._account_id,
-                                        normandieStatus=self._normandie_status,
-                                        knoxStatus=self._knox_status)
+                        report.errorMessage = report.errorMessage.encode(
+                            "ascii", "ignore"
+                        ).decode()
+                ping_request = PingRequest(
+                    hostId=self._id,
+                    hostName=self._hostname,
+                    hostIp=self._ip,
+                    groups=self._hostgroup,
+                    reports=reports,
+                    agentVersion=__version__,
+                    autoscalingGroup=self._autoscaling_group,
+                    availabilityZone=self._availability_zone,
+                    ec2Tags=self._ec2_tags,
+                    stageType=self._stage_type,
+                    accountId=self._account_id,
+                    normandieStatus=self._normandie_status,
+                    knoxStatus=self._knox_status
+                )
 
-                with create_stats_timer('deploy.agent.request.latency',
-                                        tags={'host': self._hostname}):
+                with create_stats_timer(
+                    "deploy.agent.request.latency", tags={"host": self._hostname}
+                ):
                     ping_response = self.send_reports_internal(ping_request)
 
-                log.debug('%s -> %s' % (ping_request, ping_response))
+                log.debug("%s -> %s" % (ping_request, ping_response))
                 return ping_response
             else:
                 log.error("Fail to read host info")
-                create_sc_increment(name='deploy.failed.agent.hostinfocollection',
-                                    tags={'host': self._hostname})
+                create_sc_increment(
+                    name="deploy.failed.agent.hostinfocollection",
+                    tags={"host": self._hostname},
+                )
         except Exception:
             log.error(traceback.format_exc())
-            create_sc_increment(name='deploy.failed.agent.requests',
-                                tags={'host': self._hostname})
+            create_sc_increment(
+                name="deploy.failed.agent.requests", tags={"host": self._hostname}
+            )
             return None
 
     @retry(ExceptionToCheck=Exception, delay=1, tries=3)

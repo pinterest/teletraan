@@ -30,9 +30,8 @@ log = logging.getLogger(__name__)
 
 
 class Downloader(object):
-
     def __init__(self, config, build, url, env_name) -> None:
-        self._matcher = re.compile(r'^.*?[.](?P<ext>tar\.gz|tar\.bz2|\w+)$')
+        self._matcher = re.compile(r"^.*?[.](?P<ext>tar\.gz|tar\.bz2|\w+)$")
         self._base_dir = config.get_builds_directory()
         self._build_name = env_name
         self._build = build
@@ -45,20 +44,24 @@ class Downloader(object):
         return self._get_extension(url[:inverseExtLen])
 
     def _get_extension(self, url) -> str:
-        return self._matcher.match(url).group('ext')
+        return self._matcher.match(url).group("ext")
 
     def download(self) -> int:
         extension = self._get_extension(self._url.lower())
-        local_fn = u'{}-{}.{}'.format(self._build_name, self._build, extension)
+        local_fn = "{}-{}.{}".format(self._build_name, self._build, extension)
         local_full_fn = os.path.join(self._base_dir, local_fn)
-        extracted_file = os.path.join(self._base_dir, '{}.extracted'.format(self._build))
+        extracted_file = os.path.join(
+            self._base_dir, "{}.extracted".format(self._build)
+        )
         if os.path.exists(extracted_file):
-            log.info("{} exists. tarball have already been extracted.".format(extracted_file))
+            log.info(
+                "{} exists. tarball have already been extracted.".format(extracted_file)
+            )
             return Status.SUCCEEDED
 
         working_dir = os.path.join(self._base_dir, self._build)
         if not os.path.exists(working_dir):
-            log.info('Create directory {}.'.format(working_dir))
+            log.info("Create directory {}.".format(working_dir))
             os.mkdir(working_dir)
 
         downloader = DownloadHelperFactory.gen_downloader(self._url, self._config)
@@ -69,7 +72,7 @@ class Downloader(object):
         else:
             return Status.FAILED
 
-        if extension == 'gpg':
+        if extension == "gpg":
             try:
                 log.info("gpg decrypting {}.".format(local_full_fn))
 
@@ -80,7 +83,7 @@ class Downloader(object):
                 innerExtension = self._get_inner_extension(self._url.lower())
 
                 # replace the existing outer extension (gpg) with the inner extension
-                dest_full_fn = local_full_fn[:(len(extension) * -1)] + innerExtension
+                dest_full_fn = local_full_fn[: (len(extension) * -1)] + innerExtension
 
                 # decrypt gpg archive
                 status = gpgHelper.decryptFile(local_full_fn, dest_full_fn)
@@ -105,7 +108,7 @@ class Downloader(object):
         curr_working_dir = os.getcwd()
         os.chdir(working_dir)
         try:
-            if extension == 'zip':
+            if extension == "zip":
                 log.info("unzip files to {}".format(working_dir))
                 with zipfile.ZipFile(local_full_fn) as zfile:
                     zfile.extractall(working_dir)
@@ -116,9 +119,11 @@ class Downloader(object):
 
             # change the working directory back
             os.chdir(curr_working_dir)
-            with open(extracted_file, 'w'):
+            with open(extracted_file, "w"):
                 pass
-            log.info("Successfully extracted {} to {}".format(local_full_fn, working_dir))
+            log.info(
+                "Successfully extracted {} to {}".format(local_full_fn, working_dir)
+            )
         except tarfile.TarError:
             status = Status.FAILED
             log.exception("Failed to extract tar files")
@@ -133,18 +138,37 @@ class Downloader(object):
 
 
 def main():
-
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-f', '--config-file', dest='config_file', required=False,
-                        help='the deploy agent config file path.')
-    parser.add_argument('-v', '--build-version', dest='build', required=True,
-                        help="the current deploying build version for the current environment.")
-    parser.add_argument('-u', '--url', dest='url', required=True,
-                        help="the url of the source code where the downloader would download from. "
-                             "The url can start"
-                             "with s3:// or https://")
-    parser.add_argument('-e', '--env-name', dest='env_name', required=True,
-                        help="the environment name currently in deploy.")
+    parser.add_argument(
+        "-f",
+        "--config-file",
+        dest="config_file",
+        required=False,
+        help="the deploy agent config file path.",
+    )
+    parser.add_argument(
+        "-v",
+        "--build-version",
+        dest="build",
+        required=True,
+        help="the current deploying build version for the current environment.",
+    )
+    parser.add_argument(
+        "-u",
+        "--url",
+        dest="url",
+        required=True,
+        help="the url of the source code where the downloader would download from. "
+        "The url can start"
+        "with s3:// or https://",
+    )
+    parser.add_argument(
+        "-e",
+        "--env-name",
+        dest="env_name",
+        required=True,
+        help="the environment name currently in deploy.",
+    )
     args = parser.parse_args()
     config = Config(args.config_file)
     logging.basicConfig(format=LOG_FORMAT, level=config.get_log_level())
@@ -158,5 +182,6 @@ def main():
         log.info("Download succeeded.")
         sys.exit(0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

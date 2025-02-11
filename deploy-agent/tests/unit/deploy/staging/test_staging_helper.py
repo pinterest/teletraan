@@ -27,8 +27,8 @@ class TestStagingHelper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.base_dir = tempfile.mkdtemp()
-        builds_dir = os.path.join(cls.base_dir, 'builds')
-        target = os.path.join(cls.base_dir, 'test')
+        builds_dir = os.path.join(cls.base_dir, "builds")
+        target = os.path.join(cls.base_dir, "test")
         cls.target = target
         cls.builds_dir = builds_dir
         cls.user_role = getpass.getuser()
@@ -37,12 +37,12 @@ class TestStagingHelper(unittest.TestCase):
             os.mkdir(builds_dir)
 
         def mock_get_var(var_name):
-            if var_name == 'builds_dir':
+            if var_name == "builds_dir":
                 return builds_dir
-            elif var_name == 'env_directory':
+            elif var_name == "env_directory":
                 return cls.base_dir
-            elif var_name == 'package_format':
-                return 'tar.gz'
+            elif var_name == "package_format":
+                return "tar.gz"
             elif var_name == "deploy_agent_dir":
                 return cls.base_dir
             elif var_name == "user_role":
@@ -61,7 +61,7 @@ class TestStagingHelper(unittest.TestCase):
         shutil.rmtree(cls.base_dir)
 
     def test_enable_new(self):
-        tarball_dir = os.path.join(self.builds_dir, '24714bc')
+        tarball_dir = os.path.join(self.builds_dir, "24714bc")
         self.config.get_user_role = mock.MagicMock(return_value=self.user_role)
         if not os.path.exists(tarball_dir):
             os.mkdir(tarball_dir)
@@ -69,38 +69,58 @@ class TestStagingHelper(unittest.TestCase):
         if not os.path.exists(script_dir):
             os.mkdir(script_dir)
 
-        self.assertTrue(Stager(config=self.config, transformer=self.transformer,
-                               build="24714bc", target=self.target,
-                               env_name="test").enable_package() == Status.SUCCEEDED)
+        self.assertTrue(
+            Stager(
+                config=self.config,
+                transformer=self.transformer,
+                build="24714bc",
+                target=self.target,
+                env_name="test",
+            ).enable_package()
+            == Status.SUCCEEDED
+        )
         self.assertTrue(os.path.exists(self.target))
         self.assertTrue(os.path.exists(os.path.join(self.target, "teletraan_template")))
-        self.assertEqual(os.readlink(self.target), os.path.join(self.builds_dir, '24714bc'))
+        self.assertEqual(
+            os.readlink(self.target), os.path.join(self.builds_dir, "24714bc")
+        )
         os.remove(self.target)
 
     def test_enable_build_with_old(self):
         self.config.get_user_role = mock.MagicMock(return_value=self.user_role)
-        old_tarball_dir = os.path.join(self.builds_dir, '24714bc')
+        old_tarball_dir = os.path.join(self.builds_dir, "24714bc")
         if not os.path.exists(old_tarball_dir):
             os.mkdir(old_tarball_dir)
 
-        os.symlink(os.path.join(self.builds_dir, '24714bc'), self.target)
-        tarball_dir = os.path.join(self.builds_dir, '1234567')
+        os.symlink(os.path.join(self.builds_dir, "24714bc"), self.target)
+        tarball_dir = os.path.join(self.builds_dir, "1234567")
         if not os.path.exists(tarball_dir):
             os.mkdir(tarball_dir)
 
-        Stager(config=self.config, transformer=self.transformer,
-               build="1234567", target=self.target,
-               env_name="test").enable_package()
+        Stager(
+            config=self.config,
+            transformer=self.transformer,
+            build="1234567",
+            target=self.target,
+            env_name="test",
+        ).enable_package()
 
-        self.assertEqual(os.readlink(self.target), os.path.join(self.builds_dir, '1234567'))
+        self.assertEqual(
+            os.readlink(self.target), os.path.join(self.builds_dir, "1234567")
+        )
         os.remove(self.target)
 
     def test_get_enabled_build(self):
-        missing_target = os.path.join(self.builds_dir, 'foo')
+        missing_target = os.path.join(self.builds_dir, "foo")
         os.symlink(missing_target, self.target)
-        stager = Stager(config=self.config, transformer=self.transformer,
-                        build="24714bc", target=self.target, env_name="test")
+        stager = Stager(
+            config=self.config,
+            transformer=self.transformer,
+            build="24714bc",
+            target=self.target,
+            env_name="test",
+        )
         self.assertEqual(None, stager.get_enabled_build())
         # now let's make our missing_target a real target!
         os.mkdir(missing_target)
-        self.assertEqual('foo', stager.get_enabled_build())
+        self.assertEqual("foo", stager.get_enabled_build())

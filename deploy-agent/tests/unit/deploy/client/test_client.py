@@ -11,10 +11,6 @@ class TestClient(TestCase):
     def test_extends_base_client(self):
         self.assertTrue(issubclass(Client, BaseClient))
 
-    def test_no_config_provided(self):
-        with self.assertRaises(AttributeError):
-            Client()
-
     def test_read_host_info(self):
         client = Client(config=Config())
         client._ec2_tags = {}
@@ -66,5 +62,6 @@ class TestClient(TestCase):
         with self.assertRaises(AttributeError):
             client._read_host_info()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

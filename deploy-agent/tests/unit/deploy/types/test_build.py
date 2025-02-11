@@ -18,41 +18,41 @@ import unittest
 
 class TestBuild(unittest.TestCase):
     # buildId
-    j_buildId = 'id'
-    buildId = 'buildId'
+    j_buildId = "id"
+    buildId = "buildId"
     # buildName
-    j_buildName = 'name'
-    buildName = 'buildName'
+    j_buildName = "name"
+    buildName = "buildName"
     # buildVersion
-    j_buildVersion = 'commitShort'
-    buildVersion = 'buildVersion'
+    j_buildVersion = "commitShort"
+    buildVersion = "buildVersion"
     # artifactUrl
-    j_artifactUrl = 'artifactUrl'
-    artifactUrl = 'artifactUrl'
+    j_artifactUrl = "artifactUrl"
+    artifactUrl = "artifactUrl"
     # scm
-    j_scm = 'type'
-    scm = 'scm'
+    j_scm = "type"
+    scm = "scm"
     # scmRepo
-    j_scmRepo = 'repo'
-    scmRepo = 'scmRepo'
+    j_scmRepo = "repo"
+    scmRepo = "scmRepo"
     # scmBranch
-    j_scmBranch = 'branch'
-    scmBranch = 'scmBranch'
+    j_scmBranch = "branch"
+    scmBranch = "scmBranch"
     # scmCommit
-    j_scmCommit = 'commit'
-    scmCommit = 'scmCommit'
+    j_scmCommit = "commit"
+    scmCommit = "scmCommit"
     # scmInfo
-    j_scmInfo = 'commitInfo'
-    scmInfo = 'scmInfo'
+    j_scmInfo = "commitInfo"
+    scmInfo = "scmInfo"
     # commitDate
-    j_commitDate = 'commitDate'
-    commitDate = 'commitDate'
+    j_commitDate = "commitDate"
+    commitDate = "commitDate"
     # publishInfo
-    j_publishInfo = 'publishInfo'
-    publishInfo = 'publishInfo'
+    j_publishInfo = "publishInfo"
+    publishInfo = "publishInfo"
     # publishDate
-    j_publishDate = 'publishDate'
-    publishDate = 'publishDate'
+    j_publishDate = "publishDate"
+    publishDate = "publishDate"
 
     def test__no_values(self):
         build = Build(jsonValue=None)
@@ -69,18 +69,20 @@ class TestBuild(unittest.TestCase):
         self.assertIsNone(build.publishDate)
 
     def test__values(self):
-        data = {self.j_buildId: self.buildId,
-                self.j_buildName: self.buildName,
-                self.j_buildVersion: self.buildVersion,
-                self.j_artifactUrl: self.artifactUrl,
-                self.j_scm: self.scm,
-                self.j_scmRepo: self.scmRepo,
-                self.j_scmBranch: self.scmBranch,
-                self.j_scmCommit: self.scmCommit,
-                self.j_scmInfo: self.scmInfo,
-                self.j_commitDate: self.commitDate,
-                self.j_publishInfo: self.publishInfo,
-                self.j_publishDate: self.publishDate}
+        data = {
+            self.j_buildId: self.buildId,
+            self.j_buildName: self.buildName,
+            self.j_buildVersion: self.buildVersion,
+            self.j_artifactUrl: self.artifactUrl,
+            self.j_scm: self.scm,
+            self.j_scmRepo: self.scmRepo,
+            self.j_scmBranch: self.scmBranch,
+            self.j_scmCommit: self.scmCommit,
+            self.j_scmInfo: self.scmInfo,
+            self.j_commitDate: self.commitDate,
+            self.j_publishInfo: self.publishInfo,
+            self.j_publishDate: self.publishDate,
+        }
         build = Build(jsonValue=data)
         self.assertEqual(self.buildId, build.buildId)
         self.assertEqual(self.buildName, build.buildName)
@@ -93,49 +95,55 @@ class TestBuild(unittest.TestCase):
         self.assertEqual(self.commitDate, build.commitDate)
 
     def test____eq__(self):
-        data_1 = {self.j_buildId: self.buildId,
-                  self.j_buildName: self.buildName,
-                  self.j_buildVersion: self.buildVersion,
-                  self.j_artifactUrl: self.artifactUrl,
-                  self.j_scm: self.scm,
-                  self.j_scmBranch: self.scmBranch,
-                  self.j_scmCommit: self.scmCommit,
-                  self.j_scmInfo: self.scmInfo,
-                  self.j_commitDate: self.commitDate,
-                  self.j_publishInfo: self.publishInfo,
-                  self.j_publishDate: self.publishDate}
+        data_1 = {
+            self.j_buildId: self.buildId,
+            self.j_buildName: self.buildName,
+            self.j_buildVersion: self.buildVersion,
+            self.j_artifactUrl: self.artifactUrl,
+            self.j_scm: self.scm,
+            self.j_scmBranch: self.scmBranch,
+            self.j_scmCommit: self.scmCommit,
+            self.j_scmInfo: self.scmInfo,
+            self.j_commitDate: self.commitDate,
+            self.j_publishInfo: self.publishInfo,
+            self.j_publishDate: self.publishDate,
+        }
 
         build_1 = Build(jsonValue=data_1)
-        data_2 = {self.j_buildId: self.buildId,
-                  self.j_buildName: self.buildName,
-                  self.j_buildVersion: self.buildVersion,
-                  self.j_artifactUrl: self.artifactUrl,
-                  self.j_scm: self.scm,
-                  self.j_scmBranch: self.scmBranch,
-                  self.j_scmCommit: self.scmCommit,
-                  self.j_scmInfo: self.scmInfo,
-                  self.j_commitDate: self.commitDate,
-                  self.j_publishInfo: self.publishInfo,
-                  self.j_publishDate: self.publishDate}
+        data_2 = {
+            self.j_buildId: self.buildId,
+            self.j_buildName: self.buildName,
+            self.j_buildVersion: self.buildVersion,
+            self.j_artifactUrl: self.artifactUrl,
+            self.j_scm: self.scm,
+            self.j_scmBranch: self.scmBranch,
+            self.j_scmCommit: self.scmCommit,
+            self.j_scmInfo: self.scmInfo,
+            self.j_commitDate: self.commitDate,
+            self.j_publishInfo: self.publishInfo,
+            self.j_publishDate: self.publishDate,
+        }
         build_2 = Build(jsonValue=data_2)
         self.assertEqual(build_1, build_2)
         self.assertTrue(Build(jsonValue=None) == Build(jsonValue=None))
         self.assertFalse(Build(jsonValue=None) is None)
 
     def test____ne__(self):
-        data = {self.j_buildId: self.buildId,
-                self.j_buildName: self.buildName,
-                self.j_buildVersion: self.buildVersion,
-                self.j_artifactUrl: self.artifactUrl,
-                self.j_scm: self.scm,
-                self.j_scmBranch: self.scmBranch,
-                self.j_scmCommit: self.scmCommit,
-                self.j_scmInfo: self.scmInfo,
-                self.j_commitDate: self.commitDate,
-                self.j_publishInfo: self.publishInfo,
-                self.j_publishDate: self.publishDate}
+        data = {
+            self.j_buildId: self.buildId,
+            self.j_buildName: self.buildName,
+            self.j_buildVersion: self.buildVersion,
+            self.j_artifactUrl: self.artifactUrl,
+            self.j_scm: self.scm,
+            self.j_scmBranch: self.scmBranch,
+            self.j_scmCommit: self.scmCommit,
+            self.j_scmInfo: self.scmInfo,
+            self.j_commitDate: self.commitDate,
+            self.j_publishInfo: self.publishInfo,
+            self.j_publishDate: self.publishDate,
+        }
         build = Build(jsonValue=data)
-        other = 'other'
+        other = "other"
         self.assertNotEqual(build, Build(jsonValue={self.j_buildId: other}))
         self.assertNotEqual(build, Build(jsonValue={self.j_buildName: other}))
         self.assertNotEqual(build, Build(jsonValue={self.j_buildVersion: other}))

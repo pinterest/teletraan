@@ -2,11 +2,12 @@
 {% load static %}
 <table id="buildPickTableId" class="table table-condensed table-striped table-hover">
     <tr>
-        <th class="col-lg-3">Publish Date</th>
-        <th class="col-lg-3">Commit</th>
+        <th class="col-lg-2">Publish Date</th>
+        <th class="col-lg-2">Commit</th>
         <th class="col-lg-2">Branch</th>
         <th class="col-lg-2">Repo</th>
         <th class="col-lg-2">Build Name</th>
+        <th class="col-lg-1">Build Job URL</th>
         <th class="col-lg-1">Details</th>
     </tr>
     {% for buildInfo in builds %}
@@ -59,6 +60,7 @@
         <td>{{ buildInfo.build.branch }}</td>
         <td>{{ buildInfo.build.repo }}</td>
         <td>{{ buildInfo.build.name }}</td>
+        <td><a href="{{ buildInfo.build.publishInfo }}">view</a></td>
         <td><a href="/builds/{{ buildInfo.build.id }}">view</a></td>
     </tr>
     {% if builds|length > 1 %}
