@@ -19,6 +19,9 @@ import os
 import socket
 import traceback
 import json
+from pathlib import Path
+import re
+import subprocess
 
 from deployd import __version__
 from deployd.client.base_client import BaseClient
@@ -32,6 +35,12 @@ from deployd.types.ping_response import PingResponse
 
 
 log = logging.getLogger(__name__)
+
+NORMANDIE_CERT_FILEPATH = "/var/lib/normandie/fuse/cert/generic"
+SAN_URI_PATTERN = r"URI:(\S+),?"
+STATUSERRNO_PATTERN = r"StatusErrno=(\d+)"
+ACTIVESTATE_PATTERN = r"ActiveState=(\S+)"
+SUBSTATE_PATTERN = r"SubState=(\S+)"
 
 
 class Client(BaseClient):
@@ -59,6 +68,8 @@ class Client(BaseClient):
         # keep trying to fetch it from facter every time
         self._stage_type_fetched = False
         self._account_id = None
+        self._normandie_status = None
+        self._knox_status = None
 
     def _read_host_info(self) -> bool:
         if self._use_facter:
@@ -210,12 +221,27 @@ class Client(BaseClient):
                 ec2_metadata = facter_data.get(account_id_key, None)
                 if ec2_metadata:
                     info = json.loads(ec2_metadata)
-                    self._account_id = info.get("AccountId", None)
+                    self._account_id = info.get('AccountId', None)
+
+        # Retrieve Normandie Status, swallowing exceptions if any: Ping should always be sent.
+        try:
+            self._normandie_status = self.get_normandie_status()
+        except Exception as e:
+            log.exception(f"Failed to get normandie status: {e}")
+            self._normandie_status = 'ERROR'
+
+        # Retrieve Knox Status, swallowing exceptions if any: Ping should always be sent.
+        try:
+            self._knox_status = self.get_knox_status()
+        except Exception as e:
+            log.exception(f"Failed to get knox status: {e}")
+            self._knox_status = 'ERROR'
 
         log.info(
             "Host information is loaded. "
             "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-            "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {}".format(
+            "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {},"
+            "normandie_status: {}, knox_status: {}".format(
                 self._hostname,
                 self._ip,
                 self._id,
@@ -226,6 +252,8 @@ class Client(BaseClient):
                 self._stage_type,
                 self._hostgroup,
                 self._account_id,
+                self._normandie_status,
+                self._knox_status
             )
         )
 
@@ -238,6 +266,71 @@ class Client(BaseClient):
             return False
 
         return True
+
+    def get_normandie_status(self) -> Optional[str]:
+        path = Path(NORMANDIE_CERT_FILEPATH)
+        cmd = [
+            "openssl",
+            "x509",
+            "-in",
+            path.as_posix(),
+            "-noout",
+            "-text",
+            "-certopt",
+            "no_subject,no_header,no_version,no_serial,no_signame,no_validity,no_issuer,no_pubkey,no_sigdump,no_aux",
+        ]
+        try:
+            cert = subprocess.check_output(cmd).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            log.exception(f"failed to get spiffe id from normandie: {e}")
+            return 'ERROR'
+
+        matcher = re.search(SAN_URI_PATTERN, cert)
+        if matcher is None:
+            return 'ERROR'
+        spiff_id = matcher.group(1)
+
+        if spiff_id:
+            return 'OK'
+        else:
+            return 'ERROR'
+
+    def get_knox_status(self) -> Optional[str]:
+        cmd = [
+            "systemctl",
+            "show",
+            "knox",
+            "--property=Result",
+            "--property=StatusErrno",
+            "--property=ActiveState",
+            "--property=SubState"
+        ]
+        try:
+            status = subprocess.check_output(cmd).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            log.exception(f"failed to get knox service status from systemctl: {e}")
+            return 'ERROR'
+
+        # Use three different matchers and pattern to not make assumptions on the order of the properties
+        matcher = re.search(STATUSERRNO_PATTERN, status)
+        if matcher is None:
+            return 'ERROR'
+        statusErrNo = matcher.group(1)
+
+        matcher = re.search(ACTIVESTATE_PATTERN, status)
+        if matcher is None:
+            return 'ERROR'
+        activeState = matcher.group(1)
+
+        matcher = re.search(SUBSTATE_PATTERN, status)
+        if matcher is None:
+            return 'ERROR'
+        subState = matcher.group(1)
+
+        if statusErrNo == "0" and activeState == "active" and subState == "running":
+            return "OK"
+        else:
+            return "ERROR"
 
     def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         try:
@@ -266,6 +359,8 @@ class Client(BaseClient):
                     ec2Tags=self._ec2_tags,
                     stageType=self._stage_type,
                     accountId=self._account_id,
+                    normandieStatus=self._normandie_status,
+                    knoxStatus=self._knox_status
                 )
 
                 with create_stats_timer(

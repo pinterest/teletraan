@@ -31,6 +31,8 @@ class PingRequest(object):
         ec2Tags=None,
         stageType=None,
         accountId=None,
+        normandieStatus=None,
+        knoxStatus=None
     ):
         self.hostId = hostId
         self.hostName = hostName
@@ -43,6 +45,8 @@ class PingRequest(object):
         self.ec2Tags = ec2Tags
         self.stageType = stageType
         self.accountId = accountId
+        self.normandieStatus = normandieStatus
+        self.knoxStatus = knoxStatus
 
     def to_json(self):
         ping_requests = {}
@@ -63,6 +67,10 @@ class PingRequest(object):
             ping_requests["accountId"] = self.accountId
         if self.ec2Tags:
             ping_requests["ec2Tags"] = self.ec2Tags
+        if self.normandieStatus:
+            ping_requests["normandieStatus"] = self.normandieStatus
+        if self.knoxStatus:
+            ping_requests["knoxStatus"] = self.knoxStatus
 
         ping_requests["reports"] = []
         for report in self.reports:
@@ -101,7 +109,7 @@ class PingRequest(object):
     def __str__(self):
         return (
             "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, "
-            "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, reports={})".format(
+            "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, normandieStatus={}, knoxStatus={}, reports={})".format(
                 self.hostId,
                 self.hostName,
                 self.hostIp,
@@ -112,6 +120,8 @@ class PingRequest(object):
                 self.stageType,
                 self.groups,
                 self.accountId,
+                self.normandieStatus,
+                self.knoxStatus,
                 ",".join(str(v) for v in self.reports),
             )
         )
