@@ -330,7 +330,7 @@ class Client(BaseClient):
         if statusErrNo == "0" and activeState == "active" and subState == "running":
             return "OK"
         else:
-            return 'ERROR'
+            return "ERROR"
 
     def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         try:
