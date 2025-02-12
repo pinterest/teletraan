@@ -31,4 +31,4 @@ REDEPLOY_MAX_RETRY = 3
 # 2: puppet applied successfully with changes
 PUPPET_SUCCESS_EXIT_CODES = [0, 2]
 
-__version__ = "1.2.68"
+__version__ = "1.2.69"
