@@ -18,6 +18,7 @@ package com.pinterest.deployservice.bean;
 public enum TagValue {
     BAD_BUILD, // This tag means the build is known bad
     GOOD_BUILD, // This tag means the build is known good
+    CERTIFIED_BUILD, // This tag means the build is certified
     ENABLE_ENV,
     DISABLE_ENV
 }

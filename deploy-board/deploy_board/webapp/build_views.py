@@ -206,6 +206,8 @@ def tag_build(request, id):
             tag["value"] = tags_helper.TagValue.GOOD_BUILD
         elif value.lower()=="bad":
             tag["value"] = tags_helper.TagValue.BAD_BUILD
+        elif value.lower()=="certified":
+            tag["value"] = tags_helper.TagValue.CERTIFIED_BUILD
         else:
             return HttpResponse(status=400)
         builds_helper.set_build_tag(request, tag)
