@@ -30,7 +30,9 @@ class TestClient(TestCase):
         # On a host with normandie, the normandie status should be set to OK
         # On a host without, such as build agents, the normandie status should be ERROR
         self.assertIsNotNone(client._normandie_status)
-        self.assertTrue(client._normandie_status == "OK" or client._normandie_status == "ERROR")
+        self.assertTrue(
+            client._normandie_status == "OK" or client._normandie_status == "ERROR"
+        )
 
     # Normandie status should be ERROR even when the subprocess call returns a non-parseable output
     @mock.patch("subprocess.check_output")

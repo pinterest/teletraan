@@ -221,21 +221,21 @@ class Client(BaseClient):
                 ec2_metadata = facter_data.get(account_id_key, None)
                 if ec2_metadata:
                     info = json.loads(ec2_metadata)
-                    self._account_id = info.get('AccountId', None)
+                    self._account_id = info.get("AccountId", None)
 
         # Retrieve Normandie Status, swallowing exceptions if any: Ping should always be sent.
         try:
             self._normandie_status = self.get_normandie_status()
         except Exception as e:
             log.exception(f"Failed to get normandie status: {e}")
-            self._normandie_status = 'ERROR'
+            self._normandie_status = "ERROR"
 
         # Retrieve Knox Status, swallowing exceptions if any: Ping should always be sent.
         try:
             self._knox_status = self.get_knox_status()
         except Exception as e:
             log.exception(f"Failed to get knox status: {e}")
-            self._knox_status = 'ERROR'
+            self._knox_status = "ERROR"
 
         log.info(
             "Host information is loaded. "
@@ -253,7 +253,7 @@ class Client(BaseClient):
                 self._hostgroup,
                 self._account_id,
                 self._normandie_status,
-                self._knox_status
+                self._knox_status,
             )
         )
 
@@ -283,17 +283,17 @@ class Client(BaseClient):
             cert = subprocess.check_output(cmd).decode("utf-8")
         except subprocess.CalledProcessError as e:
             log.exception(f"failed to get spiffe id from normandie: {e}")
-            return 'ERROR'
+            return "ERROR"
 
         matcher = re.search(SAN_URI_PATTERN, cert)
         if matcher is None:
-            return 'ERROR'
+            return "ERROR"
         spiff_id = matcher.group(1)
 
         if spiff_id:
-            return 'OK'
+            return "OK"
         else:
-            return 'ERROR'
+            return "ERROR"
 
     def get_knox_status(self) -> Optional[str]:
         cmd = [
@@ -303,28 +303,28 @@ class Client(BaseClient):
             "--property=Result",
             "--property=StatusErrno",
             "--property=ActiveState",
-            "--property=SubState"
+            "--property=SubState",
         ]
         try:
             status = subprocess.check_output(cmd).decode("utf-8")
         except subprocess.CalledProcessError as e:
             log.exception(f"failed to get knox service status from systemctl: {e}")
-            return 'ERROR'
+            return "ERROR"
 
         # Use three different matchers and pattern to not make assumptions on the order of the properties
         matcher = re.search(STATUSERRNO_PATTERN, status)
         if matcher is None:
-            return 'ERROR'
+            return "ERROR"
         statusErrNo = matcher.group(1)
 
         matcher = re.search(ACTIVESTATE_PATTERN, status)
         if matcher is None:
-            return 'ERROR'
+            return "ERROR"
         activeState = matcher.group(1)
 
         matcher = re.search(SUBSTATE_PATTERN, status)
         if matcher is None:
-            return 'ERROR'
+            return "ERROR"
         subState = matcher.group(1)
 
         if statusErrNo == "0" and activeState == "active" and subState == "running":
@@ -360,7 +360,7 @@ class Client(BaseClient):
                     stageType=self._stage_type,
                     accountId=self._account_id,
                     normandieStatus=self._normandie_status,
-                    knoxStatus=self._knox_status
+                    knoxStatus=self._knox_status,
                 )
 
                 with create_stats_timer(

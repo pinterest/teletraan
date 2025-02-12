@@ -32,7 +32,7 @@ class PingRequest(object):
         stageType=None,
         accountId=None,
         normandieStatus=None,
-        knoxStatus=None
+        knoxStatus=None,
     ):
         self.hostId = hostId
         self.hostName = hostName
