@@ -168,10 +168,14 @@ public class MetricsEmitter implements Runnable {
 
             if (hostTimers.containsKey(hostId)) {
                 LongTaskTimer.Sample sample = hostTimers.remove(hostId);
-                if (sample.duration(TimeUnit.MILLISECONDS)
-                        > Duration.ofMinutes(LAUNCH_TIMEOUT_MINUTE).toMillis()) {
+                double sampleDurationMs = sample.duration(TimeUnit.MILLISECONDS);
+                if (sampleDurationMs > Duration.ofMinutes(LAUNCH_TIMEOUT_MINUTE).toMillis()) {
                     // Only consider hosts that have been launched after timeout cutoff
                     errorBudgetFailure.increment();
+                    LOG.info(
+                            "Host {} launch time ({}ms) exceeded the launch timeout threshold",
+                            hostId,
+                            sampleDurationMs);
                 } else {
                     errorBudgetSuccess.increment();
                 }
