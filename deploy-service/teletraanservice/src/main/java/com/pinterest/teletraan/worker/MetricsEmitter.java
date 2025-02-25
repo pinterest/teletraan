@@ -52,9 +52,9 @@ public class MetricsEmitter implements Runnable {
     static final String DEPLOYS_RUNNING_TOTAL = "deploys.running.total";
     static final String HOSTS_LAUNCHING = CUSTOM_NAME_PREFIX + "teletraan.%s.hosts_launching";
     static final String ERROR_BUDGET_METHOD_NAME = "host_launch";
-    static final int LAUNCH_TIMEOUT_MINUTE = 10;
+    static final int LAUNCH_TIMEOUT_MINUTE = 20;
     static final int MAX_TRACK_DURATION_MINUTE =
-            LAUNCH_TIMEOUT_MINUTE * 10; // keep tracking for 10x timeout
+            LAUNCH_TIMEOUT_MINUTE * 5; // keep tracking for 5x timeout
 
     static long reportHostsCount(HostAgentDAO hostAgentDAO) {
         try {
