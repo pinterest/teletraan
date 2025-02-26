@@ -21,7 +21,7 @@ import signal
 import sys
 import traceback
 import subprocess
-from typing import Any, Optional, Union
+from typing import Optional, Union
 import yaml
 import requests
 
@@ -377,9 +377,3 @@ def get_telefig_version() -> Optional[str]:
     except Exception:
         log.error("Error when fetching teletraan configure manager version")
         return None
-
-
-def check_not_none(arg, msg=None) -> Any:
-    if arg is None:
-        raise ValueError(msg)
-    return arg
