@@ -29,4 +29,18 @@ public class BeanUtils {
         bean.setState(HostState.PROVISIONED);
         return bean;
     }
+
+    public static HostAgentBean createHostAgentBean() {
+        return HostAgentBean.builder()
+                .host_name("test-host")
+                .ip("1.2.3.4")
+                .host_id("i-" + UUID.randomUUID().toString().substring(0, 8))
+                .create_date(1L)
+                .last_update(2L)
+                .agent_version("1.0")
+                .auto_scaling_group("group")
+                .normandie_status(NormandieStatus.UNKNOWN)
+                .knox_status(KnoxStatus.UNKNOWN)
+                .build();
+    }
 }
