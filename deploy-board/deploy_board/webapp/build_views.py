@@ -27,6 +27,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 def builds_landing(request):
     return get_build_names(request)
 
@@ -163,7 +164,7 @@ def get_more_commits(request):
         {
             "commits": commits,
             "show_checkbox": show_checkbox,
-            "pagination_id": pagination_id
+            "pagination_id": pagination_id,
         },
     )
     return HttpResponse(
@@ -172,6 +173,7 @@ def get_more_commits(request):
         ),
         content_type="application/json",
     )
+
 
 def compare_commits(request):
     startSha = request.GET.get("start_sha")
@@ -195,6 +197,7 @@ def compare_commits(request):
     )
 
     return HttpResponse(html)
+
 
 def compare_commits_datatables(request):
     startSha = request.GET.get("start_sha")
