@@ -55,74 +55,87 @@ def get_build(request, id):
     info = builds_helper.get_build_and_tag(request, id)
     tag = info.get("tag")
     if tag:
-        tag["build"]=json.loads(tag["metaInfo"])
-    return render(request, 'builds/build_details.html', {
-        "build": info["build"],
-        "tag": tag
-    })
+        tag["build"] = json.loads(tag["metaInfo"])
+    return render(
+        request, "builds/build_details.html", {"build": info["build"], "tag": tag}
+    )
 
 
 def list_builds(request, name):
-    index = int(request.GET.get('page_index', '1'))
-    size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
-    builds = builds_helper.get_builds_and_tags(request, name=name, pageIndex=index, pageSize=size)
-    return render(request, 'builds/builds.html', {
-        'build_name': name,
-        'builds': builds,
-        "pageIndex": index,
-        "pageSize": size,
-        "disablePrevious": index <= 1,
-        "disableNext": len(builds) < size,
-    })
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", common.DEFAULT_BUILD_SIZE))
+    builds = builds_helper.get_builds_and_tags(
+        request, name=name, pageIndex=index, pageSize=size
+    )
+    return render(
+        request,
+        "builds/builds.html",
+        {
+            "build_name": name,
+            "builds": builds,
+            "pageIndex": index,
+            "pageSize": size,
+            "disablePrevious": index <= 1,
+            "disableNext": len(builds) < size,
+        }
+    )
 
 
 def get_all_builds(request):
-    name = request.GET.get('name')
-    branch = request.GET.get('branch')
-    index = int(request.GET.get('page_index', '1'))
-    size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
-    builds = builds_helper.get_builds_and_tags(request, name=name, branch=branch, pageIndex=index,
-                                      pageSize=size)
+    name = request.GET.get("name")
+    branch = request.GET.get("branch")
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", common.DEFAULT_BUILD_SIZE))
+    builds = builds_helper.get_builds_and_tags(
+        request, name=name, branch=branch, pageIndex=index, pageSize=size
+    )
     deploy_state = None
-    current_build_id = request.GET.get('current_build_id', None)
-    override_policy = request.GET.get('override_policy')
-    deploy_id = request.GET.get('deploy_id')
+    current_build_id = request.GET.get("current_build_id", None)
+    override_policy = request.GET.get("override_policy")
+    deploy_id = request.GET.get("deploy_id")
     current_build = None
     scmType = ""
     if current_build_id:
         current_build = builds_helper.get_build_and_tag(request, current_build_id)
-        current_build = current_build.get('build')
-        scmType = current_build.get('type')
+        current_build = current_build.get("build")
+        scmType = current_build.get("type")
     if deploy_id:
         deploy_config = deploys_helper.get(request, deploy_id)
         if deploy_config:
-            deploy_state = deploy_config.get('state', None)
+            deploy_state = deploy_config.get("state", None)
 
     scm_url = systems_helper.get_scm_url(request, scmType)
 
-    html = render_to_string('builds/pick_a_build.tmpl', {
-        "builds": builds,
-        "current_build": current_build,
-        "scm_url": scm_url,
-        "buildName": name,
-        "branch": branch,
-        "pageIndex": index,
-        "pageSize": size,
-        "disablePrevious": index <= 1,
-        "disableNext": len(builds) < size,
-        "overridePolicy": override_policy,
-        "deployState": deploy_state,
-    })
+    html = render_to_string(
+        "builds/pick_a_build.tmpl",
+        {
+            "builds": builds,
+            "current_build": current_build,
+            "scm_url": scm_url,
+            "buildName": name,
+            "branch": branch,
+            "pageIndex": index,
+            "pageSize": size,
+            "disablePrevious": index <= 1,
+            "disableNext": len(builds) < size,
+            "overridePolicy": override_policy,
+            "deployState": deploy_state,
+        },
+    )
     return HttpResponse(html)
 
 
 # currently we only support search by git commit or SHA, 7 letters or longer
 def search_commit(request, commit):
     builds = builds_helper.get_builds_and_tags(request, commit=commit)
-    return render(request, 'builds/builds_by_commit.html', {
-        'commit': commit,
-        'builds': builds,
-    })
+    return render(
+        request,
+        "builds/builds_by_commit.html",
+        {
+            "commit": commit,
+            "builds": builds,
+        },
+    )
 
 
 def list_build_branches(request, name):
@@ -182,7 +195,7 @@ def compare_commits_datatables(request):
         request, scm, repo, startSha, endSha, size=2000, keep_first=True
     )
     html = render_to_string(
-        "builds/show_commits.tmpl", 
+        "builds/show_commits.tmpl",
         {
             "commits": commits,
             "start_sha": new_start_sha,
