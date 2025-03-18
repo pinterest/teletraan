@@ -204,11 +204,11 @@ def tag_build(request, id):
         value = request.POST["tag_value"]
         if value.lower() == "good":
             tag["value"] = tags_helper.TagValue.GOOD_BUILD
-        elif value.lower()=="bad":
+        elif value.lower() == "bad":
             tag["value"] = tags_helper.TagValue.BAD_BUILD
-        elif value.lower()=="certified":
+        elif value.lower() == "certified":
             tag["value"] = tags_helper.TagValue.CERTIFIED_BUILD
-        elif value.lower()=="certifying":
+        elif value.lower() == "certifying":
             tag["value"] = tags_helper.TagValue.CERTIFYING_BUILD
         else:
             return HttpResponse(status=400)
