@@ -169,23 +169,25 @@ def compare_commits(request):
     return HttpResponse(html)
 
 def compare_commits_datatables(request):
-    startSha = request.GET.get('start_sha')
-    endSha = request.GET.get('end_sha')
-    repo = request.GET.get('repo')
-    scm = request.GET.get('scm')
-    commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
-                                                                 startSha, endSha,
-                                                                 size=2000,
-                                                                 keep_first=True)
-    html = render_to_string('builds/show_commits.tmpl', {
-        "commits": commits,
-        "start_sha": new_start_sha,
-        "end_sha": endSha,
-        "repo": repo,
-        "scm": scm,
-        "truncated": truncated,
-        "show_checkbox": False,
-    })
+    startSha = request.GET.get("start_sha")
+    endSha = request.GET.get("end_sha")
+    repo = request.GET.get("repo")
+    scm = request.GET.get("scm")
+    commits, truncated, new_start_sha = common.get_commits_batch(
+        request, scm, repo, startSha, endSha, size=2000, keep_first=True
+    )
+    html = render_to_string(
+        "builds/show_commits.tmpl", 
+        {
+            "commits": commits,
+            "start_sha": new_start_sha,
+            "end_sha": endSha,
+            "repo": repo,
+            "scm": scm,
+            "truncated": truncated,
+            "show_checkbox": False,
+        }
+    )
 
     return HttpResponse(html)
 
