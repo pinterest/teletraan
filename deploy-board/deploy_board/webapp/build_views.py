@@ -200,7 +200,11 @@ def tag_build(request, id):
             if tagged_build["id"] == id:
                 log.info("There is already a tag associated with the build. Remove it")
                 builds_helper.del_build_tag(request, current_tag["id"])
-        tag = {"targetId":id, "targetType":"Build", "comments":request.POST["comments"]}
+        tag = {
+            "targetId":id,
+            "targetType":"Build", 
+            "comments":request.POST["comments"]
+        }
         value = request.POST["tag_value"]
         if value.lower() == "good":
             tag["value"] = tags_helper.TagValue.GOOD_BUILD
