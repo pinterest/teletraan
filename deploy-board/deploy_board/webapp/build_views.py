@@ -13,8 +13,7 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of builds related views
-"""
+"""Collection of builds related views"""
 import json
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -32,18 +31,24 @@ def builds_landing(request):
 
 
 def get_build_names(request):
-    index = int(request.GET.get('page_index', '1'))
-    size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
-    filter = request.GET.get('filter', None)
-    build_names = builds_helper.get_build_names(request, start=index, size=size, filter=filter)
-    return render(request, 'builds/build_names.html', {
-        'build_names': build_names,
-        "pageIndex": index,
-        "pageSize": size,
-        "disablePrevious": index <= 1,
-        "disableNext": len(build_names) < size,
-        "filter": filter,
-    })
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", common.DEFAULT_BUILD_SIZE))
+    filter = request.GET.get("filter", None)
+    build_names = builds_helper.get_build_names(
+        request, start=index, size=size, filter=filter
+    )
+    return render(
+        request,
+        "builds/build_names.html",
+        {
+            "build_names": build_names,
+            "pageIndex": index,
+            "pageSize": size,
+            "disablePrevious": index <= 1,
+            "disableNext": len(build_names) < size,
+            "filter": filter,
+        },
+    )
 
 
 def get_build(request, id):
@@ -186,7 +191,7 @@ def compare_commits_datatables(request):
             "scm": scm,
             "truncated": truncated,
             "show_checkbox": False,
-        }
+        },
     )
 
     return HttpResponse(html)
