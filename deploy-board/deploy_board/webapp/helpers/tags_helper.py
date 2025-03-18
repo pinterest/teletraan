@@ -26,7 +26,4 @@ class TagValue(object):
     CERTIFYING_BUILD="CERTIFYING_BUILD"
 
 def get_latest_by_target_id(request, target_id):
-    return deploy_client.get(
-        "/tags/targets/%s/latest" % target_id, 
-        request.teletraan_user_id.token
-    )
+    return deploy_client.get("/tags/targets/%s/latest" % target_id, request.teletraan_user_id.token)
