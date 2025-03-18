@@ -429,16 +429,16 @@
 
 ### TagBean
 
-| Name                           | Schema                                                                 |
-| ------------------------------ | ---------------------------------------------------------------------- |
-| **comments** <br>_optional_    | string                                                                 |
-| **createdDate** <br>_optional_ | integer (int64)                                                        |
-| **id** <br>_optional_          | string                                                                 |
-| **metaInfo** <br>_optional_    | string                                                                 |
-| **operator** <br>_optional_    | string                                                                 |
-| **targetId** <br>_optional_    | string                                                                 |
-| **targetType** <br>_optional_  | enum (BUILD, ENVIRONMENT, TELETRAAN)                                   |
-| **value** <br>_optional_       | enum (BAD_BUILD, GOOD_BUILD, CERTIFIED_BUILD, ENABLE_ENV, DISABLE_ENV) |
+| Name                           | Schema                                                                                   |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| **comments** <br>_optional_    | string                                                                                   |
+| **createdDate** <br>_optional_ | integer (int64)                                                                          |
+| **id** <br>_optional_          | string                                                                                   |
+| **metaInfo** <br>_optional_    | string                                                                                   |
+| **operator** <br>_optional_    | string                                                                                   |
+| **targetId** <br>_optional_    | string                                                                                   |
+| **targetType** <br>_optional_  | enum (BUILD, ENVIRONMENT, TELETRAAN)                                                     |
+| **value** <br>_optional_       | enum (BAD_BUILD, GOOD_BUILD, CERTIFIED_BUILD, CERTIFYING_BUILD, ENABLE_ENV, DISABLE_ENV) |
 
 <a name="tokenrolesbean"></a>
 
@@ -512,8 +512,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -560,8 +558,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -583,8 +579,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
@@ -608,8 +602,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -631,8 +623,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
@@ -680,8 +670,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -703,8 +691,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
@@ -770,8 +756,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -793,8 +777,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
@@ -818,8 +800,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -841,8 +821,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
@@ -866,8 +844,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -889,8 +865,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
@@ -936,8 +910,6 @@ You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-
-
 Unless required by applicable law or agreed to in writing, software
 
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -959,8 +931,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
@@ -999,8 +969,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
-
-
 
 Unless required by applicable law or agreed to in writing, software
 
