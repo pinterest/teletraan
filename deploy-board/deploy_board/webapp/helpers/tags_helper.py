@@ -18,8 +18,8 @@ from deploy_board.webapp.helpers.deployclient import DeployClient
 
 deploy_client = DeployClient()
 
-#In sync with deploy-service/common/src/main/java/com/pinterest/deployservice/bean/TagValue.java
 
+#In sync with deploy-service/common/src/main/java/com/pinterest/deployservice/bean/TagValue.java
 class TagValue(object):
     BAD_BUILD="BAD_BUILD"
     GOOD_BUILD="GOOD_BUILD"
