@@ -209,7 +209,7 @@ def tag_build(request, id):
         elif value.lower()=="certified":
             tag["value"] = tags_helper.TagValue.CERTIFIED_BUILD
         elif value.lower()=="certifying":
-            tag["value"] = "CERTIFYING_BUILD"
+            tag["value"] = tags_helper.TagValue.CERTIFIED_BUILD
         else:
             return HttpResponse(status=400)
         builds_helper.set_build_tag(request, tag)
