@@ -14,6 +14,7 @@
 
 # -*- coding: utf-8 -*-
 """Collection of builds related views"""
+
 import json
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -77,7 +78,7 @@ def list_builds(request, name):
             "pageSize": size,
             "disablePrevious": index <= 1,
             "disableNext": len(builds) < size,
-        }
+        },
     )
 
 
@@ -144,45 +145,54 @@ def list_build_branches(request, name):
 
 
 def get_more_commits(request):
-    startSha = request.GET.get('start_sha')
-    endSha = request.GET.get('end_sha')
-    repo = request.GET.get('repo')
-    scm = request.GET.get('scm')
+    startSha = request.GET.get("start_sha")
+    endSha = request.GET.get("end_sha")
+    repo = request.GET.get("repo")
+    scm = request.GET.get("scm")
 
-    commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
-                                                                 startSha, endSha,
-                                                                 keep_first=False)
+    commits, truncated, new_start_sha = common.get_commits_batch(
+        request, scm, repo, startSha, endSha, keep_first=False
+    )
 
-    show_checkbox_str = request.GET.get('show_checkbox', 'False')
-    show_checkbox = show_checkbox_str.lower() == 'true'
+    show_checkbox_str = request.GET.get("show_checkbox", "False")
+    show_checkbox = show_checkbox_str.lower() == "true"
     pagination_id = random.randint(0, 1000000)
 
-    rows = render_to_string('builds/commit_rows.tmpl', {
-        "commits": commits,
-        "show_checkbox": show_checkbox,
-        "pagination_id": pagination_id
-    })
-    return HttpResponse(json.dumps({'rows': rows, 'new_start_sha': new_start_sha,
-                                    'truncated': truncated}),
-                        content_type="application/json")
+    rows = render_to_string(
+        "builds/commit_rows.tmpl",
+        {
+            "commits": commits,
+            "show_checkbox": show_checkbox,
+            "pagination_id": pagination_id
+        },
+    )
+    return HttpResponse(
+        json.dumps(
+            {"rows": rows, "new_start_sha": new_start_sha, "truncated": truncated}
+        ),
+        content_type="application/json",
+    )
 
 def compare_commits(request):
-    startSha = request.GET.get('start_sha')
-    endSha = request.GET.get('end_sha')
-    repo = request.GET.get('repo')
-    scm = request.GET.get('scm')
-    commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
-                                                                 startSha, endSha,
-                                                                 keep_first=True)
-    html = render_to_string('builds/commits.tmpl', {
-        "commits": commits,
-        "start_sha": new_start_sha,
-        "end_sha": endSha,
-        "repo": repo,
-        "scm": scm,
-        "truncated": truncated,
-        "show_checkbox": False,
-    })
+    startSha = request.GET.get("start_sha")
+    endSha = request.GET.get("end_sha")
+    repo = request.GET.get("repo")
+    scm = request.GET.get("scm")
+    commits, truncated, new_start_sha = common.get_commits_batch(
+        request, scm, repo, startSha, endSha, keep_first=True
+    )
+    html = render_to_string(
+        "builds/commits.tmpl",
+        {
+            "commits": commits,
+            "start_sha": new_start_sha,
+            "end_sha": endSha,
+            "repo": repo,
+            "scm": scm,
+            "truncated": truncated,
+            "show_checkbox": False,
+        },
+    )
 
     return HttpResponse(html)
 
