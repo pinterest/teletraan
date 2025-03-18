@@ -19,12 +19,12 @@ from deploy_board.webapp.helpers.deployclient import DeployClient
 deploy_client = DeployClient()
 
 
-#In sync with deploy-service/common/src/main/java/com/pinterest/deployservice/bean/TagValue.java
+# In sync with deploy-service/common/src/main/java/com/pinterest/deployservice/bean/TagValue.java
 class TagValue(object):
-    BAD_BUILD="BAD_BUILD"
-    GOOD_BUILD="GOOD_BUILD"
-    CERTIFIED_BUILD="CERTIFIED_BUILD"
-    CERTIFYING_BUILD="CERTIFYING_BUILD"
+    BAD_BUILD = "BAD_BUILD"
+    GOOD_BUILD = "GOOD_BUILD"
+    CERTIFIED_BUILD = "CERTIFIED_BUILD"
+    CERTIFYING_BUILD = "CERTIFYING_BUILD"
 
 def get_latest_by_target_id(request, target_id):
     return deploy_client.get(
