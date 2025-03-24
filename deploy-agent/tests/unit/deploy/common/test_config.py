@@ -20,7 +20,13 @@ import unittest
 import tests
 
 from deployd.common.config import Config
-from deployd.common.types import DeployStatus, DeployType, OpCode, DeployStage
+from deployd.common.types import (
+    DeployStatus,
+    DeployType,
+    OpCode,
+    DeployStage,
+    DEPLOY_AGENT_ENVIRONMENT_NAME,
+)
 from deployd.types.ping_response import PingResponse
 
 
@@ -42,7 +48,7 @@ class TestConfigFunctions(tests.TestCase):
         deploy_goal = {}
         deploy_goal["deployId"] = "123"
         deploy_goal["stageName"] = "beta"
-        deploy_goal["envName"] = "pinboard"
+        deploy_goal["envName"] = DEPLOY_AGENT_ENVIRONMENT_NAME
         deploy_goal["stageType"] = "DEFAULT"
         deploy_goal["deployStage"] = DeployStage.SERVING_BUILD
         ping_response = {"deployGoal": deploy_goal, "opCode": OpCode.NOOP}
@@ -50,10 +56,13 @@ class TestConfigFunctions(tests.TestCase):
         response = PingResponse(jsonValue=ping_response)
         self.config.update_variables(DeployStatus(response))
         self.assertEqual(os.environ["DEPLOY_ID"], "123")
-        self.assertEqual(os.environ["ENV_NAME"], "pinboard")
+        self.assertEqual(os.environ["ENV_NAME"], DEPLOY_AGENT_ENVIRONMENT_NAME)
         self.assertEqual(os.environ["STAGE_NAME"], "beta")
         self.assertEqual(os.environ["COMPUTE_ENV_TYPE"], "PRODUCTION")
-        self.assertEqual(self.config.get_target(), "/tmp/pinboard")
+        self.assertEqual(os.environ["SKIP_DEPLOY_AGENT_RESTART_IN_SCRIPT"], "true")
+        self.assertEqual(
+            self.config.get_target(), f"/tmp/{DEPLOY_AGENT_ENVIRONMENT_NAME}"
+        )
 
     def test_init(self):
         Config()

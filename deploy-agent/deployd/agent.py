@@ -13,12 +13,15 @@
 # limitations under the License.
 
 import argparse
+import json
 from typing import List, Optional, Union
 import daemon
 import logging
 import os
 import sys
 from random import randrange
+import subprocess
+import tempfile
 import time
 import traceback
 
@@ -34,6 +37,7 @@ from deployd.common.utils import (
     get_telefig_version,
     get_container_health_info,
     check_prereqs,
+    exit_abruptly,
 )
 from deployd.common.utils import uptime as utils_uptime, listen as utils_listen
 from deployd.common.executor import Executor
@@ -44,6 +48,7 @@ from deployd.common.types import (
     OpCode,
     DeployStage,
     AgentStatus,
+    DEPLOY_AGENT_ENVIRONMENT_NAME,
 )
 from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
 from deployd.types.deploy_goal import DeployGoal
@@ -75,7 +80,13 @@ class DeployAgent(object):
     _env_status = None
 
     def __init__(
-        self, client, estatus=None, conf=None, executor=None, helper=None
+        self,
+        client,
+        estatus=None,
+        conf=None,
+        executor=None,
+        helper=None,
+        initial_ping_file=None,
     ) -> None:
         self._response = None
         # a map maintains env_name -> deploy_status
@@ -94,6 +105,7 @@ class DeployAgent(object):
         # load environment deploy status file from local disk
         self.load_status_file()
         self._telefig_version = get_telefig_version()
+        self._initial_ping_file = initial_ping_file
 
     def load_status_file(self) -> None:
         self._envs = self._env_status.load_envs()
@@ -181,7 +193,7 @@ class DeployAgent(object):
                     continue
             self._env_status.dump_envs(self._envs)
         # start to ping server to get the latest deploy goal
-        self._response = self._client.send_reports(self._envs)
+        self._response = self._get_initial_teletraan_response()
         # we only need to send RESET once in one deploy-agent run
         if len(self._envs) > 0:
             for status in self._envs.values():
@@ -292,6 +304,25 @@ class DeployAgent(object):
             log.exception(
                 "Deploy Agent got exceptions: {}".format(traceback.format_exc())
             )
+
+    def _get_initial_teletraan_response(self):
+        if self._initial_ping_file:
+            log.info(f"Using initial ping file: {self._initial_ping_file}")
+            try:
+                with open(self._initial_ping_file) as f:
+                    initial_ping_json = json.load(f)
+
+                os.remove(self._initial_ping_file)
+                if initial_ping_json:
+                    return PingResponse(jsonValue=initial_ping_json)
+
+                log.error(f"Initial ping file was invalid: {initial_ping_json}")
+                log.error("Falling back to initial ping from server")
+            except Exception:
+                log.exception(
+                    f"Failed to use initial ping file: {self._initial_ping_file}"
+                )
+        return self._client.send_reports(self._envs)
 
     def _resolve_deleted_env_name(self, envName, envId) -> Optional[str]:
         # When server return DELETE goal, the envName might be empty if the env has already been
@@ -418,6 +449,49 @@ class DeployAgent(object):
         if response is None:
             log.info("Failed to get response from server")
             return PingStatus.PING_FAILED
+        elif (
+            self._curr_report
+            and self._curr_report.report
+            and self._curr_report.report.envName == DEPLOY_AGENT_ENVIRONMENT_NAME
+            and self._curr_report.report.deployStage == DeployStage.RESTARTING
+            and self._curr_report.report.status == AgentStatus.SUCCEEDED
+        ):
+            try:
+                log.info("Deploy agent was just upgraded. Restarting...")
+
+                # Dump the current ping to hand it off to new process
+                ping_handoff_file = tempfile.NamedTemporaryFile(
+                    prefix="deploy-agent-restarter-",
+                    suffix=".json",
+                    mode="w",
+                    encoding="utf-8",
+                    delete=False,
+                )
+                json.dump(response._jsonValue, ping_handoff_file, ensure_ascii=False)
+                ping_handoff_file.close()
+                os.sync()
+
+                # Launch the restarter process to take care of killing this process
+                # and starting a new one
+                subproc_log_file_name = self._config.get_subprocess_log_name()
+                cmd = [
+                    "deployd-restarter",
+                    "-f",
+                    self._config.get_config_filename(),
+                    "-i",
+                    ping_handoff_file.name,
+                    "-p",
+                    str(os.getpid()),
+                ]
+                with open(subproc_log_file_name, "a+") as fdout:
+                    process = subprocess.Popen(
+                        cmd, stdout=fdout, stderr=fdout, preexec_fn=os.setsid
+                    )
+                    process.wait()
+            except Exception:
+                log.exception("Failed to restart deploy-agent after upgrade")
+
+            exit_abruptly(1)
         else:
             plan_changed = DeployAgent.plan_changed(self._response, response)
             self._response = response
@@ -671,6 +745,13 @@ def main():
         "json format.",
     )
     parser.add_argument(
+        "-i",
+        "--initial-ping-file",
+        dest="initial_ping_file",
+        required=False,
+        help="Optional file path containing the initial Teletraan ping to use",
+    )
+    parser.add_argument(
         "-v",
         "--version",
         action="version",
@@ -726,7 +807,9 @@ def main():
         )
 
     uptime = utils_uptime()
-    agent = DeployAgent(client=client, conf=config)
+    agent = DeployAgent(
+        client=client, conf=config, initial_ping_file=args.initial_ping_file
+    )
     create_sc_timing(
         "deployd.stats.ec2_uptime_sec", uptime, tags={"first_run": agent.first_run}
     )

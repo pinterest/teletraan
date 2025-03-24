@@ -21,8 +21,10 @@ class PingResponse(object):
     def __init__(self, jsonValue=None) -> None:
         self.opCode = OpCode.NOOP
         self.deployGoal = None
+        self._jsonValue = None
 
         if jsonValue:
+            self._jsonValue = jsonValue
             # TODO: Only used for migration, should remove later
             if isinstance(jsonValue.get("opCode"), int):
                 self.opCode = OperationCode._VALUES_TO_NAMES[jsonValue.get("opCode")]
