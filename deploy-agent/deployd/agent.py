@@ -153,10 +153,10 @@ class DeployAgent(object):
                         status.report.redeploy,
                     )
                     if (
-+                        healthStatus
-+                        and status.report.deployStage != DeployStage.STOPPED
-+                        and status.report.deployStage != DeployStage.STOPPING
-+                    ):
+                        healthStatus
+                        and status.report.deployStage != DeployStage.STOPPED
+                        and status.report.deployStage != DeployStage.STOPPING
+                    ):
                         if "redeploy" in healthStatus:
                             status.report.redeploy = int(healthStatus.split("-")[1])
                             status.report.wait = 0
