@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
+import re
+import tempfile
 import unittest
 from unittest import mock
 from tests import TestCase
@@ -26,6 +29,7 @@ from deployd.common.types import (
     DeployStage,
     AgentStatus,
     PingStatus,
+    DEPLOY_AGENT_ENVIRONMENT_NAME,
 )
 from deployd.types.deploy_goal import DeployGoal
 from deployd.types.ping_report import PingReport
@@ -46,6 +50,9 @@ class TestDeployAgent(TestCase):
         cls.config.get_agent_directory = mock.Mock(return_value="/tmp/deployd/")
         cls.config.get_builds_directory = mock.Mock(return_value="/tmp/deployd/builds/")
         cls.config.get_log_directory = mock.Mock(return_value="/tmp/logs/")
+        cls.config.get_subprocess_log_name = mock.Mock(
+            return_value="/tmp/logs/subproc.log"
+        )
         ensure_dirs(cls.config)
         cls.executor = mock.Mock()
         cls.executor.execute_command = mock.Mock(
@@ -685,6 +692,100 @@ class TestDeployAgent(TestCase):
             agent._curr_report.report.deployStage, DeployStage.PRE_DOWNLOAD
         )
         self.assertEqual(agent._curr_report.report.status, AgentStatus.SUCCEEDED)
+
+    def test_initial_ping_file(self):
+        client = mock.Mock()
+        with tempfile.NamedTemporaryFile(
+            prefix="deploy-agent-test-agent-",
+            suffix=".json",
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+        ) as f:
+            json.dump(self.ping_noop_response, f)
+            f.flush()
+
+            d = DeployAgent(
+                client=client,
+                estatus=self.estatus,
+                conf=self.config,
+                executor=self.executor,
+                helper=self.helper,
+                initial_ping_file=f.name,
+            )
+            d.serve_build()
+        client.assert_not_called()
+
+    @mock.patch("subprocess.Popen")
+    def test_deploy_agent_restart(self, mock_subprocess_popen):
+        # Set up the deploy-agent upgrade pings, which
+        # should cause a deploy-agent restart
+        restarting_ping = {
+            "opCode": OpCode.DEPLOY,
+            "deployGoal": {
+                "deployId": "234",
+                "envName": DEPLOY_AGENT_ENVIRONMENT_NAME,
+                "envId": "efg",
+                "stageName": "prod",
+                "deployStage": DeployStage.RESTARTING,
+            },
+        }
+        post_restart_ping = {
+            "opCode": OpCode.DEPLOY,
+            "deployGoal": {
+                "deployId": "234",
+                "envName": DEPLOY_AGENT_ENVIRONMENT_NAME,
+                "envId": "efg",
+                "stageName": "prod",
+                "deployStage": DeployStage.POST_RESTART,
+            },
+        }
+
+        pings = [
+            PingResponse(jsonValue=restarting_ping),
+            PingResponse(jsonValue=post_restart_ping),
+        ]
+        client = mock.Mock()
+        client.send_reports = mock.Mock(side_effect=pings)
+
+        # Set up calls to restarting script. Follow by a call to deployd-restarter
+        executor = mock.Mock()
+        executor.execute_command = mock.Mock(
+            return_value=DeployReport(AgentStatus.SUCCEEDED)
+        )
+        d = DeployAgent(
+            client=client,
+            estatus=self.estatus,
+            conf=self.config,
+            executor=executor,
+            helper=self.helper,
+        )
+
+        # Ensure the agent exits
+        with self.assertRaises(SystemExit):
+            d.serve_build()
+
+        # Verify the restarting script and deployd-restarter were called
+        executor.execute_command.assert_called_once_with("RESTARTING")
+        popen_call_args_list = mock_subprocess_popen.call_args_list
+        self.assertEqual(1, len(popen_call_args_list))
+        popen_call_args = popen_call_args_list[0]
+        self.assertEqual(1, len(popen_call_args.args))
+        popen_call_cmd = popen_call_args.args[0]
+        self.assertEqual(7, len(popen_call_cmd))
+        self.assertEqual("deployd-restarter", popen_call_cmd[0])
+        self.assertEqual("-f", popen_call_cmd[1])
+        self.assertEqual("/etc/deployagent.conf", popen_call_cmd[2])
+        self.assertEqual("-i", popen_call_cmd[3])
+        self.assertTrue(
+            re.match(r"/tmp/deploy-agent-restarter-.*\.json", popen_call_cmd[4]),
+            f"regex mismatch for initial ping file: {popen_call_cmd[4]}",
+        )
+        self.assertEqual("-p", popen_call_cmd[5])
+        self.assertTrue(
+            popen_call_cmd[6].isdigit(),
+            f"invalid pid: {popen_call_cmd[6]}",
+        )
 
 
 if __name__ == "__main__":

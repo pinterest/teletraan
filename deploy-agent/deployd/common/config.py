@@ -20,7 +20,7 @@ import json
 from typing import Any, List, Optional
 
 from deployd.common.exceptions import DeployConfigException
-from deployd.common.types import DeployType
+from deployd.common.types import DeployType, DEPLOY_AGENT_ENVIRONMENT_NAME
 from deployd.common.utils import exit_abruptly
 from deployd.types.deploy_stage import DeployStage
 from deployd.types.opcode import OperationCode
@@ -104,6 +104,9 @@ class Config(object):
 
         if deploy_status.report.envName:
             self._environ["ENV_NAME"] = deploy_status.report.envName
+            if deploy_status.report.envName == DEPLOY_AGENT_ENVIRONMENT_NAME:
+                self._environ["SKIP_DEPLOY_AGENT_RESTART_IN_SCRIPT"] = "true"
+
         if deploy_status.report.stageName:
             self._environ["STAGE_NAME"] = deploy_status.report.stageName
         if deploy_status.report.stageType:
