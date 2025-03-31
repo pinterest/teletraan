@@ -22,6 +22,7 @@ import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.config.AwsFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
+import com.pinterest.teletraan.config.BuildkiteFactory;
 import com.pinterest.teletraan.config.ChatFactory;
 import com.pinterest.teletraan.config.DataSourceFactory;
 import com.pinterest.teletraan.config.DefaultChatFactory;
@@ -92,6 +93,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("jenkins")
     private JenkinsFactory jenkinsFactory;
+
+    @Valid
+    @JsonProperty("buildkite")
+    private BuildkiteFactory buildkiteFactory;
 
     @Valid
     @JsonProperty("buildAllowlist")
@@ -218,6 +223,14 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setJenkinsFactory(JenkinsFactory jenkinsFactory) {
         this.jenkinsFactory = jenkinsFactory;
+    }
+
+    public BuildkiteFactory getBuildkiteFactory() {
+        return buildkiteFactory;
+    }
+
+    public void setBuildkiteFactory(BuildkiteFactory buildkiteFactory) {
+        this.buildkiteFactory = buildkiteFactory;
     }
 
     public List<WorkerConfig> getWorkerConfigs() {

@@ -47,7 +47,7 @@ public class GithubManager extends BaseManager {
     private final String apiPrefix;
     private final String urlPrefix;
     private final String githubAppId;
-    private final String githubAppPrivateKeyKnox;
+    private String githubAppPrivateKeyKnox = "github:pinternal:app:teletraan";
     private final String githubAppOrganization;
     private final String token;
     private final HttpClient httpClient;
@@ -68,6 +68,7 @@ public class GithubManager extends BaseManager {
         this.githubAppPrivateKeyKnox = appPrivateKeyKnox;
         this.githubAppOrganization = appOrganization;
         this.token = token;
+        LOG.debug("[Buildkite] Trying to fetch key " + githubAppPrivateKeyKnox);
         if (StringUtils.isNotBlank(githubAppPrivateKeyKnox)) {
             // get private key PEM from knox
             knoxKeyReader.init(githubAppPrivateKeyKnox);

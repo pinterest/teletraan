@@ -19,6 +19,7 @@ import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.common.Jenkins;
+import com.pinterest.deployservice.common.Buildkite;
 import com.pinterest.deployservice.dao.AgentCountDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
@@ -98,6 +99,7 @@ public class ServiceContext {
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
     private Jenkins jenkins;
+    private Buildkite buildkite;
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
@@ -401,6 +403,14 @@ public class ServiceContext {
 
     public void setJenkins(Jenkins jenkins) {
         this.jenkins = jenkins;
+    }
+
+    public Buildkite getBuildkite() {
+        return buildkite;
+    }
+
+    public void setBuildkite(Buildkite buildkite) {
+        this.buildkite = buildkite;
     }
 
     public TagDAO getTagDAO() {
