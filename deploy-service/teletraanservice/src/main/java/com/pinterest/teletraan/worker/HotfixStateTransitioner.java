@@ -20,12 +20,14 @@ import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.Jenkins;
+import com.pinterest.deployservice.common.Buildkite;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
 import java.sql.Connection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +46,7 @@ public class HotfixStateTransitioner implements Runnable {
     private EnvironDAO environDAO;
     private CommonHandler commonHandler;
     private Jenkins jenkins;
+    private Buildkite buildkite;
     private Counter errorBudgetSuccess;
     private Counter errorBudgetFailure;
     // TODO make this configurable
@@ -57,6 +60,7 @@ public class HotfixStateTransitioner implements Runnable {
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
         jenkins = serviceContext.getJenkins();
+        buildkite = serviceContext.getBuildkite();
 
         errorBudgetSuccess =
                 ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
@@ -145,6 +149,15 @@ public class HotfixStateTransitioner implements Runnable {
                                     + "&REPO="
                                     + hotBean.getRepo();
                     // Start job and set start time
+                    if (buildkite.jobExist(hotBean.getJob_name())) {
+                        HashMap<String, String> buildMetadata = new HashMap<String, String>();
+                        buildMetadata.put("BASE_COMMIT", buildBean.getScm_commit());
+                        buildMetadata.put("COMMITS", hotBean.getCommits());
+                        buildMetadata.put("SUFFIX", hotBean.getOperator() + "_" + buildBean.getScm_commit_7());
+                        buildMetadata.put("HOTFIX_ID", hotBean.getId());
+                        buildkite.triggerBuild(hotBean.getJob_name(), "HEAD", "master", "", buildMetadata);
+                        LOG.info("Starting new Buildkite Job (hotfix-job) for hotfix id {}", hotfixId);
+                    }
                     jenkins.startBuild(hotBean.getJob_name(), buildParams);
                     LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
 

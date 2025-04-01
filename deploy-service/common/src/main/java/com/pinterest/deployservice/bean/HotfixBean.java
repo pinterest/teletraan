@@ -180,6 +180,7 @@ public class HotfixBean extends BaseBean implements Updatable {
         this.last_worked_on = last_worked_on;
     }
 
+    // https://sourcegraph.pinadmin.com/github.com/pinternal/mysql_schemas/-/blob/schema_files/teletraan/dev/deploy/hotfixes.sql
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
