@@ -275,8 +275,8 @@
         </profile>
         <profile>
             <!-- If you are outside Pinterest, exclude this profile -->
-            <!-- i.e. mvn clean package -P-pinterest-dependenies -->
-            <id>pinterest-dependenies</id>
+            <!-- i.e. mvn clean package -P-pinterest-dependencies -->
+            <id>pinterest-dependencies</id>
             <activation>
               <activeByDefault>true</activeByDefault>
             </activation>
