@@ -134,6 +134,7 @@
                         <configuration>
                             <descriptors>
                                 <descriptor>src/assembly/teletraanservice.xml</descriptor>
+                                <descriptor>src/assembly/teletraanservice_teletraan.xml</descriptor>
                             </descriptors>
                         </configuration>
                     </execution>
