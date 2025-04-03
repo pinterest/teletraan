@@ -54,7 +54,7 @@ jobs:
       name: Build with Maven
       working-directory: deploy-service
       run: |
-          mvn clean package --file pom.xml -P-pinterest-dependenies,exclude-pinterest-only-classes -B -V -e -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Dspotbugs.skip -Denforcer.skip -Dmaven.javadoc.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true -Dspotless.check.skip=true
+          mvn clean package --file pom.xml -P-pinterest-dependencies,exclude-pinterest-only-classes -B -V -e -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Dspotbugs.skip -Denforcer.skip -Dmaven.javadoc.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true -Dspotless.check.skip=true
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2

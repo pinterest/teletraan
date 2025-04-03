@@ -192,7 +192,7 @@
 
   <profiles>
     <profile>
-      <id>pinterest-dependenies</id>
+      <id>pinterest-dependencies</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -296,7 +296,7 @@
 
     <profile>
       <!-- If you are outside Pinterest, use this profile instead -->
-      <!-- i.e. mvn clean package -P-pinterest-dependenies,exclude-pinterest-only-classes -->
+      <!-- i.e. mvn clean package -P-pinterest-dependencies,exclude-pinterest-only-classes -->
       <id>exclude-pinterest-only-classes</id>
       <build>
         <plugins>
