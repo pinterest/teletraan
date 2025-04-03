@@ -18,7 +18,10 @@
         <fileSet>
             <directory>teletraan</directory>
             <outputDirectory>teletraan</outputDirectory>
-            <includes><include>teletraan*/*</include></includes>
+            <includes>
+                <include>teletraan*/*</include>
+                <include>run_in_container.sh</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>target</directory>

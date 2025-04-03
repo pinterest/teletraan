@@ -1,6 +1,5 @@
 # ignore install specific teletraan dir
 deploy-board/teletraan/
-deploy-service/teletraanservice/teletraan/
 
 # IntelliJ files
 .idea/
