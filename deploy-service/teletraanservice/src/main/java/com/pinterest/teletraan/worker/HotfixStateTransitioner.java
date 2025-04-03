@@ -17,17 +17,18 @@ package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.ci.Buildkite;
+import com.pinterest.deployservice.ci.CIPlatformManager;
+import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
+import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
-import com.pinterest.deployservice.common.Jenkins;
-import com.pinterest.deployservice.common.Buildkite;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
 import java.sql.Connection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class HotfixStateTransitioner implements Runnable {
     private CommonHandler commonHandler;
     private Jenkins jenkins;
     private Buildkite buildkite;
+    private CIPlatformManagerProxy ciPlatformManagerProxy;
     private Counter errorBudgetSuccess;
     private Counter errorBudgetFailure;
     // TODO make this configurable
@@ -59,8 +61,19 @@ public class HotfixStateTransitioner implements Runnable {
         utilDAO = serviceContext.getUtilDAO();
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
-        jenkins = serviceContext.getJenkins();
-        buildkite = serviceContext.getBuildkite();
+        ciPlatformManagerProxy = serviceContext.getCIPlatformManagerProxy();
+        try {
+            jenkins = (Jenkins) ciPlatformManagerProxy.getCIPlatform("jenkins");
+        } catch (Exception e) {
+            LOG.error("Failed to initialize Jenkins CI platform", e);
+            throw new RuntimeException("Failed to initialize Jenkins CI platform", e);
+        }
+        try {
+            buildkite = (Buildkite) ciPlatformManagerProxy.getCIPlatform("buildkite");
+        } catch (Exception e) {
+            LOG.error("Failed to initialize Buildkite CI platform", e);
+            throw new RuntimeException("Failed to initialize Buildkite CI platform", e);
+        }
 
         errorBudgetSuccess =
                 ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
@@ -149,25 +162,35 @@ public class HotfixStateTransitioner implements Runnable {
                                     + "&REPO="
                                     + hotBean.getRepo();
                     // Start job and set start time
-                    if (buildkite.jobExist(hotBean.getJob_name())) {
-                        HashMap<String, String> buildMetadata = new HashMap<String, String>();
-                        buildMetadata.put("BASE_COMMIT", buildBean.getScm_commit());
-                        buildMetadata.put("COMMITS", hotBean.getCommits());
-                        buildMetadata.put("SUFFIX", hotBean.getOperator() + "_" + buildBean.getScm_commit_7());
-                        buildMetadata.put("HOTFIX_ID", hotBean.getId());
-                        buildkite.triggerBuild(hotBean.getJob_name(), "HEAD", "master", "", buildMetadata);
-                        LOG.info("Starting new Buildkite Job (hotfix-job) for hotfix id {}", hotfixId);
-                    }
-                    jenkins.startBuild(hotBean.getJob_name(), buildParams);
-                    LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
+                    // jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                    try{
+                        String buildUUID = ciPlatformManagerProxy.startBuild(
+                            hotBean.getJob_name(), buildParams, "buildkite");
+                        Buildkite.Build buildkiteBuild =
+                                (Buildkite.Build) ciPlatformManagerProxy.getBuild(
+                                        "buildkite", hotBean.getJob_name(), buildUUID);
 
+                        String jobID = ciPlatformManagerProxy.startBuild(hotBean.getJob_name(), buildParams, "jenkins");
+                        Jenkins.Build jenkinsBuild = (Jenkins.Build) ciPlatformManagerProxy.getBuild(
+                                        "jenkins", hotBean.getJob_name(), jobID);
+
+                        LOG.info("Starting new CI Jobs (hotfix-job) for hotfix id {}", hotfixId);
+                    } catch (Exception e) {
+                        LOG.error("Failed to start new CI Job (hotfix-job) for hotfix id {}", hotfixId, e);
+                        hotBean.setState(HotfixState.FAILED);
+                        hotBean.setError_message(
+                                "Failed to create hotfix during batch triggering");
+                        hotfixDAO.update(hotfixId, hotBean);
+                        LOG.warn("CI returned a FAILURE status during state INITIAL for hotfix id "
+                                            + hotfixId);
+                    }
                     transition(hotBean);
 
                     // Else jobNum has not been given by job yet
 
                 } else if (state == HotfixState.PUSHING) {
                     if (!StringUtils.isEmpty(jobNum)) {
-                        Jenkins.Build build = jenkins.getBuild(hotBean.getJob_name(), jobNum);
+                        Jenkins.Build build = (Jenkins.Build) ciPlatformManagerProxy.getBuild("jenkins", hotBean.getJob_name(), jobNum);
                         String status = build.getStatus().replace("\"", "");
                         int newProgress = build.getProgress();
 

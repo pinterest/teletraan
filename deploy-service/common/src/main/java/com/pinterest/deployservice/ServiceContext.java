@@ -18,8 +18,10 @@ package com.pinterest.deployservice;
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
-import com.pinterest.deployservice.common.Jenkins;
-import com.pinterest.deployservice.common.Buildkite;
+import com.pinterest.deployservice.ci.Buildkite;
+import com.pinterest.deployservice.ci.CIPlatformManager;
+import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
+import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.dao.AgentCountDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
@@ -87,6 +89,7 @@ public class ServiceContext {
     private String serviceStage;
     private MailManager mailManager;
     private SourceControlManagerProxy sourceControlManagerProxy;
+    private CIPlatformManagerProxy ciPlatformManagerProxy;
     private ChatManager chatManager;
     private ExecutorService jobPool;
     private RodimusManager rodimusManager;
@@ -299,6 +302,14 @@ public class ServiceContext {
 
     public void setSourceControlManagerProxy(SourceControlManagerProxy sourceControlManagerProxy) {
         this.sourceControlManagerProxy = sourceControlManagerProxy;
+    }
+
+    public CIPlatformManagerProxy getCIPlatformManagerProxy() {
+        return ciPlatformManagerProxy;
+    }
+
+    public void setCIPlatformManagerProxy(CIPlatformManagerProxy ciPlatformManagerProxy) {
+        this.ciPlatformManagerProxy = ciPlatformManagerProxy;
     }
 
     public ChatManager getChatManager() {

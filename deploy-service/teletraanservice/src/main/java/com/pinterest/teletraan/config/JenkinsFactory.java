@@ -15,9 +15,15 @@
  */
 package com.pinterest.teletraan.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.validation.constraints.NotNull;
 
-public class JenkinsFactory {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.pinterest.deployservice.ci.Jenkins;
+import com.pinterest.deployservice.ci.CIPlatformManager;
+
+@JsonTypeName("jenkins")
+public class JenkinsFactory implements CIPlatformFactory {
     @JsonProperty private String jenkinsUrl;
 
     @JsonProperty private String remoteToken;
@@ -27,6 +33,10 @@ public class JenkinsFactory {
     @JsonProperty private String httpProxyAddr;
 
     @JsonProperty private String httpProxyPort;
+
+    @NotNull @JsonProperty private String typeName;
+
+    @NotNull @JsonProperty private int priority;
 
     public String getJenkinsUrl() {
         return jenkinsUrl;
@@ -66,5 +76,33 @@ public class JenkinsFactory {
 
     public void setHttpProxyPort(String httpProxyPort) {
         this.httpProxyPort = httpProxyPort;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    @Override
+    public CIPlatformManager create() throws Exception {
+        return new Jenkins(
+                jenkinsUrl,
+                remoteToken,
+                useProxy,
+                httpProxyAddr,
+                httpProxyPort,
+                typeName,
+                priority);
     }
 }

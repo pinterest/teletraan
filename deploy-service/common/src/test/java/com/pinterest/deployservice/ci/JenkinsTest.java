@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pinterest.deployservice.common;
+package com.pinterest.deployservice.ci;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
+import com.pinterest.deployservice.ci.Jenkins;
+
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import okhttp3.mockwebserver.Dispatcher;
@@ -58,7 +60,9 @@ class JenkinsTest {
                         TEST_REMOTE_TOKEN,
                         true,
                         mockWebServer.getHostName(),
-                        String.valueOf(mockWebServer.getPort()));
+                        String.valueOf(mockWebServer.getPort()),
+                        "Jenkins",
+                        2);
     }
 
     @AfterEach
@@ -72,7 +76,7 @@ class JenkinsTest {
                 NumberFormatException.class,
                 () -> {
                     new Jenkins(
-                            TEST_JENKINS_URL, TEST_REMOTE_TOKEN, true, "localhost", "invalidPort");
+                            TEST_JENKINS_URL, TEST_REMOTE_TOKEN, true, "localhost", "invalidPort", "Jenkins", 2);
                 });
     }
 

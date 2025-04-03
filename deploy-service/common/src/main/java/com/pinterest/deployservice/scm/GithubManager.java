@@ -68,7 +68,7 @@ public class GithubManager extends BaseManager {
         this.githubAppPrivateKeyKnox = appPrivateKeyKnox;
         this.githubAppOrganization = appOrganization;
         this.token = token;
-        LOG.debug("[Buildkite] Trying to fetch key " + githubAppPrivateKeyKnox);
+        LOG.debug("[Teletraan-fork][Buildkite] Trying to fetch key " + githubAppPrivateKeyKnox);
         if (StringUtils.isNotBlank(githubAppPrivateKeyKnox)) {
             // get private key PEM from knox
             knoxKeyReader.init(githubAppPrivateKeyKnox);
