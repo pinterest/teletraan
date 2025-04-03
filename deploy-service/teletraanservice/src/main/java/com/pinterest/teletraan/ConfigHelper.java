@@ -17,10 +17,8 @@ package com.pinterest.teletraan;
 
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
-import com.pinterest.deployservice.ci.Buildkite;
 import com.pinterest.deployservice.ci.CIPlatformManager;
 import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
-import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
 import com.pinterest.deployservice.db.DBAgentDAOImpl;
 import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
@@ -52,9 +50,7 @@ import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
-import com.pinterest.teletraan.config.BuildkiteFactory;
 import com.pinterest.teletraan.config.CIPlatformFactory;
-import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
@@ -74,9 +70,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
-
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -167,12 +161,11 @@ public class ConfigHelper {
         List<CIPlatformFactory> ciPlatformConfigs = configuration.getCIPlatformConfigs();
         Map<String, CIPlatformManager> ciPlatforms = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
-                CIPlatformManager ciPlatform = ciPlatformFactory.create();
-                String type = ciPlatform.getTypeName();
-                ciPlatforms.put(type, ciPlatform);
+            CIPlatformManager ciPlatform = ciPlatformFactory.create();
+            String type = ciPlatform.getTypeName();
+            ciPlatforms.put(type, ciPlatform);
         }
-        context.setCIPlatformManagerProxy(
-                new CIPlatformManagerProxy(ciPlatforms));
+        context.setCIPlatformManagerProxy(new CIPlatformManagerProxy(ciPlatforms));
 
         AppEventFactory appEventFactory = configuration.getAppEventFactory();
         if (appEventFactory != null) {

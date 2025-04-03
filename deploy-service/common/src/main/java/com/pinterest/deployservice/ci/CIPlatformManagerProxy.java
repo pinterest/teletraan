@@ -1,20 +1,32 @@
+/**
+ * Copyright (c) 2025 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.deployservice.ci;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class CIPlatformManagerProxy {
     private static final Logger LOG = LoggerFactory.getLogger(CIPlatformManagerProxy.class);
     Map<String, CIPlatformManager> managers;
     private List<String> validCIs;
 
-    public CIPlatformManagerProxy(
-            Map<String, CIPlatformManager> managers) {
+    public CIPlatformManagerProxy(Map<String, CIPlatformManager> managers) {
         this.managers = managers;
         validCIs = new ArrayList<String>(this.managers.keySet());
     }
@@ -32,10 +44,7 @@ public class CIPlatformManagerProxy {
         return validCIs;
     }
 
-    public void startBuild(
-            String pipelineName,
-            String buildParams)
-            throws Exception {
+    public void startBuild(String pipelineName, String buildParams) throws Exception {
         ArrayList<String> buildIDs = new ArrayList<String>();
         for (CIPlatformManager manager : this.managers.values()) {
             if (manager != null && jobExists(manager.getTypeName(), pipelineName)) {
@@ -43,18 +52,15 @@ public class CIPlatformManagerProxy {
                 if (buildID != null) {
                     buildIDs.add(buildID);
                 }
-            }
-            else {
+            } else {
                 LOG.error("Unable to start new job (hotfix-job) for {}", manager.getTypeName());
-                throw new Exception("Unable to start new job (hotfix-job) for " + manager.getTypeName());
+                throw new Exception(
+                        "Unable to start new job (hotfix-job) for " + manager.getTypeName());
             }
         }
     }
 
-    public String startBuild(
-            String pipelineName,
-            String buildParams,
-            String ciType)
+    public String startBuild(String pipelineName, String buildParams, String ciType)
             throws Exception {
         CIPlatformManager manager = getCIPlatformManager(ciType);
         if (manager != null && jobExists(manager.getTypeName(), pipelineName)) {
@@ -62,15 +68,12 @@ public class CIPlatformManagerProxy {
             return buildID;
         } else {
             LOG.error("Unable to start new job (hotfix-job) for {}", manager.getTypeName());
-            throw new Exception("Unable to start new job (hotfix-job) for " + manager.getTypeName());
+            throw new Exception(
+                    "Unable to start new job (hotfix-job) for " + manager.getTypeName());
         }
     }
 
-    public Object getBuild(
-            String ciType,
-            String pipelineName,
-            String buildId)
-            throws Exception {
+    public Object getBuild(String ciType, String pipelineName, String buildId) throws Exception {
         CIPlatformManager manager = getCIPlatformManager(ciType);
         if (manager == null) {
             throw new Exception("Unsupported CI type: " + ciType);
@@ -78,10 +81,7 @@ public class CIPlatformManagerProxy {
         return manager.getBuild(pipelineName, buildId);
     }
 
-    public boolean jobExists(
-            String ciType,
-            String jobName)
-            throws Exception {
+    public boolean jobExists(String ciType, String jobName) throws Exception {
         CIPlatformManager manager = getCIPlatformManager(ciType);
         if (manager == null) {
             throw new Exception("Unsupported CI type: " + ciType);
@@ -89,8 +89,7 @@ public class CIPlatformManagerProxy {
         return manager.jobExist(jobName);
     }
 
-    public Object getCIPlatform(String ciType)
-            throws Exception {
+    public Object getCIPlatform(String ciType) throws Exception {
         CIPlatformManager manager = getCIPlatformManager(ciType);
         if (manager == null) {
             throw new Exception("Unsupported CI type: " + ciType);

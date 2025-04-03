@@ -18,15 +18,13 @@ package com.pinterest.deployservice.ci;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.pinterest.teletraan.universal.http.HttpClient;
-
 import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // TODO: make it generic
 /** Wrapper for Jenkins API calls */
-public class Jenkins extends BaseCIPlatformManager{
+public class Jenkins extends BaseCIPlatformManager {
     private static final Logger LOG = LoggerFactory.getLogger(Jenkins.class);
     private final HttpClient httpClient;
     private final String jenkinsUrl;
@@ -85,7 +83,7 @@ public class Jenkins extends BaseCIPlatformManager{
         }
 
         @Override
-        public String getBuildUUID(){
+        public String getBuildUUID() {
             return this.buildId;
         }
 

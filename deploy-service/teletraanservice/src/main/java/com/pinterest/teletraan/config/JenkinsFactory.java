@@ -15,12 +15,11 @@
  */
 package com.pinterest.teletraan.config;
 
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.ci.CIPlatformManager;
+import com.pinterest.deployservice.ci.Jenkins;
+import javax.validation.constraints.NotNull;
 
 @JsonTypeName("jenkins")
 public class JenkinsFactory implements CIPlatformFactory {

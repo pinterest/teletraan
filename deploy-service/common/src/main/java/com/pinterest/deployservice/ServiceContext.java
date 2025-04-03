@@ -19,7 +19,6 @@ import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.ci.Buildkite;
-import com.pinterest.deployservice.ci.CIPlatformManager;
 import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
 import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.dao.AgentCountDAO;
@@ -406,22 +405,6 @@ public class ServiceContext {
 
     public void setChangeFeedUrl(String changeFeedUrl) {
         this.changeFeedUrl = changeFeedUrl;
-    }
-
-    public Jenkins getJenkins() {
-        return jenkins;
-    }
-
-    public void setJenkins(Jenkins jenkins) {
-        this.jenkins = jenkins;
-    }
-
-    public Buildkite getBuildkite() {
-        return buildkite;
-    }
-
-    public void setBuildkite(Buildkite buildkite) {
-        this.buildkite = buildkite;
     }
 
     public TagDAO getTagDAO() {

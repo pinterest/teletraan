@@ -47,7 +47,7 @@ public class GithubManager extends BaseManager {
     private final String apiPrefix;
     private final String urlPrefix;
     private final String githubAppId;
-    private String githubAppPrivateKeyKnox = "github:pinternal:app:teletraan";
+    private final String githubAppPrivateKeyKnox;
     private final String githubAppOrganization;
     private final String token;
     private final HttpClient httpClient;

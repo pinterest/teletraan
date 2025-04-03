@@ -18,7 +18,6 @@ package com.pinterest.teletraan.worker;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.ci.Buildkite;
-import com.pinterest.deployservice.ci.CIPlatformManager;
 import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
 import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.common.Constants;
@@ -163,26 +162,35 @@ public class HotfixStateTransitioner implements Runnable {
                                     + hotBean.getRepo();
                     // Start job and set start time
                     // jenkins.startBuild(hotBean.getJob_name(), buildParams);
-                    try{
-                        String buildUUID = ciPlatformManagerProxy.startBuild(
-                            hotBean.getJob_name(), buildParams, "buildkite");
+                    try {
+                        String buildUUID =
+                                ciPlatformManagerProxy.startBuild(
+                                        hotBean.getJob_name(), buildParams, "buildkite");
                         Buildkite.Build buildkiteBuild =
-                                (Buildkite.Build) ciPlatformManagerProxy.getBuild(
-                                        "buildkite", hotBean.getJob_name(), buildUUID);
+                                (Buildkite.Build)
+                                        ciPlatformManagerProxy.getBuild(
+                                                "buildkite", hotBean.getJob_name(), buildUUID);
 
-                        String jobID = ciPlatformManagerProxy.startBuild(hotBean.getJob_name(), buildParams, "jenkins");
-                        Jenkins.Build jenkinsBuild = (Jenkins.Build) ciPlatformManagerProxy.getBuild(
-                                        "jenkins", hotBean.getJob_name(), jobID);
+                        String jobID =
+                                ciPlatformManagerProxy.startBuild(
+                                        hotBean.getJob_name(), buildParams, "jenkins");
+                        Jenkins.Build jenkinsBuild =
+                                (Jenkins.Build)
+                                        ciPlatformManagerProxy.getBuild(
+                                                "jenkins", hotBean.getJob_name(), jobID);
 
                         LOG.info("Starting new CI Jobs (hotfix-job) for hotfix id {}", hotfixId);
                     } catch (Exception e) {
-                        LOG.error("Failed to start new CI Job (hotfix-job) for hotfix id {}", hotfixId, e);
+                        LOG.error(
+                                "Failed to start new CI Job (hotfix-job) for hotfix id {}",
+                                hotfixId,
+                                e);
                         hotBean.setState(HotfixState.FAILED);
-                        hotBean.setError_message(
-                                "Failed to create hotfix during batch triggering");
+                        hotBean.setError_message("Failed to create hotfix during batch triggering");
                         hotfixDAO.update(hotfixId, hotBean);
-                        LOG.warn("CI returned a FAILURE status during state INITIAL for hotfix id "
-                                            + hotfixId);
+                        LOG.warn(
+                                "CI returned a FAILURE status during state INITIAL for hotfix id "
+                                        + hotfixId);
                     }
                     transition(hotBean);
 
@@ -190,7 +198,10 @@ public class HotfixStateTransitioner implements Runnable {
 
                 } else if (state == HotfixState.PUSHING) {
                     if (!StringUtils.isEmpty(jobNum)) {
-                        Jenkins.Build build = (Jenkins.Build) ciPlatformManagerProxy.getBuild("jenkins", hotBean.getJob_name(), jobNum);
+                        Jenkins.Build build =
+                                (Jenkins.Build)
+                                        ciPlatformManagerProxy.getBuild(
+                                                "jenkins", hotBean.getJob_name(), jobNum);
                         String status = build.getStatus().replace("\"", "");
                         int newProgress = build.getProgress();
 

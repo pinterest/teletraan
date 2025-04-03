@@ -1,56 +1,73 @@
+/**
+ * Copyright (c) 2025 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.deployservice.ci;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.Map;
-
-import com.pinterest.deployservice.common.KeyReader;
-import com.pinterest.deployservice.common.KnoxKeyReader;
-import com.pinterest.teletraan.universal.http.HttpClient;
-
-import net.minidev.json.JSONObject;
-import scala.tools.jline_embedded.internal.Log;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.jaxrs.json.JsonEndpointConfig;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.pinterest.deployservice.common.KeyReader;
+import com.pinterest.deployservice.common.KnoxKeyReader;
+import com.pinterest.teletraan.universal.http.HttpClient;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Wrapper for Buildkite API calls */
 public class Buildkite extends BaseCIPlatformManager {
     private static final Logger LOG = LoggerFactory.getLogger(Buildkite.class);
     private static HttpClient httpClient;
     private static Gson gson;
-    // example: curl -sS -H "Authorization: Bearer bkpt_dc9eb539b43438f707d97387a28b587a78914efc" -H "Content-Type: application/json" 
-    // -d '{ "commit": "HEAD", "branch": "master", "ignore_pipeline_branch_filters": true, "env": ["TEST_ENV1=ENV1", "TEST_ENV2=ENV2"], 
-    // "metaData": [{ "key": "metadata_var1", "value": "metadata_val1" }, { "key": "metadata_var2", "value": "metadata_val2" }, { "key": "metadata_var3", "value": "metadata_val3" }] }' -X POST "https://portal.buildkite.com/organizations/pinterest/portals/trigger-buildkite-agent-integration-tests"
-    private String triggerBuildBodyString = 
+    // example: curl -sS -H "Authorization: Bearer bkpt_dc9eb539b43438f707d97387a28b587a78914efc" -H
+    // "Content-Type: application/json"
+    // -d '{ "commit": "HEAD", "branch": "master", "ignore_pipeline_branch_filters": true, "env":
+    // ["TEST_ENV1=ENV1", "TEST_ENV2=ENV2"],
+    // "metaData": [{ "key": "metadata_var1", "value": "metadata_val1" }, { "key": "metadata_var2",
+    // "value": "metadata_val2" }, { "key": "metadata_var3", "value": "metadata_val3" }] }' -X POST
+    // "https://portal.buildkite.com/organizations/pinterest/portals/trigger-buildkite-agent-integration-tests"
+    private String triggerBuildBodyString =
             "{\"commit\": \"%s\","
-            + "\"branch\": \"%s\","
-            + "\"message\": \"%s\","
-            + "\"metaData\": [%s]}";
-    private String queryBuildStatusBodyString =
-            "{\"uuid\": \"%s\"}";
+                    + "\"branch\": \"%s\","
+                    + "\"message\": \"%s\","
+                    + "\"metaData\": [%s]}";
+    private String queryBuildStatusBodyString = "{\"uuid\": \"%s\"}";
     private String buildkiteApiBaseUrl = "https://api.buildkite.com/v2/organizations/pinterest/";
-    private String buildkitePortalBaseUrl = "https://portal.buildkite.com/organizations/pinterest/portals/";
+    private String buildkitePortalBaseUrl =
+            "https://portal.buildkite.com/organizations/pinterest/portals/";
 
-    public Buildkite(String buildkitePortalBaseUrl, String buildkiteApiBaseUrl, String typeName, int priority) {
+    public Buildkite(
+            String buildkitePortalBaseUrl,
+            String buildkiteApiBaseUrl,
+            String typeName,
+            int priority) {
         super(typeName, priority);
         this.buildkiteApiBaseUrl = buildkiteApiBaseUrl;
         this.buildkitePortalBaseUrl = buildkitePortalBaseUrl;
         HttpClient.HttpClientBuilder clientBuilder = HttpClient.builder();
         httpClient = clientBuilder.build();
-        this.gson = new GsonBuilder()
+        this.gson =
+                new GsonBuilder()
                         .addSerializationExclusionStrategy(new CustomExclusionStrategy())
                         .create();
     }
@@ -67,7 +84,6 @@ public class Buildkite extends BaseCIPlatformManager {
         }
     }
 
-
     // https://buildkite.com/docs/apis/rest-api/builds#get-a-build
     public static class Build implements CIPlatformBuild {
         String pipelineName;
@@ -76,8 +92,7 @@ public class Buildkite extends BaseCIPlatformManager {
         String buildStatus;
         long startTimestamp;
         long duration;
-        private String queryLatestBuildsBodyString =
-            "{\"pipeline_slug\" : \"%s\"}";
+        private String queryLatestBuildsBodyString = "{\"pipeline_slug\" : \"%s\"}";
 
         public Build(
                 String pipelineName,
@@ -157,7 +172,8 @@ public class Buildkite extends BaseCIPlatformManager {
             } else if (this.buildStatus.equals("skipped")) {
                 return 0;
             } else {
-                return (int) (duration / getLastBuildsAverageTime("pinterest/" + this.pipelineName));
+                return (int)
+                        (duration / getLastBuildsAverageTime("pinterest/" + this.pipelineName));
             }
         }
 
@@ -168,26 +184,29 @@ public class Buildkite extends BaseCIPlatformManager {
             String queryToken = knoxKeyReader.getKey();
             Map<String, String> headers = new HashMap<String, String>();
             headers.put("Authorization", "Bearer " + queryToken);
-            String bodyString = String.format(queryLatestBuildsBodyString, "pinterest/" + pipelineName);
+            String bodyString =
+                    String.format(queryLatestBuildsBodyString, "pinterest/" + pipelineName);
             try {
-                String res = httpClient.post(
-                    "https://portal.buildkite.com/organizations/pinterest/portals/query-latest-builds", 
-                    bodyString,
-                    headers);
+                String res =
+                        httpClient.post(
+                                "https://portal.buildkite.com/organizations/pinterest/portals/query-latest-builds",
+                                bodyString,
+                                headers);
                 JsonObject fullJson = gson.fromJson(res, JsonObject.class);
                 if (fullJson == null || fullJson.isJsonNull()) {
                     return 0L;
                 }
-                JsonArray buildsEdges = fullJson.getAsJsonObject("data")
-                    .getAsJsonObject("pipeline")
-                    .getAsJsonObject("builds")
-                    .getAsJsonArray("edges");
-                
+                JsonArray buildsEdges =
+                        fullJson.getAsJsonObject("data")
+                                .getAsJsonObject("pipeline")
+                                .getAsJsonObject("builds")
+                                .getAsJsonArray("edges");
+
                 int buildsCount = buildsEdges.size();
                 long totalDuration = 0;
                 for (JsonElement build : buildsEdges) {
                     JsonObject node = build.getAsJsonObject().getAsJsonObject("node");
-    
+
                     String createdAt = node.get("createdAt").getAsString();
                     long createdAtTimestamp = Instant.parse(createdAt).toEpochMilli();
                     String finishedAt = node.get("finishedAt").getAsString();
@@ -196,7 +215,7 @@ public class Buildkite extends BaseCIPlatformManager {
                     totalDuration += duration;
                 }
                 return totalDuration / buildsCount;
-                
+
             } catch (Throwable t) {
                 LOG.error("Error in querying latest builds for pipeline " + pipelineName, t);
                 return 0L;
@@ -217,9 +236,9 @@ public class Buildkite extends BaseCIPlatformManager {
         HashMap<String, String> buildMetadata = new HashMap<>();
 
         if (buildParams != null && !buildParams.isEmpty()) {
-            String[] buildParamPairs = buildParams.split("&");  // Split by "&"
+            String[] buildParamPairs = buildParams.split("&"); // Split by "&"
             for (String pair : buildParamPairs) {
-                String[] keyValue = pair.split("=", 2);  // Split by "=", limit to 2 parts
+                String[] keyValue = pair.split("=", 2); // Split by "=", limit to 2 parts
                 if (keyValue.length == 2) {
                     String key = keyValue[0];
                     String value = keyValue[1];
@@ -238,8 +257,9 @@ public class Buildkite extends BaseCIPlatformManager {
             String commit,
             String branch,
             String message,
-            HashMap<String, String> buildMetadata) throws IOException {
-        
+            HashMap<String, String> buildMetadata)
+            throws IOException {
+
         if (commit == "") {
             commit = "HEAD";
         }
@@ -253,29 +273,36 @@ public class Buildkite extends BaseCIPlatformManager {
         knoxKeyString = String.format(knoxKeyString, pipeline.replaceAll("-", "_"));
         KeyReader knoxKeyReader = new KnoxKeyReader();
         knoxKeyReader.init(knoxKeyString);
-        String apiToken = (pipeline == "envoy-hotfix-job") ? "bkpt_NTk0Mw_c0337fa681e2d68f0e3bfa2cef8c8acce1e1d975" : knoxKeyReader.getKey();
+        String apiToken = knoxKeyReader.getKey();
         String metadata = "";
         int count = 0;
         Set<String> keys = buildMetadata.keySet();
         for (String key : keys) {
             if (count < keys.size() - 1) {
-                metadata += "{\"key\": \"" + key + "\", \"value\": \"" + buildMetadata.get(key) + "\"},";
+                metadata +=
+                        "{\"key\": \""
+                                + key
+                                + "\", \"value\": \""
+                                + buildMetadata.get(key)
+                                + "\"},";
             } else {
-                metadata += "{\"key\": \"" + key + "\", \"value\": \"" + buildMetadata.get(key) + "\"}";
+                metadata +=
+                        "{\"key\": \"" + key + "\", \"value\": \"" + buildMetadata.get(key) + "\"}";
             }
             count++;
         }
-        String bodyString = String.format(triggerBuildBodyString,
-                commit,
-                branch,
-                message,
-                metadata);
+        String bodyString =
+                String.format(triggerBuildBodyString, commit, branch, message, metadata);
         LOG.debug("[Buildkite][startBuild] bodyString " + bodyString);
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Authorization", "Bearer " + apiToken);
         try {
-            String res = httpClient.post(constructPortalEndpoint("trigger", pipeline), bodyString, headers);
-            LOG.debug("[Buildkite][startBuild] portal url " + constructPortalEndpoint("trigger", pipeline));
+            String res =
+                    httpClient.post(
+                            constructPortalEndpoint("trigger", pipeline), bodyString, headers);
+            LOG.debug(
+                    "[Buildkite][startBuild] portal url "
+                            + constructPortalEndpoint("trigger", pipeline));
             JsonObject fullJson = gson.fromJson(res, JsonObject.class);
             if (fullJson == null || fullJson.isJsonNull()) {
                 LOG.error("Something went wrong triggering build for pipeline " + pipeline);
@@ -311,7 +338,11 @@ public class Buildkite extends BaseCIPlatformManager {
         long finishedTimestamp = 0L;
         long duration = 0L;
         try {
-            String res = httpClient.post("https://portal.buildkite.com/organizations/pinterest/portals/query-build-generic", bodyString, headers);
+            String res =
+                    httpClient.post(
+                            "https://portal.buildkite.com/organizations/pinterest/portals/query-build-generic",
+                            bodyString,
+                            headers);
             JsonObject fullJson = gson.fromJson(res, JsonObject.class);
             if (fullJson == null || fullJson.isJsonNull()) {
                 return null;
@@ -325,16 +356,14 @@ public class Buildkite extends BaseCIPlatformManager {
                     if (build.has("startedAt") && !build.get("startedAt").isJsonNull()) {
                         String startedAt = build.getAsJsonPrimitive("startedAt").getAsString();
                         startTimestamp = Instant.parse(startedAt).toEpochMilli();
-                    }
-                    else {
+                    } else {
                         startTimestamp = System.currentTimeMillis();
                         duration = 0L;
                     }
                     if (build.has("finishedAt") && !build.get("finishedAt").isJsonNull()) {
                         String finishedAt = build.getAsJsonPrimitive("finishedAt").getAsString();
                         finishedTimestamp = Instant.parse(finishedAt).toEpochMilli();
-                    }
-                    else {
+                    } else {
                         finishedTimestamp = System.currentTimeMillis();
                     }
                     duration = finishedTimestamp - startTimestamp;
@@ -342,13 +371,17 @@ public class Buildkite extends BaseCIPlatformManager {
             }
             return new Build(pipeline, buildUUID, url, state, startTimestamp, duration);
         } catch (Throwable t) {
-            LOG.error(String.format("Error in querying build status for pipeline %s and build %s", pipeline, buildUUID), t);
+            LOG.error(
+                    String.format(
+                            "Error in querying build status for pipeline %s and build %s",
+                            pipeline, buildUUID),
+                    t);
             return null;
         }
     }
 
     @Override
-    public boolean jobExist(String pipeline) throws Exception{
+    public boolean jobExist(String pipeline) throws Exception {
         String knoxKeyString = "svc_buildkite:buildkite:readonly";
         KeyReader knoxKeyReader = new KnoxKeyReader();
         knoxKeyReader.init(knoxKeyString);
@@ -361,18 +394,12 @@ public class Buildkite extends BaseCIPlatformManager {
             JsonObject fullJson = gson.fromJson(res, JsonObject.class);
             if (fullJson == null || fullJson.isJsonNull()) {
                 return false;
-            }
-            else {
+            } else {
                 return true;
             }
         } catch (Throwable t) {
             LOG.error(String.format("Error in checking if job %s exists", pipeline), t);
             return false;
         }
-    }
-
-    @Override
-    public Build getBuildObject() throws Exception {
-        return new Build("", "", "", "", 0L, 0L);
     }
 }

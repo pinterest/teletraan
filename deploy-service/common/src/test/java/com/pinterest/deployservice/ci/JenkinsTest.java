@@ -21,8 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
-import com.pinterest.deployservice.ci.Jenkins;
-
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import okhttp3.mockwebserver.Dispatcher;
@@ -76,7 +74,13 @@ class JenkinsTest {
                 NumberFormatException.class,
                 () -> {
                     new Jenkins(
-                            TEST_JENKINS_URL, TEST_REMOTE_TOKEN, true, "localhost", "invalidPort", "Jenkins", 2);
+                            TEST_JENKINS_URL,
+                            TEST_REMOTE_TOKEN,
+                            true,
+                            "localhost",
+                            "invalidPort",
+                            "Jenkins",
+                            2);
                 });
     }
 
