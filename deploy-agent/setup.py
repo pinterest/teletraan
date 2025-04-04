@@ -22,6 +22,7 @@ console_scripts = [
     "deploy-agent = deployd.agent:main",
     "deploy-downloader = deployd.download.downloader:main",
     "deploy-stager = deployd.staging.stager:main",
+    "deployd-restarter = deployd.restart.restarter:main",
 ]
 
 install_requires = [

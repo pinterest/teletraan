@@ -231,3 +231,4 @@ class DeployStatus(object):
 
 # TODO prefer get it from server ( STEPS, PRE_STAGE_STEPS etc.)
 PRE_STAGE_STEPS = ("PRE_DOWNLOAD", "DOWNLOADING", "POST_DOWNLOAD", "STAGING")
+DEPLOY_AGENT_ENVIRONMENT_NAME = "deploy-init"
