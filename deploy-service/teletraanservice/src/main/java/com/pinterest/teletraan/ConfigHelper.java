@@ -17,7 +17,8 @@ package com.pinterest.teletraan;
 
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
-import com.pinterest.deployservice.common.Jenkins;
+import com.pinterest.deployservice.ci.CIPlatformManager;
+import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
 import com.pinterest.deployservice.db.DBAgentDAOImpl;
 import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
@@ -49,7 +50,7 @@ import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
-import com.pinterest.teletraan.config.JenkinsFactory;
+import com.pinterest.teletraan.config.CIPlatformFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
@@ -157,6 +158,15 @@ public class ConfigHelper {
         context.setSourceControlManagerProxy(
                 new SourceControlManagerProxy(managers, defaultScmTypeName));
 
+        List<CIPlatformFactory> ciPlatformConfigs = configuration.getCIPlatformConfigs();
+        Map<String, CIPlatformManager> ciPlatforms = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
+            CIPlatformManager ciPlatform = ciPlatformFactory.create();
+            String type = ciPlatform.getTypeName();
+            ciPlatforms.put(type, ciPlatform);
+        }
+        context.setCIPlatformManagerProxy(new CIPlatformManagerProxy(ciPlatforms));
+
         AppEventFactory appEventFactory = configuration.getAppEventFactory();
         if (appEventFactory != null) {
             context.setAppEventPublisher(appEventFactory.createEventPublisher());
@@ -190,16 +200,28 @@ public class ConfigHelper {
                             new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
         }
 
-        JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
-        if (jenkinsFactory != null) {
-            context.setJenkins(
-                    new Jenkins(
-                            jenkinsFactory.getJenkinsUrl(),
-                            jenkinsFactory.getRemoteToken(),
-                            jenkinsFactory.getUseProxy(),
-                            jenkinsFactory.getHttpProxyAddr(),
-                            jenkinsFactory.getHttpProxyPort()));
-        }
+        // JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
+        // if (jenkinsFactory != null) {
+        //     context.setJenkins(
+        //             new Jenkins(
+        //                     jenkinsFactory.getJenkinsUrl(),
+        //                     jenkinsFactory.getRemoteToken(),
+        //                     jenkinsFactory.getUseProxy(),
+        //                     jenkinsFactory.getHttpProxyAddr(),
+        //                     jenkinsFactory.getHttpProxyPort(),
+        //                     jenkinsFactory.getTypeName(),
+        //                     jenkinsFactory.getPriority()));
+        // }
+
+        // BuildkiteFactory buildkiteFactory = configuration.getBuildkiteFactory();
+        // if (buildkiteFactory != null) {
+        //     context.setBuildkite(
+        //             new Buildkite(
+        //                     buildkiteFactory.getBuildkitePortalBaseUrl(),
+        //                     buildkiteFactory.getBuildkiteApiBaseUrl(),
+        //                     buildkiteFactory.getTypeName(),
+        //                     buildkiteFactory.getPriority()));
+        // }
 
         LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());
         // Set external alerts factory
