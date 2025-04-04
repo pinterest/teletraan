@@ -3,3 +3,5 @@
 26186160fca06439b7baacba318cc3f42993b9eb
 # Format deploy-agent code (#1776)
 565a18c7a83eb1613bfef51f68cd74b0d45acce5
+# Format deploy-board Python code (#1802)
+ef389a5346cd7c25e35dc54fcb00031c46bdf179
