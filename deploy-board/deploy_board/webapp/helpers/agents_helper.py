@@ -13,32 +13,40 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all agents related calls
-"""
+"""Collection of all agents related calls"""
+
 from deploy_board.webapp.helpers.deployclient import DeployClient
 
 deployclient = DeployClient()
 
 
 def get_agents(request, env_name, stage_name):
-    return deployclient.get("/envs/%s/%s/agents" % (env_name, stage_name),
-                            request.teletraan_user_id.token)
+    return deployclient.get(
+        "/envs/%s/%s/agents" % (env_name, stage_name), request.teletraan_user_id.token
+    )
 
 
 def reset_failed_agents(request, env_name, stage_name, deploy_id):
-    return deployclient.put("/envs/%s/%s/agents/reset_failed_agents/%s" % (env_name, stage_name,
-                                                                           deploy_id),
-                            request.teletraan_user_id.token)
+    return deployclient.put(
+        "/envs/%s/%s/agents/reset_failed_agents/%s" % (env_name, stage_name, deploy_id),
+        request.teletraan_user_id.token,
+    )
 
 
 def get_agent_error(request, env_name, stage_name, host_name):
-    return deployclient.get("/envs/%s/%s/agents/errors/%s" % (env_name, stage_name, host_name),
-                            request.teletraan_user_id.token)['errorMessage']
+    return deployclient.get(
+        "/envs/%s/%s/agents/errors/%s" % (env_name, stage_name, host_name),
+        request.teletraan_user_id.token,
+    )["errorMessage"]
 
 
 def retry_deploy(request, env_name, stage_name, host_id):
-    return deployclient.put("/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
-                            request.teletraan_user_id.token, data={"state": "RESET"})
+    return deployclient.put(
+        "/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
+        request.teletraan_user_id.token,
+        data={"state": "RESET"},
+    )
+
 
 def reset_all_environments(request, host_id):
     return deployclient.put(
@@ -47,14 +55,21 @@ def reset_all_environments(request, host_id):
         data={"state": "RESET"},
     )
 
+
 def pause_deploy(request, env_name, stage_name, host_id):
-    return deployclient.put("/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
-                            request.teletraan_user_id.token, data={"state": "PAUSED_BY_USER"})
+    return deployclient.put(
+        "/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
+        request.teletraan_user_id.token,
+        data={"state": "PAUSED_BY_USER"},
+    )
 
 
 def resume_deploy(request, env_name, stage_name, host_id):
-    return deployclient.put("/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
-                            request.teletraan_user_id.token, data={"state": "NORMAL"})
+    return deployclient.put(
+        "/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
+        request.teletraan_user_id.token,
+        data={"state": "NORMAL"},
+    )
 
 
 def get_agents_by_host(request, host_name):
@@ -62,5 +77,6 @@ def get_agents_by_host(request, host_name):
 
 
 def get_agents_total_by_env(request, env_id):
-    return deployclient.get("/agents/env/%s/total" % env_id, request.teletraan_user_id.token)
-
+    return deployclient.get(
+        "/agents/env/%s/total" % env_id, request.teletraan_user_id.token
+    )

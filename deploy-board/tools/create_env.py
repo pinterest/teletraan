@@ -23,8 +23,9 @@ if __name__ == "__main__":
         try:
             create_env(name, stage)
             hosts = ["sample-host1", "sample-host2"]
-            environs_helper.update_env_capacity(REQUEST, name, stage,
-                                                capacity_type="HOST", data=hosts)
+            environs_helper.update_env_capacity(
+                REQUEST, name, stage, capacity_type="HOST", data=hosts
+            )
             stage = "prod"
             create_env(name, stage)
             groups = ["sample-group1", "sample-group2"]

@@ -20,8 +20,13 @@ from urllib3 import request
 import random
 import time
 
-from deploy_board.webapp.helpers import environs_helper, builds_helper, systems_helper, \
-    deploys_helper, agents_helper
+from deploy_board.webapp.helpers import (
+    environs_helper,
+    builds_helper,
+    systems_helper,
+    deploys_helper,
+    agents_helper,
+)
 from deploy_board.webapp.common import UserIdentity
 
 token = os.environ.get("TELETRAAN_TEST_TOKEN")
@@ -34,30 +39,30 @@ REQUEST.teletraan_user_id = USER
 
 
 def gen_random_num(size=8, chars=string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
+    return "".join(random.choice(chars) for _ in range(size))
 
 
 def create_env(name: str, stage: str):
     request = {}
     request["envName"] = name
     request["stageName"] = stage
-    request["stageType"]= "PRODUCTION"
+    request["stageType"] = "PRODUCTION"
     env = environs_helper.create_env(REQUEST, request)
     print(f"Successfully created env {env['id']}")
     return env
 
 
-def publish_build(build_name, branch='master', commit=gen_random_num(32)):
+def publish_build(build_name, branch="master", commit=gen_random_num(32)):
     request = {}
-    request['name'] = build_name
-    request['repo'] = "sample-repo"
-    request['branch'] = branch
-    request['commit'] = commit
-    request['commitDate'] = int(round(time.time() * 1000))
-    request['artifactUrl'] = "https://sample.com"
-    request['publishInfo'] = "https://sample.com"
+    request["name"] = build_name
+    request["repo"] = "sample-repo"
+    request["branch"] = branch
+    request["commit"] = commit
+    request["commitDate"] = int(round(time.time() * 1000))
+    request["artifactUrl"] = "https://sample.com"
+    request["publishInfo"] = "https://sample.com"
     build = builds_helper.publish_build(REQUEST, request)
-    print("Successfully published build %s." % build['id'])
+    print("Successfully published build %s." % build["id"])
     return build
 
 

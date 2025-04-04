@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of build related calls
-"""
+"""Collection of build related calls"""
+
 from deploy_board.webapp.helpers.deployclient import DeployClient
 
 deploy_client = DeployClient()
@@ -25,7 +25,9 @@ def get_build(request, id):
 
 
 def get_branches(request, name):
-    return deploy_client.get("/builds/names/%s/branches" % name, request.teletraan_user_id.token)
+    return deploy_client.get(
+        "/builds/names/%s/branches" % name, request.teletraan_user_id.token
+    )
 
 
 def get_builds(request, **kwargs):
@@ -39,7 +41,9 @@ def publish_build(request, build):
 
 def get_build_names(request, **kwargs):
     params = deploy_client.gen_params(kwargs)
-    return deploy_client.get("/builds/names/", request.teletraan_user_id.token, params=params)
+    return deploy_client.get(
+        "/builds/names/", request.teletraan_user_id.token, params=params
+    )
 
 
 def delete_build(request, id):
@@ -48,18 +52,28 @@ def delete_build(request, id):
 
 def get_commits(request, **kwargs):
     params = deploy_client.gen_params(kwargs)
-    return deploy_client.get("/commits/", request.teletraan_user_id.token, params=params)
+    return deploy_client.get(
+        "/commits/", request.teletraan_user_id.token, params=params
+    )
 
 
 def get_commit(request, repo, sha):
-    return deploy_client.get("/commits/%s/%s" % (repo, sha), request.teletraan_user_id.token)
+    return deploy_client.get(
+        "/commits/%s/%s" % (repo, sha), request.teletraan_user_id.token
+    )
+
 
 def get_builds_and_tags(request, **kwargs):
     params = deploy_client.gen_params(kwargs)
-    return deploy_client.get("/builds/tags",request.teletraan_user_id.token, params=params)
+    return deploy_client.get(
+        "/builds/tags", request.teletraan_user_id.token, params=params
+    )
+
 
 def get_build_and_tag(request, id):
-    return deploy_client.get("/builds/{0}/tags".format(id), request.teletraan_user_id.token)
+    return deploy_client.get(
+        "/builds/{0}/tags".format(id), request.teletraan_user_id.token
+    )
 
 
 def set_build_tag(request, tag):
@@ -67,4 +81,6 @@ def set_build_tag(request, tag):
 
 
 def del_build_tag(request, id):
-    return deploy_client.delete("/tags/{0}/".format(id), request.teletraan_user_id.token)
+    return deploy_client.delete(
+        "/tags/{0}/".format(id), request.teletraan_user_id.token
+    )

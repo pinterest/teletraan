@@ -13,10 +13,14 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all deploy related views
-"""
+"""Collection of all deploy related views"""
+
 import logging
-from deploy_board.settings import SITE_METRICS_CONFIGS, TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
+from deploy_board.settings import (
+    SITE_METRICS_CONFIGS,
+    TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+    TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,
+)
 from django.middleware.csrf import get_token
 from .accounts import get_accounts_from_deploy
 import json
@@ -32,133 +36,169 @@ log = logging.getLogger(__name__)
 DEFAULT_PAGE_SIZE = 30
 DEFAULT_ONGOING_DEPLOY_SIZE = 10
 
+
 def _get_running_deploys_count(request):
     deploy_states = ["RUNNING"]  # current running deploys
-    page_size = 1                # only need to return 1 detail, the return structure has the "total" value
-    deployResult = deploys_helper.get_all(request, deployState=deploy_states, pageSize=page_size)
-    return deployResult['total']
+    page_size = (
+        1  # only need to return 1 detail, the return structure has the "total" value
+    )
+    deployResult = deploys_helper.get_all(
+        request, deployState=deploy_states, pageSize=page_size
+    )
+    return deployResult["total"]
+
 
 def _get_sidecars(request):
     # returns a list of env id for sidecars which are identified by having a system priority
     envs = environs_helper.get_all_sidecar_envs(request)
     env_ids = []
     for env in envs:
-        env_ids.append(env['id'])
+        env_ids.append(env["id"])
     return env_ids
+
 
 def _get_ongoing_sidecar_deploys(request):
     deploy_summaries = []
     env_ids = _get_sidecars(request)
     if env_ids:
         deploy_states = ["RUNNING", "FAILING"]
-        deployResult = deploys_helper.get_all(request, envId=env_ids, deployState=deploy_states)
-        for deploy in deployResult['deploys']:
-            env = environs_helper.get(request, deploy['envId'])
-            build = builds_helper.get_build(request, deploy['buildId'])
+        deployResult = deploys_helper.get_all(
+            request, envId=env_ids, deployState=deploy_states
+        )
+        for deploy in deployResult["deploys"]:
+            env = environs_helper.get(request, deploy["envId"])
+            build = builds_helper.get_build(request, deploy["buildId"])
             summary = {}
-            summary['deploy'] = deploy
-            summary['env'] = env
-            summary['build'] = build
+            summary["deploy"] = deploy
+            summary["env"] = env
+            summary["build"] = build
             deploy_summaries.append(summary)
 
     return deploy_summaries
 
+
 def _get_ongoing_deploys(request, index, size):
     # ongoing deploys are defined as deploys with states as:
     deploy_states = ["RUNNING", "FAILING"]
-    deployResult = deploys_helper.get_all(request, deployState=deploy_states,
-                                          pageIndex=index, pageSize=size)
+    deployResult = deploys_helper.get_all(
+        request, deployState=deploy_states, pageIndex=index, pageSize=size
+    )
     deploy_summaries = []
-    for deploy in deployResult['deploys']:
-        env = environs_helper.get(request, deploy['envId'])
-        build = builds_helper.get_build(request, deploy['buildId'])
+    for deploy in deployResult["deploys"]:
+        env = environs_helper.get(request, deploy["envId"])
+        build = builds_helper.get_build(request, deploy["buildId"])
         summary = {}
-        summary['deploy'] = deploy
-        summary['env'] = env
-        summary['build'] = build
+        summary["deploy"] = deploy
+        summary["env"] = env
+        summary["build"] = build
         deploy_summaries.append(summary)
 
     return deploy_summaries
 
 
 def get_landing_page(request):
-    envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
+    envs_tag = tags_helper.get_latest_by_target_id(request, "TELETRAAN")
     metrics = SITE_METRICS_CONFIGS
-    return render(request, 'landing.html', {
-        "metrics": metrics,
-        'envs_tag': envs_tag,
-        "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
-        "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
-    })
+    return render(
+        request,
+        "landing.html",
+        {
+            "metrics": metrics,
+            "envs_tag": envs_tag,
+            "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+            "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,
+        },
+    )
+
 
 def get_ongoing_sidecar_deploys(request):
     deploy_summeries = _get_ongoing_sidecar_deploys(request)
-    html = render_to_string('deploys/ongoing_deploys.tmpl', {
-        "deploy_summaries": deploy_summeries,
-        "pageIndex": 1,
-        "pageSize": 100,
-        "disablePrevious": True,
-        "disableNext": True,
-    })
+    html = render_to_string(
+        "deploys/ongoing_deploys.tmpl",
+        {
+            "deploy_summaries": deploy_summeries,
+            "pageIndex": 1,
+            "pageSize": 100,
+            "disablePrevious": True,
+            "disableNext": True,
+        },
+    )
     return HttpResponse(html)
 
+
 def get_ongoing_deploys(request):
-    index = int(request.GET.get('page_index', '1'))
-    size = int(request.GET.get('page_size', DEFAULT_ONGOING_DEPLOY_SIZE))
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", DEFAULT_ONGOING_DEPLOY_SIZE))
     deploy_summeries = _get_ongoing_deploys(request, index, size)
-    html = render_to_string('deploys/ongoing_deploys.tmpl', {
-        "deploy_summaries": deploy_summeries,
-        "pageIndex": index,
-        "pageSize": size,
-        "disablePrevious": index <= 1,
-        "disableNext": len(deploy_summeries) < DEFAULT_ONGOING_DEPLOY_SIZE,
-    })
+    html = render_to_string(
+        "deploys/ongoing_deploys.tmpl",
+        {
+            "deploy_summaries": deploy_summeries,
+            "pageIndex": index,
+            "pageSize": size,
+            "disablePrevious": index <= 1,
+            "disableNext": len(deploy_summeries) < DEFAULT_ONGOING_DEPLOY_SIZE,
+        },
+    )
     return HttpResponse(html)
+
 
 def get_daily_deploy_count(request):
     daily_deploy_count = deploys_helper.get_daily_deploy_count(request)
     running_deploy_count = _get_running_deploys_count(request)
-    html = render_to_string('deploys/daily_deploy_count.tmpl', {
-        "daily_deploy_count": daily_deploy_count,
-        "running_deploy_count": running_deploy_count
-    })
+    html = render_to_string(
+        "deploys/daily_deploy_count.tmpl",
+        {
+            "daily_deploy_count": daily_deploy_count,
+            "running_deploy_count": running_deploy_count,
+        },
+    )
     return HttpResponse(html)
 
 
 def get_duplicate_commit_deploy_message(request, name, stage, buildId):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    if env.get('deployId') is None:
-        return HttpResponse('')
+    if env.get("deployId") is None:
+        return HttpResponse("")
 
     current_deploy = deploys_helper.get_current(request, name, stage)
-    current_build = builds_helper.get_build(request, current_deploy['buildId'])
-    current_commit = current_build['commit']
+    current_build = builds_helper.get_build(request, current_deploy["buildId"])
+    current_commit = current_build["commit"]
 
     next_build = builds_helper.get_build(request, buildId)
-    next_commit = next_build['commit']
+    next_commit = next_build["commit"]
 
     if current_commit == next_commit:
-        return render(request, 'deploys/duplicate_commit_deploy_message.tmpl',{
-                      "commit":next_build['commitShort']})
-    return HttpResponse('')
+        return render(
+            request,
+            "deploys/duplicate_commit_deploy_message.tmpl",
+            {"commit": next_build["commitShort"]},
+        )
+    return HttpResponse("")
 
 
 class DeployView(View):
     def get(self, request, deploy_id):
         deploy = deploys_helper.get(request, deploy_id)
-        build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
+        build_with_tag = builds_helper.get_build_and_tag(request, deploy["buildId"])
         env = None
         deploy_accounts = []
-        if deploy.get('envId'):
-            env = environs_helper.get(request, deploy['envId'])
-            deploy_accounts = get_accounts_from_deploy(request, env, deploy, build_with_tag)
-        return render(request, 'deploys/deploy_details.html', {
-            "deploy": deploy,
-            "build": build_with_tag['build'],
-            "csrf_token": get_token(request),
-            "env": env,
-            "deploy_accounts": deploy_accounts
-        })
+        if deploy.get("envId"):
+            env = environs_helper.get(request, deploy["envId"])
+            deploy_accounts = get_accounts_from_deploy(
+                request, env, deploy, build_with_tag
+            )
+        return render(
+            request,
+            "deploys/deploy_details.html",
+            {
+                "deploy": deploy,
+                "build": build_with_tag["build"],
+                "csrf_token": get_token(request),
+                "env": env,
+                "deploy_accounts": deploy_accounts,
+            },
+        )
 
 
 def inline_update(request):
@@ -170,4 +210,4 @@ def inline_update(request):
         deploys_helper.update(request, deploy_id, {"description": value})
     else:
         log.error("Unsupport deploy update on field " + name)
-    return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
+    return HttpResponse(json.dumps({"html": ""}), content_type="application/json")

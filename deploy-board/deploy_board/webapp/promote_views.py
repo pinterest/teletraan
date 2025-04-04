@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all env promote config views
-"""
+"""Collection of all env promote config views"""
+
 import json
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
@@ -31,31 +31,40 @@ class EnvPromoteConfigView(View):
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         env_promote = environs_helper.get_env_promotes_config(request, name, stage)
-        stage_names = ['BUILD']
+        stage_names = ["BUILD"]
         for stage_name in stages:
-            if stage_name != env['stageName']:
+            if stage_name != env["stageName"]:
                 stage_names.append(stage_name)
 
         if request.is_ajax():
             # return data for ajax calls
-            html = render_to_string('configs/promote_config.tmpl', {
-                "env": env,
-                "stage_names": stage_names,
-                "env_promote": env_promote,
-                "csrf_token": get_token(request),
-            })
-            return HttpResponse(json.dumps({'html': html}), content_type="application/json")
+            html = render_to_string(
+                "configs/promote_config.tmpl",
+                {
+                    "env": env,
+                    "stage_names": stage_names,
+                    "env_promote": env_promote,
+                    "csrf_token": get_token(request),
+                },
+            )
+            return HttpResponse(
+                json.dumps({"html": html}), content_type="application/json"
+            )
 
         # otherwise, return a page
 
-        return render(request, 'configs/promote_config.html', {
-            "envs": envs,
-            "env": env,
-            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
-            "stages": stages,
-            "stage_names": stage_names,
-            "env_promote": env_promote,
-        })
+        return render(
+            request,
+            "configs/promote_config.html",
+            {
+                "envs": envs,
+                "env": env,
+                "all_stage_types": sorted(environs_helper.STAGE_TYPES),
+                "stages": stages,
+                "stage_names": stage_names,
+                "env_promote": env_promote,
+            },
+        )
 
     def post(self, request, name, stage):
         query_dict = request.POST
@@ -65,7 +74,7 @@ class EnvPromoteConfigView(View):
         data["failPolicy"] = query_dict["promoteFailPolicy"]
         data["disablePolicy"] = query_dict["promoteDisablePolicy"]
         data["schedule"] = query_dict["promoteSchedule"]
-        if 'promoteDelay' in query_dict:
+        if "promoteDelay" in query_dict:
             data["delay"] = int(query_dict["promoteDelay"])
         if "promoteQueueSize" in query_dict:
             data["queueSize"] = int(query_dict["promoteQueueSize"])

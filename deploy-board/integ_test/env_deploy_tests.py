@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,8 +46,8 @@ class TestDeploys(unittest.TestCase):
         data["stageName"] = PROD
         cls.prodEnvId = environs_helper.create_env(commons.REQUEST, data)["id"]
 
-        cls.buildId1 = commons.publish_build(cls.envName)['id']
-        cls.buildId2 = commons.publish_build(cls.envName)['id']
+        cls.buildId1 = commons.publish_build(cls.envName)["id"]
+        cls.buildId2 = commons.publish_build(cls.envName)["id"]
 
     @classmethod
     def tearDownClass(cls):
@@ -58,8 +58,9 @@ class TestDeploys(unittest.TestCase):
 
     def testDeploys(self):
         # test regular deploy
-        deploy1 = deploys_helper.deploy(commons.REQUEST, TestDeploys.envName, CANARY,
-                                        TestDeploys.buildId1)
+        deploy1 = deploys_helper.deploy(
+            commons.REQUEST, TestDeploys.envName, CANARY, TestDeploys.buildId1
+        )
         self.assertEqual(deploy1["envId"], TestDeploys.canaryEnvId)
         self.assertEqual(deploy1["buildId"], TestDeploys.buildId1)
         self.assertEqual(deploy1["type"], "REGULAR")
@@ -68,13 +69,15 @@ class TestDeploys(unittest.TestCase):
         self.assertEqual(deploy1["failTotal"], 0)
         self.assertEqual(deploy1["total"], 0)
 
-        deploy2 = deploys_helper.deploy(commons.REQUEST, TestDeploys.envName, CANARY,
-                                        TestDeploys.buildId2)
+        deploy2 = deploys_helper.deploy(
+            commons.REQUEST, TestDeploys.envName, CANARY, TestDeploys.buildId2
+        )
         self.assertEqual(deploy2["buildId"], TestDeploys.buildId2)
         # test query
         envIds = [TestDeploys.canaryEnvId, commons.gen_random_num()]
-        deployResult = deploys_helper.get_all(commons.REQUEST, envId=envIds, oldestFirst=True,
-                                              pageIndex=1, pageSize=1)
+        deployResult = deploys_helper.get_all(
+            commons.REQUEST, envId=envIds, oldestFirst=True, pageIndex=1, pageSize=1
+        )
         self.assertEqual(deployResult["total"], 2)
         # TODO why we need truncated at all?
         self.assertTrue(deployResult["truncated"])
@@ -84,12 +87,14 @@ class TestDeploys(unittest.TestCase):
 
         # test pause and resume
         deploys_helper.pause(commons.REQUEST, TestDeploys.envName, CANARY)
-        envState = environs_helper.get_env_by_stage(commons.REQUEST, TestDeploys.envName,
-                                                    CANARY)['envState']
+        envState = environs_helper.get_env_by_stage(
+            commons.REQUEST, TestDeploys.envName, CANARY
+        )["envState"]
         self.assertEqual(envState, "PAUSED")
         deploys_helper.resume(commons.REQUEST, TestDeploys.envName, CANARY)
-        envState = environs_helper.get_env_by_stage(commons.REQUEST, TestDeploys.envName,
-                                                    CANARY)['envState']
+        envState = environs_helper.get_env_by_stage(
+            commons.REQUEST, TestDeploys.envName, CANARY
+        )["envState"]
         self.assertEqual(envState, "NORMAL")
 
         # test restart
@@ -98,14 +103,16 @@ class TestDeploys(unittest.TestCase):
         self.assertEqual(deploy3["type"], "RESTART")
 
         # test rollback
-        deploy4 = deploys_helper.rollback(commons.REQUEST, TestDeploys.envName, CANARY,
-                                          deploy1["id"])
+        deploy4 = deploys_helper.rollback(
+            commons.REQUEST, TestDeploys.envName, CANARY, deploy1["id"]
+        )
         self.assertEqual(deploy4["buildId"], TestDeploys.buildId1)
         self.assertEqual(deploy4["type"], "ROLLBACK")
 
         # test promote
-        deploy5 = deploys_helper.promote(commons.REQUEST, TestDeploys.envName, PROD,
-                                         deploy4["id"])
+        deploy5 = deploys_helper.promote(
+            commons.REQUEST, TestDeploys.envName, PROD, deploy4["id"]
+        )
         self.assertEqual(deploy5["envId"], TestDeploys.prodEnvId)
         self.assertEqual(deploy5["buildId"], TestDeploys.buildId1)
         self.assertEqual(deploy5["type"], "REGULAR")
@@ -120,5 +127,6 @@ class TestDeploys(unittest.TestCase):
         deploys_helper.delete(commons.REQUEST, deploy4["id"])
         deploys_helper.delete(commons.REQUEST, deploy5["id"])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

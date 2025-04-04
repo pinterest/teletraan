@@ -18,7 +18,12 @@ import json
 from django.shortcuts import render
 from deploy_board.settings import DEBUG
 from django.http import HttpResponse, HttpResponseRedirect
-from .helpers.exceptions import IllegalArgumentException, NotAuthorizedException, NotFoundException, FailedAuthenticationException
+from .helpers.exceptions import (
+    IllegalArgumentException,
+    NotAuthorizedException,
+    NotFoundException,
+    FailedAuthenticationException,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +40,11 @@ class ExceptionHandlerMiddleware:
         return self.get_response(request)
 
     def process_exception(self, request, exception):
-        logger.exception('Exception thrown when handling request ' + str(request))
+        logger.exception("Exception thrown when handling request " + str(request))
 
         # Error is displayed as a fragment over related feature area
         if request.is_ajax():
-            ajax_vars = {'success': False, 'error': str(exception)}
+            ajax_vars = {"success": False, "error": str(exception)}
             ret = 500
             if isinstance(exception, IllegalArgumentException):
                 ret = 400
@@ -49,13 +54,19 @@ class ExceptionHandlerMiddleware:
                 ret = 403
             elif isinstance(exception, NotFoundException):
                 ret = 404
-            return HttpResponse(json.dumps(ajax_vars), status=ret, content_type='application/javascript')
+            return HttpResponse(
+                json.dumps(ajax_vars), status=ret, content_type="application/javascript"
+            )
         else:
             # Not authorized
             if isinstance(exception, NotAuthorizedException):
-                return render(request, 'users/not_authorized.html', {
-                    "message": str(exception),
-                })
+                return render(
+                    request,
+                    "users/not_authorized.html",
+                    {
+                        "message": str(exception),
+                    },
+                )
 
             elif isinstance(exception, FailedAuthenticationException):
                 request.session.modified = True
@@ -64,7 +75,11 @@ class ExceptionHandlerMiddleware:
 
             stacktrace = DEBUG and traceback.format_exc() or ""
 
-            return render(request, 'error.html', {
-                'message': str(exception),
-                'stacktrace': stacktrace,
-            })
+            return render(
+                request,
+                "error.html",
+                {
+                    "message": str(exception),
+                    "stacktrace": stacktrace,
+                },
+            )
