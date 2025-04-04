@@ -115,6 +115,7 @@ public class Jenkins extends BaseCIPlatformManager {
         return jenkinsUrl;
     }
 
+    @Override
     public String startBuild(String jobName, String buildParams) throws Exception {
         String tokenString = "";
         if (this.jenkinsRemoteToken != null)
@@ -127,7 +128,7 @@ public class Jenkins extends BaseCIPlatformManager {
         // Use GET instead, which is the same as POST but no need for token
         httpClient.get(url, null, null);
         LOG.info("Successfully post to jenkins for job " + jobName);
-        return "";
+        return "non-empty-string";
     }
 
     @Override

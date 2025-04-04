@@ -44,32 +44,25 @@ public class CIPlatformManagerProxy {
         return validCIs;
     }
 
-    public void startBuild(String pipelineName, String buildParams) throws Exception {
-        ArrayList<String> buildIDs = new ArrayList<String>();
-        for (CIPlatformManager manager : this.managers.values()) {
-            if (manager != null && jobExists(manager.getTypeName(), pipelineName)) {
-                String buildID = manager.startBuild(pipelineName, buildParams);
-                if (buildID != null) {
-                    buildIDs.add(buildID);
-                }
-            } else {
+    public String startBuild(String pipelineName, String buildParams, String ciType)
+            throws Exception {
+        CIPlatformManager manager = getCIPlatformManager(ciType);
+        String buildID = "";
+        if (manager != null && jobExists(manager.getTypeName(), pipelineName)) {
+            try {
+                buildID = manager.startBuild(pipelineName, buildParams);
+                return buildID;
+            } catch (Exception e) {
                 LOG.error("Unable to start new job (hotfix-job) for {}", manager.getTypeName());
                 throw new Exception(
                         "Unable to start new job (hotfix-job) for " + manager.getTypeName());
             }
-        }
-    }
-
-    public String startBuild(String pipelineName, String buildParams, String ciType)
-            throws Exception {
-        CIPlatformManager manager = getCIPlatformManager(ciType);
-        if (manager != null && jobExists(manager.getTypeName(), pipelineName)) {
-            String buildID = manager.startBuild(pipelineName, buildParams);
-            return buildID;
         } else {
-            LOG.error("Unable to start new job (hotfix-job) for {}", manager.getTypeName());
-            throw new Exception(
-                    "Unable to start new job (hotfix-job) for " + manager.getTypeName());
+            LOG.debug(
+                    "Unable to get CIPlatformManager for {} OR the job {} doesn't exist",
+                    ciType,
+                    pipelineName);
+            return buildID;
         }
     }
 

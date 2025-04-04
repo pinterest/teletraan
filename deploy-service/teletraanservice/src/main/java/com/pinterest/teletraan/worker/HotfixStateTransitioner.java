@@ -28,6 +28,7 @@ import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
 import java.sql.Connection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -161,38 +162,40 @@ public class HotfixStateTransitioner implements Runnable {
                                     + "&REPO="
                                     + hotBean.getRepo();
                     // Start job and set start time
-                    // jenkins.startBuild(hotBean.getJob_name(), buildParams);
-                    try {
-                        String buildUUID =
-                                ciPlatformManagerProxy.startBuild(
-                                        hotBean.getJob_name(), buildParams, "buildkite");
-                        Buildkite.Build buildkiteBuild =
-                                (Buildkite.Build)
-                                        ciPlatformManagerProxy.getBuild(
-                                                "buildkite", hotBean.getJob_name(), buildUUID);
+                    HashMap<String, String> buildResultMap = new HashMap<String, String>();
+                    for (String ciType : ciPlatformManagerProxy.getCIs()) {
+                        try {
+                            LOG.info(
+                                    "Starting new CI Jobs on {} (hotfix-job) for hotfix id {}",
+                                    ciType,
+                                    hotfixId);
+                            String buildID =
+                                    ciPlatformManagerProxy.startBuild(
+                                            hotBean.getJob_name(), buildParams, ciType);
+                            buildResultMap.put(ciType, buildID);
+                        } catch (Exception e) {
+                            LOG.error(
+                                    "Failed to start new CI Job (hotfix-job) for hotfix id {} for {}",
+                                    hotfixId,
+                                    ciType,
+                                    e);
+                            hotBean.setError_message(
+                                    "Failed to create hotfix during batch triggering");
 
-                        String jobID =
-                                ciPlatformManagerProxy.startBuild(
-                                        hotBean.getJob_name(), buildParams, "jenkins");
-                        Jenkins.Build jenkinsBuild =
-                                (Jenkins.Build)
-                                        ciPlatformManagerProxy.getBuild(
-                                                "jenkins", hotBean.getJob_name(), jobID);
-
-                        LOG.info("Starting new CI Jobs (hotfix-job) for hotfix id {}", hotfixId);
-                    } catch (Exception e) {
-                        LOG.error(
-                                "Failed to start new CI Job (hotfix-job) for hotfix id {}",
-                                hotfixId,
-                                e);
-                        hotBean.setState(HotfixState.FAILED);
-                        hotBean.setError_message("Failed to create hotfix during batch triggering");
-                        hotfixDAO.update(hotfixId, hotBean);
-                        LOG.warn(
-                                "CI returned a FAILURE status during state INITIAL for hotfix id "
-                                        + hotfixId);
+                            LOG.warn(
+                                    "CI returned a FAILURE status during state INITIAL for hotfix id "
+                                            + hotfixId);
+                        }
                     }
-                    transition(hotBean);
+                    // Right now only transition state when Jenkins job is created
+                    if (buildResultMap.containsKey("jenkins")
+                            && !StringUtils.isEmpty(buildResultMap.get("jenkins"))) {
+                        LOG.info("Jenkins job started successfully for hotfix id {}", hotfixId);
+                        transition(hotBean);
+                    } else {
+                        hotBean.setState(HotfixState.FAILED);
+                        hotfixDAO.update(hotfixId, hotBean);
+                    }
 
                     // Else jobNum has not been given by job yet
 
