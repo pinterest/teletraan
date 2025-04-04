@@ -21,6 +21,3 @@ rodimus_client = RodimusClient()
 
 def get_all(request):
     return rodimus_client.get("/arches", request.teletraan_user_id.token)
-
-
-

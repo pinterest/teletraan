@@ -21,17 +21,35 @@ rodimus_client = RodimusClient()
 
 
 def create_host_type_mapping(request, host_type_mapping_info):
-    return rodimus_client.post("/host_types_mapping", request.teletraan_user_id.token, data=host_type_mapping_info)
+    return rodimus_client.post(
+        "/host_types_mapping",
+        request.teletraan_user_id.token,
+        data=host_type_mapping_info,
+    )
+
 
 def modify_host_type_mapping(request, host_type_id, host_type_mapping_info):
-    return rodimus_client.put("/host_types_mapping/%s" % host_type_id, request.teletraan_user_id.token, data=host_type_mapping_info)
+    return rodimus_client.put(
+        "/host_types_mapping/%s" % host_type_id,
+        request.teletraan_user_id.token,
+        data=host_type_mapping_info,
+    )
+
 
 def get_all(request, index, size):
-    params = [('pageIndex', index), ('pageSize', size)]
-    return rodimus_client.get("/host_types_mapping", request.teletraan_user_id.token, params=params)
+    params = [("pageIndex", index), ("pageSize", size)]
+    return rodimus_client.get(
+        "/host_types_mapping", request.teletraan_user_id.token, params=params
+    )
+
 
 def get_by_id(request, host_type_id):
-    return rodimus_client.get("/host_types_mapping/%s" % host_type_id, request.teletraan_user_id.token)
+    return rodimus_client.get(
+        "/host_types_mapping/%s" % host_type_id, request.teletraan_user_id.token
+    )
+
 
 def get_fulllist(request):
-    return rodimus_client.get("/host_types_mapping/fullList", request.teletraan_user_id.token)
+    return rodimus_client.get(
+        "/host_types_mapping/fullList", request.teletraan_user_id.token
+    )

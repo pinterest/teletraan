@@ -13,24 +13,33 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all environs related calls
-"""
+"""Collection of all environs related calls"""
+
 from deploy_board.webapp.helpers.deployclient import DeployClient
 
 deployclient = DeployClient()
 
 
 def get_schedule(request, envName, stageName, id):
-	schedule = deployclient.get("/schedules/%s/%s/%s" % (envName, stageName, id), request.teletraan_user_id.token)
-	return schedule
-	
+    schedule = deployclient.get(
+        "/schedules/%s/%s/%s" % (envName, stageName, id),
+        request.teletraan_user_id.token,
+    )
+    return schedule
+
 
 def update_schedule(request, envName, stageName, data):
-	return deployclient.put("/schedules/%s/%s/schedules" % (envName, stageName), request.teletraan_user_id.token,
-							data=data)
+    return deployclient.put(
+        "/schedules/%s/%s/schedules" % (envName, stageName),
+        request.teletraan_user_id.token,
+        data=data,
+    )
 
 
 def override_session(request, envName, stageName, session_num):
-	params = [("sessionNumber", session_num)]
-	return deployclient.put("/schedules/%s/%s/override" % (envName, stageName), request.teletraan_user_id.token,
-	 						 params=params)
+    params = [("sessionNumber", session_num)]
+    return deployclient.put(
+        "/schedules/%s/%s/override" % (envName, stageName),
+        request.teletraan_user_id.token,
+        params=params,
+    )

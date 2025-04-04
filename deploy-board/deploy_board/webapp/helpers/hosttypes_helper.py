@@ -18,35 +18,56 @@ from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
 
 class BlessedStatusValues:
-    ONBOARDING = 'ONBOARDING',
-    SUSTAINING = 'SUSTAINING',
-    DECOMMISSIONING = 'DECOMMISSIONING'
+    ONBOARDING = ("ONBOARDING",)
+    SUSTAINING = ("SUSTAINING",)
+    DECOMMISSIONING = "DECOMMISSIONING"
 
     @classmethod
     def get_all_statuses(cls):
-        return [item for item in cls.__dict__ if not callable(getattr(cls, item)) and not item.startswith('__')]
+        return [
+            item
+            for item in cls.__dict__
+            if not callable(getattr(cls, item)) and not item.startswith("__")
+        ]
+
 
 rodimus_client = RodimusClient()
 
 
 def create_host_type(request, host_type_info):
-    return rodimus_client.post("/host_types", request.teletraan_user_id.token, data=host_type_info)
+    return rodimus_client.post(
+        "/host_types", request.teletraan_user_id.token, data=host_type_info
+    )
+
 
 def modify_host_type(request, host_type_id, host_type_info):
-    return rodimus_client.put("/host_types/%s" % host_type_id, request.teletraan_user_id.token, data=host_type_info)
+    return rodimus_client.put(
+        "/host_types/%s" % host_type_id,
+        request.teletraan_user_id.token,
+        data=host_type_info,
+    )
+
 
 def get_all(request, index, size):
-    params = [('pageIndex', index), ('pageSize', size)]
-    return rodimus_client.get("/host_types", request.teletraan_user_id.token, params=params)
+    params = [("pageIndex", index), ("pageSize", size)]
+    return rodimus_client.get(
+        "/host_types", request.teletraan_user_id.token, params=params
+    )
 
 
 def get_by_provider(request, provider):
-    return rodimus_client.get("/host_types/provider/%s" % provider, request.teletraan_user_id.token)
+    return rodimus_client.get(
+        "/host_types/provider/%s" % provider, request.teletraan_user_id.token
+    )
 
 
 def get_by_arch(request, arch):
-    return rodimus_client.get("/host_types/arch/%s" % arch, request.teletraan_user_id.token)
+    return rodimus_client.get(
+        "/host_types/arch/%s" % arch, request.teletraan_user_id.token
+    )
 
 
 def get_by_id(request, host_type_id):
-    return rodimus_client.get("/host_types/%s" % host_type_id, request.teletraan_user_id.token)
+    return rodimus_client.get(
+        "/host_types/%s" % host_type_id, request.teletraan_user_id.token
+    )

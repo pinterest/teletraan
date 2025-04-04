@@ -14,9 +14,10 @@
 # limitations under the License.
 # -*- coding: utf-8 -*-
 
-""" Simulate l00 hosts to ping server constantly. If group name match the env
+"""Simulate l00 hosts to ping server constantly. If group name match the env
 capacity config and there is active deploy, it will simulate the full deploy cycle as well.
 """
+
 from commons import REQUEST
 from deploy_board.webapp.helpers import systems_helper
 import argparse

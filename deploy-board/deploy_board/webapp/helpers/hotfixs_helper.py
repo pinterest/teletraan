@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all hotfix related calls
-"""
+"""Collection of all hotfix related calls"""
+
 from deploy_board.webapp.helpers.deployclient import DeployClient
 
 deployclient = DeployClient()
@@ -35,4 +35,6 @@ def create(request, envName, baseDeployId, commits):
 
 
 def is_user_eligible(request, user_name):
-    return deployclient.get("/ratings/%s/is_eligible" % user_name, request.teletraan_user_id.token)
+    return deployclient.get(
+        "/ratings/%s/is_eligible" % user_name, request.teletraan_user_id.token
+    )
