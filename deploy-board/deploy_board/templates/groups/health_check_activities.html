@@ -91,7 +91,7 @@
     </div>
     <div class="panel-body table-responsive">
         {% include "groups/health_check_activities.tmpl" %}
-        {% if configs|length >= 2 %}
+        {% if health_checks|length >= 2 %}
             <ul class="pager">
                 <li>
                     <a href='/groups/{{ group_name }}/health_check_activities/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'

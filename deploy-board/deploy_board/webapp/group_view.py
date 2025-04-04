@@ -1784,9 +1784,9 @@ def get_health_check_activities(request, group_name):
             "asg_status": asg_status,
             "scaling_down_event_enabled": scaling_down_event_enabled,
             "pageIndex": index,
-            "pageSize": DEFAULT_PAGE_SIZE,
+            "pageSize": size,
             "disablePrevious": index <= 1,
-            "disableNext": len(health_checks) < DEFAULT_PAGE_SIZE,
+            "disableNext": len(health_checks) < size,
         },
     )
 
