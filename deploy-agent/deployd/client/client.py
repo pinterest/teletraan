@@ -261,7 +261,7 @@ class Client(BaseClient):
             log.error("Fail to read host info: availablity zone")
             create_sc_increment(
                 name="deploy.failed.agent.hostinfocollection",
-                tags={"host": self._hostname, "info": "availability_zone"},
+                tags={"info": "availability_zone"},
             )
             return False
 
@@ -363,24 +363,17 @@ class Client(BaseClient):
                     knoxStatus=self._knox_status,
                 )
 
-                with create_stats_timer(
-                    "deploy.agent.request.latency", tags={"host": self._hostname}
-                ):
+                with create_stats_timer("deploy.agent.request.latency"):
                     ping_response = self.send_reports_internal(ping_request)
 
                 log.debug("%s -> %s" % (ping_request, ping_response))
                 return ping_response
             else:
                 log.error("Fail to read host info")
-                create_sc_increment(
-                    name="deploy.failed.agent.hostinfocollection",
-                    tags={"host": self._hostname},
-                )
+                create_sc_increment(name="deploy.failed.agent.hostinfocollection")
         except Exception:
             log.error(traceback.format_exc())
-            create_sc_increment(
-                name="deploy.failed.agent.requests", tags={"host": self._hostname}
-            )
+            create_sc_increment(name="deploy.failed.agent.requests")
             return None
 
     @retry(ExceptionToCheck=Exception, delay=1, tries=3)
