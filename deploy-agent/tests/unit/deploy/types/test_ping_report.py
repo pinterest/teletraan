@@ -1,3 +1,4 @@
+from deployd.common.types import AgentStatus, DeployStage
 from deployd.types.ping_report import PingReport
 import unittest
 
@@ -6,8 +7,8 @@ class TestPingReport(unittest.TestCase):
     def test_init_enums(self):
         report = PingReport(
             jsonValue={
-                "deployStage": 0,
-                "status": 0,
+                "deployStage": DeployStage.UNKNOWN,
+                "status": AgentStatus.SUCCEEDED,
             }
         )
         self.assertEqual(report.deployStage, "UNKNOWN")
@@ -15,8 +16,8 @@ class TestPingReport(unittest.TestCase):
 
         report = PingReport(
             jsonValue={
-                "deployStage": 10,
-                "status": 7,
+                "deployStage": DeployStage.STOPPED,
+                "status": AgentStatus.TOO_MANY_RETRY,
             }
         )
         self.assertEqual(report.deployStage, "STOPPED")

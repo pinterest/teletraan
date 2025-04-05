@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from deployd.types.ping_report import PingReport
-from deployd.types.opcode import OperationCode
 
 
 class AgentStatus(object):
@@ -207,11 +206,7 @@ class DeployStatus(object):
             )
 
         self.runtime_config = json_value.get("runtime_config")
-        op_code = json_value.get("op_code", OpCode.NOOP)
-        if isinstance(op_code, int):
-            self.op_code = OperationCode._VALUES_TO_NAMES[op_code]
-        else:
-            self.op_code = op_code
+        self.op_code = json_value.get("op_code", OpCode.NOOP)
 
     def to_json(self) -> dict:
         json = {}
