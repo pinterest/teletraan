@@ -15,6 +15,8 @@
  */
 package com.pinterest.deployservice.ci;
 
+import java.io.IOException;
+
 public abstract class BaseCIPlatformManager implements CIPlatformManager {
     private String typeName;
     private int priority;
@@ -35,7 +37,7 @@ public abstract class BaseCIPlatformManager implements CIPlatformManager {
     }
 
     @Override
-    public String startBuild(String pipelineName, String buildParams) throws Exception {
+    public String startBuild(String pipelineName, String buildParams) throws IOException {
         return "";
     }
 

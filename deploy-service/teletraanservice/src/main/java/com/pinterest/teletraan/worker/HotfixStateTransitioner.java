@@ -26,6 +26,7 @@ import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -173,7 +174,7 @@ public class HotfixStateTransitioner implements Runnable {
                                     ciPlatformManagerProxy.startBuild(
                                             hotBean.getJob_name(), buildParams, ciType);
                             buildResultMap.put(ciType, buildID);
-                        } catch (Exception e) {
+                        } catch (IOException e) {
                             LOG.error(
                                     "Failed to start new CI Job (hotfix-job) for hotfix id {} for {}",
                                     hotfixId,

@@ -15,13 +15,15 @@
  */
 package com.pinterest.deployservice.ci;
 
+import java.io.IOException;
+
 public interface CIPlatformManager {
 
     String getTypeName();
 
     int getPriority();
 
-    String startBuild(String pipelineName, String buildParams) throws Exception;
+    String startBuild(String pipelineName, String buildParams) throws IOException;
 
     Object getBuild(String pipelineName, String buildId) throws Exception;
 

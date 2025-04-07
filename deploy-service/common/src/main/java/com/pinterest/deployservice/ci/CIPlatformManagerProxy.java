@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.ci;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,9 +53,9 @@ public class CIPlatformManagerProxy {
             try {
                 buildID = manager.startBuild(pipelineName, buildParams);
                 return buildID;
-            } catch (Exception e) {
+            } catch (IOException e) {
                 LOG.error("Unable to start new job (hotfix-job) for {}", manager.getTypeName());
-                throw new Exception(
+                throw new IOException(
                         "Unable to start new job (hotfix-job) for " + manager.getTypeName());
             }
         } else {

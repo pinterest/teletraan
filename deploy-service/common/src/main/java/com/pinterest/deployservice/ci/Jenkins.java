@@ -116,7 +116,7 @@ public class Jenkins extends BaseCIPlatformManager {
     }
 
     @Override
-    public String startBuild(String jobName, String buildParams) throws Exception {
+    public String startBuild(String jobName, String buildParams) throws IOException {
         String tokenString = "";
         if (this.jenkinsRemoteToken != null)
             tokenString = String.format("token=%s&", this.jenkinsRemoteToken);
