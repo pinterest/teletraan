@@ -314,7 +314,7 @@ public class Buildkite extends BaseCIPlatformManager {
             JsonPrimitive uuid = build.getAsJsonPrimitive("uuid");
             LOG.debug("[Buildkite] Successfully triggered build for pipeline " + url.getAsString());
             return uuid.getAsString();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             LOG.error("Error in triggering build for pipeline " + pipeline, t);
             return "";
         }
