@@ -216,7 +216,7 @@ public class Buildkite extends BaseCIPlatformManager {
                 }
                 return totalDuration / buildsCount;
 
-            } catch (Throwable t) {
+            } catch (IOException t) {
                 LOG.error("Error in querying latest builds for pipeline " + pipelineName, t);
                 return 0L;
             }

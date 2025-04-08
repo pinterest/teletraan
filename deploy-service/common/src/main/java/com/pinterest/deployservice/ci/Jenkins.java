@@ -128,7 +128,7 @@ public class Jenkins extends BaseCIPlatformManager {
         // Use GET instead, which is the same as POST but no need for token
         httpClient.get(url, null, null);
         LOG.info("Successfully post to jenkins for job " + jobName);
-        return "non-empty-string";
+        return "success";
     }
 
     @Override

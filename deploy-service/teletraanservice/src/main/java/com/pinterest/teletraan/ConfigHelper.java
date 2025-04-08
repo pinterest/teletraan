@@ -158,6 +158,9 @@ public class ConfigHelper {
         context.setSourceControlManagerProxy(
                 new SourceControlManagerProxy(managers, defaultScmTypeName));
 
+        // CIPlatformFactory replaces JenkinsFactory and BuildkiteFactory
+        // This change is backward incompatible as the config file will need to be updated
+        // with Jenkins and Buildkite configurations being list items under the "ci" section
         List<CIPlatformFactory> ciPlatformConfigs = configuration.getCIPlatformConfigs();
         Map<String, CIPlatformManager> ciPlatforms = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
@@ -199,29 +202,6 @@ public class ConfigHelper {
                     new BuildAllowlistImpl(
                             new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
         }
-
-        // JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
-        // if (jenkinsFactory != null) {
-        //     context.setJenkins(
-        //             new Jenkins(
-        //                     jenkinsFactory.getJenkinsUrl(),
-        //                     jenkinsFactory.getRemoteToken(),
-        //                     jenkinsFactory.getUseProxy(),
-        //                     jenkinsFactory.getHttpProxyAddr(),
-        //                     jenkinsFactory.getHttpProxyPort(),
-        //                     jenkinsFactory.getTypeName(),
-        //                     jenkinsFactory.getPriority()));
-        // }
-
-        // BuildkiteFactory buildkiteFactory = configuration.getBuildkiteFactory();
-        // if (buildkiteFactory != null) {
-        //     context.setBuildkite(
-        //             new Buildkite(
-        //                     buildkiteFactory.getBuildkitePortalBaseUrl(),
-        //                     buildkiteFactory.getBuildkiteApiBaseUrl(),
-        //                     buildkiteFactory.getTypeName(),
-        //                     buildkiteFactory.getPriority()));
-        // }
 
         LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());
         // Set external alerts factory
