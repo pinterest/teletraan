@@ -407,6 +407,16 @@ public class ServiceContext {
         this.changeFeedUrl = changeFeedUrl;
     }
 
+    // keep these getter and setter for Jenkins for backward compatibility purpose
+    // the new way is to use CIPlatformManagerProxy
+    public Jenkins getJenkins() {
+        return jenkins;
+    }
+
+    public void setJenkins(Jenkins jenkins) {
+        this.jenkins = jenkins;
+    }
+
     public TagDAO getTagDAO() {
         return tagDAO;
     }

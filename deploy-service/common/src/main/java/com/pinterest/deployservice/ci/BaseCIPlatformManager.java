@@ -19,9 +19,9 @@ import java.io.IOException;
 
 public abstract class BaseCIPlatformManager implements CIPlatformManager {
     private String typeName;
-    private int priority;
+    private Integer priority;
 
-    public BaseCIPlatformManager(String typeName, int priority) {
+    public BaseCIPlatformManager(String typeName, Integer priority) {
         this.typeName = typeName;
         this.priority = priority;
     }
@@ -32,7 +32,7 @@ public abstract class BaseCIPlatformManager implements CIPlatformManager {
     }
 
     @Override
-    public int getPriority() {
+    public Integer getPriority() {
         return priority;
     }
 

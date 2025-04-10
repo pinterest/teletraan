@@ -35,9 +35,36 @@ public class Jenkins extends BaseCIPlatformManager {
             String jenkinsRemoteToken,
             boolean useProxy,
             String httpProxyAddr,
+            String httpProxyPort) {
+        super("jenkins", 2);
+        this.jenkinsUrl = jenkinsUrl;
+        this.jenkinsRemoteToken = jenkinsRemoteToken;
+
+        int httpProxyPortInt;
+        HttpClient.HttpClientBuilder clientBuilder = HttpClient.builder();
+        if (useProxy) {
+            try {
+                httpProxyPortInt = Integer.parseInt(httpProxyPort);
+            } catch (NumberFormatException exception) {
+                LOG.error("Failed to parse Jenkins port: {}", httpProxyPort, exception);
+                throw exception;
+            }
+            clientBuilder
+                    .useProxy(true)
+                    .httpProxyAddr(httpProxyAddr)
+                    .httpProxyPort(httpProxyPortInt);
+        }
+        this.httpClient = clientBuilder.build();
+    }
+
+    public Jenkins(
+            String jenkinsUrl,
+            String jenkinsRemoteToken,
+            boolean useProxy,
+            String httpProxyAddr,
             String httpProxyPort,
             String typeName,
-            int priority) {
+            Integer priority) {
         super(typeName, priority);
         this.jenkinsUrl = jenkinsUrl;
         this.jenkinsRemoteToken = jenkinsRemoteToken;

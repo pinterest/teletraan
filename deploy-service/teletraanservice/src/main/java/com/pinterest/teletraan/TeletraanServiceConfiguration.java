@@ -29,6 +29,7 @@ import com.pinterest.teletraan.config.DefaultChatFactory;
 import com.pinterest.teletraan.config.DefaultEmailFactory;
 import com.pinterest.teletraan.config.EmailFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
+import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.MicrometerMetricsFactory;
 import com.pinterest.teletraan.config.OpenAuthorizationFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -92,6 +93,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("ci")
     private List<CIPlatformFactory> ciPlatformConfigs;
+
+    @Valid
+    @JsonProperty("jenkins")
+    private JenkinsFactory jenkinsFactory;
 
     @Valid
     @JsonProperty("buildAllowlist")
@@ -222,6 +227,16 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setRodimusFactory(RodimusFactory rodimusFactory) {
         this.rodimusFactory = rodimusFactory;
+    }
+
+    // keep these getter and setter for Jenkins for backward compatibility purpose
+    // the new way is to use CIPlatformFactory
+    public JenkinsFactory getJenkinsFactory() {
+        return jenkinsFactory;
+    }
+
+    public void setJenkinsFactory(JenkinsFactory jenkinsFactory) {
+        this.jenkinsFactory = jenkinsFactory;
     }
 
     public List<WorkerConfig> getWorkerConfigs() {

@@ -60,7 +60,7 @@ public class Buildkite extends BaseCIPlatformManager {
             String buildkitePortalBaseUrl,
             String buildkiteApiBaseUrl,
             String typeName,
-            int priority) {
+            Integer priority) {
         super(typeName, priority);
         this.buildkiteApiBaseUrl = buildkiteApiBaseUrl;
         this.buildkitePortalBaseUrl = buildkitePortalBaseUrl;

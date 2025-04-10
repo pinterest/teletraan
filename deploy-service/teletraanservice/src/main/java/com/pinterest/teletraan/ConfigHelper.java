@@ -19,6 +19,7 @@ import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.ci.CIPlatformManager;
 import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
+import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
 import com.pinterest.deployservice.db.DBAgentDAOImpl;
 import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
@@ -50,6 +51,7 @@ import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
+import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.CIPlatformFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
@@ -162,13 +164,15 @@ public class ConfigHelper {
         // This change is backward incompatible as the config file will need to be updated
         // with Jenkins and Buildkite configurations being list items under the "ci" section
         List<CIPlatformFactory> ciPlatformConfigs = configuration.getCIPlatformConfigs();
-        Map<String, CIPlatformManager> ciPlatforms = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
-            CIPlatformManager ciPlatform = ciPlatformFactory.create();
-            String type = ciPlatform.getTypeName();
-            ciPlatforms.put(type, ciPlatform);
+        if (ciPlatformConfigs != null || !ciPlatformConfigs.isEmpty()) {
+            Map<String, CIPlatformManager> ciPlatforms = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
+                CIPlatformManager ciPlatform = ciPlatformFactory.create();
+                String type = ciPlatform.getTypeName();
+                ciPlatforms.put(type, ciPlatform);
+            }
+            context.setCIPlatformManagerProxy(new CIPlatformManagerProxy(ciPlatforms));
         }
-        context.setCIPlatformManagerProxy(new CIPlatformManagerProxy(ciPlatforms));
 
         AppEventFactory appEventFactory = configuration.getAppEventFactory();
         if (appEventFactory != null) {
@@ -201,6 +205,17 @@ public class ConfigHelper {
             context.setBuildAllowlist(
                     new BuildAllowlistImpl(
                             new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+        }
+
+        JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
+        if (jenkinsFactory != null) {
+            context.setJenkins(
+                    new Jenkins(
+                            jenkinsFactory.getJenkinsUrl(),
+                            jenkinsFactory.getRemoteToken(),
+                            jenkinsFactory.getUseProxy(),
+                            jenkinsFactory.getHttpProxyAddr(),
+                            jenkinsFactory.getHttpProxyPort()));
         }
 
         LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());

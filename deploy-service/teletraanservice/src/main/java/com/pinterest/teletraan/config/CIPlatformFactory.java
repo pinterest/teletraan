@@ -20,7 +20,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.pinterest.deployservice.ci.CIPlatformManager;
 import io.dropwizard.jackson.Discoverable;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type",
+    defaultImpl = JenkinsFactory.class)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = JenkinsFactory.class, name = "jenkins"),
     @JsonSubTypes.Type(value = BuildkiteFactory.class, name = "buildkite")

@@ -19,14 +19,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.deployservice.ci.Buildkite;
 import com.pinterest.deployservice.ci.CIPlatformManager;
-import javax.validation.constraints.NotNull;
 
 @JsonTypeName("buildkite")
 public class BuildkiteFactory implements CIPlatformFactory {
     @JsonProperty private String buildkitePortalBaseUrl;
     @JsonProperty private String buildkiteApiBaseUrl;
-    @NotNull @JsonProperty private String typeName;
-    @NotNull @JsonProperty private int priority;
+    @JsonProperty private String typeName;
+    @JsonProperty private Integer priority;
 
     public String getBuildkitePortalBaseUrl() {
         return this.buildkitePortalBaseUrl;
@@ -52,16 +51,22 @@ public class BuildkiteFactory implements CIPlatformFactory {
         this.typeName = typeName;
     }
 
-    public int getPriority() {
+    public Integer getPriority() {
         return priority;
     }
 
-    public void setPriority(int priority) {
+    public void setPriority(Integer priority) {
         this.priority = priority;
     }
 
     @Override
     public CIPlatformManager create() throws Exception {
+        if (typeName == null || typeName.isEmpty()) {
+            typeName = "buildkite";
+        }
+        if (priority == null) {
+            priority = 1;
+        }
         return new Buildkite(buildkitePortalBaseUrl, buildkiteApiBaseUrl, typeName, priority);
     }
 }

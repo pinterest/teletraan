@@ -21,7 +21,7 @@ public interface CIPlatformManager {
 
     String getTypeName();
 
-    int getPriority();
+    Integer getPriority();
 
     String startBuild(String pipelineName, String buildParams) throws IOException;
 

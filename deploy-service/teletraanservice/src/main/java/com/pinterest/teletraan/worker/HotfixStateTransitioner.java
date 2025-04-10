@@ -54,6 +54,8 @@ public class HotfixStateTransitioner implements Runnable {
     private Counter errorBudgetFailure;
     // TODO make this configurable
     private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
+    // new variable to check if we are using CI proxy, for backward compatibility purposes
+    private static boolean useCIProxy = true;
 
     public HotfixStateTransitioner(ServiceContext serviceContext) {
         hotfixDAO = serviceContext.getHotfixDAO();
@@ -63,17 +65,30 @@ public class HotfixStateTransitioner implements Runnable {
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
         ciPlatformManagerProxy = serviceContext.getCIPlatformManagerProxy();
+        List<String> definedCIs = null;
         try {
-            jenkins = (Jenkins) ciPlatformManagerProxy.getCIPlatform("jenkins");
+            definedCIs = ciPlatformManagerProxy.getCIs();
         } catch (Exception e) {
-            LOG.error("Failed to initialize Jenkins CI platform", e);
-            throw new RuntimeException("Failed to initialize Jenkins CI platform", e);
+            LOG.error("Unable to fetch defined CI platforms: ", e);
         }
-        try {
-            buildkite = (Buildkite) ciPlatformManagerProxy.getCIPlatform("buildkite");
-        } catch (Exception e) {
-            LOG.error("Failed to initialize Buildkite CI platform", e);
-            throw new RuntimeException("Failed to initialize Buildkite CI platform", e);
+        if (ciPlatformManagerProxy == null || definedCIs == null || definedCIs.isEmpty()) {
+            useCIProxy = false;
+        }
+        if (!useCIProxy) {
+            jenkins = serviceContext.getJenkins();
+        } else {
+            try {
+                jenkins = (Jenkins) ciPlatformManagerProxy.getCIPlatform("jenkins");
+            } catch (Exception e) {
+                LOG.error("Failed to initialize Jenkins CI platform", e);
+                throw new RuntimeException("Failed to initialize Jenkins CI platform", e);
+            }
+            try {
+                buildkite = (Buildkite) ciPlatformManagerProxy.getCIPlatform("buildkite");
+            } catch (Exception e) {
+                LOG.error("Failed to initialize Buildkite CI platform", e);
+                throw new RuntimeException("Failed to initialize Buildkite CI platform", e);
+            }   
         }
 
         errorBudgetSuccess =
@@ -163,39 +178,49 @@ public class HotfixStateTransitioner implements Runnable {
                                     + "&REPO="
                                     + hotBean.getRepo();
                     // Start job and set start time
-                    HashMap<String, String> buildResultMap = new HashMap<String, String>();
-                    for (String ciType : ciPlatformManagerProxy.getCIs()) {
-                        try {
-                            LOG.info(
-                                    "Starting new CI Jobs on {} (hotfix-job) for hotfix id {}",
-                                    ciType,
-                                    hotfixId);
-                            String buildID =
-                                    ciPlatformManagerProxy.startBuild(
-                                            hotBean.getJob_name(), buildParams, ciType);
-                            buildResultMap.put(ciType, buildID);
-                        } catch (IOException e) {
-                            LOG.error(
-                                    "Failed to start new CI Job (hotfix-job) for hotfix id {} for {}",
-                                    hotfixId,
-                                    ciType,
-                                    e);
-                            hotBean.setError_message(
-                                    "Failed to create hotfix during batch triggering");
 
-                            LOG.warn(
-                                    "CI returned a FAILURE status during state INITIAL for hotfix id "
-                                            + hotfixId);
+                    // Pinterest is moving to leveraging CI proxy in triggering all applicable CI platforms
+                    if (useCIProxy){
+                        HashMap<String, String> buildResultMap = new HashMap<String, String>();
+                        for (String ciType : ciPlatformManagerProxy.getCIs()) {
+                            try {
+                                LOG.info(
+                                        "Starting new CI Jobs on {} (hotfix-job) for hotfix id {}",
+                                        ciType,
+                                        hotfixId);
+                                String buildID =
+                                        ciPlatformManagerProxy.startBuild(
+                                                hotBean.getJob_name(), buildParams, ciType);
+                                buildResultMap.put(ciType, buildID);
+                            } catch (IOException e) {
+                                LOG.error(
+                                        "Failed to start new CI Job (hotfix-job) for hotfix id {} for {}",
+                                        hotfixId,
+                                        ciType,
+                                        e);
+                                hotBean.setError_message(
+                                        "Failed to create hotfix during batch triggering");
+    
+                                LOG.warn(
+                                        "CI returned a FAILURE status during state INITIAL for hotfix id "
+                                                + hotfixId);
+                            }
                         }
-                    }
-                    // Right now only transition state when Jenkins job is created
-                    if (buildResultMap.containsKey("jenkins")
-                            && !StringUtils.isEmpty(buildResultMap.get("jenkins"))) {
-                        LOG.info("Jenkins job started successfully for hotfix id {}", hotfixId);
-                        transition(hotBean);
+                        // Right now only transition state when Jenkins job is created
+                        if (buildResultMap.containsKey("jenkins")
+                                && !StringUtils.isEmpty(buildResultMap.get("jenkins"))) {
+                            LOG.info("Jenkins job started successfully for hotfix id {}", hotfixId);
+                            transition(hotBean);
+                        } else {
+                            hotBean.setState(HotfixState.FAILED);
+                            hotfixDAO.update(hotfixId, hotBean);
+                        }
                     } else {
-                        hotBean.setState(HotfixState.FAILED);
-                        hotfixDAO.update(hotfixId, hotBean);
+                        // don't use CIproxy and use the old way of triggering job only to Jenkins
+                        // for backward compatibility purposes
+                        jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                        LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
+                        transition(hotBean);
                     }
 
                     // Else jobNum has not been given by job yet
