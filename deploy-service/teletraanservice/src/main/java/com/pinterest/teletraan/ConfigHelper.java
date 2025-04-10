@@ -51,8 +51,8 @@ import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
-import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.CIPlatformFactory;
+import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
@@ -165,7 +165,8 @@ public class ConfigHelper {
         // with Jenkins and Buildkite configurations being list items under the "ci" section
         List<CIPlatformFactory> ciPlatformConfigs = configuration.getCIPlatformConfigs();
         if (ciPlatformConfigs != null || !ciPlatformConfigs.isEmpty()) {
-            Map<String, CIPlatformManager> ciPlatforms = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            Map<String, CIPlatformManager> ciPlatforms =
+                    new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
                 CIPlatformManager ciPlatform = ciPlatformFactory.create();
                 String type = ciPlatform.getTypeName();

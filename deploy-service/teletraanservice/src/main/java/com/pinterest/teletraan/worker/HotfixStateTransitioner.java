@@ -88,7 +88,7 @@ public class HotfixStateTransitioner implements Runnable {
             } catch (Exception e) {
                 LOG.error("Failed to initialize Buildkite CI platform", e);
                 throw new RuntimeException("Failed to initialize Buildkite CI platform", e);
-            }   
+            }
         }
 
         errorBudgetSuccess =
@@ -179,8 +179,9 @@ public class HotfixStateTransitioner implements Runnable {
                                     + hotBean.getRepo();
                     // Start job and set start time
 
-                    // Pinterest is moving to leveraging CI proxy in triggering all applicable CI platforms
-                    if (useCIProxy){
+                    // Pinterest is moving to leveraging CI proxy in triggering all applicable CI
+                    // platforms
+                    if (useCIProxy) {
                         HashMap<String, String> buildResultMap = new HashMap<String, String>();
                         for (String ciType : ciPlatformManagerProxy.getCIs()) {
                             try {
@@ -200,7 +201,7 @@ public class HotfixStateTransitioner implements Runnable {
                                         e);
                                 hotBean.setError_message(
                                         "Failed to create hotfix during batch triggering");
-    
+
                                 LOG.warn(
                                         "CI returned a FAILURE status during state INITIAL for hotfix id "
                                                 + hotfixId);
@@ -219,7 +220,8 @@ public class HotfixStateTransitioner implements Runnable {
                         // don't use CIproxy and use the old way of triggering job only to Jenkins
                         // for backward compatibility purposes
                         jenkins.startBuild(hotBean.getJob_name(), buildParams);
-                        LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
+                        LOG.info(
+                                "Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
                         transition(hotBean);
                     }
 
