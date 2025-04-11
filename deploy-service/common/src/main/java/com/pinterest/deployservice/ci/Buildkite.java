@@ -39,7 +39,7 @@ public class Buildkite extends BaseCIPlatformManager {
     private static final Logger LOG = LoggerFactory.getLogger(Buildkite.class);
     private static HttpClient httpClient;
     private static Gson gson;
-    // example: curl -sS -H "Authorization: Bearer bkpt_dc9eb539b43438f707d97387a28b587a78914efc" -H
+    // example: curl -sS -H "Authorization: Bearer bkpt_xxxxx" -H
     // "Content-Type: application/json"
     // -d '{ "commit": "HEAD", "branch": "master", "ignore_pipeline_branch_filters": true, "env":
     // ["TEST_ENV1=ENV1", "TEST_ENV2=ENV2"],
