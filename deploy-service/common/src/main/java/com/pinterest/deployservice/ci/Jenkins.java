@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pinterest.deployservice.common;
+package com.pinterest.deployservice.ci;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.pinterest.teletraan.universal.http.HttpClient;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // TODO: make it generic
 /** Wrapper for Jenkins API calls */
-public class Jenkins {
+public class Jenkins extends BaseCIPlatformManager {
     private static final Logger LOG = LoggerFactory.getLogger(Jenkins.class);
     private final HttpClient httpClient;
     private final String jenkinsUrl;
@@ -35,6 +36,7 @@ public class Jenkins {
             boolean useProxy,
             String httpProxyAddr,
             String httpProxyPort) {
+        super("jenkins", 2);
         this.jenkinsUrl = jenkinsUrl;
         this.jenkinsRemoteToken = jenkinsRemoteToken;
 
@@ -55,7 +57,36 @@ public class Jenkins {
         this.httpClient = clientBuilder.build();
     }
 
-    public static class Build {
+    public Jenkins(
+            String jenkinsUrl,
+            String jenkinsRemoteToken,
+            boolean useProxy,
+            String httpProxyAddr,
+            String httpProxyPort,
+            String typeName,
+            Integer priority) {
+        super(typeName, priority);
+        this.jenkinsUrl = jenkinsUrl;
+        this.jenkinsRemoteToken = jenkinsRemoteToken;
+
+        int httpProxyPortInt;
+        HttpClient.HttpClientBuilder clientBuilder = HttpClient.builder();
+        if (useProxy) {
+            try {
+                httpProxyPortInt = Integer.parseInt(httpProxyPort);
+            } catch (NumberFormatException exception) {
+                LOG.error("Failed to parse Jenkins port: {}", httpProxyPort, exception);
+                throw exception;
+            }
+            clientBuilder
+                    .useProxy(true)
+                    .httpProxyAddr(httpProxyAddr)
+                    .httpProxyPort(httpProxyPortInt);
+        }
+        this.httpClient = clientBuilder.build();
+    }
+
+    public static class Build implements CIPlatformBuild {
         String buildId;
         String result;
         boolean isBuilding;
@@ -78,6 +109,12 @@ public class Jenkins {
             this.duration = duration;
         }
 
+        @Override
+        public String getBuildUUID() {
+            return this.buildId;
+        }
+
+        @Override
         public String getStatus() {
             if (this.isBuilding) {
                 return "RUNNING";
@@ -90,6 +127,7 @@ public class Jenkins {
             return this.estimateDuration;
         }
 
+        @Override
         public int getProgress() {
             long assumedProgress = duration / estimateDuration;
             if (!this.isBuilding) {
@@ -104,7 +142,8 @@ public class Jenkins {
         return jenkinsUrl;
     }
 
-    public void startBuild(String jobName, String buildParams) throws Exception {
+    @Override
+    public String startBuild(String jobName, String buildParams) throws IOException {
         String tokenString = "";
         if (this.jenkinsRemoteToken != null)
             tokenString = String.format("token=%s&", this.jenkinsRemoteToken);
@@ -116,8 +155,10 @@ public class Jenkins {
         // Use GET instead, which is the same as POST but no need for token
         httpClient.get(url, null, null);
         LOG.info("Successfully post to jenkins for job " + jobName);
+        return "success";
     }
 
+    @Override
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", this.jenkinsUrl, jobName, jobNum);
         LOG.debug("Calling jenkins with url " + url);
@@ -130,5 +171,19 @@ public class Jenkins {
                 Long.parseLong(json.get("timestamp").toString()),
                 Integer.parseInt(json.get("estimatedDuration").toString()),
                 Integer.parseInt(json.get("duration").toString()));
+    }
+
+    @Override
+    public boolean jobExist(String pipeline) throws IOException {
+        String url = String.format("%s/job/%s/api/json", this.jenkinsUrl, pipeline);
+        LOG.debug("Calling jenkins with url " + url);
+        try {
+            String ret = httpClient.get(url, null, null);
+            JsonObject json = (JsonObject) JsonParser.parseString(ret);
+            return json != null;
+        } catch (IOException e) {
+            LOG.error("Failed to get job info from jenkins", e);
+            return false;
+        }
     }
 }
