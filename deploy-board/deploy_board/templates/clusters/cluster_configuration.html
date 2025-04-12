@@ -40,7 +40,7 @@
         <h4 class="panel-title pull-left">Capacity</h4>
     </div>
     <div v-if="noCluster" class="row">
-        <side-button styleclass="fa fa-cloud" text="Create New Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/" title="Create New Cluster"></side-button>
+        <side-button styleclass="fa fa-cloud" text="Create New Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/advanced" title="Create New Cluster"></side-button>
     </div>
     <div v-if="!noCluster" class="row">
         <side-button-nolink styleclass="fa fa-gears" v-on:click="buttonClick" v-bind:text="settingText" title="Cluster Configuration"></side-button-nolink>
