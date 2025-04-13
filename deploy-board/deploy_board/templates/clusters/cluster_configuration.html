@@ -43,9 +43,6 @@
         <side-button styleclass="fa fa-cloud" text="Create New Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/advanced" title="Create New Cluster"></side-button>
     </div>
     <div v-if="!noCluster" class="row">
-        <side-button-nolink styleclass="fa fa-gears" v-on:click="buttonClick" v-bind:text="settingText" title="Cluster Configuration"></side-button-nolink>
-    </div>
-    <div v-if="!noCluster" class="row">
         <side-button styleclass="glyphicon glyphicon-time" text="Base Image History" title="Base Image History"
             href="/env/{{ env.envName }}/{{ env.stageName }}/base_images">
         </side-button>
@@ -69,11 +66,11 @@
         <div class="container-fluid">
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId" {% if is_managed_resource %}disabled{% endif %}>
-                    <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
+                    <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
                     <accounts-select v-bind:accounts="accounts" v-bind:value="currentAccountId" v-bind:disabled="!canChangeAccount"></accounts-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="currentArch"></arch-select>
-                    <baseimage-select v-show="inAdvanced" v-model="pinImage" :pin-image-enabled="pinImageEnabled"
+                    <baseimage-select v-model="pinImage" :pin-image-enabled="pinImageEnabled"
                         :image-names="imageNames" :base-images="baseImages" v-bind:account-owner-id="currentAccountOwnerId"
                         :selected-image-name="imageNameValue" :selected-base-image="baseImageValue"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
@@ -88,12 +85,12 @@
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
                     <placements-select label="Placements" title="Placements" showsubnettype="true" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" v-bind:subnettype="subnetType"
                  showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
-                    <remaining-capacity title="The total remaining subnet capacity of selected placements" v-bind:remainingcapacity="remainingCapacity" v-bind:inadvanced="inAdvanced"></remaining-capacity>
+                    <remaining-capacity title="The total remaining subnet capacity of selected placements" v-bind:remainingcapacity="remainingCapacity"></remaining-capacity>
                     <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <stateful-select :statefuloptions="statefulStatusOptions" :value="currentStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="statefulStatusChange"></stateful-select>
                     <stateful-help v-show="showStatefulHelp"></stateful-help>
-                    <div v-if="inAdvanced">
+                    <div>
                         <div class="form-group"></div>
                         <div class="form-group">
                             <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip"  title="Customize user data">User data configs:</label>
@@ -110,7 +107,6 @@
                             v-bind:alluserdata="allUserData"
                             v-on:deleteconfig="deleteConfig"
                             v-on:change="configChange"
-                            v-bind:inadvanced="inAdvanced"
                             v-bind:showcmpgroup="showCmpGroup"
                             v-bind:hierapaths="hieraPaths"
                             v-bind:puppetrepository="puppetRepository"
@@ -549,11 +545,8 @@
                 }),
                 imageNameValue: currentCluster.baseImageName,
                 imageNames: mapImageNameToOptions(info.baseImageNames),
-                inAdvanced: false,
                 initialCell: this.currentCell,
-                placements: this.inAdvanced ?
-                    placements.getFullList(initialAssignPublicIP, currentPlacements) :
-                    placements.getSimpleList(initialAssignPublicIP, currentPlacements),
+                placements: placements.getFullList(initialAssignPublicIP, currentPlacements),
                 accounts: info.accounts?.map(account => ({
                     value: account.id,
                     text: `${account.ownerId} / ${account.name} / ${account.description}`,
@@ -640,12 +633,7 @@
                             default: info.configList[key]
                         }
                     }).filter(function(item){return item.name!='assign_public_ip'})
-                    if (this.inAdvanced){
-                        return options;
-                    }
-                    else{
-                        return options.filter(function(item){return !item.name.startsWith("pinfo_") && item.name!="cmp_group" });
-                    }
+                    return options;
                 },
                 configChange: function(input){
                     this.allUserData = this.allUserData.map(function(item){
@@ -1006,12 +994,7 @@
                     var showPublicSubnets = value == 'public' ? true : false
                     this.assignPublicIP = showPublicSubnets
                     this.showSubnetReplacementAlert = initialAssignPublicIP != showPublicSubnets
-                    if (this.inAdvanced){
-                        this.placements = placements.getFullList(showPublicSubnets, this.selectedPlacements)
-                    }
-                    else{
-                        this.placements = placements.getSimpleList(showPublicSubnets, this.selectedPlacements)
-                    }
+                    this.placements = placements.getFullList(showPublicSubnets, this.selectedPlacements)
                 },
                 updateAwsRole:function(value){
                     this.awsRole = value
@@ -1044,9 +1027,6 @@
                     }
                     else{
                         clusterInfo.configs['assign_public_ip'] = false
-                    }
-                    if (!this.inAdvanced){
-                        clusterInfo.configs['aws_role'] = this.awsRole
                     }
 
                     if (!this.pinImage) {
@@ -1109,7 +1089,6 @@
             el: "#side-panel",
             data: {
                 noCluster: !(env.clusterName || $.inArray(env.envName + "-" + env.stageName, groups) >= 0),
-                settingText: 'Advanced Settings',
                 clusterState: currentCluster.state
             },
             methods: {
@@ -1132,17 +1111,7 @@
                                 globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                             }
                         });
-                    },
-                buttonClick: function() {
-                    capacitySetting.inAdvanced = !capacitySetting.inAdvanced
-                    if (capacitySetting.inAdvanced) {
-                        this.settingText = 'Basic Settings'
-                        capacitySetting.placements = placements.getFullList(capacitySetting.assignPublicIP, currentPlacements)
-                    } else {
-                        this.settingText = 'Advanced Settings'
-                        capacitySetting.placements = placements.getSimpleList(capacitySetting.assignPublicIP, currentPlacements)
                     }
-                }
             }
         });
 
