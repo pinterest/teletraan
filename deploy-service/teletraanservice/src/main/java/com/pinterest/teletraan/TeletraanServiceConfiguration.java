@@ -22,6 +22,7 @@ import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.config.AwsFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
+import com.pinterest.teletraan.config.CIPlatformFactory;
 import com.pinterest.teletraan.config.ChatFactory;
 import com.pinterest.teletraan.config.DataSourceFactory;
 import com.pinterest.teletraan.config.DefaultChatFactory;
@@ -90,6 +91,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     private RodimusFactory rodimusFactory;
 
     @Valid
+    @JsonProperty("ci")
+    private List<CIPlatformFactory> ciPlatformConfigs;
+
+    @Valid
     @JsonProperty("jenkins")
     private JenkinsFactory jenkinsFactory;
 
@@ -139,6 +144,18 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setSourceControlConfigs(List<SourceControlFactory> sourceControlConfigs) {
         this.sourceControlConfigs = sourceControlConfigs;
+    }
+
+    // // CIPlatformFactory replaces JenkinsFactory and BuildkiteFactory
+    public List<CIPlatformFactory> getCIPlatformConfigs() {
+        if (ciPlatformConfigs == null) {
+            return Collections.emptyList();
+        }
+        return ciPlatformConfigs;
+    }
+
+    public void setCIPlatformConfigs(List<CIPlatformFactory> ciPlatformConfigs) {
+        this.ciPlatformConfigs = ciPlatformConfigs;
     }
 
     public AuthorizationFactory getAuthorizationFactory() {
@@ -212,6 +229,8 @@ public class TeletraanServiceConfiguration extends Configuration {
         this.rodimusFactory = rodimusFactory;
     }
 
+    // keep these getter and setter for Jenkins for backward compatibility purpose
+    // the new way is to use CIPlatformFactory
     public JenkinsFactory getJenkinsFactory() {
         return jenkinsFactory;
     }

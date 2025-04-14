@@ -18,7 +18,9 @@ package com.pinterest.deployservice;
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
-import com.pinterest.deployservice.common.Jenkins;
+import com.pinterest.deployservice.ci.Buildkite;
+import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
+import com.pinterest.deployservice.ci.Jenkins;
 import com.pinterest.deployservice.dao.AgentCountDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
@@ -86,6 +88,7 @@ public class ServiceContext {
     private String serviceStage;
     private MailManager mailManager;
     private SourceControlManagerProxy sourceControlManagerProxy;
+    private CIPlatformManagerProxy ciPlatformManagerProxy;
     private ChatManager chatManager;
     private ExecutorService jobPool;
     private RodimusManager rodimusManager;
@@ -98,6 +101,7 @@ public class ServiceContext {
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
     private Jenkins jenkins;
+    private Buildkite buildkite;
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
@@ -299,6 +303,14 @@ public class ServiceContext {
         this.sourceControlManagerProxy = sourceControlManagerProxy;
     }
 
+    public CIPlatformManagerProxy getCIPlatformManagerProxy() {
+        return ciPlatformManagerProxy;
+    }
+
+    public void setCIPlatformManagerProxy(CIPlatformManagerProxy ciPlatformManagerProxy) {
+        this.ciPlatformManagerProxy = ciPlatformManagerProxy;
+    }
+
     public ChatManager getChatManager() {
         return chatManager;
     }
@@ -395,6 +407,8 @@ public class ServiceContext {
         this.changeFeedUrl = changeFeedUrl;
     }
 
+    // keep these getter and setter for Jenkins for backward compatibility purpose
+    // the new way is to use CIPlatformManagerProxy
     public Jenkins getJenkins() {
         return jenkins;
     }
