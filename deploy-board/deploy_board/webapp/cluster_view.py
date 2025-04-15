@@ -42,7 +42,6 @@ if IS_PINTEREST:
         DEFAULT_USE_LAUNCH_TEMPLATE,
         USER_DATA_CONFIG_SETTINGS_WIKI,
         TELETRAAN_CLUSTER_READONLY_FIELDS,
-        ACCESS_ROLE_LIST,
         ENABLE_AMI_AUTO_UPDATE,
         HOST_TYPE_ROADMAP_LINK,
         PUPPET_CONFIG_REPOSITORY,
@@ -84,58 +83,6 @@ DEFAULT_PAGE_SIZE = 200
 
 
 class EnvCapacityBasicCreateView(View):
-    def get(self, request, name, stage):
-        host_types = hosttypes_helper.get_by_arch(request, DEFAULT_ARCH)
-        for host_type in host_types:
-            host_type["mem"] = float(host_type["mem"]) / 1024
-        host_types_mapping = hosttypesmapping_helper.get_fulllist(request)
-        security_zones = securityzones_helper.get_by_provider_and_cell_name(
-            request, None, DEFAULT_PROVIDER, DEFAULT_CELL
-        )
-        placements = placements_helper.get_by_provider_and_cell_name(
-            request, None, DEFAULT_PROVIDER, DEFAULT_CELL
-        )
-        default_base_image = get_base_image_info_by_name(
-            request, DEFAULT_CMP_IMAGE, DEFAULT_CELL
-        )
-        env = environs_helper.get_env_by_stage(request, name, stage)
-
-        capacity_creation_info = {
-            "environment": env,
-            "hostTypes": host_types,
-            "hostTypesMapping": host_types_mapping,
-            "securityZones": security_zones,
-            "placements": placements,
-            "baseImages": default_base_image,
-            "defaultCMPConfigs": get_default_cmp_configs(name, stage),
-            "defaultProvider": DEFAULT_PROVIDER,
-            "defaultArch": DEFAULT_ARCH,
-            "defaultUseLaunchTemplate": DEFAULT_USE_LAUNCH_TEMPLATE,
-            "defaultBaseImage": DEFAULT_CMP_IMAGE,
-            "defaultARMBaseImage": DEFAULT_CMP_ARM_IMAGE,
-            "defaultHostType": DEFAULT_CMP_HOST_TYPE,
-            "defaultARMHostType": DEFAULT_CMP_ARM_HOST_TYPE,
-            "defaultSeurityZone": DEFAULT_PLACEMENT,
-            "access_role_list": ACCESS_ROLE_LIST,
-            "enable_ami_auto_update": ENABLE_AMI_AUTO_UPDATE,
-            "stateful_status": clusters_helper.StatefulStatuses.get_status(None),
-            "stateful_options": clusters_helper.StatefulStatuses.get_all_statuses(),
-        }
-        # cluster manager
-        return render(
-            request,
-            "configs/new_capacity.html",
-            {
-                "env": env,
-                "default_cmp_image": DEFAULT_CMP_IMAGE,
-                "default_cmp_arm_image": DEFAULT_CMP_ARM_IMAGE,
-                "default_host_type": DEFAULT_CMP_HOST_TYPE,
-                "default_arm_host_type": DEFAULT_CMP_ARM_HOST_TYPE,
-                "disable_backup_instance_types": TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES,
-                "capacity_creation_info": json.dumps(capacity_creation_info),
-            },
-        )
-
     def post(self, request, name, stage):
         ret = 200
         exception = None

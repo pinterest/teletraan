@@ -24,7 +24,7 @@
 
     {% if is_pinterest %} <!-- Pinterest specific-->
         <div v-if="noCluster" class="row">
-            <side-button styleclass="fa fa-cloud" text="Create New Cluster" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/" title="Create New Cluster"></side-button>
+            <side-button styleclass="fa fa-cloud" text="Create New Cluster" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/advanced/" title="Create New Cluster"></side-button>
         </div>
         <div v-if="!noCluster" class="row">
             <side-button styleclass="fa fa-gears" text="Cluster Configuration" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page"></side-button>

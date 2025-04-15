@@ -204,7 +204,7 @@ Vue.component('data-config-field', {
 
 Vue.component('aws-user-data', {
     template: '<div class="form-group">\
-    <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly" v-bind:inadvanced="inadvanced"\
+    <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly"\
      v-show="shouldShow(data.name)" v-on:change="change" v-on:deleteConfig="deleteConfig"></data-config-field>\
      <label for="properties" class="control-label col-xs-3 g-0" style="padding-top: 0;">Puppet profile</label>\
      <div class="col-xs-6">\
@@ -212,7 +212,7 @@ Vue.component('aws-user-data', {
         <span v-else>Unable to find matching Puppet Profile from User Data</span>\
      </div>\
   </div>',
-    props: ['alluserdata', 'inadvanced', 'showcmpgroup', 'puppetrepository', 'hierapaths'],
+    props: ['alluserdata', 'showcmpgroup', 'puppetrepository', 'hierapaths'],
     computed: {
         puppetFileUrl: function() {
             if (!this.hierapaths || !this.puppetrepository) {
@@ -259,12 +259,7 @@ Vue.component('aws-user-data', {
             this.$emit('deleteconfig', name)
         },
         shouldShow: function (name) {
-            if (this.inadvanced) {
-                return this.showcmpgroup ? true : name != "cmp_group"
-            }
-            else {
-                return !name.startsWith("pinfo_") && name != "cmp_group"
-            }
+            return this.showcmpgroup ? true : name != "cmp_group"
         },
     }
 });
@@ -572,10 +567,10 @@ Vue.component('remaining-capacity', {
         <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Subnet Capacity: {{remainingcapacity}}</span>\
     </div>\
     </div>',
-    props: ['title', 'remainingcapacity', 'inadvanced'],
+    props: ['title', 'remainingcapacity'],
     computed: {
         marginStyle: function () {
-            return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
+            return 'margin-top:-15px;'
         }
     }
 });

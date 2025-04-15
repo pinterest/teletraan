@@ -258,62 +258,6 @@ function getDefaultPlacement(capacityCreationInfo) {
     topCmpPrivateIPPlacements = getTopSelection(cmpPrivateIPPlacements)
 
     return {
-        getSimpleList: function (showPublicOnly, existingItems) {
-            //Return a simple list fo selection.
-            //Simple list is grouped by the abstract_name,
-            //for each abstract_name, we have one candidate.
-            //If existingItems is null or empty, the abstract_name
-            //will be the existing one
-            if (typeof showPublicOnly !== "boolean") {
-                console.error("getSimpleList expects parameter showPublicOnly to be of boolean type.")
-            }
-            var arr = showPublicOnly ? topCmpPublicIPPlacements : topCmpPrivateIPPlacements;
-            var fullArr = showPublicOnly ? allPublicIPPlacements : allPrivateIPPlacements;
-            if (existingItems != null && existingItems.length > 0) {
-
-                existingItems = existingItems.map(function (item) {
-                    var fullInfo = fullArr.find(
-                        function (i) {
-                            return i.id === item
-                        }
-                    )
-
-                    return fullInfo != null ? fullInfo : { id: item }
-                })
-
-                //Only have id. Append abstract_name to existingItems
-                arr = arr.map(function (item) {
-                    var existing = existingItems.find(
-                        function (value, index) {
-                            return item.abstract_name === value.abstract_name
-                        })
-                    if (existing != null) {
-                        return {
-                            value: existing.id,
-                            text: existing.abstract_name,
-                            isSelected: true
-                        }
-                    }
-                    else {
-                        return {
-                            value: item.id,
-                            text: item.abstract_name,
-                            isSelected: false
-                        };
-                    }
-                })
-            }
-            else {
-                arr = arr.map(function (item, idx) {
-                    return {
-                        value: item.id,
-                        text: item.abstract_name,
-                        isSelected: inDefault(item)
-                    }
-                })
-            }
-            return convertToPlacementOptions(arr);
-        },
         getFullList: function (showPublicOnly, existingItems) {
             if (typeof showPublicOnly !== "boolean") {
                 console.error("getFullList expects parameter showPublicOnly to be of boolean type.");
