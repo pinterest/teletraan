@@ -3,7 +3,7 @@
 <div class="row">
 <ul class="list-group">
     {% for env in envs %}
-        <a href="/env/{{ env.envName }}/" class="list-group-item">{{ env.envName}}</a>
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}" class="list-group-item">{{ env.envName }}/{{ env.stageName }}</a>
     {% endfor%}
 </ul>
 </div>
