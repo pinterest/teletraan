@@ -78,13 +78,13 @@ public class HotfixStateTransitioner implements Runnable {
             jenkins = serviceContext.getJenkins();
         } else {
             try {
-                jenkins = (Jenkins) ciPlatformManagerProxy.getCIPlatform("jenkins");
+                jenkins = (Jenkins) ciPlatformManagerProxy.getCIPlatform("Jenkins");
             } catch (Exception e) {
                 LOG.error("Failed to initialize Jenkins CI platform", e);
                 throw new RuntimeException("Failed to initialize Jenkins CI platform", e);
             }
             try {
-                buildkite = (Buildkite) ciPlatformManagerProxy.getCIPlatform("buildkite");
+                buildkite = (Buildkite) ciPlatformManagerProxy.getCIPlatform("Buildkite");
             } catch (Exception e) {
                 LOG.error("Failed to initialize Buildkite CI platform", e);
                 throw new RuntimeException("Failed to initialize Buildkite CI platform", e);
@@ -208,8 +208,8 @@ public class HotfixStateTransitioner implements Runnable {
                             }
                         }
                         // Right now only transition state when Jenkins job is created
-                        if (buildResultMap.containsKey("jenkins")
-                                && !StringUtils.isEmpty(buildResultMap.get("jenkins"))) {
+                        if (buildResultMap.containsKey("Jenkins")
+                                && !StringUtils.isEmpty(buildResultMap.get("Jenkins"))) {
                             LOG.info("Jenkins job started successfully for hotfix id {}", hotfixId);
                             transition(hotBean);
                         } else {
@@ -229,10 +229,16 @@ public class HotfixStateTransitioner implements Runnable {
 
                 } else if (state == HotfixState.PUSHING) {
                     if (!StringUtils.isEmpty(jobNum)) {
-                        Jenkins.Build build =
-                                (Jenkins.Build)
-                                        ciPlatformManagerProxy.getBuild(
-                                                "jenkins", hotBean.getJob_name(), jobNum);
+                        Jenkins.Build build = null;
+                        if (useCIProxy) {
+                            build =
+                                    (Jenkins.Build)
+                                            ciPlatformManagerProxy.getBuild(
+                                                    "Jenkins", hotBean.getJob_name(), jobNum);
+                        } else {
+                            build = jenkins.getBuild(hotBean.getJob_name(), jobNum);
+                        }
+
                         String status = build.getStatus().replace("\"", "");
                         int newProgress = build.getProgress();
 
@@ -287,7 +293,15 @@ public class HotfixStateTransitioner implements Runnable {
                     }
                 } else if (state == HotfixState.BUILDING) {
                     if (!StringUtils.isEmpty(jobNum)) {
-                        Jenkins.Build build = jenkins.getBuild(hotBean.getJob_name(), jobNum);
+                        Jenkins.Build build = null;
+                        if (useCIProxy) {
+                            build =
+                                    (Jenkins.Build)
+                                            ciPlatformManagerProxy.getBuild(
+                                                    "Jenkins", hotBean.getJob_name(), jobNum);
+                        } else {
+                            build = jenkins.getBuild(hotBean.getJob_name(), jobNum);
+                        }
                         String status = build.getStatus().replace("\"", "");
                         int newProgress = build.getProgress();
 
