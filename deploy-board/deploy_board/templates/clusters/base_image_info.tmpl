@@ -10,7 +10,12 @@
         <tr>
             <td>Provider Name</td>
             <td>
-                {{ current_image.provider_name }}
+              <a class="deployToolTip" data-toggle="tooltip"
+                  title="Click to see provider name details"
+                  href="{{ imageProviderNameUrl }}{{ current_image.provider_name }}?json=False"
+              >
+                    {{ current_image.provider_name }}
+              </a>
             </td>
         </tr>
         <tr>
@@ -19,7 +24,14 @@
         </tr>
         <tr>
             <td>Abstract Name</td>
-            <td>{{ current_image.abstract_name }}</td>
+            <td>
+              <a class="deployToolTip" data-toggle="tooltip"
+                  title="Click to see abstract name details"
+                  href="/clouds/baseimages/{{ base_image.abstract_name }}"
+              >
+                  {{ current_image.abstract_name }}
+              </a>
+            </td>
         </tr>
         <tr>
             <td>Arch</td>
