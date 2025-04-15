@@ -55,8 +55,16 @@
                 </tr>
                 <tr>
                     <td>Base Image ID</td>
-                    <td>{{ current_image.id }}</td>
-                    <td>{{ golden_image.id }}</td>
+                    <td>
+                        <a href="/clouds/baseimages/events/{{ current_image.id }}">
+                            {{ current_image.id }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/clouds/baseimages/events/{{ golden_image.id }}">
+                            {{ golden_image.id }}
+                        </a>
+                    </td>
                 </tr>
                 <tr>
                     <td>Publish Date</td>
@@ -70,8 +78,16 @@
                 </tr>
                 <tr>
                     <td>Abstract Name</td>
-                    <td>{{ current_image.abstract_name }}</td>
-                    <td>{{ golden_image.abstract_name }}</td>
+                    <td>
+                        <a href="/clouds/baseimages/{{ current_image.abstract_name }}">
+                            {{ current_image.abstract_name }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/clouds/baseimages/{{ golden_image.abstract_name }}">
+                            {{ golden_image.abstract_name }}
+                        </a>
+                    </td>
                 </tr>
                 <tr>
                     <td>Arch Name</td>
@@ -98,10 +114,14 @@
                         Provider Name
                     </td>
                     <td>
-                        {{ current_image.provider_name }}
+                        <a href="{{ imageProviderNameUrl }}{{ current_image.provider_name }}?json=False">
+                           {{ current_image.provider_name }}
+                        </a>
                     </td>
                     <td>
-                        {{ golden_image.provider_name }}
+                        <a href="{{ imageProviderNameUrl }}{{ golden_image.provider_name }}?json=False">
+                            {{ golden_image.provider_name }}
+                        </a>
                     </td>
                 </tr>
             </table>

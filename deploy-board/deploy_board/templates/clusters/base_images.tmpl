@@ -40,7 +40,12 @@
                     <span class="label label-warning">GOLDEN</span>
                 {% endif %}
             </td>
-            <td> {{ base_image.provider_name }} </td>
+            <td>
+              <a id="listGroupsBtnId" href="{{ imageProviderNameUrl }}{{ base_image.provider_name }}?json=False"
+                    title="Click to see provider name details">
+                    {{ base_image.provider_name }}
+              </a>
+            </td>
             <td>
                 <a id="listGroupsBtnId" href="/clouds/baseimages/{{ base_image.abstract_name }}"
                     title="Click to see image update events">

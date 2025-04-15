@@ -433,6 +433,8 @@ if IS_PINTEREST:
     NIMBUS_USE_EGRESS = os.getenv("NIMBUS_USE_EGRESS", "False").lower() == "true"
     NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)
 
+    IMAGE_PROVIDER_NAME_URL = os.getenv("IMAGE_PROVIDER_NAME_URL", None)
+
     DEFAULT_CLUSTER_TYPE = "PRODUCTION"
 
     # Auto AMI Update
