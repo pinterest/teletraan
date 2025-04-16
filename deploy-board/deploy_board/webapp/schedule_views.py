@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all deploy scheduling config related views
-"""
+"""Collection of all deploy scheduling config related views"""
+
 import json
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
@@ -29,22 +29,31 @@ class EnvScheduleView(View):
     def get(self, request, name, stage):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
-            html = render_to_string('configs/schedule_config.tmpl', {
-                "env": env,
-                "csrf_token": get_token(request),
-            })
-            return HttpResponse(json.dumps({'html': html}), content_type="application/json")
+            html = render_to_string(
+                "configs/schedule_config.tmpl",
+                {
+                    "env": env,
+                    "csrf_token": get_token(request),
+                },
+            )
+            return HttpResponse(
+                json.dumps({"html": html}), content_type="application/json"
+            )
 
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         agent_count = agents_helper.get_agents_total_by_env(request, env["id"])
-        schedule_id = env.get('scheduleId', None)
+        schedule_id = env.get("scheduleId", None)
         if schedule_id is not None:
             schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
         else:
             schedule = None
-        return render(request, 'configs/schedule_config.html', {
-            "env": env,
-            "schedule": schedule,
-            "agent_count": agent_count,
-        })
+        return render(
+            request,
+            "configs/schedule_config.html",
+            {
+                "env": env,
+                "schedule": schedule,
+                "agent_count": agent_count,
+            },
+        )

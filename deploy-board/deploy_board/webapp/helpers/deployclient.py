@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Helper class to connect Teletraan service
-"""
+"""Helper class to connect Teletraan service"""
+
 import logging
 from .decorators import singleton
 from deploy_board.settings import (

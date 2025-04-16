@@ -26,24 +26,25 @@ try:
 except ImportError:
     from urllib import request as http
 
-log = logging.getLogger('oauth')
+log = logging.getLogger("oauth")
 STATE_LENGTH = 32
 # Default with Google endpoints
-OAUTH_ACCESS_TOKEN_URL = 'https://auth.pinadmin.com/oauth/token/'
-OAUTH_AUTHORIZE_URL = 'https://auth.pinadmin.com/oauth/authorize/'
-DEFAULT_SCOPE = 'user'
+OAUTH_ACCESS_TOKEN_URL = "https://auth.pinadmin.com/oauth/token/"
+OAUTH_AUTHORIZE_URL = "https://auth.pinadmin.com/oauth/authorize/"
+DEFAULT_SCOPE = "user"
 
 logger = logging.getLogger(__name__)
 
 try:
     random = random.SystemRandom()
 except NotImplementedError:
-    log.error('No system level randomness available. PRNG in software is not secure.')
+    log.error("No system level randomness available. PRNG in software is not secure.")
 
 
-def get_random_string(length=12,
-                      allowed_chars='abcdefghijklmnopqrstuvwxyz'
-                                    'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
+def get_random_string(
+    length=12,
+    allowed_chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+):
     """
     Returns a securely generated random string.
 
@@ -54,7 +55,7 @@ def get_random_string(length=12,
 
     Warning: Should only be used with systemrandom. PRNG is predictable
     """
-    return ''.join(random.choice(allowed_chars) for i in range(length))
+    return "".join(random.choice(allowed_chars) for i in range(length))
 
 
 def is_equal(a, b):
@@ -76,11 +77,11 @@ class OAuthExpiredTokenException(Exception):
     """
     Used to raise an exception when the access token has expired and auth.pinadmin.com returns 401 error code
     """
+
     pass
 
 
 class OAuthHandler(object):
-
     def token_getter(self, **kwargs):
         raise NotImplementedError
 
@@ -104,9 +105,13 @@ class OAuthHandler(object):
 
 
 class SessionOauthHandler(OAuthHandler):
-
-    def __init__(self, state_length=32, state_name='oauth_state',
-                 token_name='oauth_token', expires_name='oauth_expires'):
+    def __init__(
+        self,
+        state_length=32,
+        state_name="oauth_state",
+        token_name="oauth_token",
+        expires_name="oauth_expires",
+    ):
         self.state_length = state_length
         self.state_name = state_name
         self.token_name = token_name
@@ -144,16 +149,19 @@ class OAuth(object):
     """Communicates with the oauth providers"""
 
     def __init__(
-            self,
-            secret,
-            key,
-            callback_url,
-            domain,
-            access_token_url=OAUTH_ACCESS_TOKEN_URL,
-            authorize_url=OAUTH_AUTHORIZE_URL,
-            oauth_handler=SessionOauthHandler(),
-            scope=DEFAULT_SCOPE):
-        self.access_token_url = access_token_url if access_token_url else OAUTH_ACCESS_TOKEN_URL
+        self,
+        secret,
+        key,
+        callback_url,
+        domain,
+        access_token_url=OAUTH_ACCESS_TOKEN_URL,
+        authorize_url=OAUTH_AUTHORIZE_URL,
+        oauth_handler=SessionOauthHandler(),
+        scope=DEFAULT_SCOPE,
+    ):
+        self.access_token_url = (
+            access_token_url if access_token_url else OAUTH_ACCESS_TOKEN_URL
+        )
         self.secret = secret
         self.key = key
         self.authorize_url = authorize_url if authorize_url else OAUTH_AUTHORIZE_URL
@@ -164,9 +172,8 @@ class OAuth(object):
 
     def get_client(self, token=None):
         if token and isinstance(token, (tuple, list)):
-            token = {'access_token': token[0]}
-        client = oauthlib.oauth2.WebApplicationClient(
-            self.key, token=token)
+            token = {"access_token": token[0]}
+        client = oauthlib.oauth2.WebApplicationClient(self.key, token=token)
         return client
 
     def validate_token(self, **kwargs):
@@ -177,9 +184,7 @@ class OAuth(object):
         method = "GET"
         client = self.get_client(self.oauth_handler.token_getter(**kwargs))
 
-        uri, headers, body = client.add_token(
-            url, http_method=method, body=data
-        )
+        uri, headers, body = client.add_token(url, http_method=method, body=data)
         resp, content = self.http_request(
             uri, data=str(body) if body else None, method=method, headers=headers
         )
@@ -194,21 +199,24 @@ class OAuth(object):
         if old_state is None:
             raise OAuthException("Invalid state")
 
-        state, enc_data = state_with_data[:len(old_state)], state_with_data[len(old_state):]
+        state, enc_data = (
+            state_with_data[: len(old_state)],
+            state_with_data[len(old_state) :],
+        )
         if not is_equal(old_state, state):
             raise OAuthException("Invalid state")
 
         args = {
-            'code': code,
-            'client_secret': self.secret,
-            'redirect_uri': self.callback_url
+            "code": code,
+            "client_secret": self.secret,
+            "redirect_uri": self.callback_url,
         }
         client = self.get_client()
         body = client.prepare_request_body(**args)
         resp, content = self.http_request(
             self.access_token_url,
             data=str(body) if body else None,
-            method='POST',
+            method="POST",
         )
         if resp.code == 401:
             # When auth.pinadmin.com returns a 401 error. remove token and redirect to / page
@@ -221,8 +229,8 @@ class OAuth(object):
         except ValueError:
             raise OAuthException("Invalid OAuth response")
 
-        expires = time.time() + resp_data['expires_in']
-        self.oauth_handler.token_setter(resp_data['access_token'], expires, **kwargs)
+        expires = time.time() + resp_data["expires_in"]
+        self.oauth_handler.token_setter(resp_data["access_token"], expires, **kwargs)
 
         try:
             return json.loads(base64.b64decode(enc_data).decode())
@@ -238,14 +246,14 @@ class OAuth(object):
         self.oauth_handler.state_setter(state, **kwargs)
 
         # hack to add data to state
-        encoded_data = base64.b64encode(json.dumps(data).encode('utf-8'))
-        state_with_data = state + encoded_data.decode('utf-8')
+        encoded_data = base64.b64encode(json.dumps(data).encode("utf-8"))
+        state_with_data = state + encoded_data.decode("utf-8")
         return client.prepare_request_uri(
             self.authorize_url,
             redirect_uri=self.callback_url,
             scope=scope,
             state=state_with_data,
-            hd=self.domain
+            hd=self.domain,
         )
 
     @staticmethod
@@ -254,16 +262,16 @@ class OAuth(object):
             headers = {}
 
         if data and not method:
-            method = 'POST'
+            method = "POST"
         elif not method:
-            method = 'GET'
+            method = "GET"
 
-        if method == 'GET' and data:
+        if method == "GET" and data:
             uri = add_params_to_uri(uri, data)
             data = None
 
-        log.debug('Request %r with %r method' % (uri, method))
-        data_encoded = data.encode('utf-8') if data else None
+        log.debug("Request %r with %r method" % (uri, method))
+        data_encoded = data.encode("utf-8") if data else None
         req = http.Request(uri, headers=headers, data=data_encoded)
         req.get_method = lambda: method.upper()
         try:

@@ -105,7 +105,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.12.1</version>
+                    <version>3.14.0</version>
+                    <configuration>
+                        <release>8</release>
+                        <source>8</source>
+                        <target>8</target>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -270,8 +275,8 @@
         </profile>
         <profile>
             <!-- If you are outside Pinterest, exclude this profile -->
-            <!-- i.e. mvn clean package -P-pinterest-dependenies -->
-            <id>pinterest-dependenies</id>
+            <!-- i.e. mvn clean package -P-pinterest-dependencies -->
+            <id>pinterest-dependencies</id>
             <activation>
               <activeByDefault>true</activeByDefault>
             </activation>

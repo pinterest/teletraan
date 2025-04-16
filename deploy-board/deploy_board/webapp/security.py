@@ -40,7 +40,7 @@ class DelegatedOAuthMiddleware(object):
                 domain=settings.OAUTH_DOMAIN,
                 access_token_url=settings.OAUTH_ACCESS_TOKEN_URL,
                 authorize_url=settings.OAUTH_AUTHORIZE_URL,
-                scope=settings.OAUTH_DEFAULT_SCOPE
+                scope=settings.OAUTH_DEFAULT_SCOPE,
             )
             logger.info("Successfully created OAuth!")
         else:
@@ -48,11 +48,11 @@ class DelegatedOAuthMiddleware(object):
             self.is_oauth_enabled = False
 
     def __call__(self, request):
-        if request.path.startswith('/auth/'):
+        if request.path.startswith("/auth/"):
             logger.info("Bypass OAuth redirect request " + request.path)
             return self.get_response(request)
 
-        if request.path.startswith('/health_check/'):
+        if request.path.startswith("/health_check/"):
             logger.info("Bypass health_check request " + request.path)
             return self.get_response(request)
 
@@ -63,15 +63,15 @@ class DelegatedOAuthMiddleware(object):
 
         # extract employee oauth token, redirect to OAuth if missing or invalid
         if self.oauth.validate_token(session=request.session):
-            username = request.session.get('teletraan_user')
-            token = request.session.get('oauth_token')
+            username = request.session.get("teletraan_user")
+            token = request.session.get("oauth_token")
             request.teletraan_user_id = UserIdentity(name=username, token=token)
             audit_logger.info("audit", extra={"request": request})
             return self.get_response(request)
         else:
             # TODO call logout to remove session cleanly
             # self.logout(request)
-            data = {'origin_path': request.get_full_path()}
+            data = {"origin_path": request.get_full_path()}
             url = self.oauth.get_authorization_url(session=request.session, data=data)
             logger.debug("Redirect oauth for authentication!, url = " + url)
             return HttpResponseRedirect(url)
@@ -82,6 +82,7 @@ class FixedOAuthMiddleware(object):
     Use test oauth credentials to talk to backend instead of getting them
     from the OAuth.
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
         if not settings.OAUTH_ENABLED and settings.TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN:
@@ -92,7 +93,9 @@ class FixedOAuthMiddleware(object):
 
     def __call__(self, request):
         if self._token:
-            request.teletraan_user_id = UserIdentity(name="anonymous", token=self._token)
+            request.teletraan_user_id = UserIdentity(
+                name="anonymous", token=self._token
+            )
             audit_logger.info("audit", extra={"request": request})
             return self.get_response(request)
         return HttpResponse("Unauthorized", status=401)
@@ -102,7 +105,7 @@ def login_authorized(request):
     logger.debug("Redirect back from oauth!")
     if not settings.OAUTH_ENABLED:
         logger.error("OAuth is not enabled!")
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect("/")
 
     oauth = OAuth(
         key=settings.OAUTH_CLIENT_ID,
@@ -111,28 +114,37 @@ def login_authorized(request):
         domain=settings.OAUTH_DOMAIN,
         access_token_url=settings.OAUTH_ACCESS_TOKEN_URL,
         authorize_url=settings.OAUTH_AUTHORIZE_URL,
-        scope=settings.OAUTH_DEFAULT_SCOPE
+        scope=settings.OAUTH_DEFAULT_SCOPE,
     )
 
-    code = request.GET.get('code')
-    state = request.GET.get('state')
+    code = request.GET.get("code")
+    state = request.GET.get("state")
     try:
         data = oauth.handle_oauth2_response(code, state, session=request.session)
-        user_name = oauth.oauth_data(user_info_uri=settings.OAUTH_USER_INFO_URI, session=request.session)
+        user_name = oauth.oauth_data(
+            user_info_uri=settings.OAUTH_USER_INFO_URI, session=request.session
+        )
         # extract user_name from oauth_data based on OAUTH_USERNAME_INFO_KEY and OAUTH_EXTRACT_USERNAME_FROM_EMAIL
         if settings.OAUTH_USERNAME_INFO_KEY:
             keys = settings.OAUTH_USERNAME_INFO_KEY.split()
             for key in keys:
                 user_name = user_name[key]
-        if settings.OAUTH_EXTRACT_USERNAME_FROM_EMAIL is not None and settings.OAUTH_EXTRACT_USERNAME_FROM_EMAIL == "TRUE":
+        if (
+            settings.OAUTH_EXTRACT_USERNAME_FROM_EMAIL is not None
+            and settings.OAUTH_EXTRACT_USERNAME_FROM_EMAIL == "TRUE"
+        ):
             user_name = user_name.split("@")[0]
 
     except OAuthException as e:
         # failed to login for some reason, do something
         logger.error(traceback.format_exc())
-        return render(request, 'oauth_failure.html', {
-            "message": str(e),
-        })
+        return render(
+            request,
+            "oauth_failure.html",
+            {
+                "message": str(e),
+            },
+        )
 
     except OAuthExpiredTokenException:
         # When auth.pinadmin.com returns a 401 error
@@ -144,18 +156,19 @@ def login_authorized(request):
         return HttpResponseRedirect("/")
 
     logger.info("get user_name %s and data %s back from oauth!" % (user_name, data))
-    request.session['teletraan_user'] = user_name
+    request.session["teletraan_user"] = user_name
 
-    if data and 'origin_path' in data:
-        return HttpResponseRedirect(data['origin_path'])
+    if data and "origin_path" in data:
+        return HttpResponseRedirect(data["origin_path"])
 
-    return HttpResponseRedirect('/')
+    return HttpResponseRedirect("/")
+
 
 def logout(request):
     logger.info("Logout %s!" % request.session.get("teletraan_user", "anonymous"))
     if not settings.OAUTH_ENABLED:
         logger.error("OAuth is not enabled!")
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect("/")
 
     oauth = OAuth(
         key=settings.OAUTH_CLIENT_ID,
@@ -164,14 +177,14 @@ def logout(request):
         domain=settings.OAUTH_DOMAIN,
         access_token_url=settings.OAUTH_ACCESS_TOKEN_URL,
         authorize_url=settings.OAUTH_AUTHORIZE_URL,
-        scope=settings.OAUTH_DEFAULT_SCOPE
+        scope=settings.OAUTH_DEFAULT_SCOPE,
     )
 
     oauth.logout(session=request.session)
-    if 'teletraan_user' in request.session:
-        del request.session['teletraan_user']
+    if "teletraan_user" in request.session:
+        del request.session["teletraan_user"]
 
-    return HttpResponseRedirect('/loggedout/')
+    return HttpResponseRedirect("/loggedout/")
 
 
 class PRRMiddleware:
@@ -182,10 +195,10 @@ class PRRMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
         response = self.get_response(request)
-        response['Pragma'] = "no-cache"
-        response['Cache-Control'] = "no-cache, no-store, must-revalidate"
-        response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT;"
-        response['X-Content-Type-Options'] = "nosniff"
-        response['Strict-Transport-Security'] = "max-age=631138519"
+        response["Pragma"] = "no-cache"
+        response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response["Expires"] = "Thu, 01 Jan 1970 00:00:00 GMT;"
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Strict-Transport-Security"] = "max-age=631138519"
 
         return response

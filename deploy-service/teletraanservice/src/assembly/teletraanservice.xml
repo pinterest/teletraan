@@ -11,10 +11,6 @@
             <outputDirectory>resources</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>src/main/config</directory>
-            <outputDirectory>config</outputDirectory>
-        </fileSet>
-        <fileSet>
             <directory>bin</directory>
             <outputDirectory>bin</outputDirectory>
             <includes><include>**/*</include></includes>
@@ -22,7 +18,10 @@
         <fileSet>
             <directory>teletraan</directory>
             <outputDirectory>teletraan</outputDirectory>
-            <includes><include>**/*</include></includes>
+            <includes>
+                <include>teletraan*/*</include>
+                <include>run_in_container.sh</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>target</directory>

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all env promote config views
-"""
+"""Collection of all env promote config views"""
+
 import json
 from deploy_board.settings import IS_PINTEREST, STAGE_TYPE_INFO_LINK
 from django.http import HttpResponse
@@ -31,11 +31,16 @@ class EnvConfigView(View):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
             environs_helper.set_active_max_parallel(env)
-            html = render_to_string('configs/env_config.tmpl', {
-                "env": env,
-                "csrf_token": get_token(request),
-            })
-            return HttpResponse(json.dumps({'html': html}), content_type="application/json")
+            html = render_to_string(
+                "configs/env_config.tmpl",
+                {
+                    "env": env,
+                    "csrf_token": get_token(request),
+                },
+            )
+            return HttpResponse(
+                json.dumps({"html": html}), content_type="application/json"
+            )
 
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = get_all_stages(envs, stage)
@@ -44,37 +49,46 @@ class EnvConfigView(View):
         show_remove = True
         # if people have already specified host capacity or group capacity but do not have cluster config
         # show capacity config page; otherwise, show cluster config page
-        hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
+        hosts = environs_helper.get_env_capacity(
+            request, name, stage, capacity_type="HOST"
+        )
         if hosts:
             show_remove = False
         else:
-            groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
+            groups = environs_helper.get_env_capacity(
+                request, name, stage, capacity_type="GROUP"
+            )
             if groups:
                 show_remove = False
 
         environs_helper.set_active_max_parallel(env)
 
-        return render(request, 'configs/env_config.html', {
-            "envs": envs,
-            "env": env,
-            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
-            "stages": stages,
-            "show_remove": show_remove,
-            "pinterest": IS_PINTEREST,
-            "stage_type_info_link": STAGE_TYPE_INFO_LINK,
-        })
+        return render(
+            request,
+            "configs/env_config.html",
+            {
+                "envs": envs,
+                "env": env,
+                "all_stage_types": sorted(environs_helper.STAGE_TYPES),
+                "stages": stages,
+                "show_remove": show_remove,
+                "pinterest": IS_PINTEREST,
+                "stage_type_info_link": STAGE_TYPE_INFO_LINK,
+            },
+        )
 
     def _set_parallel(self, data, query_dict):
         input = query_dict["maxParallel"]
-        if input == "Number" and query_dict["maxParallelValue"] :
+        if input == "Number" and query_dict["maxParallelValue"]:
             data["maxParallelPct"] = 0
             data["maxParallel"] = int(query_dict["maxParallelValue"])
         elif input == "Percentage" and query_dict["maxParallelPctValue"]:
             data["maxParallel"] = 0
             data["maxParallelPct"] = int(query_dict["maxParallelPctValue"])
         else:
-            raise ValueError("Invalid Input for Maximum Parallel Number. input:{}".format(input))
-
+            raise ValueError(
+                "Invalid Input for Maximum Parallel Number. input:{}".format(input)
+            )
 
     def post(self, request, name, stage):
         query_dict = request.POST
@@ -104,7 +118,9 @@ class EnvConfigView(View):
         data["terminationLimit"] = query_dict["terminationLimit"]
 
         if data["stageType"] == "DEFAULT" and "syspriority" not in query_dict:
-            raise ValueError("Please update the Stage Type to a value other than DEFAULT. See more details at ")
+            raise ValueError(
+                "Please update the Stage Type to a value other than DEFAULT. See more details at "
+            )
 
         environs_helper.update_env_basic_config(request, name, stage, data=data)
         return self.get(request, name, stage)

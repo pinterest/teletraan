@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all env related views
-"""
+"""Collection of all env related views"""
+
 import json
 import re
 from django.http import HttpResponse
@@ -32,31 +32,42 @@ class EnvMetricsView(View):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
             metrics = environs_helper.get_env_metrics_config(request, name, stage)
-            html = render_to_string('configs/metrics_config.tmpl', {
-                "env": env,
-                "metrics": metrics,
-                "csrf_token": get_token(request),
-            })
-            return HttpResponse(json.dumps({'html': html}), content_type="application/json")
+            html = render_to_string(
+                "configs/metrics_config.tmpl",
+                {
+                    "env": env,
+                    "metrics": metrics,
+                    "csrf_token": get_token(request),
+                },
+            )
+            return HttpResponse(
+                json.dumps({"html": html}), content_type="application/json"
+            )
 
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
 
-        return render(request, 'configs/metrics_config.html', {
-            "envs": envs,
-            "env": env,
-            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
-            "stages": stages,
-            "metrics": metrics,
-        })
-
+        return render(
+            request,
+            "configs/metrics_config.html",
+            {
+                "envs": envs,
+                "env": env,
+                "all_stage_types": sorted(environs_helper.STAGE_TYPES),
+                "stages": stages,
+                "metrics": metrics,
+            },
+        )
 
     def _slugify(self, text):
-        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
-        text = re.sub('[^\w\s-]', '', text).strip().lower()
-        return re.sub('[-\s]+', '-', text)
-
+        text = (
+            unicodedata.normalize("NFKD", text)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+        text = re.sub("[^\w\s-]", "", text).strip().lower()
+        return re.sub("[-\s]+", "-", text)
 
     def _parse_metrics_configs(self, query_data):
         page_data = dict(query_data.lists())
@@ -64,12 +75,12 @@ class EnvMetricsView(View):
         for key, value in page_data.items():
             if not value:
                 continue
-            if key.startswith('TELETRAAN_'):
+            if key.startswith("TELETRAAN_"):
                 metricsConfig = {}
-                name = key[len('TELETRAAN_'):]
+                name = key[len("TELETRAAN_") :]
                 slugified_name = self._slugify(name)
-                metricsConfig['title'] = name
-                metricsConfig['url'] = value[0]
+                metricsConfig["title"] = name
+                metricsConfig["url"] = value[0]
                 min_string = "min_%s" % slugified_name
                 max_string = "max_%s" % slugified_name
                 color_string = "color-selection_%s" % slugified_name
@@ -79,14 +90,13 @@ class EnvMetricsView(View):
                     num_specs = len(page_data[min_string])
                     for i in range(num_specs):
                         spec = {}
-                        spec['min'] = float(page_data[min_string][i])
-                        spec['max'] = float(page_data[max_string][i])
-                        spec['color'] = page_data[color_string][i]
+                        spec["min"] = float(page_data[min_string][i])
+                        spec["max"] = float(page_data[max_string][i])
+                        spec["color"] = page_data[color_string][i]
                         metricsSpecs.append(spec)
                 metricsConfig["specs"] = metricsSpecs
                 configs.append(metricsConfig)
         return configs
-
 
     def post(self, request, name, stage):
         metrics = self._parse_metrics_configs(request.POST)

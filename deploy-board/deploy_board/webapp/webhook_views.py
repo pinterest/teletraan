@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all env related views
-"""
+"""Collection of all env related views"""
+
 import json
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
@@ -30,32 +30,41 @@ class EnvWebhooksView(View):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
             webhooks = environs_helper.get_env_hooks_config(request, name, stage)
-            html = render_to_string('configs/webhooks_config.tmpl', {
-                "env": env,
-                "webhooks": webhooks,
-                "csrf_token": get_token(request),
-            })
-            return HttpResponse(json.dumps({'html': html}), content_type="application/json")
+            html = render_to_string(
+                "configs/webhooks_config.tmpl",
+                {
+                    "env": env,
+                    "webhooks": webhooks,
+                    "csrf_token": get_token(request),
+                },
+            )
+            return HttpResponse(
+                json.dumps({"html": html}), content_type="application/json"
+            )
 
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         webhooks = environs_helper.get_env_hooks_config(request, name, stage)
 
-        return render(request, 'configs/webhooks_config.html', {
-            "envs": envs,
-            "env": env,
-            "all_stage_types": sorted(environs_helper.STAGE_TYPES),
-            "stages": stages,
-            "webhooks": webhooks,
-        })
+        return render(
+            request,
+            "configs/webhooks_config.html",
+            {
+                "envs": envs,
+                "env": env,
+                "all_stage_types": sorted(environs_helper.STAGE_TYPES),
+                "stages": stages,
+                "webhooks": webhooks,
+            },
+        )
 
     def _parse_webhooks_configs(self, query_data):
         page_data = query_data
         pre_webhooks = []
         post_webhooks = []
         for key, value in page_data.items():
-            if key.startswith('url_'):
-                label = key.split('_')[1]
+            if key.startswith("url_"):
+                label = key.split("_")[1]
                 body = "body_%s" % label
                 headers = "headers_%s" % label
                 deploy_type = "deploy-type_%s" % label
@@ -63,10 +72,10 @@ class EnvWebhooksView(View):
                 version = "version_%s" % label
                 webhook = {}
                 webhook["url"] = value
-                webhook['version'] = page_data[version]
-                webhook['method'] = page_data[method]
-                webhook['body'] = page_data[body].strip()
-                webhook['headers'] = page_data[headers]
+                webhook["version"] = page_data[version]
+                webhook["method"] = page_data[method]
+                webhook["body"] = page_data[body].strip()
+                webhook["headers"] = page_data[headers]
                 type = page_data[deploy_type]
                 # Determine whether this is a pre or post webhook
                 if type == "post":
@@ -75,8 +84,8 @@ class EnvWebhooksView(View):
                     pre_webhooks.append(webhook)
 
         envWebhooks = {}
-        envWebhooks['postDeployHooks'] = post_webhooks
-        envWebhooks['preDeployHooks'] = pre_webhooks
+        envWebhooks["postDeployHooks"] = post_webhooks
+        envWebhooks["preDeployHooks"] = pre_webhooks
         return envWebhooks
 
     def post(self, request, name, stage):

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Collection of all launch spec related calls
-"""
+"""Collection of all launch spec related calls"""
+
 from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
 rodimus_client = RodimusClient()

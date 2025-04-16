@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly>
+    <id>teletraan-artifact</id>
+    <baseDirectory/>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>teletraan</directory>
+            <outputDirectory>teletraan</outputDirectory>
+            <includes><include>teletraan*/*</include></includes>
+        </fileSet>
+    </fileSets>
+</assembly>

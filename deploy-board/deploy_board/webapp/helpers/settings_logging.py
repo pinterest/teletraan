@@ -22,10 +22,28 @@ class StructuredMessage(logging.Formatter):
         """
         # call super for asctime
         super(StructuredMessage, self).format(record)
-        attrs = ['asctime', 'created', 'exc_info', 'exc_text', 'filename',
-                 'funcName', 'levelname', 'levelno', 'lineno', 'message', 'module',
-                 'msecs', 'msg', 'name', 'pathname', 'process', 'processName',
-                 'relativeCreated', 'thread', 'threadName']
+        attrs = [
+            "asctime",
+            "created",
+            "exc_info",
+            "exc_text",
+            "filename",
+            "funcName",
+            "levelname",
+            "levelno",
+            "lineno",
+            "message",
+            "module",
+            "msecs",
+            "msg",
+            "name",
+            "pathname",
+            "process",
+            "processName",
+            "relativeCreated",
+            "thread",
+            "threadName",
+        ]
         logs = dict()
         # attrs vary and can sometimes contain non-serializable data
         for attr in attrs:
@@ -42,7 +60,7 @@ class RequestJsonFormatter(logging.Formatter):
         param: record: class 'logging.LogRecord'
         return: json as str
         """
-        if hasattr(record, 'request') and record.request is not None:
+        if hasattr(record, "request") and record.request is not None:
             request = record.request
             user = request.teletraan_user_id
             log_message = {

@@ -25,12 +25,12 @@ admin.autodiscover()
 
 if IS_PINTEREST:
     urlpatterns = [
-        url(r'^', include('deploy_board.webapp.urls')),
-        url(r'^', include('deploy_board.webapp.mix_urls')),
-        url(r'^', include('deploy_board.webapp.arcee_urls')),
-        url(r'^', include('deploy_board.webapp.cluster_urls')),
-     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        url(r"^", include("deploy_board.webapp.urls")),
+        url(r"^", include("deploy_board.webapp.mix_urls")),
+        url(r"^", include("deploy_board.webapp.arcee_urls")),
+        url(r"^", include("deploy_board.webapp.cluster_urls")),
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
     urlpatterns = [
-        url(r'^', include('deploy_board.webapp.urls')),
+        url(r"^", include("deploy_board.webapp.urls")),
     ]

@@ -13,8 +13,9 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""Backend server all exception
-"""
+"""Backend server all exception"""
+
+
 class NotFoundException(Exception):
     pass
 
@@ -28,6 +29,7 @@ class TeletraanException(Exception):
 class IllegalArgumentException(TeletraanException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status=400)
+
 
 class FailedAuthenticationException(TeletraanException):
     def __init__(self, message: str) -> None:
