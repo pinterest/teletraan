@@ -83,35 +83,7 @@ public class GithubManager extends BaseManager {
         // if token is specified, use token auth, otherwise, use GitHub app auth
         if (StringUtils.isBlank(this.token)) {
             try {
-                // String githubAppPrivateKey = knoxKeyReader.getKey();
-                String githubAppPrivateKey =
-                        "-----BEGIN RSA PRIVATE KEY-----\n"+
-"MIIEowIBAAKCAQEAvoCr7VmVR9WPvsUYR5olXRFr95ylXidX3uI05HnCMs6NP6d/\n"+
-"+094djlos930zTVfDqJ61DhvTPB9GESJVXQPg2pXp/yWSwS7LrdLsvzUywG8AXtx\n"+
-"h5y2m118ItZF2ptbcJ3OsF6D+I3lhUlfiQN3lX/C9bvN8Nc3+TbJIXooSNyDrKqj\n"+
-"L4+zo2BxujiPRaToq0r8bFeWwKGqqVg7ChRNHBblhsNBytjo9gGaLA5XQ26216lq\n"+
-"vIVeZzsqJ4FBRAB/c0RDhhBr+fzoRB55BYCPJPaxbjbpAHEJvAkxkFfOKuYeikGh\n"+
-"OffLyNZmpusUiDR/bQBD07PiJo1uatp8CIkGDwIDAQABAoIBAHas++4Jv7iXb0wd\n"+
-"xqlceuhGoScJG+/SvKfp7Z9jxroV+OJtu4nYkSe9Td+3ZvirxgL8713jplqc+qEy\n"+
-"mQd2HO/2QJMzBIHJeb55i5v+a6Xn97JIr4oW859IFrwxFiVAYS9/77Hpv3cJFrH4\n"+
-"6p4VXdrxU4f4LixaNtF28sd7LTttqE2SrJnSxUWNBS7IOCcXZniRaw9ISn4CCuOw\n"+
-"rD4+hPnjY6N5sVMWWXonGDqHDY7uzroqRUGBDfBCooF8hswBh6k4iycN9vppFFfA\n"+
-"MvA3wwdPQzt5D6Q/EkikL/4Tk1zr+vte/pTDls9iOgIN6xM0Uj6Tb1ImwiVFKPgz\n"+
-"akhicDkCgYEA7um2J/c5PcFfbqtmqA7eWgiiuYSLL7TZoULc8mlZ0BwzLdIVbDJa\n"+
-"I5Z+XregBaHiFu2fCKVuJxFuB3B0Hkwe5g+AK74vhUB7UPb/9UCfogoLFKNnNkhI\n"+
-"RLE3Y5itScF4apX0H43YOhTNBkVZrA6lbXq9tpN5JQTySmDORWiprrUCgYEAzCCb\n"+
-"98PepvCrIn+r3hnnRbrny4Nu0AKN6T9h4gUrKLRd9HkCGl02AzB+btr2TCAyHTil\n"+
-"U9BiWEcUyD7axXLkINMlJkL1bIgiDq8HCL+M+iDU3DZaOOJkVbUh0qsmzjkwQQdo\n"+
-"oErDKl/Jr5yULcVdcy5zf7QHq85b2j9UsH8ZWDMCgYEAibUecJTYYpcmObUD+9Ru\n"+
-"J3kYylPyojHcy02t6u/8e671dPDFtlKjkCW7ez7eNsDjf5HBfAtWnaA3SoRv+dKo\n"+
-"cLT4jL4Xx/et3LIyQJvaJ10gm+m/oRMyzJ1VLswe/gdNMCp0xwdMXdYFgxrQIBNl\n"+
-"GOCJn0YLquHaAjMgUfOM8o0CgYAlQtKVoJh1CruCeaGq0jmoPdzwBlbk+4JiEGLS\n"+
-"ujTNolcAOFKM83TXkjOSEsAg10Oul9d9/Cznhlohz29p2XYRE9nVKSXZoOPuoD59\n"+
-"d1HJmtKgO/+uII1GI+E/rmRQAppvVGXh1KPZiVCskL1vuXY8fz8wEXHRB8M2jJbt\n"+
-"/NVohwKBgC2mxpO3y0Ko5Fdi4bVQ7dZ/6ipWFjo1XU0j2SsSeXujfeGANU1bl1Xd\n"+
-"hdhI2HmnyvIMPqBCUQ8jho+FsQ2w2JLJmSAT6d9ZPBtNY6wSssC9q9ABRsVpHeHh\n"+
-"SH9TSsmvyYg+h8iizKd8QUBFV+X1qDX4qMm9GKQQ5umtg9EQN5/K\n"+
-"-----END RSA PRIVATE KEY-----\n";
+                String githubAppPrivateKey = knoxKeyReader.getKey();
                 if (StringUtils.isBlank(githubAppPrivateKey)) {
                     throw new IllegalStateException("Github Knox key is blank");
                 }
