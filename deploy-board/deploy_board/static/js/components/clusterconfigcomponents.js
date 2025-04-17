@@ -568,11 +568,11 @@ Vue.component("hosttype-select", {
 Vue.component('bandwidth-weight-select', {
     template: '<div>\
   <label-select label="Instance Bandwidth Configuration" title="Bandwidth Weighting" \
-  v-bind:value="value" v-bind:selectoptions="bandwidthweights" v-on:input="updateValue(value)"></label-select></div>',
+  v-bind:value="value" v-bind:selectoptions="bandwidthweights" v-on:input="updateBandWidthValue(value)"></label-select></div>',
     props: ['bandwidthweights', 'value'],
     methods: {
-        updateValue: function (value) {
-            this.$emit('input', value)
+        updateBandWidthValue: function (value) {
+            this.$emit('bandwidthchange', value);
         }
     }
 });
