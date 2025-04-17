@@ -564,7 +564,7 @@ Vue.component("hosttype-select", {
         },
     }
 });
-
+/*
 Vue.component('bandwidth-weight-select', {
     template: '<div>\
   <label-select label="Instance Bandwidth Configuration" title="Bandwidth Weighting" \
@@ -575,6 +575,22 @@ Vue.component('bandwidth-weight-select', {
             this.$emit('input', value);
         },
         updateBandwidthValue: function (value) {
+            this.$emit('bandwidthchange', value);
+        }
+    }
+});
+*/
+Vue.component('bandwidth-weight-select', {
+    template: '<div>\
+  <label-select label="Arch" title="Arch" \
+  v-bind:value="value" v-bind:selectoptions="bandwidthweights" v-on:input="updateBValue"></label-select></div>',
+    props: ['bandwidthweights', 'value'],
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value);
+        },
+        updateBValue: function (value) {
+            console.log("value in bandwidth-weight-select: ", value);
             this.$emit('bandwidthchange', value);
         }
     }
