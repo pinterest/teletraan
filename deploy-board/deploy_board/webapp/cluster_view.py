@@ -436,7 +436,7 @@ class ClusterConfigurationView(View):
             cluster_name = env.get("clusterName")
             cluster_info = json.loads(request.body)
             log.info("Update Cluster Configuration with {}", cluster_info)
-            log.info("YaqinDebug: {}", cluster_info["bandwidthWeights"])
+            log.info("YaqinDebug: {}", cluster_info["bandwidthWeighting"])
 
             current_cluster = get_current_cluster(request, name, stage, env=env)
             log.info("getting current Cluster Configuration is {}", current_cluster)
