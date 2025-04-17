@@ -1023,7 +1023,6 @@
                     }
                 },
                 bandwidthChange: function(value) {
-                    console.log("bandwidthChange: " + value);
                     this.currentBandwidthWeight = value;
                     capacitySetting.currentBandwidthWeight = value;
                 },
@@ -1087,7 +1086,6 @@
 
                     if (this.validateInput(clusterInfo, this.imageNameValue)) {
                         //Send request
-                        console.log("bandwidthChange2: " + clusterInfo['bandwidthWeighting']);
                         this.sendRequest(clusterInfo);
                     }
                 },

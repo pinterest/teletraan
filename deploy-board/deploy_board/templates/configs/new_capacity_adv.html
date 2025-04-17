@@ -58,7 +58,7 @@
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
-                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthWeights" v-bind:value="currentBandwidthWeight" v-on:bandwidthchange="bandwidthChange"></bandwidth-weight-select>
+                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight"></bandwidth-weight-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -193,7 +193,7 @@ var capacitySetting = new Vue({
                     isSelected: item.name == info.defaultArch
                 }
             }),
-        bandwidthWeights: info.bandwidthWeights.map(function(item) {
+        bandwidthweights: info.bandwidthWeights.map(function(item) {
                 return {
                     value: item.name,
                     text: item.name,
@@ -445,6 +445,7 @@ var capacitySetting = new Vue({
         },
         bandwidthChange: function(value) {
             this.currentBandwidthWeight = value;
+            capacitySetting.currentBandwidthWeight = value;
         },
         imageNameChange: function (value) {
             var cell = capacitySetting.currentCell;
