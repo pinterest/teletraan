@@ -565,6 +565,18 @@ Vue.component("hosttype-select", {
     }
 });
 
+Vue.component('bandwidth-weight-select', {
+    template: '<div>\
+  <label-select label="Instance Bandwidth Configuration" title="Bandwidth Weighting" \
+  v-bind:value="value" v-bind:selectoptions="bandwidthweights" v-on:input="updateValue(value)"></label-select></div>',
+    props: ['bandwidthweights', 'value'],
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value)
+        }
+    }
+});
+
 Vue.component('remaining-capacity', {
     template: '<div class="form-group">\
     <div class="col-xs-2"></div>\

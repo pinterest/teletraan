@@ -58,6 +58,7 @@
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
+                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthWeights" v-bind:value="currentBandwidthWeight" v-on:bandwidthchange="bandwidthChange"></bandwidth-weight-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -160,6 +161,7 @@ var capacitySetting = new Vue({
         currentAccountOwnerId: getAccountOwnerId(info.defaultAccountId),
         currentCell: getDefaultCell(info.defaultAccountId),
         currentArch: info.defaultArch,
+        currentBandwidthWeight: currentCluster.bandwidthWeighting,
         hostTypeHelpData:[],
         hostTypeOptions: hostTypes.getOptions(),
         archValue: info.defaultArch,
@@ -189,6 +191,13 @@ var capacitySetting = new Vue({
                     value: item.name,
                     text: item.name,
                     isSelected: item.name == info.defaultArch
+                }
+            }),
+        bandwidthWeights: info.bandwidthWeights.map(function(item) {
+                return {
+                    value: item.name,
+                    text: item.name,
+                    isSelected: item.name === currentCluster.bandwidthWeighting
                 }
             }),
         replacementTimeout: 45,
@@ -434,6 +443,9 @@ var capacitySetting = new Vue({
                 }
             });
         },
+        bandwidthChange: function(value) {
+            this.currentBandwidthWeight = value;
+        },
         imageNameChange: function (value) {
             var cell = capacitySetting.currentCell;
             capacitySetting.imageNameValue = value;
@@ -616,6 +628,7 @@ var capacitySetting = new Vue({
             clusterInfo['provider'] = this.currentProvider;
             clusterInfo['cellName'] = this.currentCell;
             clusterInfo['archName'] = this.currentArch;
+            clusterInfo['bandwidthWeighting'] = this.currentBandwidthWeight;
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['useLaunchTemplate'] =  info.defaultUseLaunchTemplate;
             clusterInfo['hostType'] = this.selectedHostTypeValue;

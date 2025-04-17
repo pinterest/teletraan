@@ -83,6 +83,7 @@
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
+                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthWeights" v-bind:value="currentBandwidthWeight" v-on:bandwidthchange="bandwidthChange"></bandwidth-weight-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -538,6 +539,7 @@
                 currentAccountOwnerId: getAccountOwnerId(this.currentAccountId),
                 currentCell: currentCluster.cellName,
                 currentArch: currentCluster.archName,
+                currentBandwidthWeight: currentCluster.bandwidthWeighting,
                 currentStatefulStatus: currentCluster.statefulStatus,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
@@ -587,6 +589,13 @@
                             isSelected: item.name == currentCluster.archName
                         }
                     }),
+                bandwidthWeights: info.bandwidthWeights.map(function(item) {
+                    return {
+                        value: item.name,
+                        text: item.name,
+                        isSelected: item.name === currentCluster.bandwidthWeighting
+                    }
+                }),
                 terminateLimit: currentCluster.terminateLimit,
                 securityZones: info.securityZones.map(function(item) {
                     return {
@@ -1013,6 +1022,9 @@
                         this.placements = placements.getSimpleList(showPublicSubnets, this.selectedPlacements)
                     }
                 },
+                bandwidthChange: function(value) {
+                    this.currentBandwidthWeight = value;
+                },
                 updateAwsRole:function(value){
                     this.awsRole = value
                 },
@@ -1025,6 +1037,7 @@
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
+                    clusterInfo['bandwidthWeighting'] = this.currentBandwidthWeight;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['enableMultipleHostTypes'] = this.enableMultipleHostTypes;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
