@@ -575,7 +575,6 @@ Vue.component('bandwidth-weight-select', {
             this.$emit('input', value);
         },
         updateBValue: function (value) {
-            console.log("value in bandwidth-weight-select: ", value);
             this.$emit('bandwidthchange', value);
         }
     }

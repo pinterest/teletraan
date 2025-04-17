@@ -161,7 +161,7 @@ var capacitySetting = new Vue({
         currentAccountOwnerId: getAccountOwnerId(info.defaultAccountId),
         currentCell: getDefaultCell(info.defaultAccountId),
         currentArch: info.defaultArch,
-        currentBandwidthWeight: currentCluster.bandwidthWeighting,
+        currentBandwidthWeight: "default",
         hostTypeHelpData:[],
         hostTypeOptions: hostTypes.getOptions(),
         archValue: info.defaultArch,
@@ -197,7 +197,7 @@ var capacitySetting = new Vue({
                 return {
                     value: item.name,
                     text: item.name,
-                    isSelected: item.name === currentCluster.bandwidthWeighting
+                    isSelected: item.name === "default"
                 }
             }),
         replacementTimeout: 45,
