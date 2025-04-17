@@ -1031,6 +1031,7 @@
                     this.awsRole = value
                 },
                 updateCapacity: function() {
+                    console.log("bandwidthChange1: " + clusterInfo['bandwidthWeighting']);
                     // It's really just update cluster info config without capacity
                     //Create the default capacity. The input here aligns to the Rodimus new cluster
                     var clusterInfo = {};
@@ -1087,6 +1088,7 @@
 
                     if (this.validateInput(clusterInfo, this.imageNameValue)) {
                         //Send request
+                        console.log("bandwidthChange2: " + clusterInfo['bandwidthWeighting']);
                         this.sendRequest(clusterInfo);
                     }
                 },
