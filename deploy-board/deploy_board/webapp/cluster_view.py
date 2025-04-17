@@ -435,12 +435,12 @@ class ClusterConfigurationView(View):
             env = environs_helper.get_env_by_stage(request, name, stage)
             cluster_name = env.get("clusterName")
             cluster_info = json.loads(request.body)
-            log.info("Update Cluster Configuration with {}", cluster_info)
+            log.info("YaqinDebug Update Cluster Configuration with {}", cluster_info)
             log.info("YaqinDebug: {}", "abcdefg")
             log.info("YaqinDebug: {}", cluster_info["bandwidthWeighting"])
 
             current_cluster = get_current_cluster(request, name, stage, env=env)
-            log.info("getting current Cluster Configuration is {}", current_cluster)
+            log.info("lalala getting current Cluster Configuration is {}", current_cluster)
             if "configs" in current_cluster and "configs" in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
                     if (
