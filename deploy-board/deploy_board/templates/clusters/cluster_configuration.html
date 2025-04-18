@@ -1169,7 +1169,7 @@
                 capacitySetting.backupHosttypes = "None";
                 capacitySetting.enableMultipleHostTypes = false;
                 capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
-                console.log(capacitySetting.canChangeBandwidth);
+                capacitySetting.bandwidthWeighting = "default";
             });
 
             $(".chosen-select").chosen({

@@ -58,7 +58,7 @@
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
-                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight"></bandwidth-weight-select>
+                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight" v-bind:disabled="!canChangeBandwidth"></bandwidth-weight-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -233,6 +233,7 @@ var capacitySetting = new Vue({
         disableBackupInstanceTypes,
         enableMultipleHostTypes: false,
         backupHosttypes: "None",
+        canChangeBandwidth: checkHostType(hostTypes, hostTypes.getSelectedId()),
     },
     methods: {
         addConfig: function (config) {
@@ -740,6 +741,8 @@ $(document).ready(function () {
         capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
         capacitySetting.backupHosttypes = "None";
         capacitySetting.enableMultipleHostTypes = false;
+        capacitySetting.canChangeBandwidth = checkHostType(hostTypes, capacitySetting.selectedHostTypeValue);
+        capacitySetting.bandwidthWeighting = "default";
     });
 
     $(".chosen-select").chosen({ "width": "100%" })
