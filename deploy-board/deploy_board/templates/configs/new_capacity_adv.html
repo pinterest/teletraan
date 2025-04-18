@@ -233,7 +233,8 @@ var capacitySetting = new Vue({
         disableBackupInstanceTypes,
         enableMultipleHostTypes: false,
         backupHosttypes: "None",
-        canChangeBandwidth: checkHostType(info.hostTypes, hostTypes.getSelectedId()),
+        //canChangeBandwidth: checkHostType(info.hostTypes, hostTypes.getSelectedId()),
+        canChangeBandwidth: true,
     },
     methods: {
         addConfig: function (config) {
@@ -433,7 +434,7 @@ var capacitySetting = new Vue({
                     capacityCreationInfo.hostTypes = data;
                     capacitySetting.enableMultipleHostTypes = false;
                     capacitySetting.backupHosttypes = "None";
-                    capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
+                    //capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
                     capacitySetting.currentBandwidthWeight = "default";
                     this.currentBandwidthWeight = "default";
                     //Schedule this to nextTick that calls after next DOM refresh
@@ -744,7 +745,7 @@ $(document).ready(function () {
         capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
         capacitySetting.backupHosttypes = "None";
         capacitySetting.enableMultipleHostTypes = false;
-        capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
+        //capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
         capacitySetting.currentBandwidthWeight = "default";
         this.currentBandwidthWeight = "default";
     });

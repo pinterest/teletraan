@@ -618,7 +618,8 @@
                 showPlacementsHelp: false,
                 placementsHelpData: [],
                 canChangeAccount: false,
-                canChangeBandwidth: checkHostType(info.hostTypes, currentCluster.hostType),
+                //canChangeBandwidth: checkHostType(info.hostTypes, currentCluster.hostType),
+                canChangeBandwidth: true,
                 canSaveCapacity: !showReplaceAlert,
                 showCmpGroup: Boolean(getUrlParameter("showcmpgroup")),
                 subnetType: initialAssignPublicIP ? "public" : "private",
@@ -851,7 +852,7 @@
                             capacitySetting.selectedHostTypeValue = data[0].id;
                             capacitySetting.enableMultipleHostTypes = false;
                             capacitySetting.backupHosttypes = "None";
-                            capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
+                            //capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
                             capacitySetting.currentBandwidthWeight = "default";
                             this.currentBandwidthWeight = "default";
                             capacitySetting.hostTypes = data;
@@ -1171,7 +1172,7 @@
                 capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
                 capacitySetting.backupHosttypes = "None";
                 capacitySetting.enableMultipleHostTypes = false;
-                capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
+                //capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
                 capacitySetting.currentBandwidthWeight = "default";
                 this.currentBandwidthWeight = "default";
             });
