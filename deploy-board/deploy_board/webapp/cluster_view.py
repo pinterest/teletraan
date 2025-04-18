@@ -230,6 +230,11 @@ class EnvCapacityAdvCreateView(View):
             "placements": placements,
             "cells": cells,
             "arches": arches,
+            "bandwidthWeights": [
+                {"name": "default"},
+                {"name": "vpc-1"},
+                {"name": "ebs-1"},
+            ],
             "baseImages": base_images,
             "baseImageNames": base_images_names,
             "defaultBaseImage": DEFAULT_CMP_IMAGE,
@@ -392,6 +397,11 @@ class ClusterConfigurationView(View):
             "defaultCMPConfigs": get_default_cmp_configs(name, stage),
             "defaultProvider": DEFAULT_PROVIDER,
             "providerList": provider_list,
+            "bandwidthWeights": [
+                {"name": "default"},
+                {"name": "vpc-1"},
+                {"name": "ebs-1"},
+            ],
             "readonlyFields": TELETRAAN_CLUSTER_READONLY_FIELDS,
             "configList": get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             "currentCluster": current_cluster,
@@ -425,8 +435,7 @@ class ClusterConfigurationView(View):
             env = environs_helper.get_env_by_stage(request, name, stage)
             cluster_name = env.get("clusterName")
             cluster_info = json.loads(request.body)
-            log.info("Update Cluster Configuration with {}", cluster_info)
-
+            log.info("Update Cluster Configuration with {0}".format(cluster_info))
             current_cluster = get_current_cluster(request, name, stage, env=env)
             log.info("getting current Cluster Configuration is {}", current_cluster)
             if "configs" in current_cluster and "configs" in cluster_info:
