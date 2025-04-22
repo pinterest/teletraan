@@ -572,7 +572,7 @@ Vue.component('bandwidth-weight-select', {
     props: ['bandwidthweights', 'value', 'canChangeBandwidth'],
     computed: {
         isVisible: function () {
-            console.log(this.canChangeBandwidth);
+            console.log("yaqindebug " + this.canChangeBandwidth);
             return this.canChangeBandwidth === "True";
         }
     },
@@ -612,6 +612,7 @@ Vue.component('backup-hosttypes', {
     props: ['backuphosttypes'],
     computed: {
         isVisible: function () {
+            console.log("yaqindebug " + this.backuphosttypes);
             return this.backuphosttypes !== 'None'
         },
         backupTypesWarning: function () {

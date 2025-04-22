@@ -839,6 +839,7 @@
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         },
                         success: function (data) {
+                            console.log("host types changed");
                             capacitySetting.hostTypeOptions = data.map(
                                     function (item) {
                                         return {
@@ -1168,6 +1169,7 @@
             $('.single-select-search').chosen({
                 "width": "100%"
             }).change(function() {
+                console.log("single-select-search changed" + $(this).val());
                 capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
                 capacitySetting.backupHosttypes = "None";
                 capacitySetting.enableMultipleHostTypes = false;
