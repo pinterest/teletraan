@@ -573,7 +573,7 @@ Vue.component('bandwidth-weight-select', {
     computed: {
         isVisible: function () {
             console.log("yaqindebug " + this.canchangebandwidth);
-            return this.canchangebandwidth === "True";
+            return this.canchangebandwidth === true;
         }
     },
     methods: {
