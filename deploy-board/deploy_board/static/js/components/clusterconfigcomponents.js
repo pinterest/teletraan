@@ -566,10 +566,16 @@ Vue.component("hosttype-select", {
 });
 
 Vue.component('bandwidth-weight-select', {
-    template: '<div v-if="canChangeBandwidth">\
+    template: '<div v-if="isVisible">\
   <label-select label="Instance Bandwidth Configuration" title="Bandwidth Weighting" \
   v-bind:value="value" v-bind:selectoptions="bandwidthweights" v-on:input="updateBValue" :disabled="disabled"></label-select></div>',
     props: ['bandwidthweights', 'value', 'canChangeBandwidth'],
+    computed: {
+        isVisible: function () {
+            console.log(this.canChangeBandwidth);
+            return this.canChangeBandwidth === "True";
+        }
+    },
     methods: {
         updateValue: function (value) {
             this.$emit('input', value);
