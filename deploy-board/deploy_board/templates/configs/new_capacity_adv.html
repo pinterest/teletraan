@@ -58,7 +58,7 @@
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
-                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight" v-bind:canChangeBandwidth="canChangeBandwidth"></bandwidth-weight-select>
+                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-bind:canchangebandwidth="canChangeBandwidth" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight"></bandwidth-weight-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -164,6 +164,7 @@ var capacitySetting = new Vue({
         currentBandwidthWeight: "default",
         hostTypeHelpData:[],
         hostTypeOptions: hostTypes.getOptions(),
+        hostTypes: info.hostTypes,
         archValue: info.defaultArch,
         imageNameValue: info.defaultBaseImage,
         imageNames: mapImageNameToOptions(info.baseImageNames),
@@ -431,11 +432,12 @@ var capacitySetting = new Vue({
                     capacitySetting.hostTypeOptions = hostTypes.getOptions();
                     capacitySetting.selectedHostTypeValue = hostTypes.getSelectedId();
                     capacityCreationInfo.hostTypes = data;
+                    capacitySetting.hostTypes = data;
                     capacitySetting.enableMultipleHostTypes = false;
                     capacitySetting.backupHosttypes = "None";
-                    capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
                     capacitySetting.currentBandwidthWeight = "default";
                     this.currentBandwidthWeight = "default";
+                    capacitySetting.canChangeBandwidth = checkHostType(data, capacitySetting.selectedHostTypeValue);
                     //Schedule this to nextTick that calls after next DOM refresh
                     //as JQuery chosen call must happen after DOM updates finished
                     Vue.nextTick(function(){
@@ -744,9 +746,9 @@ $(document).ready(function () {
         capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
         capacitySetting.backupHosttypes = "None";
         capacitySetting.enableMultipleHostTypes = false;
-        capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
         capacitySetting.currentBandwidthWeight = "default";
         this.currentBandwidthWeight = "default";
+        capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
     });
 
     $(".chosen-select").chosen({ "width": "100%" })
