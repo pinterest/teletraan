@@ -129,7 +129,9 @@ function getBackupIds(mapping, types, type, enable) {
 }
 
 function checkHostType(types, type) {
+    console.log(type);
     const selectedHostTypeObject = types.find(hostType => hostType.id === type);
+    console.log(selectedHostTypeObject);
     const name = selectedHostTypeObject.provider_name;
     const prefixes = ["c8g", "m8g", "r8g", "x8g"];
     return prefixes.some(prefix => name.startsWith(prefix));

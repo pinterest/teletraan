@@ -83,7 +83,7 @@
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
-                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight" v-bind:disabled="!canChangeBandwidth"></bandwidth-weight-select>
+                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight" v-bind:canChangeBandwidth="canChangeBandwidth"></bandwidth-weight-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -618,8 +618,7 @@
                 showPlacementsHelp: false,
                 placementsHelpData: [],
                 canChangeAccount: false,
-                //canChangeBandwidth: checkHostType(info.hostTypes, currentCluster.hostType),
-                canChangeBandwidth: true,
+                canChangeBandwidth: checkHostType(info.hostTypes, currentCluster.hostType),
                 canSaveCapacity: !showReplaceAlert,
                 showCmpGroup: Boolean(getUrlParameter("showcmpgroup")),
                 subnetType: initialAssignPublicIP ? "public" : "private",
@@ -852,7 +851,7 @@
                             capacitySetting.selectedHostTypeValue = data[0].id;
                             capacitySetting.enableMultipleHostTypes = false;
                             capacitySetting.backupHosttypes = "None";
-                            //capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
+                            capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
                             capacitySetting.currentBandwidthWeight = "default";
                             this.currentBandwidthWeight = "default";
                             capacitySetting.hostTypes = data;
@@ -1172,7 +1171,7 @@
                 capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
                 capacitySetting.backupHosttypes = "None";
                 capacitySetting.enableMultipleHostTypes = false;
-                //capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
+                capacitySetting.canChangeBandwidth = checkHostType(info.hostTypes, capacitySetting.selectedHostTypeValue);
                 capacitySetting.currentBandwidthWeight = "default";
                 this.currentBandwidthWeight = "default";
             });
