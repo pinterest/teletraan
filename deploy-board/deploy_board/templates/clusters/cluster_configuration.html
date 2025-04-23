@@ -83,6 +83,7 @@
                     showhelp="true" v-on:helpclick="hostTypeHelpClick" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
+                    <bandwidth-weight-select v-bind:bandwidthweights="bandwidthweights" v-bind:canchangebandwidth="canChangeBandwidth" v-on:bandwidthchange="bandwidthChange" v-bind:value="currentBandwidthWeight"></bandwidth-weight-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -538,6 +539,7 @@
                 currentAccountOwnerId: getAccountOwnerId(this.currentAccountId),
                 currentCell: currentCluster.cellName,
                 currentArch: currentCluster.archName,
+                currentBandwidthWeight: currentCluster.bandwidthWeighting,
                 currentStatefulStatus: currentCluster.statefulStatus,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
@@ -587,6 +589,13 @@
                             isSelected: item.name == currentCluster.archName
                         }
                     }),
+                bandwidthweights: info.bandwidthWeights.map(function(item) {
+                    return {
+                        value: item.name,
+                        text: item.name,
+                        isSelected: item.name === currentCluster.bandwidthWeighting
+                    }
+                }),
                 terminateLimit: currentCluster.terminateLimit,
                 securityZones: info.securityZones.map(function(item) {
                     return {
@@ -609,6 +618,7 @@
                 showPlacementsHelp: false,
                 placementsHelpData: [],
                 canChangeAccount: false,
+                canChangeBandwidth: checkHostType(info.hostTypes, currentCluster.hostType),
                 canSaveCapacity: !showReplaceAlert,
                 showCmpGroup: Boolean(getUrlParameter("showcmpgroup")),
                 subnetType: initialAssignPublicIP ? "public" : "private",
@@ -842,6 +852,8 @@
                             capacitySetting.enableMultipleHostTypes = false;
                             capacitySetting.backupHosttypes = "None";
                             capacitySetting.hostTypes = data;
+                            capacitySetting.currentBandwidthWeight = "default";
+                            capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
                             //Schedule this to nextTick that calls after next DOM refresh
                             //as JQuery chosen call must happen after DOM updates finished
                             Vue.nextTick(function(){
@@ -1013,6 +1025,10 @@
                         this.placements = placements.getSimpleList(showPublicSubnets, this.selectedPlacements)
                     }
                 },
+                bandwidthChange: function(value) {
+                    this.currentBandwidthWeight = value;
+                    capacitySetting.currentBandwidthWeight = value;
+                },
                 updateAwsRole:function(value){
                     this.awsRole = value
                 },
@@ -1025,6 +1041,7 @@
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
+                    clusterInfo['bandwidthWeighting'] = this.currentBandwidthWeight;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['enableMultipleHostTypes'] = this.enableMultipleHostTypes;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
@@ -1153,6 +1170,8 @@
                 capacitySetting.selectedHostTypeValue = $('.single-select-search').val();
                 capacitySetting.backupHosttypes = "None";
                 capacitySetting.enableMultipleHostTypes = false;
+                capacitySetting.currentBandwidthWeight = "default";
+                capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
             });
 
             $(".chosen-select").chosen({
