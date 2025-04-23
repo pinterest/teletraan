@@ -436,7 +436,6 @@ var capacitySetting = new Vue({
                     capacitySetting.enableMultipleHostTypes = false;
                     capacitySetting.backupHosttypes = "None";
                     capacitySetting.currentBandwidthWeight = "default";
-                    this.currentBandwidthWeight = "default";
                     capacitySetting.canChangeBandwidth = checkHostType(data, capacitySetting.selectedHostTypeValue);
                     //Schedule this to nextTick that calls after next DOM refresh
                     //as JQuery chosen call must happen after DOM updates finished
@@ -747,7 +746,6 @@ $(document).ready(function () {
         capacitySetting.backupHosttypes = "None";
         capacitySetting.enableMultipleHostTypes = false;
         capacitySetting.currentBandwidthWeight = "default";
-        this.currentBandwidthWeight = "default";
         capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
     });
 

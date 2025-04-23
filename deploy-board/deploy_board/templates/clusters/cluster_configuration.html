@@ -853,7 +853,6 @@
                             capacitySetting.backupHosttypes = "None";
                             capacitySetting.hostTypes = data;
                             capacitySetting.currentBandwidthWeight = "default";
-                            this.currentBandwidthWeight = "default";
                             capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
                             //Schedule this to nextTick that calls after next DOM refresh
                             //as JQuery chosen call must happen after DOM updates finished
@@ -1172,7 +1171,6 @@
                 capacitySetting.backupHosttypes = "None";
                 capacitySetting.enableMultipleHostTypes = false;
                 capacitySetting.currentBandwidthWeight = "default";
-                this.currentBandwidthWeight = "default";
                 capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
             });
 
