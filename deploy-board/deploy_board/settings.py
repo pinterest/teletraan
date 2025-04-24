@@ -394,7 +394,7 @@ if IS_PINTEREST:
 
     # Pinterest Default AMI image name
     DEFAULT_CMP_IMAGE = "cmp_base-ebs-18.04"
-    DEFAULT_CMP_ARM_IMAGE = "cmp_base_arm64"
+    DEFAULT_CMP_ARM_IMAGE = "cmp_base_u20_arm64"
 
     # Pinterest Default setting whether to use launch template or not
     DEFAULT_USE_LAUNCH_TEMPLATE = True
