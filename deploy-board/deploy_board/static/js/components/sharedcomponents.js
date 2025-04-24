@@ -246,7 +246,7 @@ Vue.component('base-checkbox', {
  * A modal dialog box. The input event contains a the parameter where true means the user confirms
  */
 Vue.component('modal', {
-  template: '<div v-bind:id="id" class="modal fade">\
+  template: '<div v-bind:id="id" class="modal fade" style="display: none;">\
     <div class="modal-dialog">\
         <div class="modal-content">\
                 <div class="modal-header">\
@@ -351,8 +351,8 @@ Vue.component("help-table", {
  */
 Vue.component('deployservice-warning-banner', {
     template: `<div v-if="hasPotentialConflicts" id="deployServiceBanner" class="alert alert-warning" role="alert" align="center">
-    This cluster has userdata which defines a ‘deploy_service’ value and a pinfo_role that isn’t ‘cmp_base’. 
-    Please double check to make sure that this does not conflict with your Puppet server configuration. 
+    This cluster has userdata which defines a ‘deploy_service’ value and a pinfo_role that isn’t ‘cmp_base’.
+    Please double check to make sure that this does not conflict with your Puppet server configuration.
     <a target="_blank" :href="deployservicewikiurl">Instructions here.</a>
     </div>`,
     props: ['alluserdata', 'deployservicewikiurl'],
