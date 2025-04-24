@@ -48,6 +48,7 @@ if IS_PINTEREST:
         PUPPET_CONFIG_REPOSITORY,
         PUPPET_HIERA_PATHS,
         CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
+        IMAGE_PROVIDER_NAME_URL,
     )
 
 import json
@@ -574,6 +575,7 @@ def get_base_images(request):
             "pageSize": DEFAULT_PAGE_SIZE,
             "disablePrevious": index <= 1,
             "disableNext": len(base_images) < DEFAULT_PAGE_SIZE,
+            "imageProviderNameUrl": IMAGE_PROVIDER_NAME_URL,
         },
     )
 
@@ -661,6 +663,7 @@ def get_base_image_events(request, image_id):
             "golden_prod": golden_prod,
             "cancellable": cancel,
             "progress": progress_info,
+            "imageProviderNameUrl": IMAGE_PROVIDER_NAME_URL,
         },
     )
 
@@ -1895,6 +1898,7 @@ class ClusterBaseImageHistoryView(View):
             "golden_image": golden_image,
             "base_images_events": base_images_update_events,
             "current_cluster": json.dumps(current_cluster),
+            "imageProviderNameUrl": IMAGE_PROVIDER_NAME_URL,
         }
 
         return render(request, "clusters/base_image_history.html", data)

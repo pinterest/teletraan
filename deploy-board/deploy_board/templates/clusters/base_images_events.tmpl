@@ -20,7 +20,7 @@
         <tr>
             <td>
                 {% if base_images_event.status == "SUCCEEDED" %}
-                    <input type="radio" id="select_{{forloop.counter}}" 
+                    <input type="radio" id="select_{{forloop.counter}}"
                     {% if base_images_event.old_image_id == current_image.id %}
                         checked
                     {% endif %}
@@ -35,8 +35,18 @@
                     {{ base_images_event.cluster_name }}
                 </a>
             </td>
-            <td> {{ base_images_event.old_image_id }} </td>
-            <td> {{ base_images_event.new_image_id }} </td>
+            <td>
+              <a id="listGroupsBtnId" href="/clouds/baseimages/events/{{ base_images_event.old_image_id }}"
+                  title="Click to see image update events">
+                  {{ base_images_event.old_image_id }}
+              </a>
+            </td>
+            <td>
+              <a id="listGroupsBtnId" href="/clouds/baseimages/events/{{ base_images_event.new_image_id }}"
+                  title="Click to see image update events">
+                  {{ base_images_event.new_image_id }}
+              </a>
+            </td>
             <td> {{ base_images_event.status }} </td>
             <td> {{ base_images_event.create_time|convertTimestamp }} </td>
             <td> {{ base_images_event.start_time|convertTimestamp }} </td>
