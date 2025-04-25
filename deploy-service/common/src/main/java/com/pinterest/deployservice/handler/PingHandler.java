@@ -828,7 +828,7 @@ public class PingHandler {
         // go through ec2Tags
         String ec2Tags = pingRequest.getEc2Tags();
         LOG.debug("go through ec2 tags: {}", ec2Tags);
-        if (ec2Tags != null) {
+        if (ec2Tags != null && LOG.isDebugEnabled()) {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> tags = mapper.readValue(ec2Tags, Map.class);
             for (Map.Entry<String, String> entry : tags.entrySet()) {
