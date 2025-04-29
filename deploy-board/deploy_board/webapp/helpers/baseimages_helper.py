@@ -63,27 +63,16 @@ def get_all(request, index, size):
 
 def get_all_with_acceptance(request, index, size):
     base_images = get_all(request, index, size)
-    fetched_names = set()
     golden = dict()
-    name_acceptance_map = {}
     for img in base_images:
         name = img["abstract_name"]
         cell = img["cell_name"]
-        if name not in fetched_names and name.startswith("cmp_base"):
-            fetched_names.add(name)
-            base_image_infos = get_acceptance_by_name(
-                request, name, img.get("cell", None)
-            )
-            for img_info in base_image_infos:
-                name_acceptance_map[img_info["baseImage"]["provider_name"]] = (
-                    img_info.get("acceptance") or "UNKNOWN"
-                )
-        img["acceptance"] = name_acceptance_map.get(img["provider_name"], "N/A")
+        arch = img["arch_name"]
 
         if name.startswith("cmp_base"):
-            key = (name, cell)
+            key = (name, cell, arch)
             if key not in golden:
-                golden_image = get_current_golden_image(request, name, cell)
+                golden_image = get_current_golden_image(request, name, cell, arch)
                 golden[key] = golden_image["id"] if golden_image else None
             if img["id"] == golden[key]:
                 img["current_golden"] = True
@@ -116,25 +105,16 @@ def get_all_by(request, provider, cell_name):
     )
 
 
-def get_by_name(request, name, cell_name):
-    params = [("cellName", cell_name)]
+def get_by_name(request, name, cell_name, arch_name):
+    params = [("cellName", cell_name), ("archName", arch_name)]
     return rodimus_client.get(
         "/base_images/names/%s" % name, request.teletraan_user_id.token, params=params
     )
 
 
-def get_acceptance_by_name(request, name, cell_name):
-    params = [("cellName", cell_name), ("pageSize", 200)]
+def get_current_golden_image(request, name, cell, arch):
     return rodimus_client.get(
-        "/base_images/acceptances/%s" % name,
-        request.teletraan_user_id.token,
-        params=params,
-    )
-
-
-def get_current_golden_image(request, name, cell):
-    return rodimus_client.get(
-        "/base_images/names/%s/cells/%s/golden" % (name, cell),
+        "/base_images/names/%s/cells/%s/arches/%s/golden" % (name, cell, arch),
         request.teletraan_user_id.token,
     )
 

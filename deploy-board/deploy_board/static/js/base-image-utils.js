@@ -9,13 +9,12 @@ function baseImageSorter(item1, item2) {
 }
 
 function getDefaultBaseImageId(baseImagesSorted) {
-    let baseImagesAcceptedSorted = baseImagesSorted.filter(e => e.acceptance == 'ACCEPTED');
-    return baseImagesAcceptedSorted.length > 0 ? baseImagesAcceptedSorted[0].id : baseImagesSorted[0].id;
+    return baseImagesSorted[0].id;
 };
 
 function mapBaseImagesToOptions(baseImagesSorted) {
     return baseImagesSorted.map(o => {
-        const status = o.golden ? ' [CURRENT_GOLDEN]' : (o.acceptance && o.acceptance !== 'UNKNOWN' ? ` [${o.acceptance}]` : ''); 
+        const status = o.golden ? ' [CURRENT_GOLDEN]' : '';
         const date = new Date(o.publish_date);
 
         return {
@@ -42,13 +41,13 @@ function ensureCurrentImageIsIncluded(baseImages, currentBaseImage) {
 }
 
 function isPinImageEnabled(goldenImage) {
-    // If there is golden - enable Pin Image checkbox 
-    // If there is no golden - disable Pin Image checkbox 
+    // If there is golden - enable Pin Image checkbox
+    // If there is no golden - disable Pin Image checkbox
     return !!goldenImage;
 }
 
 function getPinImageValue(goldenImage, clusterAutoUpdateBaseImage) {
     // If there is golden: getPinImageValue = !clusterAutoUpdateBaseImage
     // if there is no golden: getPinImageValue = true. Always pin
-    return !!goldenImage ? !clusterAutoUpdateBaseImage : true; 
+    return !!goldenImage ? !clusterAutoUpdateBaseImage : true;
 }

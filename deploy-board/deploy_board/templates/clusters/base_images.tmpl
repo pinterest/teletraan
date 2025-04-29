@@ -13,7 +13,6 @@
             <th class="col-lg-1">Cloud Provider</th>
             <th class="col-lg-2">Publish Date</th>
             <th class="col-lg-2">Description</th>
-            <th class="col-lg-2">Acceptance</th>
         </tr>
         {% for base_image in base_images %}
         <tr>
@@ -57,11 +56,6 @@
             <td> {{ base_image.provider }} </td>
             <td> {{ base_image.publish_date | convertTimestamp }} </td>
             <td> {{ base_image.description }} </td>
-            {% if base_image.acceptance %}
-            <td> {{ base_image.acceptance }} </td>
-            {% else %}
-            <td> </td>
-            {% endif %}
         </tr>
         {% endfor %}
     </table>
