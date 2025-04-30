@@ -627,6 +627,7 @@ def get_base_images_by_abstract_name(request, abstract_name):
             "pageSize": len(base_images),
             "disablePrevious": True,
             "disableNext": True,
+            "imageProviderNameUrl": IMAGE_PROVIDER_NAME_URL,
         },
     )
 
