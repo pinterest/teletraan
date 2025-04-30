@@ -867,11 +867,12 @@
                 },
                 imageNameChange: function(value) {
                     var cell = capacitySetting.currentCell;
+                    var arch = capacitySetting.currentArch;
                     capacitySetting.imageNameValue = value;
                     //Grab all images for this image name
                     $.ajax({
                         type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
+                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell + '&arch=' + arch,
                         dataType: "json",
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken')

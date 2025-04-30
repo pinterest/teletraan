@@ -51,6 +51,7 @@ if IS_PINTEREST:
         IMAGE_PROVIDER_NAME_URL,
     )
 
+import collections
 import json
 import logging
 
@@ -97,7 +98,7 @@ class EnvCapacityBasicCreateView(View):
             request, None, DEFAULT_PROVIDER, DEFAULT_CELL
         )
         default_base_image = get_base_image_info_by_name(
-            request, DEFAULT_CMP_IMAGE, DEFAULT_CELL
+            request, DEFAULT_CMP_IMAGE, DEFAULT_CELL, DEFAULT_ARCH
         )
         env = environs_helper.get_env_by_stage(request, name, stage)
 
@@ -211,7 +212,7 @@ class EnvCapacityAdvCreateView(View):
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
         arches = arches_helper.get_all(request)
         base_images = get_base_image_info_by_name(
-            request, DEFAULT_CMP_IMAGE, DEFAULT_CELL
+            request, DEFAULT_CMP_IMAGE, DEFAULT_CELL, DEFAULT_ARCH
         )
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, DEFAULT_PROVIDER, DEFAULT_CELL, DEFAULT_ARCH
@@ -358,7 +359,10 @@ class ClusterConfigurationView(View):
             current_cluster["cellName"],
         )
         base_images = get_base_image_info_by_name(
-            request, current_image["abstract_name"], current_cluster["cellName"]
+            request,
+            current_image["abstract_name"],
+            current_cluster["cellName"],
+            current_cluster["archName"],
         )
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request,
@@ -581,7 +585,7 @@ def get_base_images(request):
 
 
 def get_base_images_by_abstract_name(request, abstract_name):
-    base_images = baseimages_helper.get_by_name(request, abstract_name, None)
+    base_images = baseimages_helper.get_by_name(request, abstract_name, None, None)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     arches_list = arches_helper.get_all(request)
@@ -592,16 +596,21 @@ def get_base_images_by_abstract_name(request, abstract_name):
         image["golden_canary"] = "GOLDEN_CANARY" in golden_tags
         image["golden_prod"] = "GOLDEN" in golden_tags
     # add current golden tag
-    golden_images = {}
+    golden_images = collections.defaultdict(dict)
     for cell in cells_list:
         cell_name = cell["name"]
-        golden_images[cell_name] = baseimages_helper.get_current_golden_image(
-            request, abstract_name, cell_name
-        )
+        for arch in arches_list:
+            arch_name = arch["name"]
+            golden_images[cell_name][arch_name] = (
+                baseimages_helper.get_current_golden_image(
+                    request, abstract_name, cell_name, arch_name
+                )
+            )
     for image in base_images:
         if (
-            golden_images.get(image["cell_name"])
-            and image["id"] == golden_images[image["cell_name"]]["id"]
+            golden_images[image["cell_name"]].get(image["arch_name"])
+            and image["id"]
+            == golden_images[image["cell_name"]][image["arch_name"]]["id"]
         ):
             image["current_golden"] = True
 
@@ -736,17 +745,20 @@ def get_image_names(request):
 def get_base_images_by_name(request):
     params = request.GET
     cell = params.get("cell", DEFAULT_CELL)
+    arch = params.get("arch", DEFAULT_ARCH)
     base_images = None
     if "name" in params:
         name = params["name"]
-        base_images = baseimages_helper.get_by_name(request, name, cell)
+        base_images = baseimages_helper.get_by_name(request, name, cell, arch)
 
     curr_base_image = None
     if "curr_base_image" in params:
         curr_base_image = params["curr_base_image"]
         image = baseimages_helper.get_by_id(request, curr_base_image)
         curr_image_name = image.get("abstract_name")
-        base_images = baseimages_helper.get_by_name(request, curr_image_name, cell)
+        base_images = baseimages_helper.get_by_name(
+            request, curr_image_name, cell, arch
+        )
 
     contents = render_to_string(
         "clusters/get_base_image.tmpl",
@@ -758,22 +770,17 @@ def get_base_images_by_name(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
-def get_base_image_info_by_name(request, name, cell):
+def get_base_image_info_by_name(request, name, cell, arch):
     if name.startswith("cmp_base"):
-        with_acceptance_rs = []
-        base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
-        golden_image = baseimages_helper.get_current_golden_image(request, name, cell)
+        base_images = baseimages_helper.get_by_name(request, name, cell, arch)
+        golden_image = baseimages_helper.get_current_golden_image(
+            request, name, cell, arch
+        )
         if golden_image:
             golden_image["golden"] = True
-            base_images.append({"baseImage": golden_image})
-        if base_images:
-            for image in base_images:
-                r = image.get("baseImage")
-                if r:
-                    r["acceptance"] = image.get("acceptance", "UNKNOWN")
-                    with_acceptance_rs.append(r)
-        return with_acceptance_rs
-    return baseimages_helper.get_by_name(request, name, cell)
+            base_images.append(golden_image)
+        return base_images
+    return baseimages_helper.get_by_name(request, name, cell, arch)
 
 
 def create_ui_account(account, cells):
@@ -812,10 +819,12 @@ def create_ui_accounts(accounts):
 
 def get_base_images_by_name_json(request, name):
     cell = DEFAULT_CELL
+    arch = DEFAULT_ARCH
     params = request.GET
     if params:
         cell = params.get("cell", DEFAULT_CELL)
-    base_images = get_base_image_info_by_name(request, name, cell)
+        arch = params.get("arch", DEFAULT_ARCH)
+    base_images = get_base_image_info_by_name(request, name, cell, arch)
     return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
@@ -1885,7 +1894,10 @@ class ClusterBaseImageHistoryView(View):
             request, current_cluster["baseImageId"]
         )
         golden_image = baseimages_helper.get_current_golden_image(
-            request, current_image["abstract_name"], current_cluster["cellName"]
+            request,
+            current_image["abstract_name"],
+            current_cluster["cellName"],
+            current_cluster["archName"],
         )
 
         base_images_update_events = (
