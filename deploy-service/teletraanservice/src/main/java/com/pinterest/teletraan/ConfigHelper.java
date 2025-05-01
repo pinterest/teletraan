@@ -73,6 +73,8 @@ import io.dropwizard.util.Duration;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -165,13 +167,20 @@ public class ConfigHelper {
         // with Jenkins and Buildkite configurations being list items under the "ci" section
         List<CIPlatformFactory> ciPlatformConfigs = configuration.getCIPlatformConfigs();
         if (ciPlatformConfigs != null || !ciPlatformConfigs.isEmpty()) {
-            Map<String, CIPlatformManager> ciPlatforms =
-                    new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            ciPlatformConfigs.sort(Comparator.comparingInt(factory -> {
+                Integer priority = factory.getPriority();
+                return priority != null ? priority : Integer.MAX_VALUE; // Handle when priority is not set, the CI platform will be at the end of the list
+            }));
+            LinkedHashMap<String, CIPlatformManager> ciPlatforms =
+                    new LinkedHashMap<>();
             for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
                 CIPlatformManager ciPlatform = ciPlatformFactory.create();
                 String type = ciPlatform.getTypeName();
+                int priority = ciPlatform.getPriority();
+                LOG.info("Adding CIPlatform: Type={}, Priority={}", type, priority);
                 ciPlatforms.put(type, ciPlatform);
             }
+            LOG.info("ciPlatforms linkedhashmap has {} items", ciPlatforms.keySet().size());
             context.setCIPlatformManagerProxy(new CIPlatformManagerProxy(ciPlatforms));
         }
 
@@ -212,7 +221,7 @@ public class ConfigHelper {
         if (jenkinsFactory != null) {
             context.setJenkins(
                     new Jenkins(
-                            jenkinsFactory.getJenkinsUrl(),
+                            jenkinsFactory.getCIPlatformBaseUrl(),
                             jenkinsFactory.getRemoteToken(),
                             jenkinsFactory.getUseProxy(),
                             jenkinsFactory.getHttpProxyAddr(),
