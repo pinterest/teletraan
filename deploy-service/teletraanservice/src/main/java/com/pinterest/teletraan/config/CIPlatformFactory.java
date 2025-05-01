@@ -31,4 +31,6 @@ import io.dropwizard.jackson.Discoverable;
 })
 public interface CIPlatformFactory extends Discoverable {
     CIPlatformManager create() throws Exception;
+
+    Integer getPriority();
 }
