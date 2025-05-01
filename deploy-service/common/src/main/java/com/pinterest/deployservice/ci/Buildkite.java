@@ -52,6 +52,7 @@ public class Buildkite extends BaseCIPlatformManager {
                     + "\"message\": \"%s\","
                     + "\"metaData\": [%s]}";
     private String queryBuildStatusBodyString = "{\"uuid\": \"%s\"}";
+    private static String buildkiteUrl = "https://buildkite.com/pinterest/";
     private String buildkiteApiBaseUrl = "https://api.buildkite.com/v2/organizations/pinterest/";
     private String buildkitePortalBaseUrl =
             "https://portal.buildkite.com/organizations/pinterest/portals/";
@@ -85,7 +86,7 @@ public class Buildkite extends BaseCIPlatformManager {
     }
 
     // https://buildkite.com/docs/apis/rest-api/builds#get-a-build
-    public static class Build implements CIPlatformBuild {
+    public static class Build extends BaseCIPlatformBuild {
         String pipelineName;
         String buildUUID;
         String buildUrl;
@@ -101,6 +102,7 @@ public class Buildkite extends BaseCIPlatformManager {
                 String buildStatus,
                 long startTimestamp,
                 long duration) {
+            super(buildUUID, buildStatus, startTimestamp, duration);
             this.buildUUID = buildUUID;
             this.buildUrl = buildUrl;
             this.buildStatus = buildStatus;
@@ -157,6 +159,10 @@ public class Buildkite extends BaseCIPlatformManager {
 
         public void setDuration(long duration) {
             this.duration = duration;
+        }
+
+        public String getCIPlatformBaseUrl() {
+            return buildkiteUrl;
         }
 
         @Override
@@ -313,7 +319,9 @@ public class Buildkite extends BaseCIPlatformManager {
             JsonPrimitive url = build.getAsJsonPrimitive("url");
             JsonPrimitive uuid = build.getAsJsonPrimitive("uuid");
             LOG.debug("[Buildkite] Successfully triggered build for pipeline " + url.getAsString());
-            return uuid.getAsString();
+            String[] delimitStrings = url.getAsString().split("/");
+            String jobNum = delimitStrings[delimitStrings.length - 1];
+            return jobNum;
         } catch (Exception t) {
             LOG.error("Error in triggering build for pipeline " + pipeline, t);
             return "";
@@ -323,51 +331,42 @@ public class Buildkite extends BaseCIPlatformManager {
     @Override
     public Build getBuild(String pipeline, String buildUUID) throws IOException {
         LOG.debug("[Buildkite][getBuild] pipeline name: " + pipeline);
-        String knoxKeyString = "buildkite:query_build_generic:portal:query_build";
+        String knoxKeyString = "svc_buildkite:buildkite:readonly";
         KeyReader knoxKeyReader = new KnoxKeyReader();
         knoxKeyReader.init(knoxKeyString);
         String apiToken = knoxKeyReader.getKey();
-        LOG.debug("[Buildkite][getBuild] Using token " + apiToken);
         String bodyString = String.format(queryBuildStatusBodyString, buildUUID);
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Authorization", "Bearer " + apiToken);
         headers.put("Content-Type", "application/json");
         String url = "";
         String state = "";
+        String startedAt = "";
+        String finishedAt = "";
         long startTimestamp = 0L;
         long finishedTimestamp = 0L;
         long duration = 0L;
         try {
             String res =
-                    httpClient.post(
-                            "https://portal.buildkite.com/organizations/pinterest/portals/query-build-generic",
-                            bodyString,
+                    httpClient.get(
+                            constructApiEndpoint(pipeline) + "/builds/" + buildUUID,
+                            null,
                             headers);
             JsonObject fullJson = gson.fromJson(res, JsonObject.class);
             if (fullJson == null || fullJson.isJsonNull()) {
                 return null;
             }
-            if (fullJson.has("data") && !fullJson.get("data").isJsonNull()) {
-                JsonObject data = fullJson.getAsJsonObject("data");
-                if (data.has("build") && !data.get("build").isJsonNull()) {
-                    JsonObject build = data.getAsJsonObject("build");
-                    state = build.getAsJsonPrimitive("state").getAsString();
-                    url = build.getAsJsonPrimitive("url").getAsString();
-                    if (build.has("startedAt") && !build.get("startedAt").isJsonNull()) {
-                        String startedAt = build.getAsJsonPrimitive("startedAt").getAsString();
-                        startTimestamp = Instant.parse(startedAt).toEpochMilli();
-                    } else {
-                        startTimestamp = System.currentTimeMillis();
-                        duration = 0L;
-                    }
-                    if (build.has("finishedAt") && !build.get("finishedAt").isJsonNull()) {
-                        String finishedAt = build.getAsJsonPrimitive("finishedAt").getAsString();
-                        finishedTimestamp = Instant.parse(finishedAt).toEpochMilli();
-                    } else {
-                        finishedTimestamp = System.currentTimeMillis();
-                    }
-                    duration = finishedTimestamp - startTimestamp;
-                }
+            state = fullJson.getAsJsonPrimitive("state").getAsString();
+            url = fullJson.getAsJsonPrimitive("url").getAsString();
+            startedAt = fullJson.getAsJsonPrimitive("started_at").getAsString();
+            startTimestamp = Instant.parse(startedAt).toEpochMilli();
+            if (fullJson.has("finished_at") && !fullJson.get("finished_at").isJsonNull()) {
+                finishedAt = fullJson.getAsJsonPrimitive("finished_at").getAsString();
+                finishedTimestamp = Instant.parse(finishedAt).toEpochMilli();
+                duration = finishedTimestamp - startTimestamp;
+            } else {
+                startTimestamp = System.currentTimeMillis();
+                duration = 0L;
             }
             return new Build(pipeline, buildUUID, url, state, startTimestamp, duration);
         } catch (Throwable t) {

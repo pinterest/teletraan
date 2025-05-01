@@ -25,7 +25,9 @@ public interface CIPlatformManager {
 
     String startBuild(String pipelineName, String buildParams) throws IOException;
 
-    Object getBuild(String pipelineName, String buildId) throws Exception;
+    BaseCIPlatformBuild getBuild(String pipelineName, String buildId) throws Exception;
 
     boolean jobExist(String jobName) throws Exception;
+
+    String getCIPlatformBaseUrl();
 }

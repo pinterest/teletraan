@@ -98,6 +98,14 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("jenkins")
     private JenkinsFactory jenkinsFactory;
 
+    // @Valid
+    // @JsonProperty("jenkins")
+    // private JenkinsFactory jenkinsFactory;
+
+    // @Valid
+    // @JsonProperty("buildkite")
+    // private BuildkiteFactory buildkiteFactory;
+
     @Valid
     @JsonProperty("buildAllowlist")
     private BuildAllowlistFactory buildAllowlistFactory;
@@ -235,9 +243,17 @@ public class TeletraanServiceConfiguration extends Configuration {
         return jenkinsFactory;
     }
 
-    public void setJenkinsFactory(JenkinsFactory jenkinsFactory) {
-        this.jenkinsFactory = jenkinsFactory;
-    }
+    // public void setJenkinsFactory(JenkinsFactory jenkinsFactory) {
+    //     this.jenkinsFactory = jenkinsFactory;
+    // }
+
+    // public BuildkiteFactory getBuildkiteFactory() {
+    //     return buildkiteFactory;
+    // }
+
+    // public void setBuildkiteFactory(BuildkiteFactory buildkiteFactory) {
+    //     this.buildkiteFactory = buildkiteFactory;
+    // }
 
     public List<WorkerConfig> getWorkerConfigs() {
         if (workerConfigs == null) {
