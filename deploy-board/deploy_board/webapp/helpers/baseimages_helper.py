@@ -112,10 +112,12 @@ def get_by_name(request, name, cell_name, arch_name):
     )
 
 
-def get_current_golden_image(request, name, cell, arch):
+def get_current_golden_image(request, name, cell_name, arch_name):
+    params = [("cellName", cell_name), ("archName", arch_name)]
     return rodimus_client.get(
-        "/base_images/names/%s/cells/%s/arches/%s/golden" % (name, cell, arch),
+        "/base_images/names/%s/golden" % name,
         request.teletraan_user_id.token,
+        params=params,
     )
 
 
