@@ -45,11 +45,25 @@ def _create_commits(commits, urlPattern, hotfix):
         commits.append(commit)
 
 
+def get_ci_url(hotfix):
+    if hotfix["ciPlatform"] == "jenkins":
+        return get_jenkins_url(hotfix)
+    elif hotfix["ciPlatform"] == "buildkite":
+        return get_buildkite_url(hotfix)
+
+
 def get_jenkins_url(hotfix):
     jenkins_url = "%s/%s" % (BUILD_URL, hotfix["jobName"])
     if hotfix["jobNum"]:
         jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix["jobName"], hotfix["jobNum"])
     return jenkins_url
+
+
+def get_buildkite_url(hotfix):
+    buildkite_url = "%s/%s" % (BUILD_URL, hotfix["jobName"])
+    if hotfix["jobNum"]:
+        buildkite_url = "%s/%s/builds/%s" % (BUILD_URL, hotfix["jobName"], hotfix["jobNum"])
+    return buildkite_url
 
 
 def get_hotfix(request, name, stage, id):
@@ -60,7 +74,7 @@ def get_hotfix(request, name, stage, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get("type"))
     commits = []
     _create_commits(commits, urlPattern["template"], hotfix)
-    jenkins_url = get_jenkins_url(hotfix)
+    jenkins_url = get_ci_url(hotfix)
     return render(
         request,
         "hotfixs/hotfix_detail.html",
@@ -82,7 +96,7 @@ def get_hotfix_detail(request, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get("type"))
     commits = []
     _create_commits(commits, urlPattern["template"], hotfix)
-    jenkins_url = get_jenkins_url(hotfix)
+    jenkins_url = get_ci_url(hotfix)
     html = render_to_string(
         "hotfixs/hotfix_detail.tmpl",
         {

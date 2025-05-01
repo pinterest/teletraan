@@ -19,12 +19,16 @@ import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.HotfixDAO;
+
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Implementation for Hotfix DAO */
 public class DBHotfixDAOImpl implements HotfixDAO {
@@ -36,6 +40,7 @@ public class DBHotfixDAOImpl implements HotfixDAO {
             "SELECT id FROM hotfixes WHERE state IN (%s)";
     private static final String GET_HOTFIXES =
             "SELECT * FROM hotfixes WHERE env_name=? ORDER BY start_time DESC LIMIT ?,?";
+    private static final Logger LOG = LoggerFactory.getLogger(DBHotfixDAOImpl.class);
 
     private BasicDataSource dataSource;
 
@@ -54,6 +59,11 @@ public class DBHotfixDAOImpl implements HotfixDAO {
     public void update(String hotfix_id, HotfixBean bean) throws Exception {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_HOTFIX_BY_ID_TEMPLATE, setClause.getClause());
+        LOG.debug("Mysql update clause: " + clause);
+        Object[] values = setClause.getValueArray();
+        for (Object v : values) {
+            LOG.debug("Mysql update value: " + v.toString());
+        }
         setClause.addValue(hotfix_id);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }

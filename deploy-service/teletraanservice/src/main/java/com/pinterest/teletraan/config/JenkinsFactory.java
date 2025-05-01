@@ -36,7 +36,7 @@ public class JenkinsFactory implements CIPlatformFactory {
 
     @JsonProperty private Integer priority;
 
-    public String getJenkinsUrl() {
+    public String getCIPlatformBaseUrl() {
         return jenkinsUrl;
     }
 
@@ -84,6 +84,7 @@ public class JenkinsFactory implements CIPlatformFactory {
         this.typeName = typeName;
     }
 
+    @Override
     public Integer getPriority() {
         return priority;
     }

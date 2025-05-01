@@ -34,6 +34,9 @@ public class HotfixBean extends BaseBean implements Updatable {
     @JsonProperty("jobName")
     private String job_name;
 
+    @JsonProperty("ciPlatform")
+    private String ci_platform;
+
     @NotEmpty
     @JsonProperty("baseDeployId")
     private String base_deploy;
@@ -98,6 +101,14 @@ public class HotfixBean extends BaseBean implements Updatable {
 
     public void setJob_name(String job_name) {
         this.job_name = job_name;
+    }
+
+    public String getCI_platform() {
+        return ci_platform;
+    }
+
+    public void setCI_platform(String ci_platform) {
+        this.ci_platform = ci_platform;
     }
 
     public String getBase_deploy() {
@@ -188,6 +199,7 @@ public class HotfixBean extends BaseBean implements Updatable {
         clause.addColumn("state", state);
         clause.addColumn("job_num", job_num);
         clause.addColumn("job_name", job_name);
+        clause.addColumn("ci_platform", ci_platform);
         clause.addColumn("base_deploy", base_deploy);
         clause.addColumn("base_commit", base_commit);
         clause.addColumn("repo", repo);
