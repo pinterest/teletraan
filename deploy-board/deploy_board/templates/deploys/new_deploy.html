@@ -126,6 +126,11 @@
 <div class="panel panel-default">
    <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Pick a build to deploy</h4>
+        <div class="pull-right" style="display: flex; align-items: center; line-height: 1;">
+            <label style="font-size: 0.85em; margin: 0; display: flex; align-items: center;">
+                <input type="checkbox" id="showCommitInfoCheckbox" style="margin-right: 5px; height: auto; margin-top: -2px;"> Show Commit Info
+            </label>
+        </div>
     </div>
     <div id="buildPickDivId" class="panel-body table-responsive">
     </div>
@@ -151,6 +156,20 @@
     $("#newBuildBtnId").click(function () {
         build = $('#newBuildInputId').val();
         window.location = '/env/{{ env.envName }}/{{ env.stageName }}/build/' + build;
+    });
+
+    $(document).ready(function() {
+        const showCommitInfo = localStorage.getItem('showCommitInfo') === 'true';
+        $('#showCommitInfoCheckbox').prop('checked', showCommitInfo);
+
+        $('#showCommitInfoCheckbox').change(function () {
+            localStorage.setItem('showCommitInfo', $(this).is(':checked'));
+            if ($(this).is(':checked')) {
+                $('.commitInfo').show();
+            } else {
+                $('.commitInfo').hide();
+            }
+        });
     });
 </script>
 

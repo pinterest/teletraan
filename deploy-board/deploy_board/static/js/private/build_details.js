@@ -22,4 +22,11 @@ $(document).ready(function() {
     $('#tagBuildButton').click(function() {
         $('#tagBuildConfirmId').modal();
     });
+
+    const showCommitInfo = localStorage.getItem('showCommitInfo') === 'true';
+    if (showCommitInfo) {
+        $('.commitInfo').show();
+    } else {
+        $('.commitInfo').hide();
+    }
 });

@@ -4,6 +4,7 @@
     <tr>
         <th class="col-lg-2">Publish Date</th>
         <th class="col-lg-2">Commit</th>
+        <th class="col-lg-2 commitInfo"   style="display: none;">Commit Info</th>
         <th class="col-lg-2">Branch</th>
         <th class="col-lg-2">Repo</th>
         <th class="col-lg-2">Build Name</th>
@@ -57,6 +58,7 @@
                 {% endif %}
             {% endif %}
         </td>
+        <td class="commitInfo" style="display: none;">{{ buildInfo.build.commitInfo }}</td>
         <td>{{ buildInfo.build.branch }}</td>
         <td>{{ buildInfo.build.repo }}</td>
         <td>{{ buildInfo.build.name }}</td>
