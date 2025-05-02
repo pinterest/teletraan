@@ -576,16 +576,18 @@ def get_base_images(request):
             "cells_list": cells_list,
             "arches_list": arches_list,
             "pageIndex": index,
-            "pageSize": DEFAULT_PAGE_SIZE,
+            "pageSize": size,
             "disablePrevious": index <= 1,
-            "disableNext": len(base_images) < DEFAULT_PAGE_SIZE,
+            "disableNext": len(base_images) < size,
             "imageProviderNameUrl": IMAGE_PROVIDER_NAME_URL,
         },
     )
 
 
 def get_base_images_by_abstract_name(request, abstract_name):
-    base_images = baseimages_helper.get_by_name(request, abstract_name, None, None)
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
+    base_images = baseimages_helper.get_by_name(request, abstract_name, None, None, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     arches_list = arches_helper.get_all(request)
@@ -623,10 +625,10 @@ def get_base_images_by_abstract_name(request, abstract_name):
             "provider_list": provider_list,
             "cells_list": cells_list,
             "arches_list": arches_list,
-            "pageIndex": 1,
-            "pageSize": len(base_images),
-            "disablePrevious": True,
-            "disableNext": True,
+            "pageIndex": index,
+            "pageSize": size,
+            "disablePrevious": index <= 1,
+            "disableNext": len(base_images) < size,
             "imageProviderNameUrl": IMAGE_PROVIDER_NAME_URL,
         },
     )

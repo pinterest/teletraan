@@ -105,8 +105,19 @@ def get_all_by(request, provider, cell_name):
     )
 
 
-def get_by_name(request, name, cell_name, arch_name):
-    params = [("cellName", cell_name), ("archName", arch_name)]
+def get_by_name(
+        request,
+        name,
+        cell_name,
+        arch_name,
+        page_index=None,
+        page_size=None):
+    params = [
+      ("cellName", cell_name),
+      ("archName", arch_name),
+      ("pageIndex", page_index),
+      ("pageSize", page_size),
+    ]
     return rodimus_client.get(
         "/base_images/names/%s" % name, request.teletraan_user_id.token, params=params
     )

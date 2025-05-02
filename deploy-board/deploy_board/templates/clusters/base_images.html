@@ -69,13 +69,13 @@
         {% if base_images|length >= 2 %}
         <ul class="pager">
             <li>
-                <a href='/clouds/baseimages/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                <a href='?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
                     class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
                     <span class="glyphicon glyphicon-chevron-left"></span> Previous
                 </a>
             </li>
             <li>
-                <a href='/clouds/baseimages/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                <a href='?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
                     class="btn btn-default {% if disableNext %}disabled{% endif %}">
                     Next <span class="glyphicon glyphicon-chevron-right"></span>
                 </a>
@@ -179,9 +179,9 @@
 </div>
 
 <script>
-    $("#createBaseImageFormId").submit(function(event) {            
+    $("#createBaseImageFormId").submit(function(event) {
         var provider = $("#providerNameId").val();
-        var errorElement = $("#create-base-image-form-errors");  
+        var errorElement = $("#create-base-image-form-errors");
         var errors = "";
         var validationErrors = [validateProviderName(provider), validateCellName(provider)];
         validationErrors
@@ -197,7 +197,7 @@
             errorElement.html(errors);
             event.preventDefault();
         }
-    });  
+    });
 
     function createValidationErrorHtml(isFirst, err) {
         var classes = ["alert", "alert-danger"];
@@ -214,11 +214,11 @@
                 example: "ami-b1cf1c23346789fff"
             }
         }
-        var providerName = $("#create-base-image-provider-name").val();  
+        var providerName = $("#create-base-image-provider-name").val();
         var validator = validators[provider];
         if (validator) {
             if (!providerName.startsWith(validator.prefix)) {
-                return "\"Cloud specific image id\" should start with \"" 
+                return "\"Cloud specific image id\" should start with \""
                     + validator.prefix + "\", example: " + validator.example;
             }
         }
@@ -233,10 +233,10 @@
             }
         }
         var cellName = $("#cellName").val();
-        var validator = validators[provider];  
+        var validator = validators[provider];
         if (validator) {
             if (!cellName.startsWith(validator.prefix)) {
-                return "\"Cell\" should start with \"" 
+                return "\"Cell\" should start with \""
                     + validator.prefix + "\", example: " + validator.example;
             }
         }
