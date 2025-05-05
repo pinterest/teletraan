@@ -131,8 +131,21 @@ function getBackupIds(mapping, types, type, enable) {
 function checkHostType(types, type) {
     const selectedHostTypeObject = types.find(hostType => hostType.id === type);
     const name = selectedHostTypeObject.provider_name;
-    const prefixes = ["c8g.", "m8g.", "r8g.", "x8g."];
-    return prefixes.some(prefix => name.startsWith(prefix));
+    const prefixes = ['m8g', 'm8gd', 'c8g', 'c8gd', 'r8g', 'r8gd', 'x8g'];
+    const postfixes = [
+    '.medium', '.large', '.xlarge', '.2xlarge', '.4xlarge',
+    '.8xlarge', '.12xlarge', '.16xlarge', '.24xlarge', '.48xlarge'
+    ];
+    return prefixes.some(prefix => {
+        // Check if the string starts with a prefix
+        if (name.startsWith(prefix)) {
+          // Get the remaining part of the string after the prefix
+          const remaining = name.slice(prefix.length);
+          // Check if the remaining part matches any postfix
+          return postfixes.includes(remaining);
+        }
+        return false;
+    });
 }
 
 function getDefaultPlacement(capacityCreationInfo) {
