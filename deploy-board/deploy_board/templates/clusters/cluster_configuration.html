@@ -853,6 +853,14 @@
                             capacitySetting.backupHosttypes = "None";
                             capacitySetting.hostTypes = data;
                             capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
+                            capacitySetting.currentBandwidthWeight = "default";
+                            capacitySetting.bandwidthweights = info.bandwidthWeights.map(function(item) {
+                                return {
+                                    value: item.name,
+                                    text: item.name,
+                                    isSelected: item.name === "default"
+                                }
+                            });
                             //Schedule this to nextTick that calls after next DOM refresh
                             //as JQuery chosen call must happen after DOM updates finished
                             Vue.nextTick(function(){
@@ -1171,6 +1179,14 @@
                 capacitySetting.backupHosttypes = "None";
                 capacitySetting.enableMultipleHostTypes = false;
                 capacitySetting.canChangeBandwidth = checkHostType(capacitySetting.hostTypes, capacitySetting.selectedHostTypeValue);
+                capacitySetting.currentBandwidthWeight = "default";
+                capacitySetting.bandwidthweights = info.bandwidthWeights.map(function(item) {
+                    return {
+                        value: item.name,
+                        text: item.name,
+                        isSelected: item.name === "default"
+                    }
+                });
             });
 
             $(".chosen-select").chosen({
