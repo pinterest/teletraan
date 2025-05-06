@@ -4,7 +4,7 @@
     <tr>
         <th class="col-lg-2">Publish Date</th>
         <th class="col-lg-2">Commit</th>
-        <th class="col-lg-2 commitInfo"   style="display: none;">Commit Info</th>
+        <th class="col-lg-2 commitInfo" style="display: none;">Commit Info</th>
         <th class="col-lg-2">Branch</th>
         <th class="col-lg-2">Repo</th>
         <th class="col-lg-2">Build Name</th>
@@ -228,5 +228,12 @@
                     '&page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}' +
                     '&current_build_id={{ current_build.id }}' + '&override_policy={{ env.overridePolicy }}&deploy_id={{ env.deployId }}');
         });
+
+        const showCommitInfo = localStorage.getItem('showCommitInfo') === 'true';
+        if (showCommitInfo) {
+            $('.commitInfo').show();
+        } else {
+            $('.commitInfo').hide();
+        }
     });
 </script>
