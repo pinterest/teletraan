@@ -777,9 +777,11 @@ def get_base_image_info_by_name(request, name, cell, arch):
         golden_image = baseimages_helper.get_current_golden_image(
             request, name, cell, arch
         )
-        if golden_image:
-            golden_image["golden"] = True
-            base_images.append(golden_image)
+        if golden_image and base_images:
+            for base_image in base_images:
+                if base_image["id"] == golden_image["id"]:
+                    base_image["golden"] = True
+                    break
         return base_images
     return baseimages_helper.get_by_name(request, name, cell, arch)
 
