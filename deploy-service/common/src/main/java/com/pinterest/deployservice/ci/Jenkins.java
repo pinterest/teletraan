@@ -86,7 +86,7 @@ public class Jenkins extends BaseCIPlatformManager {
         this.httpClient = clientBuilder.build();
     }
 
-    public static class Build implements CIPlatformBuild {
+    public static class Build extends BaseCIPlatformBuild {
         String buildId;
         String result;
         boolean isBuilding;
@@ -101,6 +101,7 @@ public class Jenkins extends BaseCIPlatformManager {
                 long startTimestamp,
                 int estimateDuration,
                 int duration) {
+            super(buildId, result, startTimestamp, duration);
             this.buildId = buildId;
             this.result = result;
             this.isBuilding = isBuilding;
@@ -138,7 +139,8 @@ public class Jenkins extends BaseCIPlatformManager {
         }
     }
 
-    public String getJenkinsUrl() {
+    @Override
+    public String getCIPlatformBaseUrl() {
         return jenkinsUrl;
     }
 
@@ -183,7 +185,7 @@ public class Jenkins extends BaseCIPlatformManager {
             return json != null;
         } catch (IOException e) {
             LOG.error("Failed to get job info from jenkins", e);
-            return false;
+            throw new IOException("Failed to get job info from jenkins", e);
         }
     }
 }

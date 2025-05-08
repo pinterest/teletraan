@@ -42,8 +42,13 @@ public abstract class BaseCIPlatformManager implements CIPlatformManager {
     }
 
     @Override
-    public Object getBuild(String pipelineName, String buildId) throws Exception {
+    public BaseCIPlatformBuild getBuild(String pipelineName, String buildId) throws Exception {
         return null;
+    }
+
+    @Override
+    public String getCIPlatformBaseUrl() {
+        return "";
     }
 
     @Override

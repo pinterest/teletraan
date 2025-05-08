@@ -67,7 +67,15 @@ public class CIPlatformManagerProxy {
         }
     }
 
-    public Object getBuild(String ciType, String pipelineName, String buildId) throws Exception {
+    public String getCIPlatformBaseUrl(String ciType) throws Exception {
+        CIPlatformManager manager = getCIPlatformManager(ciType);
+        if (manager == null) {
+            throw new Exception("Unsupported CI type: " + ciType);
+        }
+        return manager.getCIPlatformBaseUrl();
+    }
+
+    public BaseCIPlatformBuild getBuild(String ciType, String pipelineName, String buildId) throws Exception {
         CIPlatformManager manager = getCIPlatformManager(ciType);
         if (manager == null) {
             throw new Exception("Unsupported CI type: " + ciType);
