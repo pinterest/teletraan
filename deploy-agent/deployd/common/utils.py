@@ -119,11 +119,6 @@ def ensure_dirs(config) -> None:
     mkdir_p(config.get_log_directory())
 
 
-def is_first_run(config) -> bool:
-    env_status_file = config.get_env_status_fn()
-    return not os.path.exists(env_status_file)
-
-
 def check_prereqs(config) -> bool:
     """
     Check prerequisites before deploy agent can run
@@ -188,7 +183,7 @@ def check_first_puppet_run_success(config) -> bool:
 
     :return: returns True if success else False
     """
-    if not is_first_run(config):
+    if not config.first_run:
         return True
 
     puppet_exit_code = get_puppet_exit_code(config)
