@@ -237,6 +237,32 @@ public class Buildkite extends BaseCIPlatformManager {
         return buildkiteApiBaseUrl + "pipelines/" + pipeline;
     }
 
+    private String getPipelineDefaultBranch(String pipeline) {
+        String knoxKeyString = "svc_buildkite:buildkite:readonly";
+        KeyReader knoxKeyReader = new KnoxKeyReader();
+        knoxKeyReader.init(knoxKeyString);
+        String apiToken = knoxKeyReader.getKey();
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Authorization", "Bearer " + apiToken);
+        headers.put("Content-Type", "application/json");
+        String defaultBranch = "";
+        try {
+            String res = httpClient.get(constructApiEndpoint(pipeline), null, headers);
+            JsonObject fullJson = gson.fromJson(res, JsonObject.class);
+            if (fullJson == null || fullJson.isJsonNull()) {
+                return "";
+            }
+            if (fullJson.has("default_branch") && !fullJson.get("default_branch").isJsonNull()) {
+                defaultBranch = fullJson.getAsJsonPrimitive("default_branch").getAsString();
+            }
+            return defaultBranch;
+        } catch (Throwable t) {
+            LOG.error(
+                    String.format("Error in querying pipeline %s default branch", pipeline), t);
+            return "";
+        }
+    }
+
     @Override
     public String startBuild(String pipelineName, String buildParams) throws IOException {
         HashMap<String, String> buildMetadata = new HashMap<>();
@@ -270,7 +296,7 @@ public class Buildkite extends BaseCIPlatformManager {
             commit = "HEAD";
         }
         if (branch == "") {
-            branch = "main";
+            branch = getPipelineDefaultBranch(pipeline);
         }
         if (message == "") {
             message = "Triggering build from Teletraan";
