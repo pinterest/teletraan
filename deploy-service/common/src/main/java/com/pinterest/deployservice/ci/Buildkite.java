@@ -179,7 +179,7 @@ public class Buildkite extends BaseCIPlatformManager {
                 return 0;
             } else {
                 return (int)
-                        (duration / getLastBuildsAverageTime("pinterest/" + this.pipelineName));
+                        (duration / getLastBuildsAverageTime(this.pipelineName));
             }
         }
 
