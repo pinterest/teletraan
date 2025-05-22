@@ -202,11 +202,21 @@ public class Buildkite extends BaseCIPlatformManager {
                 if (fullJson == null || fullJson.isJsonNull()) {
                     return 0L;
                 }
-                JsonArray buildsEdges =
-                        fullJson.getAsJsonObject("data")
-                                .getAsJsonObject("pipeline")
-                                .getAsJsonObject("builds")
-                                .getAsJsonArray("edges");
+                JsonArray buildsEdges = null;
+                JsonObject dataJson = fullJson.getAsJsonObject("data");
+                if (dataJson != null && !dataJson.isJsonNull()) {
+                    JsonObject pipelineJson = dataJson.getAsJsonObject("pipeline");
+                    if (pipelineJson != null && !pipelineJson.isJsonNull()) {
+                        JsonObject buildsJson = pipelineJson.getAsJsonObject("builds");
+                        if (buildsJson != null && !buildsJson.isJsonNull()) {
+                            buildsEdges = buildsJson.getAsJsonArray("edges");
+                        } else {
+                            return 0L;
+                        }
+                    } else {
+                        throw new IOException("Pipeline JSON is null");
+                    }
+                }
 
                 int buildsCount = buildsEdges.size();
                 long totalDuration = 0;
@@ -257,8 +267,7 @@ public class Buildkite extends BaseCIPlatformManager {
             }
             return defaultBranch;
         } catch (Throwable t) {
-            LOG.error(
-                    String.format("Error in querying pipeline %s default branch", pipeline), t);
+            LOG.error(String.format("Error in querying pipeline %s default branch", pipeline), t);
             return "";
         }
     }
@@ -375,11 +384,14 @@ public class Buildkite extends BaseCIPlatformManager {
         try {
             String res =
                     httpClient.get(
-                            constructApiEndpoint(pipeline) + "/builds/" + buildUUID,
-                            null,
-                            headers);
+                            constructApiEndpoint(pipeline) + "/builds/" + buildUUID, null, headers);
             JsonObject fullJson = gson.fromJson(res, JsonObject.class);
-            if (fullJson == null || fullJson.isJsonNull()) {
+            // {"message": "Not Found"} indicates 404, but since we use httpclient within Teletraan
+            // library, it doesn't throw an error when 404
+            if (fullJson == null
+                    || fullJson.isJsonNull()
+                    || (fullJson.has("message")
+                            && fullJson.get("message").getAsString().equals("Not Found"))) {
                 return null;
             }
             state = fullJson.getAsJsonPrimitive("state").getAsString();

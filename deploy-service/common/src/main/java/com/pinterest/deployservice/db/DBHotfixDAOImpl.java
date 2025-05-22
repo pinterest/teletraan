@@ -19,8 +19,6 @@ import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.HotfixDAO;
-
-import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;

@@ -167,12 +167,17 @@ public class ConfigHelper {
         // with Jenkins and Buildkite configurations being list items under the "ci" section
         List<CIPlatformFactory> ciPlatformConfigs = configuration.getCIPlatformConfigs();
         if (ciPlatformConfigs != null || !ciPlatformConfigs.isEmpty()) {
-            ciPlatformConfigs.sort(Comparator.comparingInt(factory -> {
-                Integer priority = factory.getPriority();
-                return priority != null ? priority : Integer.MAX_VALUE; // Handle when priority is not set, the CI platform will be at the end of the list
-            }));
-            LinkedHashMap<String, CIPlatformManager> ciPlatforms =
-                    new LinkedHashMap<>();
+            ciPlatformConfigs.sort(
+                    Comparator.comparingInt(
+                            factory -> {
+                                Integer priority = factory.getPriority();
+                                return priority != null
+                                        ? priority
+                                        : Integer.MAX_VALUE; // Handle when priority is not set, the
+                                // CI platform will be at the end of the
+                                // list
+                            }));
+            LinkedHashMap<String, CIPlatformManager> ciPlatforms = new LinkedHashMap<>();
             for (CIPlatformFactory ciPlatformFactory : ciPlatformConfigs) {
                 CIPlatformManager ciPlatform = ciPlatformFactory.create();
                 String type = ciPlatform.getTypeName();
