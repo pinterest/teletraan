@@ -206,8 +206,8 @@ public class Buildkite extends BaseCIPlatformManager {
                 JsonObject dataJson = fullJson.getAsJsonObject("data");
                 if (dataJson != null && !dataJson.isJsonNull()) {
                     LOG.error("dataJson: " + dataJson);
-                    JsonObject pipelineJson = dataJson.getAsJsonObject("pipeline");
-                    if (pipelineJson != null && !pipelineJson.isJsonNull()) {
+                    if (dataJson.has("pipeline") && !dataJson.get("pipeline").isJsonNull()) {
+                        JsonObject pipelineJson = dataJson.getAsJsonObject("pipeline");
                         JsonObject buildsJson = pipelineJson.getAsJsonObject("builds");
                         if (buildsJson != null && !buildsJson.isJsonNull()) {
                             buildsEdges = buildsJson.getAsJsonArray("edges");
@@ -397,6 +397,9 @@ public class Buildkite extends BaseCIPlatformManager {
             }
             state = fullJson.getAsJsonPrimitive("state").getAsString();
             url = fullJson.getAsJsonPrimitive("url").getAsString();
+            if (!fullJson.has("started_at") || fullJson.get("started_at").isJsonNull()) {
+                return new Build(pipeline, buildUUID, url, "not_started", 0L, 0L);;
+            }
             startedAt = fullJson.getAsJsonPrimitive("started_at").getAsString();
             startTimestamp = Instant.parse(startedAt).toEpochMilli();
             if (fullJson.has("finished_at") && !fullJson.get("finished_at").isJsonNull()) {
