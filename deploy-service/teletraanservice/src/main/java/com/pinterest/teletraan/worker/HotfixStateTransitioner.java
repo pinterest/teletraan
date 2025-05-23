@@ -268,6 +268,7 @@ public class HotfixStateTransitioner implements Runnable {
                         // Update progress
                         if (oldProgress != newProgress) {
                             LOG.info("In block oldProgress != newProgress");
+                            LOG.error("oldProgress: {}, newProgress: {}", oldProgress, newProgress);
                             hotBean.setProgress(newProgress);
                             hotfixDAO.update(hotfixId, hotBean);
                         }
@@ -355,6 +356,7 @@ public class HotfixStateTransitioner implements Runnable {
 
                         // Update progress
                         if (oldProgress != newProgress) {
+                            LOG.error("oldProgress: {}, newProgress: {}", oldProgress, newProgress);
                             hotBean.setProgress(newProgress);
                             hotfixDAO.update(hotfixId, hotBean);
                         }
