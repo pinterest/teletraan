@@ -398,7 +398,7 @@ public class Buildkite extends BaseCIPlatformManager {
             state = fullJson.getAsJsonPrimitive("state").getAsString();
             url = fullJson.getAsJsonPrimitive("url").getAsString();
             if (!fullJson.has("started_at") || fullJson.get("started_at").isJsonNull()) {
-                return new Build(pipeline, buildUUID, url, "not_started", 0L, 0L);;
+                return new Build(pipeline, buildUUID, url, "not_started", 0L, 0L);
             }
             startedAt = fullJson.getAsJsonPrimitive("started_at").getAsString();
             startTimestamp = Instant.parse(startedAt).toEpochMilli();
