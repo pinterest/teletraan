@@ -49,10 +49,10 @@
     </tr>
     <tr>
         <th>Build Info</th>
-        {% if jenkins_url == '' %}
+        {% if ci_url == '' %}
         <td>Waiting to hear from CI for build status...</td>
         {% else %}
-        <td><a href="{{ jenkins_url }}">See current CI build</a></td>
+        <td><a href="{{ ci_url }}">See current CI build</a></td>
         {% endif %}
     </tr>
     {% if hotfix.errorMessage and hotfix.errorMessage.strip %}
