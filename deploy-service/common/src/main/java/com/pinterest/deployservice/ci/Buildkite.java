@@ -178,8 +178,7 @@ public class Buildkite extends BaseCIPlatformManager {
             } else if (this.buildStatus.equals("skipped")) {
                 return 0;
             } else {
-                return (int)
-                        (duration / getLastBuildsAverageTime(this.pipelineName));
+                return (int) (duration / getLastBuildsAverageTime(this.pipelineName));
             }
         }
 

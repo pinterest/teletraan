@@ -74,7 +74,7 @@ def get_hotfix(request, name, stage, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get("type"))
     commits = []
     _create_commits(commits, urlPattern["template"], hotfix)
-    jenkins_url = get_ci_url(hotfix)
+    ci_url = get_ci_url(hotfix)
     return render(
         request,
         "hotfixs/hotfix_detail.html",
@@ -84,7 +84,7 @@ def get_hotfix(request, name, stage, id):
             "commits": commits,
             "deploy": deploy,
             "build": build,
-            "jenkins_url": jenkins_url,
+            "ci_url": ci_url,
         },
     )
 
@@ -96,7 +96,7 @@ def get_hotfix_detail(request, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get("type"))
     commits = []
     _create_commits(commits, urlPattern["template"], hotfix)
-    jenkins_url = get_ci_url(hotfix)
+    ci_url = get_ci_url(hotfix)
     html = render_to_string(
         "hotfixs/hotfix_detail.tmpl",
         {
@@ -104,7 +104,7 @@ def get_hotfix_detail(request, id):
             "commits": commits,
             "deploy": deploy,
             "build": build,
-            "jenkins_url": jenkins_url,
+            "ci_url": ci_url,
         },
     )
     return HttpResponse(html)
