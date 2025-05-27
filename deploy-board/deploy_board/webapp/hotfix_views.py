@@ -19,7 +19,7 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.generic import View
 from django.http import HttpResponse
-from deploy_board.settings import BUILD_URL
+from deploy_board.settings import BUILD_URL, BUILDKITE_BUILD_URL
 from .helpers import (
     environs_helper,
     deploys_helper,
@@ -60,9 +60,9 @@ def get_jenkins_url(hotfix):
 
 
 def get_buildkite_url(hotfix):
-    buildkite_url = "%s/%s" % (BUILD_URL, hotfix["jobName"])
+    buildkite_url = "%s/%s" % (BUILDKITE_BUILD_URL, hotfix["jobName"])
     if hotfix["jobNum"]:
-        buildkite_url = "%s/%s/builds/%s" % (BUILD_URL, hotfix["jobName"], hotfix["jobNum"])
+        buildkite_url = "%s/%s/builds/%s" % (BUILDKITE_BUILD_URL, hotfix["jobName"], hotfix["jobNum"])
     return buildkite_url
 
 
