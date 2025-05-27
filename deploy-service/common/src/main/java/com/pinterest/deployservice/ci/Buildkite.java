@@ -178,7 +178,12 @@ public class Buildkite extends BaseCIPlatformManager {
             } else if (this.buildStatus.equals("skipped")) {
                 return 0;
             } else {
-                return (int) (duration / getLastBuildsAverageTime(this.pipelineName));
+                long lastBuildsAverageTime = getLastBuildsAverageTime(this.pipelineName);
+                if (lastBuildsAverageTime == 0) {
+                    return 0;
+                } else {
+                    return (int) (duration / lastBuildsAverageTime);
+                }
             }
         }
 
@@ -301,13 +306,13 @@ public class Buildkite extends BaseCIPlatformManager {
             HashMap<String, String> buildMetadata)
             throws IOException {
 
-        if (commit == "") {
+        if (commit.isEmpty()) {
             commit = "HEAD";
         }
-        if (branch == "") {
+        if (branch.isEmpty()) {
             branch = getPipelineDefaultBranch(pipeline);
         }
-        if (message == "") {
+        if (message.isEmpty()) {
             message = "Triggering build from Teletraan";
         }
         String knoxKeyString = "buildkite:%s:portal:create_build";
@@ -397,7 +402,16 @@ public class Buildkite extends BaseCIPlatformManager {
             state = fullJson.getAsJsonPrimitive("state").getAsString();
             url = fullJson.getAsJsonPrimitive("url").getAsString();
             if (!fullJson.has("started_at") || fullJson.get("started_at").isJsonNull()) {
-                return new Build(pipeline, buildUUID, url, "not_started", 0L, 0L);
+                // possible states of a job:
+                // https://buildkite.com/docs/pipelines/configure/defining-steps#job-states
+                if (state == "canceled"
+                        || state == "expired"
+                        || state == "skipped"
+                        || state == "timed_out") {
+                    return new Build(pipeline, buildUUID, url, "failed", 0L, 0L);
+                } else {
+                    return new Build(pipeline, buildUUID, url, "not_started", 0L, 0L);
+                }
             }
             startedAt = fullJson.getAsJsonPrimitive("started_at").getAsString();
             startTimestamp = Instant.parse(startedAt).toEpochMilli();
