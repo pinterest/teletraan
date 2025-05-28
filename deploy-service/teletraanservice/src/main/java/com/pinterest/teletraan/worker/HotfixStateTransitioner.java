@@ -182,6 +182,7 @@ public class HotfixStateTransitioner implements Runnable {
                                     + hotBean.getId()
                                     + "&REPO="
                                     + hotBean.getRepo();
+                    LOG.error("buildParams: {}", buildParams);
                     // Start job and set start time
 
                     // Pinterest is moving to leveraging CI proxy in triggering all applicable CI
