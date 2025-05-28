@@ -46,9 +46,9 @@ def _create_commits(commits, urlPattern, hotfix):
 
 
 def get_ci_url(hotfix):
-    if hotfix["ciPlatform"] == "jenkins":
+    if hotfix["ciPlatform"] == "Jenkins":
         return get_jenkins_url(hotfix)
-    elif hotfix["ciPlatform"] == "buildkite":
+    elif hotfix["ciPlatform"] == "Buildkite":
         return get_buildkite_url(hotfix)
 
 
