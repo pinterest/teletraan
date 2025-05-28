@@ -288,6 +288,13 @@ public class Buildkite extends BaseCIPlatformManager {
                 if (keyValue.length == 2) {
                     String key = keyValue[0];
                     String value = keyValue[1];
+                    if (key.equals("REPO")) {
+                        value =
+                                value.split("/")[
+                                        value.split("/").length
+                                                - 1]; // since the passdown value looks like
+                        // "pinternal/pinboard"
+                    }
                     buildMetadata.put(key, value);
                 } else if (keyValue.length == 1) {
                     // This handles the case where there is a key without a value (e.g., "key=")
