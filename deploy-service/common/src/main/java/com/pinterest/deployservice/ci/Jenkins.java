@@ -174,7 +174,7 @@ public class Jenkins extends BaseCIPlatformManager {
                     Long.parseLong(json.get("timestamp").toString()),
                     Integer.parseInt(json.get("estimatedDuration").toString()),
                     Integer.parseInt(json.get("duration").toString()));
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error(
                     String.format(
                             "Failed to get build info from Jenkins %s and build %s",
