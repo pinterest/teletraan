@@ -310,3 +310,13 @@ class Config(object):
 
     def get_s3_download_allow_list(self) -> List:
         return self._get_download_allow_list("s3_download_allow_list")
+
+    # OpenTSDB server to send deploy info (non-aggregated) metric data
+    def get_tsd_host(self) -> str:
+        return self.get_var("tsd_host", "localhost")
+
+    def get_tsd_port(self) -> int:
+        return self.get_intvar("tsd_port", 18126)
+
+    def get_tsd_timeout_seconds(self) -> int:
+        return self.get_intvar("tsd_timeout_seconds", 5)
