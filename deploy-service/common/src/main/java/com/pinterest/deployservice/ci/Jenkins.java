@@ -191,10 +191,15 @@ public class Jenkins extends BaseCIPlatformManager {
         try {
             String ret = httpClient.get(url, null, null);
             JsonObject json = (JsonObject) JsonParser.parseString(ret);
-            return json != null;
+            if (json == null || json.isJsonNull()) {
+                return false;
+            } else {
+                return true;
+            }
         } catch (IOException e) {
-            LOG.error("Failed to get job info from jenkins", e);
-            throw new IOException("Failed to get job info from jenkins", e);
+            LOG.error(String.format("Error in checking if job %s exists", pipeline), e);
+            // throw new IOException("Failed to get job info from jenkins", e);
+            return false;
         }
     }
 }
