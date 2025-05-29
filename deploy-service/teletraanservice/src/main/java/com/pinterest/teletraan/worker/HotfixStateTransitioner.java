@@ -160,9 +160,6 @@ public class HotfixStateTransitioner implements Runnable {
                 HotfixState state = hotBean.getState();
                 String hotfixId = hotBean.getId();
                 String jobNum = hotBean.getJob_num();
-                LOG.debug(
-                        "Go through transitionHotfixState var init section, with jobNum: {}",
-                        jobNum);
                 DeployBean deployBean = deployDAO.getById(hotBean.getBase_deploy());
                 BuildBean buildBean = buildDAO.getById(deployBean.getBuild_id());
                 HashMap<String, String> buildResultMap = new HashMap<String, String>();
@@ -182,7 +179,6 @@ public class HotfixStateTransitioner implements Runnable {
                                     + hotBean.getId()
                                     + "&REPO="
                                     + hotBean.getRepo();
-                    LOG.error("buildParams: {}", buildParams);
                     // Start job and set start time
 
                     // Pinterest is moving to leveraging CI proxy in triggering all applicable CI
@@ -268,15 +264,14 @@ public class HotfixStateTransitioner implements Runnable {
 
                         // Update progress
                         if (oldProgress != newProgress) {
-                            LOG.info("In block oldProgress != newProgress");
-                            LOG.error("oldProgress: {}, newProgress: {}", oldProgress, newProgress);
+                            LOG.debug("In block oldProgress != newProgress");
                             hotBean.setProgress(newProgress);
                             hotfixDAO.update(hotfixId, hotBean);
                         }
 
                         // Check if job completed or if job failed
                         if (status.equals("SUCCESS") || status.equals("passed")) {
-                            LOG.info("In block success or passed");
+                            LOG.debug("In block success or passed");
                             String buildName = getBuildName(hotBean);
                             String buildParams =
                                     "BRANCH="
@@ -359,7 +354,7 @@ public class HotfixStateTransitioner implements Runnable {
                         }
                         // CI job has returned a failure status
                         if (status.equals("FAILURE") || status.equals("failed")) {
-                            LOG.info("In block failure or failed");
+                            LOG.debug("In block failure or failed");
                             String errMsgConcatenate =
                                     (previousCIType == "Buildkite") ? "builds/" : "";
                             hotBean.setState(HotfixState.FAILED);
@@ -379,7 +374,7 @@ public class HotfixStateTransitioner implements Runnable {
                                     previousCIType,
                                     hotfixId);
                         }
-                        LOG.info("In none of the states above");
+                        LOG.debug("In none of the states above");
                     } else {
                         LOG.error("Job Num is empty for hotfix id " + hotfixId);
                     }
