@@ -163,16 +163,25 @@ public class Jenkins extends BaseCIPlatformManager {
     @Override
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", this.jenkinsUrl, jobName, jobNum);
-        LOG.debug("Calling jenkins with url " + url);
-        String ret = httpClient.get(url, null, null);
-        JsonObject json = (JsonObject) JsonParser.parseString(ret);
-        return new Build(
-                json.get("number").toString(),
-                json.get("result").toString(),
-                Boolean.parseBoolean(json.get("building").toString()),
-                Long.parseLong(json.get("timestamp").toString()),
-                Integer.parseInt(json.get("estimatedDuration").toString()),
-                Integer.parseInt(json.get("duration").toString()));
+        LOG.error("Calling jenkins with url " + url);
+        try {
+            String ret = httpClient.get(url, null, null);
+            JsonObject json = (JsonObject) JsonParser.parseString(ret);
+            return new Build(
+                    json.get("number").toString(),
+                    json.get("result").toString(),
+                    Boolean.parseBoolean(json.get("building").toString()),
+                    Long.parseLong(json.get("timestamp").toString()),
+                    Integer.parseInt(json.get("estimatedDuration").toString()),
+                    Integer.parseInt(json.get("duration").toString()));
+        } catch (IOException e) {
+            LOG.error(
+                    String.format(
+                            "Failed to get build info from Jenkins %s and build %s",
+                            jobName, jobNum),
+                    e);
+            return null;
+        }
     }
 
     @Override
