@@ -37,6 +37,7 @@ class Config(object):
         self._configs = {}
         self._filenames = None
         self._environ = {}
+        self._first_run = False
         if config_reader:
             self._config_reader = config_reader
             return
@@ -310,3 +311,14 @@ class Config(object):
 
     def get_s3_download_allow_list(self) -> List:
         return self._get_download_allow_list("s3_download_allow_list")
+
+    @property
+    def first_run(self) -> bool:
+        """check if this the very first run on this instance.
+        first_run will evaluate to True, even if the env_status file is present, until the process has exited.
+        The env_status file is not present when running for the first time on a new instance
+        return: bool self._first_run
+        """
+        if self._first_run or not os.path.exists(self.get_env_status_fn()):
+            self._first_run = True
+        return self._first_run
