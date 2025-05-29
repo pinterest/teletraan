@@ -209,7 +209,6 @@ public class Buildkite extends BaseCIPlatformManager {
                 JsonArray buildsEdges = null;
                 JsonObject dataJson = fullJson.getAsJsonObject("data");
                 if (dataJson != null && !dataJson.isJsonNull()) {
-                    LOG.error("dataJson: " + dataJson);
                     if (dataJson.has("pipeline") && !dataJson.get("pipeline").isJsonNull()) {
                         JsonObject pipelineJson = dataJson.getAsJsonObject("pipeline");
                         JsonObject buildsJson = pipelineJson.getAsJsonObject("builds");
