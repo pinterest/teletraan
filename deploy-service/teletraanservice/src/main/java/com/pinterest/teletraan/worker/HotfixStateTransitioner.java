@@ -287,6 +287,8 @@ public class HotfixStateTransitioner implements Runnable {
                                             + hotBean.getRepo();
                             hotBean.setJob_name(
                                     hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
+                            hotBean.setJob_num("");
+                            hotfixDAO.update(hotfixId, hotBean);
                             if (useCIProxy) {
                                 List<String> validCIs = ciPlatformManagerProxy.getCIs();
                                 int index = 0;
@@ -334,7 +336,7 @@ public class HotfixStateTransitioner implements Runnable {
                                                 "Failed to create hotfix during triggering");
 
                                         LOG.warn(
-                                                "CI returned a FAILURE status during state INITIAL for hotfix id "
+                                                "CI returned a FAILURE status during state PUSHING for hotfix id "
                                                         + hotfixId);
                                     }
                                     index++;

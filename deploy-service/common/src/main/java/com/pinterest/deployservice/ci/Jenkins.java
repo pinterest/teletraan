@@ -164,24 +164,15 @@ public class Jenkins extends BaseCIPlatformManager {
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", this.jenkinsUrl, jobName, jobNum);
         LOG.error("Calling jenkins with url " + url);
-        try {
-            String ret = httpClient.get(url, null, null);
-            JsonObject json = (JsonObject) JsonParser.parseString(ret);
-            return new Build(
-                    json.get("number").toString(),
-                    json.get("result").toString(),
-                    Boolean.parseBoolean(json.get("building").toString()),
-                    Long.parseLong(json.get("timestamp").toString()),
-                    Integer.parseInt(json.get("estimatedDuration").toString()),
-                    Integer.parseInt(json.get("duration").toString()));
-        } catch (Exception e) {
-            LOG.error(
-                    String.format(
-                            "Failed to get build info from Jenkins %s and build %s",
-                            jobName, jobNum),
-                    e);
-            return null;
-        }
+        String ret = httpClient.get(url, null, null);
+        JsonObject json = (JsonObject) JsonParser.parseString(ret);
+        return new Build(
+                json.get("number").toString(),
+                json.get("result").toString(),
+                Boolean.parseBoolean(json.get("building").toString()),
+                Long.parseLong(json.get("timestamp").toString()),
+                Integer.parseInt(json.get("estimatedDuration").toString()),
+                Integer.parseInt(json.get("duration").toString()));
     }
 
     @Override
@@ -196,8 +187,8 @@ public class Jenkins extends BaseCIPlatformManager {
             } else {
                 return true;
             }
-        } catch (IOException e) {
-            LOG.error(String.format("Error in checking if job %s exists", pipeline), e);
+        } catch (Throwable t) {
+            LOG.error(String.format("Error in checking if job %s exists", pipeline), t);
             // throw new IOException("Failed to get job info from jenkins", e);
             return false;
         }
