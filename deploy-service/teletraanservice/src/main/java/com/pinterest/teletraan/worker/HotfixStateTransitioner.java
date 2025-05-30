@@ -54,7 +54,7 @@ public class HotfixStateTransitioner implements Runnable {
     private Counter errorBudgetSuccess;
     private Counter errorBudgetFailure;
     // TODO make this configurable
-    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
+    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 10; // TODO: go back to 180
     // new variable to check if we are using CI proxy, for backward compatibility purposes
     private static boolean useCIProxy = true;
 
@@ -308,7 +308,7 @@ public class HotfixStateTransitioner implements Runnable {
                                             // unlike Jenkins, where the job number is not returned
                                             // until the
                                             // job is started
-                                            LOG.info(
+                                            LOG.error(
                                                     "Job started successfully for hotfix id {} in jobNum {} on {}",
                                                     hotfixId,
                                                     buildID,
@@ -318,7 +318,7 @@ public class HotfixStateTransitioner implements Runnable {
                                                 hotBean.setJob_num(buildID);
                                                 hotfixDAO.update(hotfixId, hotBean);
                                             }
-                                            LOG.info(
+                                            LOG.error(
                                                 "Starting new {} Job (private-build) for hotfix id {}",
                                                 currentCIType,
                                                 hotfixId);
