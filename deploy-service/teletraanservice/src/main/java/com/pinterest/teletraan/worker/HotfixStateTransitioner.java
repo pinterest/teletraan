@@ -287,7 +287,7 @@ public class HotfixStateTransitioner implements Runnable {
                                             + hotBean.getRepo();
                             hotBean.setJob_name(
                                     hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
-                            hotBean.setJob_num("");
+                            hotBean.setCI_platform("");
                             hotfixDAO.update(hotfixId, hotBean);
                             if (useCIProxy) {
                                 List<String> validCIs = ciPlatformManagerProxy.getCIs();
@@ -314,6 +314,7 @@ public class HotfixStateTransitioner implements Runnable {
                                                     hotfixId,
                                                     buildID,
                                                     currentCIType);
+                                            hotBean.setCI_platform(ciType);
                                             if (!currentCIType.equals("Jenkins")) {
                                                 hotBean.setJob_num(buildID);
                                                 hotfixDAO.update(hotfixId, hotBean);
