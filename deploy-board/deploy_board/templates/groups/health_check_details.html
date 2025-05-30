@@ -104,7 +104,7 @@
             <tr>
                 <td class="col-lg-2">Health Check Status</td>
                 <td>
-                    <span class="deployToolTip pointer-cursor {{ health_check.status | healthCheckStatusIcon(health_check.deploy_complete_time) }}"></span>
+                    <span class="deployToolTip pointer-cursor {{ health_check.status | healthCheckStatusIcon:health_check.deploy_complete_time }}"></span>
                     {% if health_check.status == "SUCCEEDED" %}
                         STATE SUCCEEDED
                     {% elif health_check.status == "QUALIFIED" %}
