@@ -104,7 +104,7 @@
             <tr>
                 <td class="col-lg-2">Health Check Status</td>
                 <td>
-                    <span class="deployToolTip pointer-cursor {{ health_check.status | healthCheckStatusIcon }}"></span>
+                    <span class="deployToolTip pointer-cursor {{ health_check.status | healthCheckStatusIcon:health_check.deploy_complete_time }}"></span>
                     {% if health_check.status == "SUCCEEDED" %}
                         STATE SUCCEEDED
                     {% elif health_check.status == "QUALIFIED" %}
@@ -115,6 +115,10 @@
                         FAILED (terminating)
                     {% elif health_check.error_message %}
                         FAILED (pending termination)
+                    {% elif not health_check.deploy_complete_time and health_check.status == "TELETRAAN_STOP_REQUESTED" and health_check.host_terminated == 1 %}
+                        TIMEOUT (terminated)
+                    {% elif not health_check.deploy_complete_time and health_check.status == "TELETRAAN_STOP_REQUESTED" %}
+                        TIMEOUT (terminating)
                     {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" and health_check.host_terminated == 1 %}
                         QUALIFIED (terminated)
                     {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" %}
