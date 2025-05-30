@@ -287,7 +287,7 @@ public class HotfixStateTransitioner implements Runnable {
                                             + hotBean.getRepo();
                             hotBean.setJob_name(
                                     hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
-                            hotBean.setJob_num("nonempty");
+                            hotBean.setJob_num("");
                             hotfixDAO.update(hotfixId, hotBean);
                             if (useCIProxy) {
                                 List<String> validCIs = ciPlatformManagerProxy.getCIs();
@@ -325,6 +325,7 @@ public class HotfixStateTransitioner implements Runnable {
                                                 currentCIType,
                                                 hotfixId);
 
+                                        hotBean.setJob_num("nonempty");
                                         transition(hotBean);
                                         break;
                                     } catch (IOException e) {
