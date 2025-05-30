@@ -163,7 +163,7 @@ public class Jenkins extends BaseCIPlatformManager {
     @Override
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", this.jenkinsUrl, jobName, jobNum);
-        LOG.error("Calling jenkins with url " + url);
+        LOG.info("Calling jenkins with url " + url);
         String ret = httpClient.get(url, null, null);
         JsonObject json = (JsonObject) JsonParser.parseString(ret);
         return new Build(
