@@ -59,7 +59,7 @@ public class CIPlatformManagerProxy {
                         "Unable to start new job (hotfix-job) for " + manager.getTypeName());
             }
         } else {
-            LOG.debug(
+            LOG.error(
                     "Unable to get CIPlatformManager for {} OR the job {} doesn't exist",
                     ciType,
                     pipelineName);
