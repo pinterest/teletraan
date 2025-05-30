@@ -1126,7 +1126,10 @@ def healthCheckStatusClass(error_message):
 
 
 @register.filter("healthCheckStatusIcon")
-def healthStatusIcon(status):
+def healthStatusIcon(status, completed):
+    if not completed and status == "TELETRAAN_STOP_REQUESTED":
+        return "fa fa-minus-circle"
+        
     return _HEALTH_STATUS_TO_ICONS[status]
 
 
