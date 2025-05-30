@@ -51,6 +51,7 @@ public class BuildkiteFactory implements CIPlatformFactory {
         this.typeName = typeName;
     }
 
+    @Override
     public Integer getPriority() {
         return priority;
     }

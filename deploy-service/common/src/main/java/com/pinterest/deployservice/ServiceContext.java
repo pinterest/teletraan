@@ -417,6 +417,14 @@ public class ServiceContext {
         this.jenkins = jenkins;
     }
 
+    public Buildkite getBuildkite() {
+        return buildkite;
+    }
+
+    public void setBuildkite(Buildkite buildkite) {
+        this.buildkite = buildkite;
+    }
+
     public TagDAO getTagDAO() {
         return tagDAO;
     }

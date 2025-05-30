@@ -235,10 +235,6 @@ public class TeletraanServiceConfiguration extends Configuration {
         return jenkinsFactory;
     }
 
-    public void setJenkinsFactory(JenkinsFactory jenkinsFactory) {
-        this.jenkinsFactory = jenkinsFactory;
-    }
-
     public List<WorkerConfig> getWorkerConfigs() {
         if (workerConfigs == null) {
             return Collections.emptyList();

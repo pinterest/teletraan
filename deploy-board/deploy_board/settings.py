@@ -293,6 +293,7 @@ DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = os.getenv("BUILD_URL", None)
+BUILDKITE_BUILD_URL = "https://buildkite.com/pinterest"
 USER_DATA_CONFIG_SETTINGS_WIKI = os.getenv("USER_DATA_CONFIG_SETTINGS_WIKI", None)
 ACCESS_ROLE_LIST = os.getenv("ACCESS_ROLE_LIST", None)
 
