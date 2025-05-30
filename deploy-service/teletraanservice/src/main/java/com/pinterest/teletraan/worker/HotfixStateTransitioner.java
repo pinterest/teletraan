@@ -54,7 +54,7 @@ public class HotfixStateTransitioner implements Runnable {
     private Counter errorBudgetSuccess;
     private Counter errorBudgetFailure;
     // TODO make this configurable
-    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 10; // TODO: go back to 180
+    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 15; // TODO: go back to 180
     // new variable to check if we are using CI proxy, for backward compatibility purposes
     private static boolean useCIProxy = true;
 
@@ -319,9 +319,9 @@ public class HotfixStateTransitioner implements Runnable {
                                                 hotfixDAO.update(hotfixId, hotBean);
                                             }
                                             LOG.error(
-                                                "Starting new {} Job (private-build) for hotfix id {}",
-                                                currentCIType,
-                                                hotfixId);
+                                                    "Starting new {} Job (private-build) for hotfix id {}",
+                                                    currentCIType,
+                                                    hotfixId);
                                             transition(hotBean);
                                             break;
                                         }
