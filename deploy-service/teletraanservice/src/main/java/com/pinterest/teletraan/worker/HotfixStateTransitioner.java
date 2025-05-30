@@ -318,13 +318,13 @@ public class HotfixStateTransitioner implements Runnable {
                                                 hotBean.setJob_num(buildID);
                                                 hotfixDAO.update(hotfixId, hotBean);
                                             }
-                                        }
-                                        LOG.info(
+                                            LOG.info(
                                                 "Starting new {} Job (private-build) for hotfix id {}",
                                                 currentCIType,
                                                 hotfixId);
-                                        transition(hotBean);
-                                        break;
+                                            transition(hotBean);
+                                            break;
+                                        }
                                     } catch (IOException e) {
                                         LOG.error(
                                                 "Failed to start new CI Job (private-build) for hotfix id {} for {}",
