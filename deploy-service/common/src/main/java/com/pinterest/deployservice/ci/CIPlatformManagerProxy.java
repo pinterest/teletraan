@@ -63,6 +63,7 @@ public class CIPlatformManagerProxy {
                     "Unable to get CIPlatformManager for {} OR the job {} doesn't exist",
                     ciType,
                     pipelineName);
+            LOG.error("return empty buildID: {}", buildID);
             return buildID;
         }
     }
