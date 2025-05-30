@@ -314,7 +314,7 @@ public class HotfixStateTransitioner implements Runnable {
                                                     hotfixId,
                                                     buildID,
                                                     currentCIType);
-                                            hotBean.setCI_platform(ciType);
+                                            hotBean.setCI_platform(currentCIType);
                                             if (!currentCIType.equals("Jenkins")) {
                                                 hotBean.setJob_num(buildID);
                                                 hotfixDAO.update(hotfixId, hotBean);
