@@ -81,8 +81,9 @@ Vue.component('baseimage-select', {
     data: function () {
         return {
             showWarning: false,
-            warningText: '',
-        }
+            warningText: "",
+            originalBaseImage: null,
+        };
     },
     props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled', 'accountOwnerId'],
     methods: {
@@ -104,9 +105,16 @@ Vue.component('baseimage-select', {
         pinImageClick: function (pin) {
             this.$emit('input', pin);
             if (pin) {
+                this.originalBaseImage = this.selectedBaseImage;
                 this.tryShowWarning(this.selectedBaseImage, pin);
             } else {
                 this.showWarning = false;
+                if (
+                    this.originalBaseImage &&
+                    this.selectedBaseImage !== this.originalBaseImage
+                ) {
+                    this.$emit("base-image-change", this.originalBaseImage);
+                }
             }
         },
 
