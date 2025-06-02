@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -289,9 +290,9 @@ public class Buildkite extends BaseCIPlatformManager {
                     String value = keyValue[1];
                     if (key.equals("REPO")) {
                         value =
-                                value.split("/")[
-                                        value.split("/").length
-                                                - 1]; // since the passdown value looks like
+                                value.substring(
+                                        value.lastIndexOf('/')
+                                                + 1); // since the passdown value looks like
                         // "pinternal/pinboard"
                     }
                     buildMetadata.put(key, value);
@@ -312,13 +313,13 @@ public class Buildkite extends BaseCIPlatformManager {
             HashMap<String, String> buildMetadata)
             throws IOException {
 
-        if (commit.isEmpty()) {
+        if (StringUtils.isEmpty(commit)) {
             commit = "HEAD";
         }
-        if (branch.isEmpty()) {
+        if (StringUtils.isEmpty(branch)) {
             branch = getPipelineDefaultBranch(pipeline);
         }
-        if (message.isEmpty()) {
+        if (StringUtils.isEmpty(message)) {
             message = "Triggering build from Teletraan";
         }
         String knoxKeyString = "buildkite:%s:portal:create_build";
