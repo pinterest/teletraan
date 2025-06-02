@@ -65,7 +65,7 @@ def get_buildkite_url(hotfix):
         buildkite_url = "%s/%s/builds/%s" % (
             BUILDKITE_BUILD_URL,
             hotfix["jobName"],
-            hotfix["jobNum"]
+            hotfix["jobNum"],
         )
     return buildkite_url
 
