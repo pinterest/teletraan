@@ -59,7 +59,7 @@ public class DBAgentDAOImplTest {
 
         // Test Update and getById
         hostAgentBean.setIp("192.168.0.1");
-        hostAgentDAO.update(hostId, hostAgentBean);
+        hostAgentDAO.updateChanged(hostId, null, hostAgentBean);
         HostAgentBean getByIdBean2 = hostAgentDAO.getHostById(hostId);
         assertEquals(hostAgentBean, getByIdBean2);
 
