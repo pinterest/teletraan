@@ -1454,16 +1454,11 @@ def gen_cluster_replacement_view(request, name, stage):
         request, cluster_name, index, size
     )
     changed_fields = ""
-    log.info("Cluster last update1 {0}".format(cluster["lastUpdate"]))
-    log.info("The first Config create time1: {0}".format(configs[0]["createTime"]))
     for config in configs:
         if config["createTime"] >= cluster["lastUpdate"]:
-            log.info("The config content: {0}".format(config["configChange"]))
             match = re.search(r'Changed fields.*', config["configChange"], re.DOTALL)
             if match:
-                log.info("YaqinDebug")
                 changed_fields = match.group(0)
-                log.info("changed_fields: {0}".format(changed_fields))
                 break
         else:
             break
@@ -1506,13 +1501,11 @@ def gen_auto_cluster_refresh_view(request, name, stage):
         request, cluster_name, index, size
     )
     changed_fields = ""
-    log.info("Cluster last update {0}".format(cluster["lastUpdate"]))
-    log.info("The first Config create time: {0}".format(configs[0]["createTime"]))
     for config in configs:
         if config["createTime"] >= cluster["lastUpdate"]:
-            match = re.search(r"(Changed fields: $$\[.*$$\])", config["configChange"])
+            match = re.search(r'Changed fields.*', config["configChange"], re.DOTALL)
             if match:
-                changed_fields = match.group(1)
+                changed_fields = match.group(0)
                 break
         else:
             break
