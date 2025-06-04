@@ -19,6 +19,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.views.generic import View
+import re
 
 from deploy_board.settings import (
     IS_PINTEREST,
@@ -1447,8 +1448,10 @@ def gen_cluster_replacement_view(request, name, stage):
     )
     cluster = clusters_helper.get_cluster(request, cluster_name)
 
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
     configs = autoscaling_groups_helper.get_config_history(
-        request, group_name, index, size
+        request, cluster_name, index, size
     )
     changed_fields = ""
     for config in configs:
@@ -1490,8 +1493,10 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     )
     cluster = clusters_helper.get_cluster(request, cluster_name)
 
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
     configs = autoscaling_groups_helper.get_config_history(
-        request, group_name, index, size
+        request, cluster_name, index, size
     )
     changed_fields = ""
     for config in configs:
