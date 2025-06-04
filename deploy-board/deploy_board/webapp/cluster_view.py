@@ -1447,6 +1447,17 @@ def gen_cluster_replacement_view(request, name, stage):
     )
     cluster = clusters_helper.get_cluster(request, cluster_name)
 
+    configs = autoscaling_groups_helper.get_config_history(
+        request, group_name, index, size
+    )
+    changed_fields = ""
+    for config in configs:
+        if config["createTime"] == cluster["lastUpdate"]:
+            match = re.search(r'(Changed fields: $$\[.*$$\])', config["configChange"])
+            if match:
+                changed_fields = match.group(1)
+            break
+
     storage = get_messages(request)
 
     content = render_to_string(
@@ -1455,6 +1466,7 @@ def gen_cluster_replacement_view(request, name, stage):
             "auto_refresh_view": False,
             "auto_refresh_enabled": cluster["autoRefresh"],
             "cluster_last_update_time": cluster["lastUpdate"],
+            "changed_fields": changed_fields,
             "env": env,
             "env_name": name,
             "env_stage": stage,
@@ -1477,6 +1489,18 @@ def gen_auto_cluster_refresh_view(request, name, stage):
         request, data=get_cluster_replacement_body
     )
     cluster = clusters_helper.get_cluster(request, cluster_name)
+
+    configs = autoscaling_groups_helper.get_config_history(
+        request, group_name, index, size
+    )
+    changed_fields = ""
+    for config in configs:
+        if config["createTime"] == cluster["lastUpdate"]:
+            match = re.search(r'(Changed fields: $$\[.*$$\])', config["configChange"])
+            if match:
+                changed_fields = match.group(1)
+            break
+
     auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(
         request, cluster_name
     )
@@ -1531,6 +1555,7 @@ def gen_auto_cluster_refresh_view(request, name, stage):
             "auto_refresh_config": auto_refresh_config,
             "auto_refresh_enabled": cluster["autoRefresh"],
             "cluster_last_update_time": cluster["lastUpdate"],
+            "changed_fields": changed_fields,
             "env": env,
             "env_name": name,
             "env_stage": stage,

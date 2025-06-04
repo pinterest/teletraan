@@ -150,6 +150,9 @@
         </p>
         <p>The last cluster configurations updated at: {{ cluster_last_update_time|convertTimestamp }}</p>
         <p>The last cluster refresh started at: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</p>
+        {% if (latest and cluster_last_update_time > latest.startTime) or not latest %}
+            <p>Cluster last update may affect the replacement result. {{ changed_fields }}</p>
+        {% endif %}
         {% endwith %}
     </div>
     <div class="panel-heading clearfix">
