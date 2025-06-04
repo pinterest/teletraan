@@ -1459,10 +1459,10 @@ def gen_cluster_replacement_view(request, name, stage):
     for config in configs:
         if config["createTime"] >= cluster["lastUpdate"]:
             log.info("The config content: {0}".format(config["configChange"]))
-            match = re.search(r"(Changed fields: $$\[.*$$\])", config["configChange"])
+            match = re.search(r'Changed fields.*', config["configChange"], re.DOTALL)
             if match:
                 log.info("YaqinDebug")
-                changed_fields = match.group(1)
+                changed_fields = match.group(0)
                 log.info("changed_fields: {0}".format(changed_fields))
                 break
         else:
