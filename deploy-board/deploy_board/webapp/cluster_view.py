@@ -19,6 +19,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.views.generic import View
+import re
 
 from deploy_board.settings import (
     IS_PINTEREST,
@@ -1447,6 +1448,21 @@ def gen_cluster_replacement_view(request, name, stage):
     )
     cluster = clusters_helper.get_cluster(request, cluster_name)
 
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
+    configs = autoscaling_groups_helper.get_config_history(
+        request, cluster_name, index, size
+    )
+    changed_fields = ""
+    for config in configs:
+        if config["createTime"] >= cluster["lastUpdate"]:
+            match = re.search(r"Changed fields.*", config["configChange"], re.DOTALL)
+            if match:
+                changed_fields = match.group(0)
+                break
+        else:
+            break
+
     storage = get_messages(request)
 
     content = render_to_string(
@@ -1455,6 +1471,7 @@ def gen_cluster_replacement_view(request, name, stage):
             "auto_refresh_view": False,
             "auto_refresh_enabled": cluster["autoRefresh"],
             "cluster_last_update_time": cluster["lastUpdate"],
+            "changed_fields": changed_fields[:-1],
             "env": env,
             "env_name": name,
             "env_stage": stage,
@@ -1477,6 +1494,22 @@ def gen_auto_cluster_refresh_view(request, name, stage):
         request, data=get_cluster_replacement_body
     )
     cluster = clusters_helper.get_cluster(request, cluster_name)
+
+    index = int(request.GET.get("page_index", "1"))
+    size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
+    configs = autoscaling_groups_helper.get_config_history(
+        request, cluster_name, index, size
+    )
+    changed_fields = ""
+    for config in configs:
+        if config["createTime"] >= cluster["lastUpdate"]:
+            match = re.search(r"Changed fields.*", config["configChange"], re.DOTALL)
+            if match:
+                changed_fields = match.group(0)
+                break
+        else:
+            break
+
     auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(
         request, cluster_name
     )
@@ -1531,6 +1564,7 @@ def gen_auto_cluster_refresh_view(request, name, stage):
             "auto_refresh_config": auto_refresh_config,
             "auto_refresh_enabled": cluster["autoRefresh"],
             "cluster_last_update_time": cluster["lastUpdate"],
+            "changed_fields": changed_fields[:-1],
             "env": env,
             "env_name": name,
             "env_stage": stage,

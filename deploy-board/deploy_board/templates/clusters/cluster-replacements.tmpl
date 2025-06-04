@@ -104,7 +104,7 @@
     .popup-description{
         display: none;
     }
-      
+
     [type="radio"]:checked ~ label ~ .popup-description{
         display: block;
     }
@@ -112,12 +112,12 @@
     fieldset {
         margin: 8px;
         border: 1px solid silver;
-        padding: 8px;    
+        padding: 8px;
         border-radius: 4px;
     }
-    
+
     legend {
-        padding: 2px;    
+        padding: 2px;
     }
 </style>
 
@@ -150,6 +150,9 @@
         </p>
         <p>The last cluster configurations updated at: {{ cluster_last_update_time|convertTimestamp }}</p>
         <p>The last cluster refresh started at: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</p>
+        {% if latest and cluster_last_update_time > latest.startTime or not latest %}
+            <p>Cluster Configuration update may affect the replacement result. {{ changed_fields }}</p>
+        {% endif %}
         {% endwith %}
     </div>
     <div class="panel-heading clearfix">
@@ -212,16 +215,16 @@
             var isAutoRefresh = "{{ auto_refresh_view }}";
             setDefaultValues(myRadio, isAutoRefresh);
         }
-            
+
         function setDefaultValues(availabilitySetting, isAutoRefresh) {
             if (availabilitySetting.value == "terminateAndLaunch") {
                 document.getElementById("minHealthyPercentageBlock").style.display="block";
                 document.getElementById("maxHealthyPercentageBlock").style.display="none";
-                
+
                 document.getElementById("maxHealthyPercentage").value="";
 
                 if (isAutoRefresh == "False") {
-                    document.getElementById("minHealthyPercentage").value = "90";                    
+                    document.getElementById("minHealthyPercentage").value = "90";
                 }
                 else {
                     if ("{{ auto_refresh_config.config.minHealthyPercentage }}" === "None") {
@@ -232,7 +235,7 @@
             else if (availabilitySetting.value == "launchBeforeTerminate") {
                 document.getElementById("maxHealthyPercentageBlock").style.display="block";
                 document.getElementById("minHealthyPercentageBlock").style.display="none";
-                
+
                 document.getElementById("minHealthyPercentage").value="100";
 
                 if (isAutoRefresh == "False") {
@@ -247,7 +250,7 @@
             else {
                 document.getElementById("minHealthyPercentageBlock").style.display="block";
                 document.getElementById("maxHealthyPercentageBlock").style.display="block";
-                
+
                 if (isAutoRefresh == "False") {
                     document.getElementById("minHealthyPercentage").value = "90";
                     document.getElementById("maxHealthyPercentage").value = "110";
@@ -281,15 +284,15 @@
                     <div>
                         <div>
                             <h4>Availability Setting <em style="color:blue;">(**New**)</em></h4>
-                            
+
                             <div>
                                 <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate" {% if auto_refresh_config.launchBeforeTerminate %} checked {% endif %}>
                                 <label for="availabilitySettingRadio">Launch before Terminate <em style="color:blue;">(New - Prioritize availability - Recommended for stateless services)</em></label>
                                 <p class="popup-description">
-                                    A new host must be provisioned first with successful deployments <em><b>***before***</b></em> an existing host can be terminated. Use this to ensure availability will not be affected during replacement, even when there is on-going deployment. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted. 
+                                    A new host must be provisioned first with successful deployments <em><b>***before***</b></em> an existing host can be terminated. Use this to ensure availability will not be affected during replacement, even when there is on-going deployment. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted.
                                 </p>
                             </div>
-    
+
                             <div>
                                 <input type="radio" id="terminateAndLaunch" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="terminateAndLaunch" {% if auto_refresh_config.terminateAndLaunch %} checked {% endif %}>
                                 <label for="availabilitySettingRadio">Terminate and Launch (Legacy)</label>
@@ -297,7 +300,7 @@
                                     New hosts are provisioned <em><b>***at the same time***</b></em> your existing hosts are terminated. Availability may be affected! Outage may occur if there is only 1 host! Use this if cluster size during replacement exceeding the current capacity may cause issue to your service (probably stateful). This is the legacy behavior and <b>***not***</b> recommended.
                                 </p>
                             </div>
-                            
+
                             <div>
                                 <input type="radio" id="customMinMax" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="custom" {% if auto_refresh_config.customMinMax %} checked {% endif %}>
                                 <label for="availabilitySettingRadio">Custom</label>
@@ -306,9 +309,9 @@
                                 </p>
                             </div>
                         </div>
-    
+
                         <div style="padding-top: 20px;"></div>
-    
+
                         <div id="minHealthyPercentageBlock">
                             <label for="minHealthyPercentage" data-toggle="tooltip"
                             title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
@@ -316,7 +319,7 @@
                             </label>
                             <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value={% if auto_refresh_config.config.minHealthyPercentage %}{{ auto_refresh_config.config.minHealthyPercentage }}{% endif %}>
                         </div>
-    
+
                         <div id="maxHealthyPercentageBlock">
                             <label for="maxHealthyPercentage" data-toggle="tooltip"
                             title="The maximum percentage of the group that can be in service and healthy, or pending, to support your workload when replacing instances. The value is expressed as a percentage of the desired capacity of the Auto Scaling group. Value range is 100 to 200. Use 100 to launch/replace 1 instance at time">
@@ -419,12 +422,12 @@
                 <div>
                     <div>
                         <h4>Availability Setting <em style="color:blue;">(**New**)</em></h4>
-                        
+
                         <div>
                             <input type="radio" id="launchBeforeTerminate" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="launchBeforeTerminate" checked="checked">
                             <label for="availabilitySettingRadio">Launch before Terminate <em style="color:blue;">(New - Prioritize availability - Recommended for stateless services)</em></label>
                             <p class="popup-description">
-                                A new host must be provisioned first with successful deployments <em><b>***before***</b></em> an existing host can be terminated. Use this to ensure availability will not be affected during replacement, even when there is on-going deployment. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted. 
+                                A new host must be provisioned first with successful deployments <em><b>***before***</b></em> an existing host can be terminated. Use this to ensure availability will not be affected during replacement, even when there is on-going deployment. Notice that maxHealthyPercentage, instead of minHealthyPercentage, needs to be adjusted.
                             </p>
                         </div>
 
@@ -435,7 +438,7 @@
                                 New hosts are provisioned <em><b>***at the same time***</b></em> your existing hosts are terminated. Availability may be affected! Outage may occur if there is only 1 host! Use this if cluster size during replacement exceeding the current capacity may cause issue to your service (probably stateful). This is the legacy behavior and <b>***not***</b> recommended.
                             </p>
                         </div>
-                        
+
                         <div>
                             <input type="radio" id="customMinMax" onclick="handleAvailabilitySettingRadioClick(this);" name="availabilitySettingRadio" value="customMinMax">
                             <label for="availabilitySettingRadio">Custom</label>
