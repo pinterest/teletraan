@@ -1456,7 +1456,7 @@ def gen_cluster_replacement_view(request, name, stage):
     changed_fields = ""
     for config in configs:
         if config["createTime"] == cluster["lastUpdate"]:
-            match = re.search(r'(Changed fields: $$\[.*$$\])', config["configChange"])
+            match = re.search(r"(Changed fields: $$\[.*$$\])", config["configChange"])
             if match:
                 changed_fields = match.group(1)
             break
@@ -1501,7 +1501,7 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     changed_fields = ""
     for config in configs:
         if config["createTime"] == cluster["lastUpdate"]:
-            match = re.search(r'(Changed fields: $$\[.*$$\])', config["configChange"])
+            match = re.search(r"(Changed fields: $$\[.*$$\])", config["configChange"])
             if match:
                 changed_fields = match.group(1)
             break
