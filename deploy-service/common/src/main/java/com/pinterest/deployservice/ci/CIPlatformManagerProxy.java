@@ -59,15 +59,25 @@ public class CIPlatformManagerProxy {
                         "Unable to start new job (hotfix-job) for " + manager.getTypeName());
             }
         } else {
-            LOG.debug(
+            LOG.error(
                     "Unable to get CIPlatformManager for {} OR the job {} doesn't exist",
                     ciType,
                     pipelineName);
+            LOG.error("return empty buildID: {}", buildID);
             return buildID;
         }
     }
 
-    public Object getBuild(String ciType, String pipelineName, String buildId) throws Exception {
+    public String getCIPlatformBaseUrl(String ciType) throws Exception {
+        CIPlatformManager manager = getCIPlatformManager(ciType);
+        if (manager == null) {
+            throw new Exception("Unsupported CI type: " + ciType);
+        }
+        return manager.getCIPlatformBaseUrl();
+    }
+
+    public BaseCIPlatformBuild getBuild(String ciType, String pipelineName, String buildId)
+            throws Exception {
         CIPlatformManager manager = getCIPlatformManager(ciType);
         if (manager == null) {
             throw new Exception("Unsupported CI type: " + ciType);

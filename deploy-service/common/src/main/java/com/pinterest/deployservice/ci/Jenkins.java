@@ -86,7 +86,7 @@ public class Jenkins extends BaseCIPlatformManager {
         this.httpClient = clientBuilder.build();
     }
 
-    public static class Build implements CIPlatformBuild {
+    public static class Build extends BaseCIPlatformBuild {
         String buildId;
         String result;
         boolean isBuilding;
@@ -101,6 +101,7 @@ public class Jenkins extends BaseCIPlatformManager {
                 long startTimestamp,
                 int estimateDuration,
                 int duration) {
+            super(buildId, result, startTimestamp, duration);
             this.buildId = buildId;
             this.result = result;
             this.isBuilding = isBuilding;
@@ -138,7 +139,8 @@ public class Jenkins extends BaseCIPlatformManager {
         }
     }
 
-    public String getJenkinsUrl() {
+    @Override
+    public String getCIPlatformBaseUrl() {
         return jenkinsUrl;
     }
 
@@ -161,7 +163,7 @@ public class Jenkins extends BaseCIPlatformManager {
     @Override
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", this.jenkinsUrl, jobName, jobNum);
-        LOG.debug("Calling jenkins with url " + url);
+        LOG.info("Calling jenkins with url " + url);
         String ret = httpClient.get(url, null, null);
         JsonObject json = (JsonObject) JsonParser.parseString(ret);
         return new Build(
@@ -180,9 +182,9 @@ public class Jenkins extends BaseCIPlatformManager {
         try {
             String ret = httpClient.get(url, null, null);
             JsonObject json = (JsonObject) JsonParser.parseString(ret);
-            return json != null;
-        } catch (IOException e) {
-            LOG.error("Failed to get job info from jenkins", e);
+            return json != null && !json.isJsonNull();
+        } catch (Throwable t) {
+            LOG.error(String.format("Error in checking if job %s exists", pipeline), t);
             return false;
         }
     }

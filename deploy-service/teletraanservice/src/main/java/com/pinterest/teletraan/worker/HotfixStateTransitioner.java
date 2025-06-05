@@ -17,6 +17,7 @@ package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.ci.BaseCIPlatformBuild;
 import com.pinterest.deployservice.ci.Buildkite;
 import com.pinterest.deployservice.ci.CIPlatformManagerProxy;
 import com.pinterest.deployservice.ci.Jenkins;
@@ -161,6 +162,7 @@ public class HotfixStateTransitioner implements Runnable {
                 String jobNum = hotBean.getJob_num();
                 DeployBean deployBean = deployDAO.getById(hotBean.getBase_deploy());
                 BuildBean buildBean = buildDAO.getById(deployBean.getBuild_id());
+                HashMap<String, String> buildResultMap = new HashMap<String, String>();
 
                 if (state == HotfixState.INITIAL) {
                     // Initial state, need to start job
@@ -180,10 +182,14 @@ public class HotfixStateTransitioner implements Runnable {
                     // Start job and set start time
 
                     // Pinterest is moving to leveraging CI proxy in triggering all applicable CI
-                    // platforms
+                    // platforms. Build will only get triggered on one CI platform, depending on
+                    // whether
+                    // or not the job exists on that CI platform and the priority order.
                     if (useCIProxy) {
-                        HashMap<String, String> buildResultMap = new HashMap<String, String>();
-                        for (String ciType : ciPlatformManagerProxy.getCIs()) {
+                        List<String> validCIs = ciPlatformManagerProxy.getCIs();
+                        int index = 0;
+                        while (index < validCIs.size()) {
+                            String ciType = validCIs.get(index);
                             try {
                                 LOG.info(
                                         "Starting new CI Jobs on {} (hotfix-job) for hotfix id {}",
@@ -192,7 +198,33 @@ public class HotfixStateTransitioner implements Runnable {
                                 String buildID =
                                         ciPlatformManagerProxy.startBuild(
                                                 hotBean.getJob_name(), buildParams, ciType);
-                                buildResultMap.put(ciType, buildID);
+                                if (buildID != "") {
+                                    // if buildID is not empty, it means the job was created
+                                    // buildID is the job number, in Buildkite, even if the build is
+                                    // queued, a buildID will be returned immediately
+                                    // unlike Jenkins, where the job number is not returned until
+                                    // the job is started
+                                    LOG.info(
+                                            "Job started successfully for hotfix id {} in jobNum {} on {}",
+                                            hotfixId,
+                                            buildID,
+                                            ciType);
+                                    // when triggering on Jenkins, the returned buildID is not the
+                                    // job number
+                                    hotBean.setCI_platform(ciType);
+                                    if (!ciType.equals("Jenkins")) {
+                                        hotBean.setJob_num(buildID);
+                                        hotfixDAO.update(hotfixId, hotBean);
+                                        LOG.debug(
+                                                "Inside block to setJob_num with buildID {}",
+                                                buildID);
+                                        LOG.debug(
+                                                "hotBean jobNum after setJob_num: {}",
+                                                hotBean.getJob_num());
+                                    }
+                                    transition(hotBean);
+                                    break;
+                                }
                             } catch (IOException e) {
                                 LOG.error(
                                         "Failed to start new CI Job (hotfix-job) for hotfix id {} for {}",
@@ -200,56 +232,46 @@ public class HotfixStateTransitioner implements Runnable {
                                         ciType,
                                         e);
                                 hotBean.setError_message(
-                                        "Failed to create hotfix during batch triggering");
+                                        "Failed to create hotfix during triggering");
 
                                 LOG.warn(
                                         "CI returned a FAILURE status during state INITIAL for hotfix id "
                                                 + hotfixId);
                             }
-                        }
-                        // Right now only transition state when Jenkins job is created
-                        if (buildResultMap.containsKey("Jenkins")
-                                && !StringUtils.isEmpty(buildResultMap.get("Jenkins"))) {
-                            LOG.info("Jenkins job started successfully for hotfix id {}", hotfixId);
-                            transition(hotBean);
-                        } else {
-                            hotBean.setState(HotfixState.FAILED);
-                            hotfixDAO.update(hotfixId, hotBean);
+                            index++;
                         }
                     } else {
                         // don't use CIproxy and use the old way of triggering job only to Jenkins
                         // for backward compatibility purposes
-                        jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                        String buildID = jenkins.startBuild(hotBean.getJob_name(), buildParams);
                         LOG.info(
                                 "Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
+                        hotBean.setCI_platform("Jenkins");
                         transition(hotBean);
                     }
 
                     // Else jobNum has not been given by job yet
 
                 } else if (state == HotfixState.PUSHING) {
-                    if (!StringUtils.isEmpty(jobNum)) {
-                        Jenkins.Build build = null;
-                        if (useCIProxy) {
-                            build =
-                                    (Jenkins.Build)
-                                            ciPlatformManagerProxy.getBuild(
-                                                    "Jenkins", hotBean.getJob_name(), jobNum);
-                        } else {
-                            build = jenkins.getBuild(hotBean.getJob_name(), jobNum);
-                        }
+                    String previousCIType = hotBean.getCI_platform();
 
+                    if (!StringUtils.isEmpty(jobNum)) {
+                        BaseCIPlatformBuild build =
+                                ciPlatformManagerProxy.getBuild(
+                                        previousCIType, hotBean.getJob_name(), jobNum);
                         String status = build.getStatus().replace("\"", "");
                         int newProgress = build.getProgress();
 
                         // Update progress
                         if (oldProgress != newProgress) {
+                            LOG.debug("In block oldProgress != newProgress");
                             hotBean.setProgress(newProgress);
                             hotfixDAO.update(hotfixId, hotBean);
                         }
 
                         // Check if job completed or if job failed
-                        if (status.equals("SUCCESS")) {
+                        if (status.equals("SUCCESS") || status.equals("passed")) {
+                            LOG.debug("In block success or passed");
                             String buildName = getBuildName(hotBean);
                             String buildParams =
                                     "BRANCH="
@@ -265,72 +287,140 @@ public class HotfixStateTransitioner implements Runnable {
                                             + hotBean.getRepo();
                             hotBean.setJob_name(
                                     hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
-                            jenkins.startBuild(hotBean.getJob_name(), buildParams);
-                            LOG.info(
-                                    "Starting new Jenkins Job (private-build) for hotfix id {}",
-                                    hotfixId);
+                            hotBean.setJob_num("");
+                            if (useCIProxy) {
+                                List<String> validCIs = ciPlatformManagerProxy.getCIs();
+                                int index = 0;
+                                while (index < validCIs.size()) {
+                                    String currentCIType = validCIs.get(index);
+                                    try {
+                                        String buildID =
+                                                ciPlatformManagerProxy.startBuild(
+                                                        hotBean.getJob_name(),
+                                                        buildParams,
+                                                        currentCIType);
 
-                            transition(hotBean);
+                                        if (buildID != "") {
+                                            // if buildID is not empty, it means the job was created
+                                            // buildID is the job number, in Buildkite, even if the
+                                            // build is
+                                            // queued, a buildID will be returned immediately
+                                            // unlike Jenkins, where the job number is not returned
+                                            // until the
+                                            // job is started
+                                            LOG.error(
+                                                    "Job started successfully for hotfix id {} in jobNum {} on {}",
+                                                    hotfixId,
+                                                    buildID,
+                                                    currentCIType);
+                                            hotBean.setCI_platform(currentCIType);
+                                            if (!currentCIType.equals("Jenkins")) {
+                                                hotBean.setJob_num(buildID);
+                                                hotfixDAO.update(hotfixId, hotBean);
+                                            }
+                                            LOG.error(
+                                                    "Starting new {} Job (private-build) for hotfix id {}",
+                                                    currentCIType,
+                                                    hotfixId);
+                                            transition(hotBean);
+                                            break;
+                                        }
+                                    } catch (IOException e) {
+                                        LOG.error(
+                                                "Failed to start new CI Job (private-build) for hotfix id {} for {}",
+                                                hotfixId,
+                                                currentCIType,
+                                                e);
+                                        hotBean.setError_message(
+                                                "Failed to create hotfix during triggering");
+
+                                        LOG.warn(
+                                                "CI returned a FAILURE status during state PUSHING for hotfix id "
+                                                        + hotfixId);
+                                    }
+                                    index++;
+                                }
+                            } else {
+                                // don't use CIproxy and use the old way of triggering job only to
+                                // Jenkins
+                                // for backward compatibility purposes
+                                String buildID =
+                                        jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                                LOG.info(
+                                        "Starting new Jenkins Job (hotfix-job) for hotfix id {}",
+                                        hotfixId);
+                                hotBean.setCI_platform("Jenkins");
+                                transition(hotBean);
+                            }
                         }
-                        // Jenkins job has returned a failure status
-                        if (status.equals("FAILURE")) {
+                        // CI job has returned a failure status
+                        if (status.equals("FAILURE") || status.equals("failed")) {
+                            LOG.debug("In block failure or failed");
+                            String errMsgConcatenate =
+                                    (previousCIType == "Buildkite") ? "builds/" : "";
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message(
                                     "Failed to create hotfix, see "
-                                            + jenkins.getJenkinsUrl()
+                                            + ciPlatformManagerProxy.getCIPlatformBaseUrl(
+                                                    previousCIType)
                                             + "/"
                                             + hotBean.getJob_name()
                                             + "/"
+                                            + errMsgConcatenate
                                             + hotBean.getJob_num()
                                             + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn(
-                                    "Jenkins returned a FAILURE status during state PUSHING for hotfix id "
-                                            + hotfixId);
+                                    "{} returned a FAILURE status during state PUSHING for hotfix id {}",
+                                    previousCIType,
+                                    hotfixId);
                         }
+                        LOG.debug("In none of the states above");
                     } else {
                         LOG.error("Job Num is empty for hotfix id " + hotfixId);
                     }
                 } else if (state == HotfixState.BUILDING) {
+                    String ciType = hotBean.getCI_platform();
                     if (!StringUtils.isEmpty(jobNum)) {
-                        Jenkins.Build build = null;
-                        if (useCIProxy) {
-                            build =
-                                    (Jenkins.Build)
-                                            ciPlatformManagerProxy.getBuild(
-                                                    "Jenkins", hotBean.getJob_name(), jobNum);
-                        } else {
-                            build = jenkins.getBuild(hotBean.getJob_name(), jobNum);
-                        }
+                        BaseCIPlatformBuild build =
+                                ciPlatformManagerProxy.getBuild(
+                                        ciType, hotBean.getJob_name(), jobNum);
                         String status = build.getStatus().replace("\"", "");
                         int newProgress = build.getProgress();
 
                         // Update progress
                         if (oldProgress != newProgress) {
+                            LOG.error("oldProgress: {}, newProgress: {}", oldProgress, newProgress);
                             hotBean.setProgress(newProgress);
                             hotfixDAO.update(hotfixId, hotBean);
                         }
 
                         // Check if job completed or if job failed
-                        if (status.equals("SUCCESS")) {
-                            LOG.info("Jenkins job succeeded in BUILDING for hotfix id " + hotfixId);
+                        if (status.equals("SUCCESS") || status.equals("passed")) {
+                            LOG.info(
+                                    "{} job succeeded in BUILDING for hotfix id {}",
+                                    ciType,
+                                    hotfixId);
                             transition(hotBean);
                         }
 
-                        // Jenkins job has returned a failure status
-                        if (status.equals("FAILURE")) {
+                        // CI job has returned a failure status
+                        if (status.equals("FAILURE") || status.equals("failed")) {
+                            String errMsgConcatenate = (ciType == "Buildkite") ? "builds/" : "";
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message(
                                     "Failed to build hotfix, see "
-                                            + jenkins.getJenkinsUrl()
+                                            + ciPlatformManagerProxy.getCIPlatformBaseUrl(ciType)
                                             + hotBean.getJob_name()
                                             + "/"
+                                            + errMsgConcatenate
                                             + hotBean.getJob_num()
                                             + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn(
-                                    "Jenkins returned a FAILURE status during state BUILDING for hotfix id "
-                                            + hotfixId);
+                                    "{} returned a FAILURE status during state BUILDING for hotfix id {}",
+                                    ciType,
+                                    hotfixId);
                         }
                     } else {
                         LOG.error("Job Num is empty for hotfix id " + hotfixId);
@@ -410,7 +500,7 @@ public class HotfixStateTransitioner implements Runnable {
         }
 
         // Reset job number and last worked on time, and clean up the error
-        if (state != HotfixState.SUCCEEDED) {
+        if (!useCIProxy && state != HotfixState.SUCCEEDED) {
             hotBean.setJob_num("");
         }
         hotBean.setError_message("");

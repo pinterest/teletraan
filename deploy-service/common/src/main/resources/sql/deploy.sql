@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS hotfixes (
     operator        VARCHAR(32)     NOT NULL,
     job_num         VARCHAR(32),
     job_name        VARCHAR(64)     NOT NULL,
+    ci_platform     VARCHAR(64),
     base_deploy     VARCHAR(22)     NOT NULL,
     base_commit     VARCHAR(64),
     repo            VARCHAR(64)     NOT NULL,

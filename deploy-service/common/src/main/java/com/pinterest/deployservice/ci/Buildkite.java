@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,7 @@ public class Buildkite extends BaseCIPlatformManager {
                     + "\"message\": \"%s\","
                     + "\"metaData\": [%s]}";
     private String queryBuildStatusBodyString = "{\"uuid\": \"%s\"}";
+    private static String buildkiteUrl = "https://buildkite.com/pinterest/";
     private String buildkiteApiBaseUrl = "https://api.buildkite.com/v2/organizations/pinterest/";
     private String buildkitePortalBaseUrl =
             "https://portal.buildkite.com/organizations/pinterest/portals/";
@@ -85,7 +87,7 @@ public class Buildkite extends BaseCIPlatformManager {
     }
 
     // https://buildkite.com/docs/apis/rest-api/builds#get-a-build
-    public static class Build implements CIPlatformBuild {
+    public static class Build extends BaseCIPlatformBuild {
         String pipelineName;
         String buildUUID;
         String buildUrl;
@@ -101,6 +103,7 @@ public class Buildkite extends BaseCIPlatformManager {
                 String buildStatus,
                 long startTimestamp,
                 long duration) {
+            super(buildUUID, buildStatus, startTimestamp, duration);
             this.buildUUID = buildUUID;
             this.buildUrl = buildUrl;
             this.buildStatus = buildStatus;
@@ -159,6 +162,10 @@ public class Buildkite extends BaseCIPlatformManager {
             this.duration = duration;
         }
 
+        public String getCIPlatformBaseUrl() {
+            return buildkiteUrl;
+        }
+
         @Override
         public int getProgress() {
             if (this.buildStatus.equals("passed")) {
@@ -172,8 +179,12 @@ public class Buildkite extends BaseCIPlatformManager {
             } else if (this.buildStatus.equals("skipped")) {
                 return 0;
             } else {
-                return (int)
-                        (duration / getLastBuildsAverageTime("pinterest/" + this.pipelineName));
+                long lastBuildsAverageTime = getLastBuildsAverageTime(this.pipelineName);
+                if (lastBuildsAverageTime == 0) {
+                    return 0;
+                } else {
+                    return (int) (duration / lastBuildsAverageTime);
+                }
             }
         }
 
@@ -196,11 +207,21 @@ public class Buildkite extends BaseCIPlatformManager {
                 if (fullJson == null || fullJson.isJsonNull()) {
                     return 0L;
                 }
-                JsonArray buildsEdges =
-                        fullJson.getAsJsonObject("data")
-                                .getAsJsonObject("pipeline")
-                                .getAsJsonObject("builds")
-                                .getAsJsonArray("edges");
+                JsonArray buildsEdges = null;
+                JsonObject dataJson = fullJson.getAsJsonObject("data");
+                if (dataJson != null && !dataJson.isJsonNull()) {
+                    if (dataJson.has("pipeline") && !dataJson.get("pipeline").isJsonNull()) {
+                        JsonObject pipelineJson = dataJson.getAsJsonObject("pipeline");
+                        JsonObject buildsJson = pipelineJson.getAsJsonObject("builds");
+                        if (buildsJson != null && !buildsJson.isJsonNull()) {
+                            buildsEdges = buildsJson.getAsJsonArray("edges");
+                        } else {
+                            return 0L;
+                        }
+                    } else {
+                        throw new IOException("Pipeline JSON is null");
+                    }
+                }
 
                 int buildsCount = buildsEdges.size();
                 long totalDuration = 0;
@@ -231,6 +252,31 @@ public class Buildkite extends BaseCIPlatformManager {
         return buildkiteApiBaseUrl + "pipelines/" + pipeline;
     }
 
+    private String getPipelineDefaultBranch(String pipeline) {
+        String knoxKeyString = "svc_buildkite:buildkite:readonly";
+        KeyReader knoxKeyReader = new KnoxKeyReader();
+        knoxKeyReader.init(knoxKeyString);
+        String apiToken = knoxKeyReader.getKey();
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Authorization", "Bearer " + apiToken);
+        headers.put("Content-Type", "application/json");
+        String defaultBranch = "";
+        try {
+            String res = httpClient.get(constructApiEndpoint(pipeline), null, headers);
+            JsonObject fullJson = gson.fromJson(res, JsonObject.class);
+            if (fullJson == null || fullJson.isJsonNull()) {
+                return "";
+            }
+            if (fullJson.has("default_branch") && !fullJson.get("default_branch").isJsonNull()) {
+                defaultBranch = fullJson.getAsJsonPrimitive("default_branch").getAsString();
+            }
+            return defaultBranch;
+        } catch (Throwable t) {
+            LOG.error(String.format("Error in querying pipeline %s default branch", pipeline), t);
+            return "";
+        }
+    }
+
     @Override
     public String startBuild(String pipelineName, String buildParams) throws IOException {
         HashMap<String, String> buildMetadata = new HashMap<>();
@@ -242,6 +288,13 @@ public class Buildkite extends BaseCIPlatformManager {
                 if (keyValue.length == 2) {
                     String key = keyValue[0];
                     String value = keyValue[1];
+                    if (key.equals("REPO")) {
+                        value =
+                                value.substring(
+                                        value.lastIndexOf('/')
+                                                + 1); // since the passdown value looks like
+                        // "pinternal/pinboard"
+                    }
                     buildMetadata.put(key, value);
                 } else if (keyValue.length == 1) {
                     // This handles the case where there is a key without a value (e.g., "key=")
@@ -260,13 +313,13 @@ public class Buildkite extends BaseCIPlatformManager {
             HashMap<String, String> buildMetadata)
             throws IOException {
 
-        if (commit == "") {
+        if (StringUtils.isEmpty(commit)) {
             commit = "HEAD";
         }
-        if (branch == "") {
-            branch = "main";
+        if (StringUtils.isEmpty(branch)) {
+            branch = getPipelineDefaultBranch(pipeline);
         }
-        if (message == "") {
+        if (StringUtils.isEmpty(message)) {
             message = "Triggering build from Teletraan";
         }
         String knoxKeyString = "buildkite:%s:portal:create_build";
@@ -313,7 +366,9 @@ public class Buildkite extends BaseCIPlatformManager {
             JsonPrimitive url = build.getAsJsonPrimitive("url");
             JsonPrimitive uuid = build.getAsJsonPrimitive("uuid");
             LOG.debug("[Buildkite] Successfully triggered build for pipeline " + url.getAsString());
-            return uuid.getAsString();
+            String[] delimitStrings = url.getAsString().split("/");
+            String jobNum = delimitStrings[delimitStrings.length - 1];
+            return jobNum;
         } catch (Exception t) {
             LOG.error("Error in triggering build for pipeline " + pipeline, t);
             return "";
@@ -323,51 +378,57 @@ public class Buildkite extends BaseCIPlatformManager {
     @Override
     public Build getBuild(String pipeline, String buildUUID) throws IOException {
         LOG.debug("[Buildkite][getBuild] pipeline name: " + pipeline);
-        String knoxKeyString = "buildkite:query_build_generic:portal:query_build";
+        String knoxKeyString = "svc_buildkite:buildkite:readonly";
         KeyReader knoxKeyReader = new KnoxKeyReader();
         knoxKeyReader.init(knoxKeyString);
         String apiToken = knoxKeyReader.getKey();
-        LOG.debug("[Buildkite][getBuild] Using token " + apiToken);
         String bodyString = String.format(queryBuildStatusBodyString, buildUUID);
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Authorization", "Bearer " + apiToken);
         headers.put("Content-Type", "application/json");
         String url = "";
         String state = "";
+        String startedAt = "";
+        String finishedAt = "";
         long startTimestamp = 0L;
         long finishedTimestamp = 0L;
         long duration = 0L;
         try {
             String res =
-                    httpClient.post(
-                            "https://portal.buildkite.com/organizations/pinterest/portals/query-build-generic",
-                            bodyString,
-                            headers);
+                    httpClient.get(
+                            constructApiEndpoint(pipeline) + "/builds/" + buildUUID, null, headers);
             JsonObject fullJson = gson.fromJson(res, JsonObject.class);
-            if (fullJson == null || fullJson.isJsonNull()) {
+            // {"message": "Not Found"} indicates 404, but since we use httpclient within Teletraan
+            // library, it doesn't throw an error when 404
+            if (fullJson == null
+                    || fullJson.isJsonNull()
+                    || (fullJson.has("message")
+                            && fullJson.get("message").getAsString().equals("Not Found"))) {
                 return null;
             }
-            if (fullJson.has("data") && !fullJson.get("data").isJsonNull()) {
-                JsonObject data = fullJson.getAsJsonObject("data");
-                if (data.has("build") && !data.get("build").isJsonNull()) {
-                    JsonObject build = data.getAsJsonObject("build");
-                    state = build.getAsJsonPrimitive("state").getAsString();
-                    url = build.getAsJsonPrimitive("url").getAsString();
-                    if (build.has("startedAt") && !build.get("startedAt").isJsonNull()) {
-                        String startedAt = build.getAsJsonPrimitive("startedAt").getAsString();
-                        startTimestamp = Instant.parse(startedAt).toEpochMilli();
-                    } else {
-                        startTimestamp = System.currentTimeMillis();
-                        duration = 0L;
-                    }
-                    if (build.has("finishedAt") && !build.get("finishedAt").isJsonNull()) {
-                        String finishedAt = build.getAsJsonPrimitive("finishedAt").getAsString();
-                        finishedTimestamp = Instant.parse(finishedAt).toEpochMilli();
-                    } else {
-                        finishedTimestamp = System.currentTimeMillis();
-                    }
-                    duration = finishedTimestamp - startTimestamp;
+            state = fullJson.getAsJsonPrimitive("state").getAsString();
+            url = fullJson.getAsJsonPrimitive("url").getAsString();
+            if (!fullJson.has("started_at") || fullJson.get("started_at").isJsonNull()) {
+                // possible states of a job:
+                // https://buildkite.com/docs/pipelines/configure/defining-steps#job-states
+                if (state == "canceled"
+                        || state == "expired"
+                        || state == "skipped"
+                        || state == "timed_out") {
+                    return new Build(pipeline, buildUUID, url, "failed", 0L, 0L);
+                } else {
+                    return new Build(pipeline, buildUUID, url, "not_started", 0L, 0L);
                 }
+            }
+            startedAt = fullJson.getAsJsonPrimitive("started_at").getAsString();
+            startTimestamp = Instant.parse(startedAt).toEpochMilli();
+            if (fullJson.has("finished_at") && !fullJson.get("finished_at").isJsonNull()) {
+                finishedAt = fullJson.getAsJsonPrimitive("finished_at").getAsString();
+                finishedTimestamp = Instant.parse(finishedAt).toEpochMilli();
+                duration = finishedTimestamp - startTimestamp;
+            } else {
+                startTimestamp = System.currentTimeMillis();
+                duration = 0L;
             }
             return new Build(pipeline, buildUUID, url, state, startTimestamp, duration);
         } catch (Throwable t) {

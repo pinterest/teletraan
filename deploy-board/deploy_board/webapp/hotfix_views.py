@@ -19,7 +19,7 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.generic import View
 from django.http import HttpResponse
-from deploy_board.settings import BUILD_URL
+from deploy_board.settings import BUILD_URL, BUILDKITE_BUILD_URL
 from .helpers import (
     environs_helper,
     deploys_helper,
@@ -45,11 +45,29 @@ def _create_commits(commits, urlPattern, hotfix):
         commits.append(commit)
 
 
+def get_ci_url(hotfix):
+    if hotfix["ciPlatform"] == "Jenkins":
+        return get_jenkins_url(hotfix)
+    elif hotfix["ciPlatform"] == "Buildkite":
+        return get_buildkite_url(hotfix)
+
+
 def get_jenkins_url(hotfix):
     jenkins_url = "%s/%s" % (BUILD_URL, hotfix["jobName"])
     if hotfix["jobNum"]:
         jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix["jobName"], hotfix["jobNum"])
     return jenkins_url
+
+
+def get_buildkite_url(hotfix):
+    buildkite_url = "%s/%s" % (BUILDKITE_BUILD_URL, hotfix["jobName"])
+    if hotfix["jobNum"]:
+        buildkite_url = "%s/%s/builds/%s" % (
+            BUILDKITE_BUILD_URL,
+            hotfix["jobName"],
+            hotfix["jobNum"],
+        )
+    return buildkite_url
 
 
 def get_hotfix(request, name, stage, id):
@@ -60,7 +78,7 @@ def get_hotfix(request, name, stage, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get("type"))
     commits = []
     _create_commits(commits, urlPattern["template"], hotfix)
-    jenkins_url = get_jenkins_url(hotfix)
+    ci_url = get_ci_url(hotfix)
     return render(
         request,
         "hotfixs/hotfix_detail.html",
@@ -70,7 +88,7 @@ def get_hotfix(request, name, stage, id):
             "commits": commits,
             "deploy": deploy,
             "build": build,
-            "jenkins_url": jenkins_url,
+            "ci_url": ci_url,
         },
     )
 
@@ -82,7 +100,7 @@ def get_hotfix_detail(request, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get("type"))
     commits = []
     _create_commits(commits, urlPattern["template"], hotfix)
-    jenkins_url = get_jenkins_url(hotfix)
+    ci_url = get_ci_url(hotfix)
     html = render_to_string(
         "hotfixs/hotfix_detail.tmpl",
         {
@@ -90,7 +108,7 @@ def get_hotfix_detail(request, id):
             "commits": commits,
             "deploy": deploy,
             "build": build,
-            "jenkins_url": jenkins_url,
+            "ci_url": ci_url,
         },
     )
     return HttpResponse(html)
