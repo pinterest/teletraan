@@ -19,6 +19,7 @@ import logging
 import os
 import sys
 from random import randrange
+import socket
 import time
 import traceback
 
@@ -47,6 +48,13 @@ from deployd.common.types import (
 from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
 from deployd.types.deploy_goal import DeployGoal
 from deployd.types.ping_response import PingResponse
+
+# Default OpenTSDB server to send deploy info metric data
+TSD_HOST = "localhost"
+TSD_PORT = 18126
+TSD_TIMEOUT = 30
+DEPLOY_INFO_METRIC_NAME = "deploy.info"
+DEPLOY_INFO_METRIC_VALUE = 1
 
 log: logging.Logger = logging.getLogger(name=MAIN_LOGGER)
 
@@ -255,6 +263,8 @@ class DeployAgent(object):
             )
         else:
             log.info("Failed to get response from server, exit.")
+
+        self._emit_deploy_info_metrics()
 
     def serve_forever(self) -> None:
         log.info("Running deploy agent in daemon mode")
@@ -549,6 +559,51 @@ class DeployAgent(object):
                     deploy_goal.deployAlias, deploy_goal.envName
                 )
             )
+
+    def _emit_deploy_info_metrics(self) -> None:
+        if not IS_PINTEREST:
+            return
+        epoch_in_seconds = int(time.time())
+        puts = []
+        for env_name, deploy_status in self._envs.items():
+            report = deploy_status.report
+            build_info = deploy_status.build_info
+
+            if not report:
+                log.info(
+                    f"Skip deploy info metric for {env_name} due to missing report"
+                )
+                continue
+            if not build_info:
+                log.info(
+                    f"Skip deploy info metric for {env_name} due to missing build_info"
+                )
+                continue
+            if report.deployStage != DeployStage.SERVING_BUILD:
+                log.info(
+                    f"Skip deploy info metric for {env_name} for deploy stage {report.deployStage}"
+                )
+                continue
+            if not build_info.build_commit:
+                log.info(
+                    f"Skip deploy info metric for {env_name} due to missing commit"
+                )
+                continue
+
+            puts.append(
+                f"put {DEPLOY_INFO_METRIC_NAME} "
+                f"{epoch_in_seconds} {DEPLOY_INFO_METRIC_VALUE} "
+                f"source=teletraan "
+                f"artifact={env_name} "
+                f"commit_sha={build_info.build_commit}"
+            )
+
+        sock = socket.socket()
+        sock.settimeout(TSD_TIMEOUT)
+        sock.connect((TSD_HOST, TSD_PORT))
+        payload = ("\n".join(puts) + "\n").encode("utf-8")
+        log.info(f"osorianolog sending metric payload: {payload}")
+        sock.sendall(payload)
 
     @staticmethod
     def plan_changed(
