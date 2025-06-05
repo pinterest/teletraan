@@ -54,7 +54,7 @@ public class HotfixStateTransitioner implements Runnable {
     private Counter errorBudgetSuccess;
     private Counter errorBudgetFailure;
     // TODO make this configurable
-    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 15; // TODO: go back to 180
+    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
     // new variable to check if we are using CI proxy, for backward compatibility purposes
     private static boolean useCIProxy = true;
 
