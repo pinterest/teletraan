@@ -493,7 +493,10 @@ class TestDeployAgent(TestCase):
         ping_report["status"] = AgentStatus.SUCCEEDED
         status.report = PingReport(jsonValue=ping_report)
         status.build_info = BuildInfo(
-            "test_commit_sha", "test_build_url", "test_build_id"
+            "test_commit_sha",
+            "test_build_url",
+            "test_build_id",
+            build_name="test_build_name",
         )
 
         envs = {"234": status}
@@ -521,7 +524,7 @@ class TestDeployAgent(TestCase):
         mock_socket.assert_called_once()
         mock_sock.settimeout.assert_called_once_with(5)
         mock_sock.connect.assert_called_once_with(("localhost", 18126))
-        expected_put = "put deploy.info 100 1 source=teletraan artifact=234 commit_sha=test_commit_sha\n"
+        expected_put = "put deploy.info 100 1 source=teletraan artifact=test_build_name commit_sha=test_commit_sha\n"
         mock_sock.sendall.assert_called_once_with(expected_put.encode("utf-8"))
 
     def test_report_with_deploy_goal(self):

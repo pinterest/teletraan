@@ -589,12 +589,17 @@ class DeployAgent(object):
                     f"Skip deploy info metric for {env_name} due to missing commit"
                 )
                 continue
+            if not build_info.build_name:
+                log.info(
+                    f"Skip deploy info metric for {env_name} due to missing build_name"
+                )
+                continue
 
             put_stmts.append(
                 f"put {DEPLOY_INFO_METRIC_NAME} "
                 f"{epoch_in_seconds} {DEPLOY_INFO_METRIC_VALUE} "
                 f"source=teletraan "
-                f"artifact={env_name} "
+                f"artifact={build_info.build_name} "
                 f"commit_sha={build_info.build_commit}"
             )
 
