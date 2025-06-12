@@ -471,8 +471,10 @@ public class Buildkite extends BaseCIPlatformManager {
     }
 
     private boolean tagExists(JsonObject fullJson) {
+        LOG.error(String.format("fullJson is %s", fullJson.getAsString()));
         if (fullJson.has("tags") && !fullJson.get("tags").isJsonNull()) {
             JsonArray tags = fullJson.getAsJsonArray("tags");
+            LOG.error(String.format("Json tags is %s", tags.getAsString()));
             if (tags.size() > 0) {
                 for (JsonElement tag : tags) {
                     if (tag.getAsString().equals("teletraan-ready")) {
