@@ -20,6 +20,7 @@ from tests import TestCase
 from deployd.agent import DeployAgent
 from deployd.common.utils import ensure_dirs
 from deployd.common.types import (
+    BuildInfo,
     DeployReport,
     DeployStatus,
     OpCode,
@@ -46,6 +47,9 @@ class TestDeployAgent(TestCase):
         cls.config.get_agent_directory = mock.Mock(return_value="/tmp/deployd/")
         cls.config.get_builds_directory = mock.Mock(return_value="/tmp/deployd/builds/")
         cls.config.get_log_directory = mock.Mock(return_value="/tmp/logs/")
+        cls.config.get_tsd_host = mock.Mock(return_value="localhost")
+        cls.config.get_tsd_port = mock.Mock(return_value=18126)
+        cls.config.get_tsd_timeout_seconds = mock.Mock(return_value=5)
         ensure_dirs(cls.config)
         cls.executor = mock.Mock()
         cls.executor.execute_command = mock.Mock(
@@ -472,7 +476,13 @@ class TestDeployAgent(TestCase):
         d.serve_build()
         client.send_reports.assert_called_once_with({})
 
-    def test_report_health(self):
+    @mock.patch("socket.socket")
+    @mock.patch("time.time")
+    def test_report_health(self, mock_time, mock_socket):
+        mock_time.return_value = 100.1
+        mock_sock = mock.Mock()
+        mock_socket.return_value = mock_sock
+
         status = DeployStatus()
         ping_report = {}
         ping_report["deployId"] = "123"
@@ -482,6 +492,12 @@ class TestDeployAgent(TestCase):
         ping_report["deployStage"] = DeployStage.SERVING_BUILD
         ping_report["status"] = AgentStatus.SUCCEEDED
         status.report = PingReport(jsonValue=ping_report)
+        status.build_info = BuildInfo(
+            "test_commit_sha",
+            "test_build_url",
+            "test_build_id",
+            build_name="test_build_name",
+        )
 
         envs = {"234": status}
         client = mock.Mock()
@@ -504,6 +520,12 @@ class TestDeployAgent(TestCase):
             agent._curr_report.report.deployStage, DeployStage.SERVING_BUILD
         )
         self.assertEqual(agent._curr_report.report.status, AgentStatus.SUCCEEDED)
+
+        mock_socket.assert_called_once()
+        mock_sock.settimeout.assert_called_once_with(5)
+        mock_sock.connect.assert_called_once_with(("localhost", 18126))
+        expected_put = "put deploy.info 100 1 source=teletraan artifact=test_build_name commit_sha=test_commit_sha\n"
+        mock_sock.sendall.assert_called_once_with(expected_put.encode("utf-8"))
 
     def test_report_with_deploy_goal(self):
         if os.path.exists("/tmp/env_status"):
