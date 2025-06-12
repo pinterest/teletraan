@@ -477,7 +477,8 @@ public class Buildkite extends BaseCIPlatformManager {
             LOG.error(String.format("Json tags is %s", tags.toString()));
             if (tags.size() > 0) {
                 for (JsonElement tag : tags) {
-                    if (tag.isJsonPrimitive() && tag.getAsString().equals("teletraan-ready")) {
+                    LOG.error(String.format("current tag is %s", tag.toString()));
+                    if (tag.toString().equals("teletraan-ready")) {
                         return true;
                     }
                 }
