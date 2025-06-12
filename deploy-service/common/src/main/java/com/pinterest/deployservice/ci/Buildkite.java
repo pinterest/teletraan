@@ -280,7 +280,7 @@ public class Buildkite extends BaseCIPlatformManager {
     @Override
     public String startBuild(String pipelineName, String buildParams) throws IOException {
         HashMap<String, String> buildMetadata = new HashMap<>();
-
+        String branchToBuild = "";
         if (buildParams != null && !buildParams.isEmpty()) {
             String[] buildParamPairs = buildParams.split("&"); // Split by "&"
             for (String pair : buildParamPairs) {
@@ -295,6 +295,9 @@ public class Buildkite extends BaseCIPlatformManager {
                                                 + 1); // since the passdown value looks like
                         // "pinternal/pinboard"
                     }
+                    if (key.equals("BRANCH")) {
+                        branchToBuild = value;
+                    }
                     buildMetadata.put(key, value);
                 } else if (keyValue.length == 1) {
                     // This handles the case where there is a key without a value (e.g., "key=")
@@ -302,7 +305,7 @@ public class Buildkite extends BaseCIPlatformManager {
                 }
             }
         }
-        return startBuild(pipelineName, "", "", "", buildMetadata);
+        return startBuild(pipelineName, "", branchToBuild, "", buildMetadata);
     }
 
     private String startBuild(
@@ -313,14 +316,15 @@ public class Buildkite extends BaseCIPlatformManager {
             HashMap<String, String> buildMetadata)
             throws IOException {
 
-        if (StringUtils.isEmpty(commit)) {
-            commit = "HEAD";
-        }
+        // In buildkite, if commit is set, it will override the branch and make the build
+        // run the exact commit
+        // slack convo:
+        // https://pinterest.slack.com/archives/C02JS7EMRBM/p1749685571280629?thread_ts=1749662571.984939&cid=C02JS7EMRBM
         if (StringUtils.isEmpty(branch)) {
             branch = getPipelineDefaultBranch(pipeline);
         }
         if (StringUtils.isEmpty(message)) {
-            message = "Triggering build from Teletraan";
+            message = "Triggering build from Teletraan for branch " + branch;
         }
         String knoxKeyString = "buildkite:%s:portal:create_build";
         knoxKeyString = String.format(knoxKeyString, pipeline.replaceAll("-", "_"));
@@ -353,9 +357,11 @@ public class Buildkite extends BaseCIPlatformManager {
             String res =
                     httpClient.post(
                             constructPortalEndpoint("trigger", pipeline), bodyString, headers);
-            LOG.debug(
+            LOG.error(
                     "[Buildkite][startBuild] portal url "
-                            + constructPortalEndpoint("trigger", pipeline));
+                            + constructPortalEndpoint("trigger", pipeline)
+                            + " bodyString "
+                            + bodyString);
             JsonObject fullJson = gson.fromJson(res, JsonObject.class);
             if (fullJson == null || fullJson.isJsonNull()) {
                 LOG.error("Something went wrong triggering build for pipeline " + pipeline);
@@ -456,11 +462,25 @@ public class Buildkite extends BaseCIPlatformManager {
             if (fullJson == null || fullJson.isJsonNull()) {
                 return false;
             } else {
-                return true;
+                return tagExists(fullJson);
             }
         } catch (Throwable t) {
             LOG.error(String.format("Error in checking if job %s exists", pipeline), t);
             return false;
         }
+    }
+
+    private boolean tagExists(JsonObject fullJson) {
+        if (fullJson.has("tags") && !fullJson.get("tags").isJsonNull()) {
+            JsonArray tags = fullJson.getAsJsonArray("tags");
+            if (tags.size() > 0) {
+                for (JsonElement tag : tags) {
+                    if (tag.getAsString().equals("teletraan-ready")) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
