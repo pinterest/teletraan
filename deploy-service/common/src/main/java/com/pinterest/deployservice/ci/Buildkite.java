@@ -356,7 +356,7 @@ public class Buildkite extends BaseCIPlatformManager {
             String res =
                     httpClient.post(
                             constructPortalEndpoint("trigger", pipeline), bodyString, headers);
-            LOG.error(
+            LOG.info(
                     "[Buildkite][startBuild] portal url "
                             + constructPortalEndpoint("trigger", pipeline)
                             + " bodyString "
@@ -470,13 +470,11 @@ public class Buildkite extends BaseCIPlatformManager {
     }
 
     private boolean tagExists(JsonObject fullJson) {
-        LOG.error(String.format("fullJson is %s", fullJson.toString()));
         if (fullJson.has("tags") && !fullJson.get("tags").isJsonNull()) {
             JsonArray tags = fullJson.getAsJsonArray("tags");
-            LOG.error(String.format("Json tags is %s", tags.toString()));
+            LOG.debug(String.format("Json tags is %s", tags.toString()));
             if (tags.size() > 0) {
                 for (JsonElement tag : tags) {
-                    LOG.error(String.format("current tag is %s", tag.toString()));
                     if (tag.getAsString().equals("teletraan-ready")) {
                         return true;
                     }

@@ -91,7 +91,7 @@ public class CIPlatformManagerProxy {
             throw new Exception("Unsupported CI type: " + ciType);
         }
         boolean jobExist = manager.jobExist(jobName);
-        LOG.error("Job existence for {}: {} - {}", ciType, jobName, jobExist);
+        LOG.info("Job existence for {}: {} - {}", ciType, jobName, jobExist);
         // return manager.jobExist(jobName);
         return jobExist;
     }
