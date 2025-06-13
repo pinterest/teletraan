@@ -316,10 +316,9 @@ public class Buildkite extends BaseCIPlatformManager {
             HashMap<String, String> buildMetadata)
             throws IOException {
 
-        // In buildkite, if commit is set, it will override the branch and make the build
-        // run the exact commit
-        // slack convo:
-        // https://pinterest.slack.com/archives/C02JS7EMRBM/p1749685571280629?thread_ts=1749662571.984939&cid=C02JS7EMRBM
+        if (StringUtils.isEmpty(commit)) {
+            commit = "HEAD";
+        }
         if (StringUtils.isEmpty(branch)) {
             branch = getPipelineDefaultBranch(pipeline);
         }
@@ -367,10 +366,6 @@ public class Buildkite extends BaseCIPlatformManager {
                 LOG.error("Something went wrong triggering build for pipeline " + pipeline);
             }
             JsonObject data = fullJson.getAsJsonObject("data");
-            LOG.error(
-                    "[Buildkite][startBuild] data is "
-                            + data.toString()
-                            + " for pipeline trigger");
             JsonObject buildCreate = data.getAsJsonObject("buildCreate");
             JsonObject build = buildCreate.getAsJsonObject("build");
             JsonPrimitive url = build.getAsJsonPrimitive("url");
