@@ -367,6 +367,10 @@ public class Buildkite extends BaseCIPlatformManager {
                 LOG.error("Something went wrong triggering build for pipeline " + pipeline);
             }
             JsonObject data = fullJson.getAsJsonObject("data");
+            LOG.error(
+                    "[Buildkite][startBuild] data is "
+                            + data.toString()
+                            + " for pipeline trigger");
             JsonObject buildCreate = data.getAsJsonObject("buildCreate");
             JsonObject build = buildCreate.getAsJsonObject("build");
             JsonPrimitive url = build.getAsJsonPrimitive("url");
