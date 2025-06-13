@@ -1,4 +1,4 @@
-# Copyright 2016 Pinterest, Inc.
+# Copyright 2025 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,4 +31,4 @@ REDEPLOY_MAX_RETRY = 3
 # 2: puppet applied successfully with changes
 PUPPET_SUCCESS_EXIT_CODES = [0, 2]
 
-__version__ = "1.2.72"
+__version__ = "1.2.73"
