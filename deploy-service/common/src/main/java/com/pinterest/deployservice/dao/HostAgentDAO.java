@@ -23,7 +23,16 @@ import java.util.List;
 public interface HostAgentDAO {
     void insert(HostAgentBean hostAgentBean) throws Exception;
 
-    void update(String hostId, HostAgentBean hostAgentBean) throws Exception;
+    /**
+     * Update with the new host agent bean. Only the non-null changed fields are updated.
+     *
+     * @param hostId
+     * @param hostAgentBean the original host agent bean
+     * @param newHostAgentBean the new host agent bean
+     * @throws SQLException
+     */
+    void updateChanged(String hostId, HostAgentBean hostAgentBean, HostAgentBean newHostAgentBean)
+            throws SQLException;
 
     void delete(String hostId) throws Exception;
 
