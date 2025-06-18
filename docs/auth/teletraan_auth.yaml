@@ -88,6 +88,7 @@ definitions:
           - HOST
           - PROVISION_PREFIX
           - INSTANCE_TYPE_MAPPING
+          - SOX_PROPERTY
           - UNSPECIFIED
       resourceName:
         type: string
