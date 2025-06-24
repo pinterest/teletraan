@@ -121,6 +121,8 @@ public class AuthZResource {
         PROVISION_PREFIX,
         /** For instance type mapping url */
         INSTANCE_TYPE_MAPPING,
+        /** For SOX, Sarbanes-Oxley Act, related resources */
+        SOX_PROPERTY,
         /* For anything else */
         UNSPECIFIED,
     }

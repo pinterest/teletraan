@@ -48,6 +48,7 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                     case ENV:
                         return ENV_PATH_EXTRACTOR;
                     case ENV_STAGE:
+                    case SOX_PROPERTY:
                         return ENV_STAGE_PATH_EXTRACTOR;
                     case BUILD:
                         return buildPathExtractor;
