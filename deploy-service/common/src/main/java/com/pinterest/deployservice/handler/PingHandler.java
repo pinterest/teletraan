@@ -58,7 +58,6 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployConstraintDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
@@ -80,7 +79,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +103,6 @@ public class PingHandler {
     private AgentDAO agentDAO;
     private AgentCountDAO agentCountDAO;
     private AgentErrorDAO agentErrorDAO;
-    private BasicDataSource dataSource;
     private DeployDAO deployDAO;
     private BuildDAO buildDAO;
     private EnvironDAO environDAO;
@@ -114,7 +111,6 @@ public class PingHandler {
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private HostTagDAO hostTagDAO;
-    private GroupDAO groupDAO;
     private DeployConstraintDAO deployConstraintDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
@@ -128,11 +124,9 @@ public class PingHandler {
         agentDAO = serviceContext.getAgentDAO();
         agentCountDAO = serviceContext.getAgentCountDAO();
         agentErrorDAO = serviceContext.getAgentErrorDAO();
-        dataSource = serviceContext.getDataSource();
         deployDAO = serviceContext.getDeployDAO();
         buildDAO = serviceContext.getBuildDAO();
         environDAO = serviceContext.getEnvironDAO();
-        groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         utilDAO = serviceContext.getUtilDAO();
@@ -219,29 +213,34 @@ public class PingHandler {
             NormandieStatus normandieStatus,
             KnoxStatus knoxStatus)
             throws Exception {
-        HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
+        HostAgentBean oldHostAgentBean = hostAgentDAO.getHostById(hostId);
+        HostAgentBean.HostAgentBeanBuilder hostAgentBeanBuilder;
         long currentTime = System.currentTimeMillis();
         boolean isExisting = true;
-        if (hostAgentBean == null) {
-            hostAgentBean = new HostAgentBean();
-            hostAgentBean.setHost_id(hostId);
-            hostAgentBean.setCreate_date(currentTime);
+
+        if (oldHostAgentBean == null) {
+            hostAgentBeanBuilder = HostAgentBean.builder();
+            hostAgentBeanBuilder.host_id(hostId).create_date(currentTime);
             isExisting = false;
+        } else {
+            hostAgentBeanBuilder = oldHostAgentBean.toBuilder();
         }
-        hostAgentBean.setHost_name(hostName);
-        hostAgentBean.setIp(hostIp);
-        hostAgentBean.setLast_update(currentTime);
-        hostAgentBean.setAgent_version(agentVersion);
-        hostAgentBean.setAuto_scaling_group(asg);
-        hostAgentBean.setNormandie_status(normandieStatus);
-        hostAgentBean.setKnox_status(knoxStatus);
+
+        hostAgentBeanBuilder
+                .host_name(hostName)
+                .ip(hostIp)
+                .last_update(currentTime)
+                .agent_version(agentVersion)
+                .auto_scaling_group(asg)
+                .normandie_status(normandieStatus)
+                .knox_status(knoxStatus);
 
         if (!isExisting) {
             // First ping
-            hostAgentDAO.insert(hostAgentBean);
+            hostAgentDAO.insert(hostAgentBeanBuilder.build());
             emitProvisionLatency(currentTime, hostId, asg);
         } else {
-            hostAgentDAO.update(hostId, hostAgentBean);
+            hostAgentDAO.updateChanged(hostId, oldHostAgentBean, hostAgentBeanBuilder.build());
         }
     }
 
