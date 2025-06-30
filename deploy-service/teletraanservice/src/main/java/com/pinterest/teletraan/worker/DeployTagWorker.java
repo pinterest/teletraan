@@ -63,6 +63,10 @@ public class DeployTagWorker implements Runnable {
 
     private void processEachEnvironConstraint(DeployConstraintBean bean) throws Exception {
         EnvironBean environBean = environDAO.getEnvByDeployConstraintId(bean.getConstraint_id());
+        if (environBean == null) {
+            LOG.warn("Environment not found for deploy constraint {}", bean.getConstraint_id());
+            return;
+        }
         String tagName = bean.getConstraint_key();
         String envId = environBean.getEnv_id();
         Collection<HostBean> hostBeans = hostDAO.getHostsByEnvId(envId);
