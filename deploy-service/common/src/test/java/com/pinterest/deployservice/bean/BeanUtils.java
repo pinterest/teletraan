@@ -29,4 +29,26 @@ public class BeanUtils {
         bean.setState(HostState.PROVISIONED);
         return bean;
     }
+
+    public static HostTagBean createHostTagBean(Instant createDate) {
+        HostTagBean hostTagBean = new HostTagBean();
+        hostTagBean.setHost_id("i-" + UUID.randomUUID().toString().substring(0, 8));
+        hostTagBean.setEnv_id("testEnv");
+        hostTagBean.setTag_name("tag-1");
+        hostTagBean.setTag_value("value-1");
+        hostTagBean.setCreate_date(createDate.plusSeconds(1).toEpochMilli());
+        return hostTagBean;
+    }
+
+    public static DeployConstraintBean createDeployConstraintBean() {
+        DeployConstraintBean deployConstraint = new DeployConstraintBean();
+        deployConstraint.setConstraint_id("testConstraintId");
+        deployConstraint.setConstraint_key("testConstraintKey");
+        deployConstraint.setMax_parallel(2l);
+        deployConstraint.setConstraint_type(DeployConstraintType.GROUP_BY_GROUP);
+        deployConstraint.setState(TagSyncState.INIT);
+        deployConstraint.setStart_date(3l);
+        deployConstraint.setLast_update(4l);
+        return deployConstraint;
+    }
 }

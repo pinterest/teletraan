@@ -22,6 +22,7 @@ import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import java.net.ConnectException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -63,6 +64,10 @@ public class DeployTagWorker implements Runnable {
 
     private void processEachEnvironConstraint(DeployConstraintBean bean) throws Exception {
         EnvironBean environBean = environDAO.getEnvByDeployConstraintId(bean.getConstraint_id());
+        if (environBean == null) {
+            LOG.warn("Environment not found for deploy constraint {}", bean.getConstraint_id());
+            return;
+        }
         String tagName = bean.getConstraint_key();
         String envId = environBean.getEnv_id();
         Collection<HostBean> hostBeans = hostDAO.getHostsByEnvId(envId);
@@ -176,9 +181,9 @@ public class DeployTagWorker implements Runnable {
                     LOG.info("DB lock operation is successful: get lock {}", lockName);
                     try {
                         processEachEnvironConstraint(job);
-                    } catch (SQLException e) {
+                    } catch (ConnectException | SQLException e) {
                         LOG.error(
-                                "failed to process job due to SQLException: {} Error {} stack {}",
+                                "failed to process job due to handled exception: {} Error {} stack {}",
                                 job,
                                 ExceptionUtils.getRootCauseMessage(e),
                                 ExceptionUtils.getStackTrace(e));
