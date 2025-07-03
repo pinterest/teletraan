@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright (c) 2016-2025 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,7 @@ public class PingHandler {
     private HostTagDAO hostTagDAO;
     private GroupDAO groupDAO;
     private DeployConstraintDAO deployConstraintDAO;
+    private CommonHandler commonHandler;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
@@ -139,6 +140,7 @@ public class PingHandler {
         scheduleDAO = serviceContext.getScheduleDAO();
         hostTagDAO = serviceContext.getHostTagDAO();
         deployConstraintDAO = serviceContext.getDeployConstraintDAO();
+        commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
         validators = serviceContext.getPingRequestValidators();
         agentCountCacheTtl = serviceContext.getAgentCountCacheTtl();
@@ -608,17 +610,17 @@ public class PingHandler {
         String hostNumbers = schedule.getHost_numbers();
         Integer currentSession = schedule.getCurrent_session();
         String[] hostNumbersList = hostNumbers.split(",");
+        String envId = env.getEnv_id();
 
         if (schedule.getState() == ScheduleState.COOLING_DOWN) {
             LOG.debug(
                     "Env {} is currently cooling down. Hosts will wait until the cooling down period is over.",
-                    env.getEnv_id());
+                    envId);
             return false;
         } else {
-            int totalHosts = 0;
-            for (int i = 0; i < currentSession; i++) {
-                totalHosts += Integer.parseInt(hostNumbersList[i]);
-            }
+            long totalHosts =
+                    commonHandler.getNumHostsInSession(currentSession, hostNumbersList, envId);
+
             // if deployed max amount
             if (agentDAO.countAgentsByDeploy(env.getDeploy_id()) < totalHosts
                     || schedule.getState() == ScheduleState.FINAL
