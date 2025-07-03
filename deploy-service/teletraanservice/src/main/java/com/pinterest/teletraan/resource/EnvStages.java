@@ -161,7 +161,7 @@ public class EnvStages {
     @Path("/is-sox/{booleanValue}")
     @ApiOperation(value = "Update an environment/stage's isSox flag")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM, idLocation = Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SOX_PROPERTY, idLocation = Location.PATH)
     public void updateIsSox(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")

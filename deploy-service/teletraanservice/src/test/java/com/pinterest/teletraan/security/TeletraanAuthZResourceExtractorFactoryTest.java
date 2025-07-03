@@ -137,7 +137,7 @@ class TeletraanAuthZResourceExtractorFactoryTest {
 
         AuthZResourceExtractor extractor = extractorFactory.create(authZInfo);
 
-        assertTrue(extractor instanceof EnvStagePathExtractor);
+        assertTrue(extractor instanceof SoxPropertyPathExtractor);
     }
 
     @Test
