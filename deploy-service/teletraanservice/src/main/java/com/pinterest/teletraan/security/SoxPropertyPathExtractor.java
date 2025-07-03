@@ -31,6 +31,7 @@ public class SoxPropertyPathExtractor implements AuthZResourceExtractor {
         if (envName == null) {
             throw new ExtractionException("Failed to extract environment resource");
         }
-        return new AuthZResource(String.format("%s%s", envName, stageName), AuthZResource.Type.SOX_PROPERTY);
+        return new AuthZResource(
+            String.format("%s%s", envName, stageName), AuthZResource.Type.SOX_PROPERTY);
     }
 }
