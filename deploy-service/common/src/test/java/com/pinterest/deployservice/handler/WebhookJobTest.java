@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Pinterest, Inc.
+ * Copyright (c) 2024-2025 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,16 @@ package com.pinterest.deployservice.handler;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployState;
+import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.WebHookBean;
 import java.util.List;
+import java.util.Map;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -35,7 +40,11 @@ class WebhookJobTest {
     private static final String TEST_PATH = "/testPath?testKey1=testVal1&testKey2=testVal2";
     private static final String TEST_DEPLOY_ID = "testDeployId";
     private static final DeployState TEST_DEPLOY_STATE = DeployState.SUCCEEDING;
+    private static final DeployType TEST_DEPLOY_TYPE = DeployType.REGULAR;
     private static final Long TEST_DEPLOY_START_DATE = 5L;
+    private static final TypeReference<Map<String, String>> STRING_MAP_TYPE =
+            new TypeReference<Map<String, String>>() {};
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static MockWebServer mockWebServer;
 
     private WebhookJob sut;
@@ -50,6 +59,7 @@ class WebhookJobTest {
         deployBean.setDeploy_id(TEST_DEPLOY_ID);
         deployBean.setState(TEST_DEPLOY_STATE);
         deployBean.setStart_date(TEST_DEPLOY_START_DATE);
+        deployBean.setDeploy_type(TEST_DEPLOY_TYPE);
 
         // Create test WebHookBean
         WebHookBean webhook = new WebHookBean();
@@ -57,7 +67,14 @@ class WebhookJobTest {
         webhook.setUrl(mockWebServer.url(TEST_PATH).toString());
         webhook.setHeaders("Host:example.com; Accept: text/plain");
         webhook.setVersion("1.1");
-        webhook.setBody("{\"testBodyKey\": \"testBodyValue\"}");
+
+        Map<String, String> bodyMap =
+                ImmutableMap.of(
+                        "deployId", "$TELETRAAN_DEPLOY_ID",
+                        "deployStart", "$TELETRAAN_DEPLOY_START",
+                        "deployState", "$TELETRAAN_NUMERIC_DEPLOY_STATE",
+                        "deployType", "$TELETRAAN_DEPLOY_TYPE");
+        webhook.setBody(objectMapper.writeValueAsString(bodyMap));
 
         List<WebHookBean> webhooks = ImmutableList.of(webhook);
         sut = new WebhookJob(webhooks, deployBean);
@@ -69,7 +86,7 @@ class WebhookJobTest {
     }
 
     @Test
-    void testWebhookOk() throws InterruptedException {
+    void testWebhookOk() throws Exception {
         mockWebServer.enqueue(new MockResponse());
 
         assertDoesNotThrow(
@@ -82,6 +99,14 @@ class WebhookJobTest {
         assertEquals(TEST_PATH, request.getPath());
         assertEquals(ImmutableList.of("example.com"), request.getHeaders().values("Host"));
         assertEquals(ImmutableList.of("text/plain"), request.getHeaders().values("Accept"));
+        Map<String, String> requestBodyMap =
+                objectMapper.readValue(request.getBody().readUtf8(), STRING_MAP_TYPE);
+        assertEquals(4, requestBodyMap.size());
+        assertEquals(String.valueOf(TEST_DEPLOY_ID), requestBodyMap.get("deployId"));
+        assertEquals(String.valueOf(TEST_DEPLOY_START_DATE), requestBodyMap.get("deployStart"));
+        assertEquals(
+                String.valueOf(TEST_DEPLOY_STATE.ordinal()), requestBodyMap.get("deployState"));
+        assertEquals(String.valueOf(TEST_DEPLOY_TYPE), requestBodyMap.get("deployType"));
     }
 
     @Test

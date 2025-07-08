@@ -40,16 +40,19 @@ public class WebhookJob implements Callable<Void> {
     public Void call() {
         for (WebHookBean webhook : webhooks) {
             // TODO we transform $TELETRAAN_NAME into the actual values, currently we support
-            // $TELETRAAN_DEPLOY_ID, $TELETRAAN_DEPLOY_START, $TELETRAAN_NUMERIC_DEPLOY_STATE
+            // $TELETRAAN_DEPLOY_ID, $TELETRAAN_DEPLOY_START, $TELETRAAN_NUMERIC_DEPLOY_STATE,
+            // $TELETRAAN_DEPLOY_TYPE
             // We should support more such as $TELETRAAN_COMMIT, $TELETRAAN_ENV_NAME etc.
             String deployId = deployBean.getDeploy_id();
             String numericDeployState = String.valueOf(deployBean.getState().ordinal());
             String deployStart = String.valueOf(deployBean.getStart_date());
+            String deployType = deployBean.getDeploy_type().name();
             String url = webhook.getUrl();
             url =
                     url.replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
                             .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                            .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                            .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState)
+                            .replaceAll("\\$TELETRAAN_DEPLOY_TYPE", deployType);
             LOG.info("Url after transform is {}", url);
 
             String headerString = webhook.getHeaders();
@@ -58,8 +61,8 @@ public class WebhookJob implements Callable<Void> {
                         headerString
                                 .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
                                 .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                                .replaceAll(
-                                        "\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                                .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState)
+                                .replaceAll("\\$TELETRAAN_DEPLOY_TYPE", deployType);
             }
             LOG.info("Header string after transform is {}", headerString);
 
@@ -69,8 +72,8 @@ public class WebhookJob implements Callable<Void> {
                         bodyString
                                 .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
                                 .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                                .replaceAll(
-                                        "\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                                .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState)
+                                .replaceAll("\\$TELETRAAN_DEPLOY_TYPE", deployType);
             }
             LOG.info("Body string after transform is {}", bodyString);
 
