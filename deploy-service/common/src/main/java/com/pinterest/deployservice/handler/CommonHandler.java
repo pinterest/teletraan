@@ -291,9 +291,12 @@ public class CommonHandler {
             totalHosts += Integer.parseInt(hostNumbersList[i]);
         }
         if (schedule.getState() == ScheduleState.COOLING_DOWN) {
-            // check if cooldown period is over
-            if (System.currentTimeMillis() - schedule.getState_start_time()
-                    > Integer.parseInt(cooldownTimesList[currentSession - 1]) * 60000) {
+            // Check if cooldown period is over
+            // A negative cooldown period is considered as an infinite period
+            int cooldownPeriod = Integer.parseInt(cooldownTimesList[currentSession - 1]);
+            if (cooldownPeriod >= 0
+                    && System.currentTimeMillis() - schedule.getState_start_time()
+                            > cooldownPeriod * 60000) {
                 ScheduleBean updateScheduleBean = new ScheduleBean();
                 updateScheduleBean.setId(schedule.getId());
                 if (totalSessions == currentSession) {
