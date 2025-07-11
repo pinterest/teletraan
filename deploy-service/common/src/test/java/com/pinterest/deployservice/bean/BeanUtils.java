@@ -51,4 +51,16 @@ public class BeanUtils {
         deployConstraint.setLast_update(4l);
         return deployConstraint;
     }
+
+    public static ScheduleBean createScheduleBean(ScheduleState state) {
+        ScheduleBean schedule = new ScheduleBean();
+        schedule.setId(UUID.randomUUID().toString().substring(0, 8));
+        schedule.setTotal_sessions(3);
+        schedule.setCooldown_times("6,5,4");
+        schedule.setHost_numbers("1,2,3");
+        schedule.setCurrent_session(1);
+        schedule.setState(state);
+        schedule.setState_start_time(0l);
+        return schedule;
+    }
 }

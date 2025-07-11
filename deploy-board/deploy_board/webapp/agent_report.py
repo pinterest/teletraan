@@ -21,6 +21,7 @@ from .helpers import (
     deploys_helper,
     environs_helper,
     environ_hosts_helper,
+    schedules_helper,
 )
 import time
 from collections import OrderedDict
@@ -52,12 +53,14 @@ class DeployStatistics(object):
     def __init__(
         self,
         deploy=None,
+        schedule=None,
         build=None,
         stageDistMap=None,
         stateDistMap=None,
         buildTag=None,
     ):
         self.deploy = deploy
+        self.schedule = schedule
         self.build = build
         self.buildTag = buildTag
         self.stageDistMap = stageDistMap
@@ -111,8 +114,11 @@ def addToEnvReport(request, deployStats, agent, env):
         build = builds_helper.get_build(request, deploy["buildId"])
         stageDistMap = genStageDistMap()
         stateDistMap = genStateDistMap()
+        deploy_schedule = get_schedule(request, env)
+
         deployStat = DeployStatistics(
             deploy=deploy,
+            schedule=deploy_schedule,
             build=build,
             stageDistMap=stageDistMap,
             stateDistMap=stateDistMap,
@@ -169,10 +175,13 @@ def gen_report(
         deploy = deploys_helper.get(request, env["deployId"])
     if build_info is None:
         build_info = builds_helper.get_build_and_tag(request, deploy["buildId"])
+    deploy_schedule = get_schedule(request, env)
+
     stageDistMap = genStageDistMap()
     stateDistMap = genStateDistMap()
     currentDeployStat = DeployStatistics(
         deploy=deploy,
+        schedule=deploy_schedule,
         build=build_info["build"],
         stageDistMap=stageDistMap,
         stateDistMap=stateDistMap,
@@ -263,3 +272,19 @@ def gen_agent_by_deploy(progress, deployId, reportKind, deployStage=""):
                     agent_wrapper[deployId].append(agent)
 
     return agent_wrapper
+
+
+def get_schedule(request, env):
+    """
+    Fetch the schedule if it exists for the environment
+    """
+    deploy_schedule_id = env.get("scheduleId")
+    if deploy_schedule_id is None:
+        return None
+
+    return schedules_helper.get_schedule(
+        request,
+        env["envName"],
+        env["stageName"],
+        deploy_schedule_id,
+    )
