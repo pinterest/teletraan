@@ -20,6 +20,7 @@ import static com.pinterest.deployservice.bean.BeanUtils.createHostBean;
 import static com.pinterest.deployservice.bean.BeanUtils.createHostTagBean;
 import static com.pinterest.deployservice.fixture.EnvironBeanFixture.createRandomEnvironBean;
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_METRIC_NAME;
+import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_NAME_METHOD_NAME;
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE;
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE;
 import static com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS;
@@ -205,7 +206,7 @@ public class DeployTagWorkerTest {
         deployTagWorker.run();
 
         // Verify the result
-        assertErrorBudget(0, 0);
+        assertErrorBudget(0, 1);
 
         verify(deployConstraintDAO, times(1))
                 .updateById(
@@ -281,6 +282,7 @@ public class DeployTagWorkerTest {
                         .tag(
                                 ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
                                 ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS)
+                        .tag(ERROR_BUDGET_TAG_NAME_METHOD_NAME, "DeployTagWorker")
                         .counter();
         Counter failureCounter =
                 Metrics.globalRegistry
@@ -288,6 +290,7 @@ public class DeployTagWorkerTest {
                         .tag(
                                 ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
                                 ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE)
+                        .tag(ERROR_BUDGET_TAG_NAME_METHOD_NAME, "DeployTagWorker")
                         .counter();
         assertEquals(successCount, successCounter.count(), 0.01);
         assertEquals(failureCount, failureCounter.count(), 0.01);
