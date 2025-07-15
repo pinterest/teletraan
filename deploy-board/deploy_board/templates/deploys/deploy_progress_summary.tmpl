@@ -20,8 +20,10 @@
                 </span>
             </th>
         {% endif %}
+        {% if schedule is not None %}
+            <th class="col-lg-2">Step</th>
+        {% endif %}
         <th class="col-lg-1">Details</th>
-        <th class="col-lg-1">Schedule</th>
     </tr>
     <tr>
     <td>
@@ -92,8 +94,23 @@
             {% endfor %}
         </td>
     {% endif %}
+    {% if schedule is not None %}
+        <td>
+            <a class="deployToolTip" data-toggle="tooltip"
+               title="Click to see the schedule details"
+               href="/env/{{ env.envName }}/{{ env.stageName }}/schedule">
+               {% if schedule.state == "NOT_STARTED" %}
+                 <i class="fa fa-fw fa-ellipsis-h"></i>
+               {% elif schedule.state == "RUNNING" %}
+                 <i class="fa fa-fw fa-spinner fa-spin"></i>
+               {% elif schedule.state == "COOLING_DOWN" %}
+                 <i class="fa fa-fw fa-clock-o"></i>
+               {% endif %}
+                 {{ schedule.currentSession }}/{{ schedule.totalSessions }}
+            </a>
+        </td>
+    {% endif %}
     <td><a href="/deploy/{{ deploy.id }}">view</a></td>
-    <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule">view</a></td>
   </tr>
 </table>
 </div>

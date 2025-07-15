@@ -1,6 +1,6 @@
 {% load utils %}
 {% load static %}
-{% with deploy=report.currentDeployStat.deploy build=report.currentDeployStat.build tag=report.currentDeployStat.buildTag %}
+{% with deploy=report.currentDeployStat.deploy build=report.currentDeployStat.build tag=report.currentDeployStat.buildTag schedule=report.currentDeployStat.schedule %}
     {% include "deploys/deploy_progress_summary.tmpl" %}
     {% if report.showMode != "simple" %}
         <div class="panel panel-default">
