@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright (c) 2016-2025 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -286,10 +286,8 @@ public class CommonHandler {
         Integer totalSessions = schedule.getTotal_sessions();
         String[] hostNumbersList = hostNumbers.split(",");
         String[] cooldownTimesList = cooldownTimes.split(",");
-        int totalHosts = 0;
-        for (int i = 0; i < currentSession; i++) {
-            totalHosts += Integer.parseInt(hostNumbersList[i]);
-        }
+        String envId = envBean.getEnv_id();
+        long totalHosts = getNumHostsInSession(currentSession, hostNumbersList, envId);
         if (schedule.getState() == ScheduleState.COOLING_DOWN) {
             // Check if cooldown period is over
             // A negative cooldown period is considered as an infinite period
@@ -303,13 +301,13 @@ public class CommonHandler {
                     updateScheduleBean.setState(ScheduleState.FINAL);
                     LOG.debug(
                             "Env {} is now going into final deloy stage and will deploy on the rest of all of the hosts.",
-                            envBean.getEnv_id());
+                            envId);
                 } else {
                     updateScheduleBean.setState(ScheduleState.RUNNING);
                     updateScheduleBean.setCurrent_session(currentSession + 1);
                     LOG.debug(
                             "Env {} has finished cooling down and will now start resume deploy by running session {}",
-                            envBean.getEnv_id(),
+                            envId,
                             currentSession + 1);
                 }
                 updateScheduleBean.setState_start_time(System.currentTimeMillis());
@@ -324,7 +322,7 @@ public class CommonHandler {
             scheduleDAO.update(updateScheduleBean, schedule.getId());
             LOG.debug(
                     "Env {} has finished running session {} and will now begin cooling down",
-                    envBean.getEnv_id(),
+                    envId,
                     currentSession);
         }
     }
@@ -563,5 +561,31 @@ public class CommonHandler {
             deployDAO.updateStateSafely(deployId, state.toString(), newPartialDeployBean);
             LOG.info("Updated deploy {} with deploy bean = {}.", deployId, newPartialDeployBean);
         }
+    }
+
+    /**
+     * Get the number of hosts in the current session.
+     *
+     * <p>Supports both percentage based and fixed host numbers.
+     */
+    public long getNumHostsInSession(int currentSession, String[] hostNumbersList, String envId)
+            throws Exception {
+
+        String currentHostNumber = hostNumbersList[currentSession - 1];
+        if (currentHostNumber.endsWith("%")) {
+            // The deploy schedule is using host percentage numbers
+            int totalHostsPct =
+                    Integer.parseInt(
+                            currentHostNumber.substring(0, currentHostNumber.length() - 1));
+            // Ensure to round up by adding 99 before dividing by 100
+            return (totalHostsPct * agentDAO.countAgentByEnv(envId) + 99) / 100;
+        }
+
+        // The deploy schedule is using fixed host numbers
+        long totalHosts = 0;
+        for (int i = 0; i < currentSession; i++) {
+            totalHosts += Integer.parseInt(hostNumbersList[i]);
+        }
+        return totalHosts;
     }
 }

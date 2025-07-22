@@ -151,7 +151,13 @@ public class CommonHandlerTest {
     }
 
     static Stream<Arguments> runningSchedules() {
-        return Stream.of(Arguments.of(0l, 6l, "1,2,3", 0), Arguments.of(1l, 6l, "1,2,3", 1));
+        return Stream.of(
+                Arguments.of(0l, 6l, "1,2,3", 0),
+                Arguments.of(1l, 6l, "1,2,3", 1),
+                Arguments.of(0l, 3l, "3%,20%,60%", 0),
+                Arguments.of(1l, 3l, "3%,20%,60%", 1),
+                Arguments.of(2l, 100l, "3%,20%,60%", 0),
+                Arguments.of(3l, 100l, "3%,20%,60%", 1));
     }
 
     @Test
