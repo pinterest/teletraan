@@ -169,6 +169,53 @@ public class DeployTagWorkerTest {
     }
 
     @Test
+    public void testTagsInSync_WhenDuplicateHostIds() throws Exception {
+        // Set up mock data
+        DeployConstraintBean deployConstraint = createDeployConstraintBean();
+        List<DeployConstraintBean> deployConstraints = new ArrayList<>();
+        deployConstraints.add(deployConstraint);
+
+        when(deployConstraintDAO.getAllActiveDeployConstraint()).thenReturn(deployConstraints);
+
+        when(utilDAO.getLock(eq(getDbLockId(deployConstraint.getConstraint_id()))))
+                .thenReturn(mock(Connection.class));
+
+        EnvironBean environ = createRandomEnvironBean();
+        when(environDAO.getEnvByDeployConstraintId(eq(deployConstraint.getConstraint_id())))
+                .thenReturn(environ);
+
+        Instant now = Instant.now();
+        HostBean host = createHostBean(now);
+        host.setHost_id(TEST_HOST_ID);
+        HostBean envoyHost = createHostBean(now);
+        envoyHost.setHost_id(host.getHost_id());
+        envoyHost.setGroup_name("envoy-prod");
+        List<HostBean> hosts = new ArrayList<>();
+        hosts.add(host);
+        hosts.add(envoyHost);
+        when(hostDAO.getHostsByEnvId(eq(environ.getEnv_id()))).thenReturn(hosts);
+
+        HostTagBean hostTag = createHostTagBean(now);
+        hostTag.setHost_id(TEST_HOST_ID);
+        List<HostTagBean> hostTags = new ArrayList<>();
+        hostTags.add(hostTag);
+        when(hostTagDAO.getAllByEnvIdAndTagName(
+                        eq(environ.getEnv_id()), eq(deployConstraint.getConstraint_key())))
+                .thenReturn(hostTags);
+
+        // Run the worker
+        deployTagWorker.run();
+
+        // Verify the result
+        assertErrorBudget(0, 0);
+
+        verify(deployConstraintDAO, times(1))
+                .updateById(
+                        eq(deployConstraint.getConstraint_id()),
+                        argThat(c -> TagSyncState.FINISHED == c.getState()));
+    }
+
+    @Test
     public void testNetworkExceptionHandled() throws Exception {
         // Set up mock data
         DeployConstraintBean deployConstraint = createDeployConstraintBean();
