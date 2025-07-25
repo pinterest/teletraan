@@ -26,8 +26,8 @@ import java.net.ConnectException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.TransformerUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -73,12 +73,11 @@ public class DeployTagWorker implements Runnable {
         Collection<HostBean> hostBeans = hostDAO.getHostsByEnvId(envId);
         Collection<HostTagBean> hostTagBeans = hostTagDAO.getAllByEnvIdAndTagName(envId, tagName);
 
-        Collection<String> envHostIds =
-                CollectionUtils.collect(
-                        hostBeans, TransformerUtils.invokerTransformer("getHost_id"));
-        Collection<String> envHostIdsWithHostTag =
-                CollectionUtils.collect(
-                        hostTagBeans, TransformerUtils.invokerTransformer("getHost_id"));
+        Set<String> envHostIds =
+                hostBeans.stream().map(HostBean::getHost_id).collect(Collectors.toSet());
+
+        Set<String> envHostIdsWithHostTag =
+                hostTagBeans.stream().map(HostTagBean::getHost_id).collect(Collectors.toSet());
 
         List<String> missings =
                 new ArrayList(CollectionUtils.subtract(envHostIds, envHostIdsWithHostTag));
