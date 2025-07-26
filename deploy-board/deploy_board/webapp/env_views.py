@@ -2266,7 +2266,6 @@ def get_deploy_schedule(request, name, stage):
         schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
     else:
         schedule = None
-    agent_number = agents_helper.get_agents_total_by_env(request, env["id"])
     return render(
         request,
         "deploys/deploy_schedule.html",
@@ -2274,7 +2273,6 @@ def get_deploy_schedule(request, name, stage):
             "envs": envs,
             "env": env,
             "schedule": schedule,
-            "agent_number": agent_number,
         },
     )
 

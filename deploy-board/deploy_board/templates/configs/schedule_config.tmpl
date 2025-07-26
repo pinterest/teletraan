@@ -27,7 +27,7 @@
                 Use Infinite Cooldown Periods
             </label>
             <h4>Sessions</h4>
-            <div>Note: All sessions will be able to be overidden during the deploy process</div>
+            <div>Note: All sessions will be able to be overidden during the deploy process. After the last session, all hosts can proceed</div>
             <br />
             <table id="sessionTable" class="table">
             <tr>
@@ -35,25 +35,6 @@
                 <th id="hostNumberTitle" class="col-md-3">Number of Hosts</th>
                 <th class="col-md-3">Cooldown Period</th>
                 <th class="col-md-4"></th>
-            </tr>
-            <tr>
-                <td><strong>Final</strong></td>
-                <td class="hostNumber">
-                     <div class="input-group">
-                        <input disabled type="text" class="form-control">
-                        <span id="finalHostNumberUnits" class="input-group-addon">hosts</span>
-                    </div>
-                        <div class="input-group">
-                    </div>
-                </td>
-                <td class="cooldownTime">
-                    <div class="input-group">
-                        <input disabled type="text" class="form-control">
-                        <span class="input-group-addon">minutes</span>
-                    </div>
-                </td>
-                <td class="text-right">
-                </td>
             </tr>
             </table>
             {% csrf_token %}
@@ -101,7 +82,7 @@
                 const cooldownTime = useInfiniteCooldownPeriods ? "Infinite" : timesArray[i - 1];
                 const cooldownInputDisabled = useInfiniteCooldownPeriods ? "disabled" : "";
                 const sessionHtml = buildSessionHtml(i, hostNumber, hostUnits, cooldownInputDisabled, cooldownTime);
-                $("#sessionTable tr:last").before(sessionHtml);
+                $("#sessionTable").append(sessionHtml);
                 totalAgentCount = totalAgentCount - numbersArray[i-1];
             }
 
@@ -140,7 +121,6 @@
             var n = parseInt($(this).val());
             if (!isNaN(n) && n % 1 === 0) { // if is number and is integer
                 totalAgentCount = totalAgentCount - parseInt($(this).val());
-                $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
             }
         }
     });
@@ -151,7 +131,7 @@
         const cooldownInputDisabled = $("#useInfiniteCooldownPeriods")[0].checked ? 'disabled' : "";
         const cooldownTime = $("#useInfiniteCooldownPeriods")[0].checked ? "Infinite" : "";
         const sessionHtml = buildSessionHtml(totalSessions, "", hostUnits, cooldownInputDisabled, cooldownTime);
-        $('#sessionTable tr:last').before(sessionHtml);
+        $('#sessionTable').append(sessionHtml);
     });
 
     $("#sessionTable").on("click", "#removeBtn", function () {
@@ -160,7 +140,6 @@
             if (!isNaN(n) && n % 1 === 0) {
                 totalAgentCount = totalAgentCount+n;
             }
-            $('#sessionTable tr:last').find('.hostNumber input').val(totalAgentCount)
         }
         $(this).closest('tr').remove();
         totalSessions = totalSessions-1;
@@ -190,7 +169,7 @@
         const useHostPercentages = $("#useHostPercentages")[0].checked;
         if (!useHostPercentages) {
             // check if number of hosts entered doesn't exceed max
-            if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) < 0) {
+            if (totalAgentCount < 0) {
                 $('#errorBannerId').text("Total number of hosts exceeds number of available hosts. Please reenter host numbers.");
                 $('#errorBannerId').show();
                 error = true;
@@ -199,7 +178,7 @@
         }
 
         // check for valid cooldown time input values
-        $("#sessionTable .cooldownTime input").not(":last").each(function() {
+        $("#sessionTable .cooldownTime input").each(function() {
             const inputVal = $(this).val();
             if (inputVal !== "Infinite" && isNaN(parseInt(inputVal))) {
                 $(this).closest('.input-group').addClass('has-error');
@@ -213,7 +192,7 @@
 
         // check for valid host number input values
         const hostNumbersArray = [];
-        $("#sessionTable .hostNumber input").not(":last").each(function() {
+        $("#sessionTable .hostNumber input").each(function() {
             const number = parseInt($(this).val());
             if (isNaN(number)) {
                 $(this).closest('.input-group').addClass('has-error');
@@ -250,7 +229,7 @@
         var hostNumbers= "";
 
         const useInfiniteCooldownPeriods = $("#useInfiniteCooldownPeriods")[0].checked;
-        $("#sessionTable tr").not(':first').not(':last').each(function() {
+        $("#sessionTable tr").not(':first').each(function() {
             var hostNumber = $(this).find(".hostNumber input").val();
             if (useHostPercentages) {
                 hostNumber += "%";
@@ -298,12 +277,8 @@
     function updateHostUnits(useHostPercentages) {
         if (useHostPercentages) {
           $("#hostNumberTitle").text("Percentage of Hosts");
-          $("#finalHostNumberUnits").text("% hosts");
-          $("#sessionTable tr:last").find('.hostNumber input').val(100);
         } else {
           $("#hostNumberTitle").text("Number of Hosts");
-          $("#finalHostNumberUnits").text("hosts");
-          $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
         }
     }
     // Build the html of a single session configuration row
@@ -331,7 +306,7 @@
     }
 
     function resetSchedule() {
-        $("#sessionTable tr").not(':first').not(':last').remove();
+        $("#sessionTable tr").not(':first').remove();
         totalSessions = 0;
         totalAgentCount = {{ agent_count }};
     }
