@@ -9,15 +9,10 @@
                 <th class="col-md-2">State</th>
                 <th class="col-md-2"></th>
             </tr>
-                <td class="sessionNumber"><strong>FINAL</strong></td>
-                <td class="hostNumber">
-                    <div>N/A</div>
-                </td>
-                <td class="cooldownTime">
-                    <div>N/A</div>
-                </td>
-                <td class="state"></td>
-                <td class="text-right">
+            <tr id="sessionsComplete" class="info" style="display:none;border-radius:25px">
+                <td colspan="4" style="padding:14px 8px">
+                    <i class="fa fa-check-circle color-green" style="margin-right:5px"></i>
+                    Deploy schedule is complete. All hosts can proceed
                 </td>
             </tr>
             </table>
@@ -28,7 +23,6 @@
 </div>
 
 <script type="text/javascript">
-    var finalHostNumber = {{ agent_number }};
      {% if schedule %}
         var cooldownTimes = "{{ schedule.cooldownTimes }}";
         var timesArray = cooldownTimes.split(",");
@@ -51,13 +45,10 @@
                 button = '<td class="text-right"><button id="overrideBtn" type="button" class="btn btn-danger">Override</button></td>';
             }
             $('#sessionTable tr:last').before('<tr id=session' + i +'><td class="sessionNumber" id=sessionNumber'+i+'><strong>'+i+'</strong></td><td class="hostNumber"><div>'+numbersArray[i-1]+' hosts</div></td><td class="cooldownTime"><div>'+getCooldownTimeDisplay(timesArray[i-1])+'</div></td><td class="state">'+state+'</td>'+button+'</tr>');
-            finalHostNumber = finalHostNumber - numbersArray[i-1];
         }
 
         if (scheduleState == "FINAL") {
-            $('#sessionTable tr:last').addClass("info");
-            $('#sessionTable tr:last').css('borderRadius', '25px');
-            $('#sessionTable tr:last .state').text("RUNNING");
+            $("#sessionsComplete")[0].style.display = "table-row";
         } else {
             if (scheduleState == "COOLING_DOWN" && timesArray[currentSession - 1] !== "-1") {
                 // calculates time left until next session
@@ -71,15 +62,8 @@
             }
             $("#session" + currentSession).addClass("info");
             $("#session" + currentSession).css('borderRadius', '3em');
-            $('#sessionTable tr:last .state').text("NOT STARTED");
         }
     {% endif %}
-
-    if (numbersArray.every(n => n.endsWith("%"))) {
-        $('#sessionTable tr:last').find('.hostNumber div').html("100% hosts");
-    } else {
-        $('#sessionTable tr:last').find('.hostNumber div').html(finalHostNumber + " hosts");
-    }
 
     $(document).on('click', '#overrideBtn', function () {
       var sessionNum = parseInt($(this).closest('tr').find('.sessionNumber strong').text());
