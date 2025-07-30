@@ -72,7 +72,7 @@ public class Schedules {
     @ResourceAuthZInfo(
             type = AuthZResource.Type.ENV_STAGE,
             idLocation = ResourceAuthZInfo.Location.PATH)
-    public void updateSchedule(
+    public ScheduleBean updateSchedule(
             @Context SecurityContext sc,
             @PathParam("envName") String envName,
             @PathParam("stageName") String stageName,
@@ -113,7 +113,9 @@ public class Schedules {
                         operator,
                         scheduleBean);
             }
-        } else if (scheduleId != null) { // there are no sessions, so delete the schedule
+            return scheduleBean;
+        }
+        if (scheduleId != null) { // there are no sessions, so delete the schedule
             scheduleDAO.delete(scheduleId);
             environDAO.deleteSchedule(envName, stageName);
             LOG.info(
@@ -122,6 +124,7 @@ public class Schedules {
                     stageName,
                     operator);
         }
+        return null;
     }
 
     @PUT
