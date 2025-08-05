@@ -38,6 +38,7 @@ class DeployPathExtractorTest extends BasePathExtractorTest {
     private EnvironDAO environDAO;
 
     @BeforeEach
+    @Override
     void setUp() {
         super.setUp();
         environDAO = mock(EnvironDAO.class);

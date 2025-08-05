@@ -31,6 +31,7 @@ class EnvStagePathExtractorTest extends BasePathExtractorTest {
     private static final String STAGE_NAME_KEY = "stageName";
 
     @BeforeEach
+    @Override
     void setUp() {
         super.setUp();
         sut = new EnvStagePathExtractor();
@@ -72,9 +73,8 @@ class EnvStagePathExtractorTest extends BasePathExtractorTest {
 
         AuthZResource resource = sut.extractResource(context);
         assertNotNull(resource);
-        assertTrue(resource.getName().contains("testEnv"));
-        assertTrue(resource.getName().contains("testStage"));
         assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
+        assertEquals("testEnv/testStage", resource.getName());
     }
 
     @Test
@@ -85,8 +85,7 @@ class EnvStagePathExtractorTest extends BasePathExtractorTest {
 
         AuthZResource resource = sut.extractResource(context);
         assertNotNull(resource);
-        assertTrue(resource.getName().contains("testEnv"));
-        assertTrue(resource.getName().contains("testStage"));
+        assertEquals("testEnv/testStage", resource.getName());
         assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
     }
 }

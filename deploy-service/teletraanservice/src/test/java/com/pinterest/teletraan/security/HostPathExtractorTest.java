@@ -39,6 +39,7 @@ class HostPathExtractorTest extends BasePathExtractorTest {
     private EnvironDAO hostDAO;
 
     @BeforeEach
+    @Override
     void setUp() {
         super.setUp();
         hostDAO = mock(EnvironDAO.class);
