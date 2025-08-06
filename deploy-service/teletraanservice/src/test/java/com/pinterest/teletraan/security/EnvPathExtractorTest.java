@@ -28,6 +28,7 @@ class EnvPathExtractorTest extends BasePathExtractorTest {
     private EnvPathExtractor sut;
 
     @BeforeEach
+    @Override
     void setUp() {
         super.setUp();
         sut = new EnvPathExtractor();

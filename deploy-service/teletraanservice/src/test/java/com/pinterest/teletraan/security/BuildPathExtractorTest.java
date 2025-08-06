@@ -38,6 +38,7 @@ class BuildPathExtractorTest extends BasePathExtractorTest {
     private BuildDAO buildDAO;
 
     @BeforeEach
+    @Override
     void setUp() {
         super.setUp();
         buildDAO = mock(BuildDAO.class);

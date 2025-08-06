@@ -38,6 +38,7 @@ class HotfixPathExtractorTest extends BasePathExtractorTest {
     private HotfixDAO hotfixDAO;
 
     @BeforeEach
+    @Override
     void setUp() {
         super.setUp();
         hotfixDAO = mock(HotfixDAO.class);

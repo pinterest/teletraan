@@ -31,6 +31,7 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import io.micrometer.core.annotation.Counted;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -162,6 +163,7 @@ public class EnvStages {
     @ApiOperation(value = "Update an environment/stage's isSox flag")
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.SOX_PROPERTY, idLocation = Location.PATH)
+    @Counted
     public void updateIsSox(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")
