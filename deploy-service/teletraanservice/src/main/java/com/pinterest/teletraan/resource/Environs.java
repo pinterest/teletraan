@@ -164,7 +164,7 @@ public class Environs {
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY)
-    public Response create( // ava 1.0.0.0.0.0.0
+    public Response create(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
             @ApiParam(value = "Environment object to create in database", required = true) @Valid
