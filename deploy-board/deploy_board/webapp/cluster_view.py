@@ -1234,7 +1234,7 @@ def clone_cluster(request, src_name, src_stage):
         dest_stage_type = src_env["stageType"]
         build_name = src_env.get("buildName", None)
         external_id, project_name = (
-            environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.3
+            environs_helper.create_identifier_for_new_stage(
                 request, dest_name, dest_stage
             )
         )

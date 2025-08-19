@@ -486,7 +486,7 @@ class EnvLandingView(View):
             try:
                 existing_stage_identifier = environs_helper.get_nimbus_identifier(
                     request,
-                    stage_with_external_id["externalId"],  # ava 0.0.0
+                    stage_with_external_id["externalId"],
                 )
                 project_name_is_default = (
                     True
@@ -1301,11 +1301,11 @@ def post_create_env(request):
     if clone_env_name and clone_stage_name:
         try:
             external_id, project_name = (
-                environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.0
+                environs_helper.create_identifier_for_new_stage(
                     request, env_name, stage_name
                 )
             )
-            common.clone_from_stage_name(  # ava ??
+            common.clone_from_stage_name(
                 request,
                 env_name,
                 stage_name,
@@ -1386,11 +1386,11 @@ def post_add_stage(request, name):
     if from_stage:
         try:
             external_id, project_name = (
-                environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.1
+                environs_helper.create_identifier_for_new_stage(
                     request, name, stage
                 )
             )
-            common.clone_from_stage_name(  # ava ??
+            common.clone_from_stage_name(
                 request,
                 name,
                 stage,
@@ -1417,11 +1417,11 @@ def post_add_stage(request, name):
     else:
         try:
             external_id, project_name = (
-                environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.2
+                environs_helper.create_identifier_for_new_stage(
                     request, name, stage
                 )
             )
-            common.create_simple_stage(  # ava ??
+            common.create_simple_stage(
                 request, name, stage, stage_type, description, external_id, project_name
             )
         except TeletraanException as detail:
