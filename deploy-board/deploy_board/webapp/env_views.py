@@ -485,7 +485,7 @@ class EnvLandingView(View):
         ):
             try:
                 existing_stage_identifier = environs_helper.get_nimbus_identifier(
-                    request, stage_with_external_id["externalId"]
+                    request, stage_with_external_id["externalId"] # ava 0.0.0
                 )
                 project_name_is_default = (
                     True
@@ -1296,13 +1296,14 @@ def post_create_env(request):
     clone_stage_name = data.get("clone_stage_name")
     description = data.get("description")
     external_id = None
+    project_name = None
 
     if clone_env_name and clone_stage_name:
         try:
-            external_id = environs_helper.create_identifier_for_new_stage(
+            (external_id, project_name) = environs_helper.create_identifier_for_new_stage( # ava 1.0.0.0
                 request, env_name, stage_name
             )
-            common.clone_from_stage_name(
+            common.clone_from_stage_name( # ava ??
                 request,
                 env_name,
                 stage_name,
@@ -1311,6 +1312,7 @@ def post_create_env(request):
                 stage_type,
                 description,
                 external_id,
+                project_name
             )
         except TeletraanException as detail:
             message = "Failed to create identifier for {}/{}: {}".format(
@@ -1381,10 +1383,10 @@ def post_add_stage(request, name):
     external_id = None
     if from_stage:
         try:
-            external_id = environs_helper.create_identifier_for_new_stage(
+            (external_id, project_name) = environs_helper.create_identifier_for_new_stage( # ava 1.0.0.1
                 request, name, stage
             )
-            common.clone_from_stage_name(
+            common.clone_from_stage_name( # ava ??
                 request,
                 name,
                 stage,
@@ -1393,6 +1395,7 @@ def post_add_stage(request, name):
                 stage_type,
                 description,
                 external_id,
+                project_name
             )
         except TeletraanException as detail:
             message = "Failed to create stage {}/{}: {}".format(name, stage, detail)
@@ -1409,11 +1412,11 @@ def post_add_stage(request, name):
                     messages.add_message(request, messages.ERROR, message)
     else:
         try:
-            external_id = environs_helper.create_identifier_for_new_stage(
+            (external_id, project_name) = environs_helper.create_identifier_for_new_stage( # ava 1.0.0.2
                 request, name, stage
             )
-            common.create_simple_stage(
-                request, name, stage, stage_type, description, external_id
+            common.create_simple_stage( # ava ??
+                request, name, stage, stage_type, description, external_id, project_name
             )
         except TeletraanException as detail:
             message = "Failed to create stage {}, Error Message: {}".format(

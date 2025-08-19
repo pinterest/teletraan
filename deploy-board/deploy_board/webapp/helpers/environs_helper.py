@@ -123,7 +123,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
 
     # retrieve Nimbus identifier for existing_stage
     existing_stage_identifier = get_nimbus_identifier(
-        request, stage_with_external_id["externalId"]
+        request, stage_with_external_id["externalId"] # ava 0.0.1
     )
     # create Nimbus Identifier for the new stage
     new_stage_identifier = None
@@ -131,19 +131,19 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
         nimbus_request_data = existing_stage_identifier.copy()
         nimbus_request_data["stage_name"] = stage_name
         nimbus_request_data["env_name"] = env_name
-        new_stage_identifier = create_nimbus_identifier(request, nimbus_request_data)
+        new_stage_identifier = create_nimbus_identifier(request, nimbus_request_data) # ava 1.0.0
 
     # if there is no stage in this env with externalId, still create the new stage
     if new_stage_identifier is None:
         return None
-    return new_stage_identifier.get("uuid")
+    return (new_stage_identifier.get("uuid"), new_stage_identifier.get("projectName"))
 
 
-def get_nimbus_identifier(request, name):
+def get_nimbus_identifier(request, name): # ava 0.0
     return nimbusclient.get_one_identifier(name, token=request.teletraan_user_id.token)
 
 
-def create_nimbus_identifier(request, data):
+def create_nimbus_identifier(request, data): # ava 1.0
     return nimbusclient.create_one_identifier(
         data, token=request.teletraan_user_id.token
     )
@@ -256,7 +256,7 @@ def remove_env_capacity(request, env_name, stage_name, capacity_type=None, data=
     )
 
 
-def create_env(request, data):
+def create_env(request, data): # ava 1.0.0.0.0.0
     return deployclient.post("/envs", request.teletraan_user_id.token, data=data)
 
 
