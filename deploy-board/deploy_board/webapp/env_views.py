@@ -1399,7 +1399,7 @@ def post_add_stage(request, name):
                 stage_type,
                 description,
                 external_id,
-                project_name
+                project_name,
             )
         except TeletraanException as detail:
             message = "Failed to create stage {}/{}: {}".format(name, stage, detail)
