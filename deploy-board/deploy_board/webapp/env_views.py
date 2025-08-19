@@ -1385,8 +1385,10 @@ def post_add_stage(request, name):
     external_id = None
     if from_stage:
         try:
-            external_id, project_name = environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.1
-                request, name, stage
+            external_id, project_name = (
+                environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.1
+                    request, name, stage
+                )
             )
             common.clone_from_stage_name(  # ava ??
                 request,
