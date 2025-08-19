@@ -156,6 +156,9 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
     @JsonProperty("terminationLimit")
     private Integer termination_limit;
 
+    @JsonProperty("projectName")
+    private String external_project_name;
+
     public void validate() throws IllegalArgumentException {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         String envRegEx = "^[A-Za-z0-9_\\-]*$";
@@ -536,6 +539,14 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
         this.termination_limit = termination_limit;
     }
 
+    public String getExternal_project_name() {
+        return external_project_name;
+    }
+
+    public void setExternal_project_name(String external_project_name) {
+        this.external_project_name = external_project_name;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -582,6 +593,7 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
         clause.addColumn("stage_type", stage_type);
         clause.addColumn("is_sox", is_sox);
         clause.addColumn("termination_limit", termination_limit);
+        clause.addColumn("external_project_name", external_project_name);
         return clause;
     }
 

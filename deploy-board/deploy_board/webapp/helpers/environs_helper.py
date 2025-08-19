@@ -106,7 +106,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
     """
     # Only create identifier for Pinterest environments
     if not IS_PINTEREST:
-        return None
+        return None, None
 
     # get all stages within this environment
     all_env_stages = get_all_env_stages(request, env_name)
@@ -119,11 +119,12 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
             break
 
     if stage_with_external_id is None:
-        return None
+        return None, None
 
     # retrieve Nimbus identifier for existing_stage
     existing_stage_identifier = get_nimbus_identifier(
-        request, stage_with_external_id["externalId"]
+        request,
+        stage_with_external_id["externalId"],
     )
     # create Nimbus Identifier for the new stage
     new_stage_identifier = None
@@ -135,8 +136,8 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
 
     # if there is no stage in this env with externalId, still create the new stage
     if new_stage_identifier is None:
-        return None
-    return new_stage_identifier.get("uuid")
+        return None, None
+    return new_stage_identifier.get("uuid"), new_stage_identifier.get("projectName")
 
 
 def get_nimbus_identifier(request, name):

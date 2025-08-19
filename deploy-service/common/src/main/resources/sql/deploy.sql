@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS environs (
     external_id          CHAR(36),
     allow_private_build TINYINT(1)    NOT NULL DEFAULT 0,
     ensure_trusted_build TINYINT(1)    NOT NULL DEFAULT 0,
+    external_project_name VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY   (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);

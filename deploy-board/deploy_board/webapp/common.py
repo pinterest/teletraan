@@ -182,6 +182,7 @@ def clone_from_stage_name(
     stage_type,
     description,
     external_id,
+    project_name,
 ):
     from_stage = environs_helper.get_env_by_stage(
         request, from_env_name, from_stage_name
@@ -226,6 +227,7 @@ def clone_from_stage_name(
     new_data["overridePolicy"] = from_stage["overridePolicy"]
     new_data["stageType"] = stage_type
     new_data["externalId"] = external_id
+    new_data["projectName"] = project_name
 
     new_stage = environs_helper.create_env(request, new_data)
 
@@ -259,7 +261,7 @@ def clone_from_stage_name(
 
 
 def create_simple_stage(
-    request, env_name, stage_name, stage_type, description, external_id
+    request, env_name, stage_name, stage_type, description, external_id, project_name
 ):
     """Create a new stage that does not require cloning an existing stage. Here, "simple" means that it does not require cloning."""
     data = {}
@@ -268,6 +270,7 @@ def create_simple_stage(
     data["description"] = description
     data["externalId"] = external_id
     data["stageType"] = stage_type
+    data["projectName"] = project_name
     return environs_helper.create_env(request, data)
 
 

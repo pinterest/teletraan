@@ -1233,7 +1233,7 @@ def clone_cluster(request, src_name, src_stage):
         src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
         dest_stage_type = src_env["stageType"]
         build_name = src_env.get("buildName", None)
-        external_id = environs_helper.create_identifier_for_new_stage(
+        external_id, project_name = environs_helper.create_identifier_for_new_stage(
             request, dest_name, dest_stage
         )
 
@@ -1246,6 +1246,7 @@ def clone_cluster(request, src_name, src_stage):
                 "buildName": build_name,
                 "externalId": external_id,
                 "stageType": dest_stage_type,
+                "projectName": project_name,
             },
         )
         log.info("clone_cluster, created a new env %s" % dest_env)
