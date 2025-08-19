@@ -156,7 +156,7 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
     @JsonProperty("terminationLimit")
     private Integer termination_limit;
 
-    @JsonProperty("externalProjectName")
+    @JsonProperty("projectName")
     private String external_project_name;
 
     public void validate() throws IllegalArgumentException {
