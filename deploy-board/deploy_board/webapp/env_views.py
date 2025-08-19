@@ -1300,10 +1300,8 @@ def post_create_env(request):
 
     if clone_env_name and clone_stage_name:
         try:
-            external_id, project_name = (
-                environs_helper.create_identifier_for_new_stage(
-                    request, env_name, stage_name
-                )
+            external_id, project_name = environs_helper.create_identifier_for_new_stage(
+                request, env_name, stage_name
             )
             common.clone_from_stage_name(
                 request,
@@ -1385,10 +1383,8 @@ def post_add_stage(request, name):
     external_id = None
     if from_stage:
         try:
-            external_id, project_name = (
-                environs_helper.create_identifier_for_new_stage(
-                    request, name, stage
-                )
+            external_id, project_name = environs_helper.create_identifier_for_new_stage(
+                request, name, stage
             )
             common.clone_from_stage_name(
                 request,
@@ -1416,10 +1412,8 @@ def post_add_stage(request, name):
                     messages.add_message(request, messages.ERROR, message)
     else:
         try:
-            external_id, project_name = (
-                environs_helper.create_identifier_for_new_stage(
-                    request, name, stage
-                )
+            external_id, project_name = environs_helper.create_identifier_for_new_stage(
+                request, name, stage
             )
             common.create_simple_stage(
                 request, name, stage, stage_type, description, external_id, project_name

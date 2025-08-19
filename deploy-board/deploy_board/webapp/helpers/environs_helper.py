@@ -132,9 +132,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
         nimbus_request_data = existing_stage_identifier.copy()
         nimbus_request_data["stage_name"] = stage_name
         nimbus_request_data["env_name"] = env_name
-        new_stage_identifier = create_nimbus_identifier(
-            request, nimbus_request_data
-        )
+        new_stage_identifier = create_nimbus_identifier(request, nimbus_request_data)
 
     # if there is no stage in this env with externalId, still create the new stage
     if new_stage_identifier is None:
