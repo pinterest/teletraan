@@ -1300,8 +1300,10 @@ def post_create_env(request):
 
     if clone_env_name and clone_stage_name:
         try:
-            external_id, project_name = environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.0
-                request, env_name, stage_name
+            external_id, project_name = (
+                environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.0
+                    request, env_name, stage_name
+                )
             )
             common.clone_from_stage_name(  # ava ??
                 request,
@@ -1412,8 +1414,10 @@ def post_add_stage(request, name):
                     messages.add_message(request, messages.ERROR, message)
     else:
         try:
-            external_id, project_name = environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.2
-                request, name, stage
+            external_id, project_name = (
+                environs_helper.create_identifier_for_new_stage(  # ava 1.0.0.2
+                    request, name, stage
+                )
             )
             common.create_simple_stage(  # ava ??
                 request, name, stage, stage_type, description, external_id, project_name
