@@ -48,7 +48,7 @@ class NimbusClient(object):
 
         return None
 
-    def get_one_identifier(self, name, token=None): # ava 0
+    def get_one_identifier(self, name, token=None):  # ava 0
         service_url = NIMBUS_EGRESS_URL if NIMBUS_USE_EGRESS else NIMBUS_SERVICE_URL
 
         headers = {}
@@ -73,7 +73,7 @@ class NimbusClient(object):
         Create a Nimbus Identifier according to the input request data.
         If the request data does not have all the information needed for creating a Nimbus identifier, this method will raise a Teletraan Exception.
         """
-        requiredParams = ["projectName", "env_name", "stage_name"] # ava 1
+        requiredParams = ["projectName", "env_name", "stage_name"]  # ava 1
         for param in requiredParams:
             if data.get(param) is None or len(data.get(param)) == 0:
                 log.error(

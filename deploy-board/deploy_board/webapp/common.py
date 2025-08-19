@@ -229,7 +229,7 @@ def clone_from_stage_name(
     new_data["externalId"] = external_id
     new_data["projectName"] = project_name
 
-    new_stage = environs_helper.create_env(request, new_data) # ava 1.0.0.0.0
+    new_stage = environs_helper.create_env(request, new_data)  # ava 1.0.0.0.0
 
     # now clone all the extra configs
     if agent_configs:
@@ -260,7 +260,7 @@ def clone_from_stage_name(
     return new_stage
 
 
-def create_simple_stage( # ava 1.0.0.2.0
+def create_simple_stage(  # ava 1.0.0.2.0
     request, env_name, stage_name, stage_type, description, external_id, project_name
 ):
     """Create a new stage that does not require cloning an existing stage. Here, "simple" means that it does not require cloning."""
