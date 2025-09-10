@@ -30,45 +30,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
-@Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\\\-_]+}/{clusterName : [a-zA-Z0-9\\\\-_]+}/infras")
+@Path(
+        "/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\\\-_]+}/{clusterName : [a-zA-Z0-9\\\\-_]+}/infras")
 @Api(tags = "Infras")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvInfras {
 
-  private static final Logger LOG = LoggerFactory.getLogger(EnvInfras.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EnvInfras.class);
 
-  @POST
-  @Timed
-  @ExceptionMetered
-  @ApiOperation(
-      value = "Apply infrastructure configurations",
-      notes =
-          "Apply infrastructure configurations given an environment name, stage name, cluster name, and configurations",
-      response = Response.class)
-  @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
-  @ResourceAuthZInfo(
-      type = AuthZResource.Type.ENV_STAGE,
-      idLocation = ResourceAuthZInfo.Location.PATH)
-  public Response create(
-      @Context SecurityContext sc,
-      @Context UriInfo uriInfo,
-      @ApiParam(value = "Environment name", required = true) @PathParam("envName")
-      String envName,
-      @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-      String stageName,
-      @ApiParam(value = "Cluster name", required = true) @PathParam("clusterName")
-      String clusterName)
-      throws Exception {
-    String operator = sc.getUserPrincipal().getName();
+    @POST
+    @Timed
+    @ExceptionMetered
+    @ApiOperation(
+            value = "Apply infrastructure configurations",
+            notes =
+                    "Apply infrastructure configurations given an environment name, stage name, cluster name, and configurations",
+            response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.ENV_STAGE,
+            idLocation = ResourceAuthZInfo.Location.PATH)
+    public Response create(
+            @Context SecurityContext sc,
+            @Context UriInfo uriInfo,
+            @ApiParam(value = "Environment name", required = true) @PathParam("envName")
+                    String envName,
+            @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
+                    String stageName,
+            @ApiParam(value = "Cluster name", required = true) @PathParam("clusterName")
+                    String clusterName)
+            throws Exception {
+        String operator = sc.getUserPrincipal().getName();
 
-    LOG.info(
-        "No-op endpoint for infra called. envName: {}, stageName: {}, clusterName: {}, operator: {}",
-        envName,
-        stageName,
-        clusterName,
-        operator);
+        LOG.info(
+                "No-op endpoint for infra called. envName: {}, stageName: {}, clusterName: {}, operator: {}",
+                envName,
+                stageName,
+                clusterName,
+                operator);
 
-    return Response.status(200).build();
-  }
+        return Response.status(200).build();
+    }
 }
