@@ -64,7 +64,7 @@ public class EnvInfras {
         String operator = sc.getUserPrincipal().getName();
 
         LOG.info(
-                "No-op endpoint for infra called. envName: {}, stageName: {}, clusterName: {}, operator: {}",
+                "No-op endpoint for allying infra configurations was called. envName: {}, stageName: {}, clusterName: {}, operator: {}",
                 envName,
                 stageName,
                 clusterName,
