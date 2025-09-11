@@ -17,7 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
-import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.bean.InfraBean;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
@@ -51,7 +51,7 @@ public class EnvInfras {
     @ResourceAuthZInfo(
             type = AuthZResource.Type.ENV_STAGE,
             idLocation = ResourceAuthZInfo.Location.PATH)
-    public Response create(
+    public Response apply(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")
@@ -59,16 +59,18 @@ public class EnvInfras {
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
                     String stageName,
             @ApiParam(value = "Cluster name", required = true) @PathParam("clusterName")
-                    String clusterName)
+                    String clusterName,
+            @Valid InfraBean bean)
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
 
         LOG.info(
-                "No-op endpoint for allying infra configurations was called. envName: {}, stageName: {}, clusterName: {}, operator: {}",
+                "No-op endpoint for allying infra configurations was called. envName: {}, stageName: {}, clusterName: {}, operator: {}, accountId: {}",
                 envName,
                 stageName,
                 clusterName,
-                operator);
+                operator,
+                bean.getAccountId());
 
         return Response.status(200).build();
     }
