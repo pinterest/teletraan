@@ -66,7 +66,6 @@ import com.pinterest.teletraan.worker.DeployTagWorker;
 import com.pinterest.teletraan.worker.HostTerminator;
 import com.pinterest.teletraan.worker.HotfixStateTransitioner;
 import com.pinterest.teletraan.worker.MetricsEmitter;
-import com.pinterest.teletraan.worker.SimpleAgentJanitor;
 import com.pinterest.teletraan.worker.StateTransitioner;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
@@ -325,25 +324,6 @@ public class ConfigHelper {
                 Runnable worker = new HotfixStateTransitioner(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled HotfixStateTransitioner.");
-            }
-
-            if (workerName.equalsIgnoreCase(SimpleAgentJanitor.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int minStaleHostThreshold =
-                        MapUtils.getIntValue(
-                                properties,
-                                "minStaleHostThreshold",
-                                DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
-                int maxStaleHostThreshold =
-                        MapUtils.getIntValue(
-                                properties,
-                                "maxStaleHostThreshold",
-                                DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
-                Runnable worker =
-                        new SimpleAgentJanitor(
-                                serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
-                LOG.info("Scheduled SimpleAgentJanitor.");
             }
 
             if (workerName.equalsIgnoreCase(AgentJanitor.class.getSimpleName())) {
