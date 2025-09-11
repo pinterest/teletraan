@@ -17,7 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
-import com.pinterest.deployservice.bean.InfraBean;
+import com.pinterest.deployservice.bean.*;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
