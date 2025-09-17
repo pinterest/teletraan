@@ -18,7 +18,16 @@ package com.pinterest.deployservice.bean;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 public class InfraBean {
+    private String clusterName;
     private String accountId;
+
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    public void setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+    }
 
     public String getAccountId() {
         return accountId;
