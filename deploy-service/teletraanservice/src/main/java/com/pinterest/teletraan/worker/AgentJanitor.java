@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright (c) 2016-2025 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
+import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.handler.HostHandler;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
@@ -43,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>If a host doesn't have any agent for a while, we will handle the host accordingly.
  */
-public class AgentJanitor extends SimpleAgentJanitor {
+public class AgentJanitor implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
     private final RodimusManager rodimusManager;
     private final long maxLaunchLatencyThreshold;
@@ -54,14 +60,25 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private final Counter errorBudgetSuccess;
     private final Counter errorBudgetFailure;
     private long janitorStartTime;
+    private final AgentDAO agentDAO;
+    private final HostDAO hostDAO;
+    private final HostAgentDAO hostAgentDAO;
+    private final HostHandler hostHandler;
+    private final long maxStaleHostThreshold;
+    private final long minStaleHostThreshold;
 
     public AgentJanitor(
             ServiceContext serviceContext,
             int minStaleHostThresholdSeconds,
             int maxStaleHostThresholdSeconds,
             int maxLaunchLatencyThresholdSeconds) {
-        super(serviceContext, minStaleHostThresholdSeconds, maxStaleHostThresholdSeconds);
+        agentDAO = serviceContext.getAgentDAO();
+        hostDAO = serviceContext.getHostDAO();
+        hostAgentDAO = serviceContext.getHostAgentDAO();
         rodimusManager = serviceContext.getRodimusManager();
+        hostHandler = new HostHandler(serviceContext);
+        this.maxStaleHostThreshold = maxStaleHostThresholdSeconds * 1000;
+        this.minStaleHostThreshold = minStaleHostThresholdSeconds * 1000;
         maxLaunchLatencyThreshold = TimeUnit.SECONDS.toMillis(maxLaunchLatencyThresholdSeconds);
         unreachableHostsCount = Metrics.gauge("unreachable_hosts", new AtomicInteger(0));
         staleHostsCount = Metrics.gauge("stale_hosts", new AtomicInteger(0));
@@ -72,7 +89,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
-    @Override
     void processAllHosts() {
         janitorStartTime = System.currentTimeMillis();
         processStaleHosts();
@@ -278,6 +294,35 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 LOG.warn("Agentless host {} is stale but might be running", hostId);
                 errorBudgetSuccess.increment();
             }
+        }
+    }
+
+    // remove the stale host from db
+    void removeStaleHost(String id) {
+        LOG.info("Delete records of stale host {}", id);
+        hostHandler.removeHost(id);
+    }
+
+    void markUnreachableHost(String id) {
+        try {
+            // mark the agent as unreachable
+            AgentBean updateBean = new AgentBean();
+            updateBean.setState(AgentState.UNREACHABLE);
+            agentDAO.updateAgentById(id, updateBean);
+            LOG.info("Marked agent {} as UNREACHABLE.", id);
+        } catch (Exception e) {
+            LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            LOG.info("Start agent janitor process...");
+            processAllHosts();
+        } catch (Throwable t) {
+            // Catch all throwable so that subsequent job not suppressed
+            LOG.error("AgentJanitor Failed.", t);
         }
     }
 }
