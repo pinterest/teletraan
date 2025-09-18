@@ -253,6 +253,7 @@ public class AgentJanitor implements Runnable {
             } else {
                 HostAgentBean hostAgent = staleHostMap.get(staleId);
                 if (isHostStale(hostAgent)) {
+                    markUnreachableHost(staleId);
                     LOG.warn(
                             "{}:{} is stale (not Pinging Teletraan), but might be running.",
                             hostAgent.getAuto_scaling_group(),
