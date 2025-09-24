@@ -36,6 +36,13 @@ public class PrincipalNameInjector implements ContainerResponseFilter {
                 && requestContext.getSecurityContext().getUserPrincipal() != null) {
             requestContext.setProperty(
                     "name", requestContext.getSecurityContext().getUserPrincipal().getName());
+            requestContext.setProperty(
+                    "type",
+                    requestContext
+                            .getSecurityContext()
+                            .getUserPrincipal()
+                            .getClass()
+                            .getSimpleName());
         }
     }
 }
