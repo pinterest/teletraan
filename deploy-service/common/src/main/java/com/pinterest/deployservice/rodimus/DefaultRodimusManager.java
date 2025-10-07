@@ -15,6 +15,8 @@
  */
 package com.pinterest.deployservice.rodimus;
 
+import com.pinterest.deployservice.bean.RodimusClusterBody;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,5 +46,10 @@ public class DefaultRodimusManager implements RodimusManager {
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds)
             throws Exception {
         return new HashMap<>();
+    }
+
+    @Override
+    public RodimusClusterBody getCluster(String clusterName) throws Exception {
+        return null;
     }
 }
