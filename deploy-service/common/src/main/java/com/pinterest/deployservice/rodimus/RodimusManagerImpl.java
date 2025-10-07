@@ -22,6 +22,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
+import com.pinterest.deployservice.bean.RodimusClusterBody;
 import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
 import com.pinterest.teletraan.universal.http.HttpClient;
@@ -29,6 +30,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,5 +161,13 @@ public class RodimusManagerImpl implements RodimusManager {
         String res = httpClient.post(url, gson.toJson(hostIds), null);
 
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>() {}.getType());
+    }
+
+    @Override
+    public RodimusClusterBody getCluster(String clusterName) throws Exception {
+      String url = String.format("%s/v1/clusters/%s", rodimusUrl, clusterName);
+      String res = httpClient.get(url, null, null);
+
+      return gson.fromJson(res, RodimusClusterBody.class);
     }
 }

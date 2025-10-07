@@ -18,6 +18,9 @@ package com.pinterest.teletraan.resource;
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.handler.InfraConfigHandler;
+import com.pinterest.deployservice.handler.PingHandler;
+import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
@@ -38,6 +41,11 @@ import org.slf4j.LoggerFactory;
 public class EnvInfras {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvInfras.class);
+    private final InfraConfigHandler infraConfigHandler;
+
+    public EnvInfras(@Context TeletraanServiceContext context) {
+      infraConfigHandler = new InfraConfigHandler(context);
+    }
 
     @POST
     @Timed
@@ -69,7 +77,7 @@ public class EnvInfras {
                 operator,
                 bean.getClusterName(),
                 bean.getAccountId());
-
+        infraConfigHandler.test(bean.getClusterName());
         return Response.status(200).build();
     }
 }

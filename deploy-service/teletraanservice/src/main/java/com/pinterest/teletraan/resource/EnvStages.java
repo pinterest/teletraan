@@ -82,7 +82,7 @@ public class EnvStages {
         tagHandler = new EnvTagHandler(context);
     }
 
-    @GET
+    @GET // tel 0.0
     @ApiOperation(
             value = "Get an environment",
             notes = "Returns an environment object given environment and stage names",
@@ -96,7 +96,7 @@ public class EnvStages {
         return Utils.getEnvStage(environDAO, envName, stageName);
     }
 
-    @PUT
+    @PUT // tel 1.0
     @ApiOperation(
             value = "Update an environment",
             notes =
@@ -193,7 +193,7 @@ public class EnvStages {
                 operator);
     }
 
-    @DELETE
+    @DELETE // tel 4.0
     @ApiOperation(
             value = "Delete an environment",
             notes = "Deletes an environment given a environment and stage names")

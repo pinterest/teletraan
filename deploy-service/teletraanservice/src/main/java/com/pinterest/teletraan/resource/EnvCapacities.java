@@ -143,7 +143,7 @@ public class EnvCapacities {
                 operator);
     }
 
-    @POST
+    @POST // tel 2.0
     @ApiOperation(
             value = "Create the capacities for Group and hosts",
             notes = "Create the capacities for Group and hosts")

@@ -15,6 +15,8 @@
  */
 package com.pinterest.deployservice.rodimus;
 
+import com.pinterest.deployservice.bean.RodimusClusterBody;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -30,4 +32,6 @@ public interface RodimusManager {
     Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception;
 
     Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception;
+
+    RodimusClusterBody getCluster(String clusterName) throws Exception;
 }
