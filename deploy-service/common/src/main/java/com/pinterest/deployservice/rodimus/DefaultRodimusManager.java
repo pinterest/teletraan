@@ -48,9 +48,17 @@ public class DefaultRodimusManager implements RodimusManager {
     }
 
     @Override
+    public void createCluster(
+            String clusterName, String envName, String stageName, RodimusCluster rodimusCluster)
+            throws Exception {}
+
+    @Override
     public RodimusCluster getCluster(String clusterName) throws Exception {
         return null;
     }
+
+    @Override
+    public void updateCluster(String clusterName, RodimusCluster rodimusCluster) throws Exception {}
 
     @Override
     public RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName)

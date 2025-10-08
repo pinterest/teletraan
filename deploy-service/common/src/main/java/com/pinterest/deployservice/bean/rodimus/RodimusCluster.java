@@ -49,7 +49,7 @@ public class RodimusCluster {
     private long replacementTimeout;
 }
 /*
-RodimusClusterBody(
+RodimusCluster(
   clusterName = "deploy_board-dev2",
   cellName = "aws-us-east-1",
   archName = "x86_64",

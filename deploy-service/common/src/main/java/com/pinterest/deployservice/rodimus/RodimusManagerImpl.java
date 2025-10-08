@@ -164,11 +164,27 @@ public class RodimusManagerImpl implements RodimusManager {
     }
 
     @Override
+    public void createCluster(
+            String clusterName, String envName, String stageName, RodimusCluster rodimusCluster)
+            throws Exception {
+        String url =
+                String.format(
+                        "%s/v1/clusters/%s/%s/%s", rodimusUrl, clusterName, envName, stageName);
+        httpClient.post(url, gson.toJson(rodimusCluster), null);
+    }
+
+    @Override
     public RodimusCluster getCluster(String clusterName) throws Exception {
         String url = String.format("%s/v1/clusters/%s", rodimusUrl, clusterName);
         String res = httpClient.get(url, null, null);
 
         return gson.fromJson(res, RodimusCluster.class);
+    }
+
+    @Override
+    public void updateCluster(String clusterName, RodimusCluster rodimusCluster) throws Exception {
+        String url = String.format("%s/v1/clusters/%s", rodimusUrl, clusterName);
+        httpClient.put(url, gson.toJson(rodimusCluster), null);
     }
 
     @Override

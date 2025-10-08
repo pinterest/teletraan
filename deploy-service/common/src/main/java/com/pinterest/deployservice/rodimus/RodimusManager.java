@@ -36,7 +36,13 @@ public interface RodimusManager {
 
     Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception;
 
+    void createCluster(
+            String clusterName, String envName, String stageName, RodimusCluster rodimusCluster)
+            throws Exception;
+
     RodimusCluster getCluster(String clusterName) throws Exception;
+
+    void updateCluster(String clusterName, RodimusCluster rodimusCluster) throws Exception;
 
     RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName) throws Exception;
 
