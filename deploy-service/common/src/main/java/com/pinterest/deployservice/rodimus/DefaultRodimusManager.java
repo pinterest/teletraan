@@ -15,8 +15,8 @@
  */
 package com.pinterest.deployservice.rodimus;
 
-import com.pinterest.deployservice.bean.RodimusClusterBody;
-
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusCluster;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,7 +49,13 @@ public class DefaultRodimusManager implements RodimusManager {
     }
 
     @Override
-    public RodimusClusterBody getCluster(String clusterName) throws Exception {
+    public RodimusCluster getCluster(String clusterName) throws Exception {
+        return null;
+    }
+
+    @Override
+    public RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName)
+            throws Exception {
         return null;
     }
 }

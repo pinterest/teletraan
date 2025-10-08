@@ -15,12 +15,11 @@
  */
 package com.pinterest.deployservice.bean;
 
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.List;
-import java.util.Map;
 
 @Setter
 @Getter
@@ -134,22 +133,22 @@ alarms:
 @Setter
 @Getter
 class AutoScalingAlarm {
-  private AutoScalingAlarmComparisonOperator comparisonOperator;
-  private Integer evaluationPeriod;
-  private Boolean fromAwsMetric;
-  private String metric;
-  private Double threshold;
-  private AutoScalingAlarmType type;
+    private AutoScalingAlarmComparisonOperator comparisonOperator;
+    private Integer evaluationPeriod;
+    private Boolean fromAwsMetric;
+    private String metric;
+    private Double threshold;
+    private AutoScalingAlarmType type;
 }
 
 enum AutoScalingAlarmComparisonOperator {
-  LessThanThreshold,
-  LessThanOrEqualToThreshold,
-  GreaterThanThreshold,
-  GreaterThanOrEqualToThreshold
+    LessThanThreshold,
+    LessThanOrEqualToThreshold,
+    GreaterThanThreshold,
+    GreaterThanOrEqualToThreshold
 }
 
 enum AutoScalingAlarmType {
-  GROW,
-  SHRINK
+    GROW,
+    SHRINK
 }

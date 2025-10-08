@@ -22,7 +22,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
-import com.pinterest.deployservice.bean.RodimusClusterBody;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusCluster;
 import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
 import com.pinterest.teletraan.universal.http.HttpClient;
@@ -30,11 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,10 +160,20 @@ public class RodimusManagerImpl implements RodimusManager {
     }
 
     @Override
-    public RodimusClusterBody getCluster(String clusterName) throws Exception {
-      String url = String.format("%s/v1/clusters/%s", rodimusUrl, clusterName);
-      String res = httpClient.get(url, null, null);
+    public RodimusCluster getCluster(String clusterName) throws Exception {
+        String url = String.format("%s/v1/clusters/%s", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
 
-      return gson.fromJson(res, RodimusClusterBody.class);
+        return gson.fromJson(res, RodimusCluster.class);
+    }
+
+    @Override
+    public RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName)
+            throws Exception {
+        String url =
+                String.format("%s/v1/clusters/%s/autoscaling/policies", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
+
+        return gson.fromJson(res, RodimusAutoScalingPolicies.class);
     }
 }

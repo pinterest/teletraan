@@ -15,8 +15,8 @@
  */
 package com.pinterest.deployservice.rodimus;
 
-import com.pinterest.deployservice.bean.RodimusClusterBody;
-
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusCluster;
 import java.util.Collection;
 import java.util.Map;
 
@@ -33,5 +33,7 @@ public interface RodimusManager {
 
     Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception;
 
-    RodimusClusterBody getCluster(String clusterName) throws Exception;
+    RodimusCluster getCluster(String clusterName) throws Exception;
+
+    RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName) throws Exception;
 }
