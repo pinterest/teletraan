@@ -71,6 +71,7 @@ public class InfraConfigHandler {
                         "", // managedResourceVersion
                         45 // replacementTimeout
                         );
+        LOG.error("cluster 123: going to create");
         rodimusManager.createCluster(clusterName, envName, stageName, newRodimusCluster);
         LOG.error("cluster 123: done creating");
         RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
