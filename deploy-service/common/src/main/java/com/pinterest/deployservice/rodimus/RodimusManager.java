@@ -15,9 +15,11 @@
  */
 package com.pinterest.deployservice.rodimus;
 
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusCluster;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface RodimusManager {
@@ -36,4 +38,6 @@ public interface RodimusManager {
     RodimusCluster getCluster(String clusterName) throws Exception;
 
     RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName) throws Exception;
+
+    List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) throws Exception;
 }

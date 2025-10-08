@@ -16,8 +16,9 @@
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,10 @@ public class InfraConfigHandler {
 
     public void test(String clusterName) throws Exception {
         //    RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
-        RodimusAutoScalingPolicies rodimusAutoScalingPolicies =
-                rodimusManager.getClusterScalingPolicies(clusterName);
-        LOG.error("rodimusAutoScalingPolicies 123: " + rodimusAutoScalingPolicies);
+        //        RodimusAutoScalingPolicies rodimusAutoScalingPolicies =
+        // rodimusManager.getClusterScalingPolicies(clusterName);
+        List<RodimusAutoScalingAlarm> rodimusAutoScalingAlarms =
+                rodimusManager.getClusterAlarms(clusterName);
+        LOG.error("rodimusAutoScalingAlarms 123: " + rodimusAutoScalingAlarms);
     }
 }

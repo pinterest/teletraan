@@ -15,12 +15,10 @@
  */
 package com.pinterest.deployservice.rodimus;
 
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusCluster;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultRodimusManager implements RodimusManager {
 
@@ -57,5 +55,10 @@ public class DefaultRodimusManager implements RodimusManager {
     public RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName)
             throws Exception {
         return null;
+    }
+
+    @Override
+    public List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) {
+        return Collections.emptyList();
     }
 }

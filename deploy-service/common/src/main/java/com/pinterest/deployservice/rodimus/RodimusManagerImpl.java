@@ -22,21 +22,22 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusCluster;
 import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
 import com.pinterest.teletraan.universal.http.HttpClient;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
+    private static final Type RODIMUS_AUTO_SCALING_ALARM_LIST_TYPE =
+            new TypeToken<List<RodimusAutoScalingAlarm>>() {}.getType();
     private final HttpClient httpClient;
 
     private final String rodimusUrl;
@@ -175,5 +176,13 @@ public class RodimusManagerImpl implements RodimusManager {
         String res = httpClient.get(url, null, null);
 
         return gson.fromJson(res, RodimusAutoScalingPolicies.class);
+    }
+
+    @Override
+    public List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) throws Exception {
+        String url = String.format("%s/v1/clusters/%s/autoscaling/alarms", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
+
+        return gson.fromJson(res, RODIMUS_AUTO_SCALING_ALARM_LIST_TYPE);
     }
 }
