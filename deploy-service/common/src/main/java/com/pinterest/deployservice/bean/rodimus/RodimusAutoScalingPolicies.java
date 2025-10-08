@@ -40,6 +40,7 @@ public class RodimusAutoScalingPolicies {
     }
 }
 /*
+-> helloworlddummyservice-server-production_stage
 RodimusAutoScalingPolicies(
   scalingPolicies = [],
   scaleupPolicies = [
