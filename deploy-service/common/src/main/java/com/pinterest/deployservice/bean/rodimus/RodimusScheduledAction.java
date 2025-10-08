@@ -15,4 +15,31 @@
  */
 package com.pinterest.deployservice.bean.rodimus;
 
-public class RodimusScheduledAction {}
+import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * Represents Rodimus AutoScaling Scheduled Action resource as used in Rodimus API
+ *
+ * <p>This is related to:
+ * https://github.com/pinternal/rodimus/blob/main/common/src/main/java/com/pinterest/clusterservice/bean/AsgScheduleBean.java
+ */
+@AllArgsConstructor
+@Data
+@NoArgsConstructor
+public class RodimusScheduledAction {
+    private String clusterName;
+    private String actionId;
+    private String schedule;
+    private int capacity;
+
+    /**
+     * Determines if two scheduled actions match on Teletraan IaC template user-available parameters
+     */
+    public boolean matches(RodimusScheduledAction other) {
+        return Objects.equals(this.schedule, other.schedule)
+                && Objects.equals(this.capacity, other.capacity);
+    }
+}
