@@ -32,6 +32,7 @@ public class InfraConfigHandler {
     }
 
     public void test(String clusterName) throws Exception {
+        LOG.error("cluster 123: init");
         clusterName = "helloworlddummyservice-server-nfallah-iac-test-001";
         String envName = "helloworlddummyservice-server";
         String stageName = "nfallah-iac-test-001";
