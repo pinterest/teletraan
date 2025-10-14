@@ -106,66 +106,67 @@ public class InfraConfigHandler {
         //        LOG.error("rodimusScheduledActions 123: " + rodimusScheduledActions);
     }
 
-    public void test(SecurityContext sc, String envName, String stageName, InfraBean infraBean)
+    // SecurityContext sc,
+    public void test(String envName, String stageName, InfraBean infraBean)
             throws Exception {
-        String clusterName = infraBean.getClusterName();
-        RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
-        if (rodimusCluster == null) {
-            // Create cluster: cluster doesn't exist
-            LOG.info(
-                    "Creating cluster and supporting teletraan records for cluster: {}",
-                    clusterName);
-            EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
-            try {
-                EnvironBean updateEnvironBean =
-                        originEnvironBean; // .toBuilder().cluster_name(clusterName).build();
-                environmentHandler.updateEnvironment(sc, envName, stageName, updateEnvironBean);
-                environmentHandler.createCapacityForHostOrGroup(
-                        sc,
-                        envName,
-                        stageName,
-                        Optional.of(CapacityType.GROUP),
-                        clusterName,
-                        originEnvironBean);
-                rodimusManager.createCluster(clusterName, envName, stageName, rodimusCluster);
-            } catch (Exception e) {
-                environmentHandler.updateEnvironment(sc, envName, stageName, originEnvironBean);
-                environmentHandler.deleteCapacityForHostOrGroup(sc, envName, stageName);
-                throw e;
-            }
-        } else {
-            // Update cluster: Other successful GET responses only; this is checked in the client
-
-            LOG.info("Updating cluster: {}", clusterName);
-            RodimusCluster updateRodimusCluster = rodimusCluster.toBuilder().build(); // rod 0.0
-            Map<String, String> responseConfig = updateRodimusCluster.getConfigs();
-            if ((responseConfig != null) && (updateRodimusCluster.getConfigs() != null)) {
-                if (responseConfig.containsKey("spiffe_id")) {
-                    updateRodimusCluster
-                            .getConfigs()
-                            .put("spiffe_id", responseConfig.get("spiffe_id")); // rod 0.0.0
-                }
-                if (responseConfig.containsKey("nimbus_id")) {
-                    updateRodimusCluster
-                            .getConfigs()
-                            .put("nimbus_id", responseConfig.get("nimbus_id")); // rod 0.0.1
-                }
-            }
-            //          actualManagedResourceVersion =
-            // updateRodimusCluster.getManagedResourceVersion(); // rod 0.0.2
-            //          try {
-            //            rodimusManager.updateCluster( // rod 2, not implemented in Teletraan
-            //                    clusterName,
-            //
-            // updateRodimusCluster.withManagedResourceVersion(actualManagedResourceVersion)); //
-            // rod 0.0.2.0
-            //          } catch (Exception e) {
-            //            registry
-            //                    .counter(registryId.withTag("exception",
-            // e.getClass().getCanonicalName()))
-            //                    .increment();
-            //            throw e;
-            //          }
-        }
+//        String clusterName = infraBean.getClusterName();
+//        RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
+//        if (rodimusCluster == null) {
+//            // Create cluster: cluster doesn't exist
+//            LOG.info(
+//                    "Creating cluster and supporting teletraan records for cluster: {}",
+//                    clusterName);
+//            EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
+//            try {
+//                EnvironBean updateEnvironBean =
+//                        originEnvironBean; // .toBuilder().cluster_name(clusterName).build();
+//                environmentHandler.updateEnvironment(sc, envName, stageName, updateEnvironBean);
+//                environmentHandler.createCapacityForHostOrGroup(
+//                        sc,
+//                        envName,
+//                        stageName,
+//                        Optional.of(CapacityType.GROUP),
+//                        clusterName,
+//                        originEnvironBean);
+//                rodimusManager.createCluster(clusterName, envName, stageName, rodimusCluster);
+//            } catch (Exception e) {
+//                environmentHandler.updateEnvironment(sc, envName, stageName, originEnvironBean);
+//                environmentHandler.deleteCapacityForHostOrGroup(sc, envName, stageName);
+//                throw e;
+//            }
+//        } else {
+//            // Update cluster: Other successful GET responses only; this is checked in the client
+//
+//            LOG.info("Updating cluster: {}", clusterName);
+//            RodimusCluster updateRodimusCluster = rodimusCluster.toBuilder().build(); // rod 0.0
+//            Map<String, String> responseConfig = updateRodimusCluster.getConfigs();
+//            if ((responseConfig != null) && (updateRodimusCluster.getConfigs() != null)) {
+//                if (responseConfig.containsKey("spiffe_id")) {
+//                    updateRodimusCluster
+//                            .getConfigs()
+//                            .put("spiffe_id", responseConfig.get("spiffe_id")); // rod 0.0.0
+//                }
+//                if (responseConfig.containsKey("nimbus_id")) {
+//                    updateRodimusCluster
+//                            .getConfigs()
+//                            .put("nimbus_id", responseConfig.get("nimbus_id")); // rod 0.0.1
+//                }
+//            }
+//            //          actualManagedResourceVersion =
+//            // updateRodimusCluster.getManagedResourceVersion(); // rod 0.0.2
+//            //          try {
+//            //            rodimusManager.updateCluster( // rod 2, not implemented in Teletraan
+//            //                    clusterName,
+//            //
+//            // updateRodimusCluster.withManagedResourceVersion(actualManagedResourceVersion)); //
+//            // rod 0.0.2.0
+//            //          } catch (Exception e) {
+//            //            registry
+//            //                    .counter(registryId.withTag("exception",
+//            // e.getClass().getCanonicalName()))
+//            //                    .increment();
+//            //            throw e;
+//            //          }
+//        }
     }
 }
