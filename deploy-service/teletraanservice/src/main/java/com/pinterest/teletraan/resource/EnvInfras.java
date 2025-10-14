@@ -20,8 +20,6 @@ import com.codahale.metrics.annotation.Timed;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.handler.InfraConfigHandler;
-import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
-import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -55,11 +53,11 @@ public class EnvInfras {
                     "Apply infrastructure configurations given an environment name, stage name, and configurations",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
-//    @ResourceAuthZInfo(
-//            type = AuthZResource.Type.ENV_STAGE,
-//            idLocation = ResourceAuthZInfo.Location.PATH)
+    //    @ResourceAuthZInfo(
+    //            type = AuthZResource.Type.ENV_STAGE,
+    //            idLocation = ResourceAuthZInfo.Location.PATH)
     public Response apply(
-//            @Context SecurityContext sc,
+            //            @Context SecurityContext sc,
             @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")
                     String envName,
@@ -67,13 +65,13 @@ public class EnvInfras {
                     String stageName,
             @Valid InfraBean infraBean)
             throws Exception {
-//        String operator = sc.getUserPrincipal().getName();
+        //        String operator = sc.getUserPrincipal().getName();
 
         LOG.info(
                 "No-op endpoint for applying infra configurations was called. envName: {}, stageName: {}, clusterName: {}, accountId: {}",
                 envName,
                 stageName,
-//                operator,
+                //                operator,
                 infraBean.getClusterName(),
                 infraBean.getAccountId());
         infraConfigHandler.test(envName, stageName, infraBean.getClusterName());
