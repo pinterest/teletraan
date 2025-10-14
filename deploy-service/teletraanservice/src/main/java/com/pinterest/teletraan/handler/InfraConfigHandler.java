@@ -46,7 +46,7 @@ public class InfraConfigHandler {
 
     public void test(String envName, String stageName, String clusterName) throws Exception {
         LOG.error("cluster 123: init");
-        clusterName = envName + "_" + stageName;
+//        clusterName = envName + "_" + stageName;
         //        String envName = "helloworlddummyservice-server";
         //        String stageName = "nfallah-iac-test-001";
         Map<String, String> configs = new HashMap<>();
@@ -85,16 +85,16 @@ public class InfraConfigHandler {
                         "", // managedResourceVersion
                         45 // replacementTimeout
                         );
-        LOG.error("cluster 123: going to create");
-        rodimusManager.createCluster(clusterName, envName, stageName, newRodimusCluster);
-        LOG.error("cluster 123: done creating");
+//        LOG.error("cluster 123: going to create");
+//        rodimusManager.createCluster(clusterName, envName, stageName, newRodimusCluster);
+//        LOG.error("cluster 123: done creating");
         RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
         LOG.error("cluster 123: got created: " + rodimusCluster);
-        newRodimusCluster.setReplacementTimeout(60);
-        rodimusManager.updateCluster(clusterName, newRodimusCluster);
-        LOG.error("cluster 123: done updating");
-        rodimusCluster = rodimusManager.getCluster(clusterName);
-        LOG.error("cluster 123: got updated: " + rodimusCluster);
+//        newRodimusCluster.setReplacementTimeout(60);
+//        rodimusManager.updateCluster(clusterName, newRodimusCluster);
+//        LOG.error("cluster 123: done updating");
+//        rodimusCluster = rodimusManager.getCluster(clusterName);
+//        LOG.error("cluster 123: got updated: " + rodimusCluster);
 
         //    RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
         //        RodimusAutoScalingPolicies rodimusAutoScalingPolicies =
