@@ -44,9 +44,28 @@ public interface RodimusManager {
 
     void updateCluster(String clusterName, RodimusCluster rodimusCluster) throws Exception;
 
+    void createClusterScalingPolicies(String clusterName, RodimusAutoScalingPolicies policies)
+            throws Exception;
+
     RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName) throws Exception;
+
+    void deleteClusterScalingPolicy(String clusterName, String policyName) throws Exception;
+
+    void createClusterAlarms(String clusterName, List<RodimusAutoScalingAlarm> clusterAlarms)
+            throws Exception;
 
     List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) throws Exception;
 
+    void deleteClusterAlarm(String clusterName, String alarmId) throws Exception;
+
+    void createClusterScheduledActions(
+            String clusterName, List<RodimusScheduledAction> clusterScheduledActionsList)
+            throws Exception;
+
     List<RodimusScheduledAction> getClusterScheduledActions(String clusterName) throws Exception;
+
+    void deleteClusterScheduledAction(String clusterName, String actionId) throws Exception;
+
+    void updateClusterCapacity(String clusterName, Integer minSize, Integer maxSize)
+            throws Exception;
 }

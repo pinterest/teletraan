@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
@@ -28,6 +27,7 @@ import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.handler.EnvironmentHandler;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
@@ -35,8 +35,6 @@ import io.micrometer.core.annotation.Counted;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotEmpty;
@@ -74,12 +72,14 @@ public class EnvStages {
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
+    private EnvironmentHandler environmentHandler;
 
     public EnvStages(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         tagHandler = new EnvTagHandler(context);
+        environmentHandler = new EnvironmentHandler(context);
     }
 
     @GET // tel 0.0
@@ -112,50 +112,7 @@ public class EnvStages {
             @ApiParam(value = "Desired Environment object with updates", required = true)
                     EnvironBean environBean)
             throws Exception {
-        final EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
-        // treat null as false
-        boolean originalIsSox = origBean.getIs_sox() != null && origBean.getIs_sox();
-
-        if (environBean.getIs_sox() == null) {
-            environBean.setIs_sox(originalIsSox);
-        } else if (!environBean.getIs_sox().equals(originalIsSox)) {
-            throw new WebApplicationException(
-                    "Modification of isSox flag is not allowed!", Response.Status.FORBIDDEN);
-        }
-
-        String operator = sc.getUserPrincipal().getName();
-        try {
-            environBean.validate();
-            stageTypeValidate(origBean, environBean);
-        } catch (IllegalArgumentException e) {
-            throw new WebApplicationException(e.toString(), Response.Status.BAD_REQUEST);
-        }
-
-        if (environBean.getStage_type() == EnvType.DEV) {
-            environBean.setAllow_private_build(true);
-        } else if (origBean.getStage_type() == EnvType.DEV) {
-            environBean.setAllow_private_build(false);
-        }
-        environBean.setEnv_name(origBean.getEnv_name());
-        environBean.setStage_name(origBean.getStage_name());
-        if (environBean.getExternal_id() == null) {
-            environBean.setExternal_id(origBean.getExternal_id());
-        }
-        environHandler.updateStage(environBean, operator);
-        configHistoryHandler.updateConfigHistory(
-                origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
-        configHistoryHandler.updateChangeFeed(
-                Constants.CONFIG_TYPE_ENV,
-                origBean.getEnv_id(),
-                Constants.TYPE_ENV_GENERAL,
-                operator,
-                environBean.getExternal_id());
-        LOG.info(
-                "Successfully updated env {}/{} with {} by {}.",
-                envName,
-                stageName,
-                environBean,
-                operator);
+        environmentHandler.updateEnvironment(sc, envName, stageName, environBean);
     }
 
     @PUT
@@ -206,9 +163,7 @@ public class EnvStages {
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
                     String stageName)
             throws Exception {
-        String operator = sc.getUserPrincipal().getName();
-        environHandler.deleteEnvStage(envName, stageName, operator);
-        LOG.info("Successfully deleted env {}/{} by {}.", envName, stageName, operator);
+        environmentHandler.deleteCapacityForHostOrGroup(sc, envName, stageName);
     }
 
     @POST
@@ -297,31 +252,5 @@ public class EnvStages {
                 String.format(
                         "Successfully updated action %s for %s/%s by %s",
                         actionType, envName, stageName, operator));
-    }
-
-    private void stageTypeValidate(EnvironBean origBean, EnvironBean newBean) throws Exception {
-        Map<EnvType, String> stageTypeCategory = new HashMap<>();
-        stageTypeCategory.put(EnvType.DEFAULT, "PRODUCTION");
-        stageTypeCategory.put(EnvType.PRODUCTION, "PRODUCTION");
-        stageTypeCategory.put(EnvType.CONTROL, "PRODUCTION");
-        stageTypeCategory.put(EnvType.CANARY, "PRODUCTION");
-        stageTypeCategory.put(EnvType.STAGING, "NON-PRODUCTION");
-        stageTypeCategory.put(EnvType.LATEST, "NON-PRODUCTION");
-        stageTypeCategory.put(EnvType.DEV, "NON-PRODUCTION");
-
-        if (origBean.getStage_type() == EnvType.DEFAULT && newBean.getStage_type() == null) {
-            throw new IllegalArgumentException(
-                    "Please update the Stage Type to a value other than DEFAULT.");
-        } else if (newBean.getStage_type() == null) {
-            // Request has no intention to change stage type, so set it to the current value
-            // to avoid the default value being used.
-            newBean.setStage_type(origBean.getStage_type());
-        } else if (origBean.getStage_type() != EnvType.DEFAULT
-                && origBean.getStage_type() != newBean.getStage_type()
-                && stageTypeCategory.get(newBean.getStage_type()).equals("NON-PRODUCTION")
-                && stageTypeCategory.get(origBean.getStage_type()).equals("PRODUCTION")) {
-            throw new IllegalArgumentException(
-                    "Modification of Production stage type (PRODUCTION, CANARY, CONTROL) is not allowed!");
-        }
     }
 }

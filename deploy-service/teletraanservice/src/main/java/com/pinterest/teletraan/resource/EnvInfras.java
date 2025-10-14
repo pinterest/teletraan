@@ -18,9 +18,8 @@ package com.pinterest.teletraan.resource;
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 import com.pinterest.deployservice.bean.*;
-import com.pinterest.deployservice.handler.InfraConfigHandler;
-import com.pinterest.deployservice.handler.PingHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.handler.InfraConfigHandler;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
@@ -44,7 +43,7 @@ public class EnvInfras {
     private final InfraConfigHandler infraConfigHandler;
 
     public EnvInfras(@Context TeletraanServiceContext context) {
-      infraConfigHandler = new InfraConfigHandler(context);
+        infraConfigHandler = new InfraConfigHandler(context);
     }
 
     @POST
@@ -66,7 +65,7 @@ public class EnvInfras {
                     String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
                     String stageName,
-            @Valid InfraBean bean)
+            @Valid InfraBean infraBean)
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
 
@@ -75,9 +74,10 @@ public class EnvInfras {
                 envName,
                 stageName,
                 operator,
-                bean.getClusterName(),
-                bean.getAccountId());
-        infraConfigHandler.test(bean.getClusterName());
+                infraBean.getClusterName(),
+                infraBean.getAccountId());
+        infraConfigHandler.test(envName, stageName, infraBean.getClusterName());
+        infraConfigHandler.test(sc, envName, stageName, infraBean);
         return Response.status(200).build();
     }
 }

@@ -16,15 +16,13 @@
 package com.pinterest.deployservice.bean.rodimus;
 
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import lombok.*;
 
 @With
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
+@Builder(toBuilder = true)
 public class RodimusCluster {
     private String clusterName;
     private String cellName;

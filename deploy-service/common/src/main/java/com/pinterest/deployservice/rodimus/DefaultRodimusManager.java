@@ -61,10 +61,22 @@ public class DefaultRodimusManager implements RodimusManager {
     public void updateCluster(String clusterName, RodimusCluster rodimusCluster) throws Exception {}
 
     @Override
+    public void createClusterScalingPolicies(
+            String clusterName, RodimusAutoScalingPolicies policies) throws Exception {}
+
+    @Override
     public RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName)
             throws Exception {
         return null;
     }
+
+    @Override
+    public void deleteClusterScalingPolicy(String clusterName, String policyName)
+            throws Exception {}
+
+    @Override
+    public void createClusterAlarms(String clusterName, List<RodimusAutoScalingAlarm> clusterAlarms)
+            throws Exception {}
 
     @Override
     public List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) {
@@ -72,8 +84,24 @@ public class DefaultRodimusManager implements RodimusManager {
     }
 
     @Override
+    public void deleteClusterAlarm(String clusterName, String alarmId) throws Exception {}
+
+    @Override
+    public void createClusterScheduledActions(
+            String clusterName, List<RodimusScheduledAction> clusterScheduledActionsList)
+            throws Exception {}
+
+    @Override
     public List<RodimusScheduledAction> getClusterScheduledActions(String clusterName)
             throws Exception {
         return Collections.emptyList();
     }
+
+    @Override
+    public void deleteClusterScheduledAction(String clusterName, String actionId)
+            throws Exception {}
+
+    @Override
+    public void updateClusterCapacity(String clusterName, Integer minSize, Integer maxSize)
+            throws Exception {}
 }
