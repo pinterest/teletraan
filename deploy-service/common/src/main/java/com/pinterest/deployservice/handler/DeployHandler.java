@@ -345,7 +345,7 @@ public class DeployHandler implements DeployHandlerInterface {
         List<UpdateStatement> statements = new ArrayList<>();
         statements.add(deployDAO.genInsertStatement(deployBean));
 
-        EnvironBean updateEnvBean = new EnvironBean();
+        EnvironBean updateEnvBean = EnvironBean.builder().build();
         updateEnvBean.setDeploy_id(deployId);
         updateEnvBean.setDeploy_type(deployBean.getDeploy_type());
         updateEnvBean.setStage_type(envBean.getStage_type());

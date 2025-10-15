@@ -186,7 +186,7 @@ public class DeployHandlerTest {
     }
 
     private EnvironBean genDefaultEnvBean() {
-        EnvironBean envBean = new EnvironBean();
+        EnvironBean envBean = EnvironBean.builder().build();
         envBean.setBuild_name("buildName");
         envBean.setStage_type(EnvType.DEV);
         envBean.setEnv_name(EnvType.DEV.toString());

@@ -363,7 +363,7 @@ public class EnvironHandler {
     }
 
     public void enableAll(String operator) throws Exception {
-        EnvironBean updateBean = new EnvironBean();
+        EnvironBean updateBean = EnvironBean.builder().build();
         updateBean.setState(EnvironState.NORMAL);
         updateBean.setLast_operator(operator);
         updateBean.setLast_update(System.currentTimeMillis());
@@ -371,7 +371,7 @@ public class EnvironHandler {
     }
 
     public void disableAll(String operator) throws Exception {
-        EnvironBean updateBean = new EnvironBean();
+        EnvironBean updateBean = EnvironBean.builder().build();
         updateBean.setState(EnvironState.DISABLED);
         updateBean.setLast_operator(operator);
         updateBean.setLast_update(System.currentTimeMillis());

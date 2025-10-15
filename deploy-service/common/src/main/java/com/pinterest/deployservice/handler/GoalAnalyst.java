@@ -200,7 +200,8 @@ public class GoalAnalyst {
         UninstallCandidate(AgentBean updateBean, PingReportBean report) {
             this.report = report;
             this.updateBean = updateBean;
-            environ = existingAgentEnv.getOrDefault(report.getEnvId(), new EnvironBean());
+            environ =
+                    existingAgentEnv.getOrDefault(report.getEnvId(), EnvironBean.builder().build());
         }
 
         int getUninstallPriority(EnvironBean environ) {

@@ -128,7 +128,7 @@ class UserRoleAuthorizerTest {
         setUpGroupRolesBeans();
 
         when(environDAO.getByName(anyString()))
-                .thenReturn(Collections.singletonList(new EnvironBean()));
+                .thenReturn(Collections.singletonList(EnvironBean.builder().build()));
     }
 
     @ParameterizedTest
@@ -213,7 +213,7 @@ class UserRoleAuthorizerTest {
         checkPositive(randomUser, envXResource, TeletraanPrincipalRole.WRITE);
 
         when(environDAO.getByName(envXName))
-                .thenReturn(Collections.singletonList(new EnvironBean()));
+                .thenReturn(Collections.singletonList(EnvironBean.builder().build()));
         checkNegative(randomUser, envXResource, TeletraanPrincipalRole.WRITE);
 
         checkPositive(randomUser, buildResource, TeletraanPrincipalRole.PUBLISHER);

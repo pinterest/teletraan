@@ -73,7 +73,7 @@ class EnvironHandlerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        testEnvBean = new EnvironBean();
+        testEnvBean = EnvironBean.builder().build();
         testEnvBean.setEnv_id("envId");
         testEnvBean.setCluster_name(TEST_CLUSTER_NAME);
         environHandler = new EnvironHandler(createMockServiceContext());
@@ -111,7 +111,7 @@ class EnvironHandlerTest {
     void ensureHostsOwnedByEnv_noMainEnv() {
         assertThrows(
                 NotFoundException.class,
-                () -> environHandler.ensureHostsOwnedByEnv(new EnvironBean(), hostIds));
+                () -> environHandler.ensureHostsOwnedByEnv(EnvironBean.builder().build(), hostIds));
     }
 
     @Test
@@ -119,7 +119,7 @@ class EnvironHandlerTest {
         when(environDAO.getMainEnvByHostId(anyString())).thenReturn(testEnvBean);
         assertThrows(
                 ForbiddenException.class,
-                () -> environHandler.ensureHostsOwnedByEnv(new EnvironBean(), hostIds));
+                () -> environHandler.ensureHostsOwnedByEnv(EnvironBean.builder().build(), hostIds));
     }
 
     @Test
@@ -133,7 +133,7 @@ class EnvironHandlerTest {
         when(environDAO.getMainEnvByHostId(anyString())).thenThrow(SQLException.class);
         assertThrows(
                 WebApplicationException.class,
-                () -> environHandler.ensureHostsOwnedByEnv(new EnvironBean(), hostIds));
+                () -> environHandler.ensureHostsOwnedByEnv(EnvironBean.builder().build(), hostIds));
     }
 
     @Test

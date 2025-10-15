@@ -87,7 +87,7 @@ public class ConfigHistoryHandlerTest {
     }
 
     EnvironBean genDefaultEnvBean() {
-        EnvironBean envBean = new EnvironBean();
+        EnvironBean envBean = EnvironBean.builder().build();
         envBean.setEnv_id(testConfigId);
         envBean.setEnv_name("foo");
         envBean.setStage_name("foo");

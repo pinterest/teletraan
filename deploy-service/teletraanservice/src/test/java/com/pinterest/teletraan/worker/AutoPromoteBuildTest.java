@@ -54,7 +54,7 @@ public class AutoPromoteBuildTest {
 
     static final String CronTenAMPerDay = "0 0 10 * * ?";
     ServiceContext context;
-    EnvironBean environBean = new EnvironBean();
+    EnvironBean environBean = EnvironBean.builder().build();
     BuildDAO buildDAO;
     TagDAO tagDAO;
     BuildTagsManager buildTagsManager;

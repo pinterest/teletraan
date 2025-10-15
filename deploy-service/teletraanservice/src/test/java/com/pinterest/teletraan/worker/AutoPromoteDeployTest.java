@@ -60,8 +60,8 @@ public class AutoPromoteDeployTest {
     ServiceContext context;
     DeployBean first = new DeployBean();
     DeployBean second = new DeployBean();
-    EnvironBean environBean = new EnvironBean();
-    EnvironBean predEnvironBean = new EnvironBean();
+    EnvironBean environBean = EnvironBean.builder().build();
+    EnvironBean predEnvironBean = EnvironBean.builder().build();
     BuildDAO buildDAO;
     EnvironDAO environDAO;
     DeployDAO deployDAO;

@@ -46,7 +46,7 @@ public class EnvStagesTest {
     @Test
     public void updateEnvToDev_setsAllowPrivateBuildTrue() throws Exception {
         ArgumentCaptor<EnvironBean> argument = ArgumentCaptor.forClass(EnvironBean.class);
-        EnvironBean envBean = new EnvironBean();
+        EnvironBean envBean = EnvironBean.builder().build();
         envBean.setStage_type(EnvType.DEV);
         Mockito.when(environDAO.getByStage(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(envBean);
@@ -61,8 +61,8 @@ public class EnvStagesTest {
     @Test
     public void updateEnvStageOffDev_unsetsAllowPrivateBuild() throws Exception {
         ArgumentCaptor<EnvironBean> argument = ArgumentCaptor.forClass(EnvironBean.class);
-        EnvironBean envBean = new EnvironBean();
-        EnvironBean origBean = new EnvironBean();
+        EnvironBean envBean = EnvironBean.builder().build();
+        EnvironBean origBean = EnvironBean.builder().build();
         origBean.setAllow_private_build(true);
         origBean.setStage_type(EnvType.DEV);
         envBean.setStage_type(EnvType.STAGING);

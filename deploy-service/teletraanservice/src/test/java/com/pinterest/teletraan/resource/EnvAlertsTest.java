@@ -56,7 +56,7 @@ public class EnvAlertsTest {
     TeletraanServiceContext context;
     DeployBean recent = new DeployBean();
     DeployBean lastKnownGoodDeploy = new DeployBean();
-    EnvironBean environBean = new EnvironBean();
+    EnvironBean environBean = EnvironBean.builder().build();
     BuildBean buildBean = new BuildBean();
     BuildBean lastKnownBuild = new BuildBean();
     BuildDAO buildDAO;

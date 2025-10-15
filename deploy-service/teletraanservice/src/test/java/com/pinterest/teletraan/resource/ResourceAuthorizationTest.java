@@ -158,7 +158,7 @@ public class ResourceAuthorizationTest {
             when(tokenRolesDAO.getByToken(PINGER_TOKEN)).thenReturn(pingerRolesBean);
             when(tokenRolesDAO.getByToken(PUBLISHER_TOKEN)).thenReturn(publisherRolesBean);
             when(environDAO.getByName(TEST_ENV_ID))
-                    .thenReturn(Collections.singletonList(new EnvironBean()));
+                    .thenReturn(Collections.singletonList(EnvironBean.builder().build()));
             when(buildDAO.getById(TEST_BUILD_ID)).thenReturn(buildBean);
             EXT =
                     ResourceExtension.builder()

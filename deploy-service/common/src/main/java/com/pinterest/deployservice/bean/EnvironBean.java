@@ -18,10 +18,12 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import javax.validation.constraints.NotEmpty;
+import lombok.Builder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.validator.constraints.Range;
 
+@Builder(toBuilder = true)
 public class EnvironBean extends BaseBean implements Updatable, Serializable {
     @JsonProperty("id")
     private String env_id;
