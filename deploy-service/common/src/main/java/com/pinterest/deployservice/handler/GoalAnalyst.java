@@ -201,7 +201,7 @@ public class GoalAnalyst {
             this.report = report;
             this.updateBean = updateBean;
             environ =
-                    existingAgentEnv.getOrDefault(report.getEnvId(), EnvironBean.builder().build());
+                    existingAgentEnv.getOrDefault(report.getEnvId(), new EnvironBean());
         }
 
         int getUninstallPriority(EnvironBean environ) {
