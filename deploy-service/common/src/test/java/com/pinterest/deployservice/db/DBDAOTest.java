@@ -583,7 +583,7 @@ public class DBDAOTest {
         assertEquals(envBean.getWatch_recipients(), envBean2.getWatch_recipients());
 
         // Test update
-        EnvironBean envBean3 = EnvironBean.builder().build();
+        EnvironBean envBean3 = new EnvironBean();
         envBean3.setAdv_config_id("config_id_2");
         envBean2.setAdv_config_id("config_id_2");
         environDAO.update("env-1", envBean3);

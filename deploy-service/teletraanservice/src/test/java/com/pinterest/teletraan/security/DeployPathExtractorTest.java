@@ -67,7 +67,7 @@ class DeployPathExtractorTest extends BasePathExtractorTest {
         when(environDAO.getByDeployId(deployId)).thenReturn(null);
         assertThrows(NotFoundException.class, () -> sut.extractResource(context));
 
-        EnvironBean envBean = EnvironBean.builder().build();
+        EnvironBean envBean = new EnvironBean();
         envBean.setEnv_name("deploy_env");
         envBean.setStage_name("deploy_stage");
         when(environDAO.getByDeployId(deployId)).thenReturn(envBean);

@@ -26,7 +26,7 @@ import java.util.UUID;
 
 public class EnvironBeanFixture {
     public static EnvironBean createRandomEnvironBean() {
-        EnvironBean environBean = EnvironBean.builder().build();
+        EnvironBean environBean = new EnvironBean();
         environBean.setAccept_type(AcceptanceType.AUTO);
         environBean.setAdv_config_id(UUID.randomUUID().toString().substring(0, 10));
         environBean.setAllow_private_build(false);

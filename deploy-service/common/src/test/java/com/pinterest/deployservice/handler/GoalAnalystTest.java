@@ -70,7 +70,7 @@ public class GoalAnalystTest {
     }
 
     EnvironBean genDefaultEnvBean() {
-        EnvironBean envBean = EnvironBean.builder().build();
+        EnvironBean envBean = new EnvironBean();
         envBean.setEnv_id("foo");
         envBean.setEnv_name("foo");
         envBean.setStage_name("foo");

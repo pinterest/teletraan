@@ -68,7 +68,7 @@ class HostPathExtractorTest extends BasePathExtractorTest {
         when(hostDAO.getMainEnvByHostId(hostId)).thenReturn(null);
         assertThrows(NotFoundException.class, () -> sut.extractResource(context));
 
-        EnvironBean envBean = EnvironBean.builder().build();
+        EnvironBean envBean = new EnvironBean();
         envBean.setEnv_name("host_env");
         envBean.setStage_name("host_stage");
         when(hostDAO.getMainEnvByHostId(hostId)).thenReturn(envBean);

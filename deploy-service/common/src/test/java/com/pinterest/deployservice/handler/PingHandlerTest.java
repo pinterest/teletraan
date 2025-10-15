@@ -165,7 +165,7 @@ public class PingHandlerTest {
 
     @Test
     public void getGetFinalMaxParallelCount() throws Exception {
-        EnvironBean bean = EnvironBean.builder().build();
+        EnvironBean bean = new EnvironBean();
         // Always return 1 when nothing set
         assertEquals(1, PingHandler.getFinalMaxParallelCount(bean, 1));
         assertEquals(1, PingHandler.getFinalMaxParallelCount(bean, 10));
