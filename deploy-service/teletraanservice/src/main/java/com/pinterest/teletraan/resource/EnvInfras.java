@@ -43,7 +43,7 @@ public class EnvInfras {
         infraConfigHandler = new InfraConfigHandler(context);
     }
 
-    @GET
+    @POST
     @Timed
     @ExceptionMetered
     @ApiOperation(
