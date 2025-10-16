@@ -17,6 +17,7 @@ package com.pinterest.deployservice.bean.rodimus;
 
 import java.util.Objects;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -29,6 +30,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
+@Builder(toBuilder = true)
 public class RodimusScheduledAction {
     private String clusterName;
     private String actionId;
@@ -42,6 +44,16 @@ public class RodimusScheduledAction {
         return Objects.equals(this.schedule, other.schedule)
                 && Objects.equals(this.capacity, other.capacity);
     }
+
+    //    public static RodimusScheduledAction fromAutoScalingScheduledActions(String clusterName,
+    // AutoScalingScheduledActions autoScalingScheduledActions) {
+    //      return RodimusScheduledAction.builder()
+    //              .clusterName(clusterName)
+    //              .actionId(autoScalingScheduledActions.)
+    //              .schedule(autoScalingScheduledActions.getSchedule())
+    //              .capacity(autoScalingScheduledActions.getCapacity())
+    //              .build();
+    //    }
 }
 
 /*

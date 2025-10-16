@@ -48,7 +48,7 @@ public class InfraConfigHandler {
         LOG.error("cluster 123: init");
         //        clusterName = envName + "_" + stageName;
         //        String envName = "helloworlddummyservice-server";
-        //        String stageName = "nfallah-iac-test-001";
+        //        String stageName = "nfallah_iac_test_001";
         Map<String, String> configs = new HashMap<>();
         configs.put("iam_role", "base-teletraan");
         configs.put("pinfo_environment", "dev1");
@@ -85,16 +85,16 @@ public class InfraConfigHandler {
                         "", // managedResourceVersion
                         45 // replacementTimeout
                         );
-        LOG.error("cluster 123: going to create");
-        rodimusManager.createCluster(clusterName, envName, stageName, newRodimusCluster);
-        LOG.error("cluster 123: done creating");
+        //        LOG.error("cluster 123: going to create");
+        //        rodimusManager.createCluster(clusterName, envName, stageName, newRodimusCluster);
+        //        LOG.error("cluster 123: done creating");
         RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
         LOG.error("cluster 123: got created: " + rodimusCluster);
-        newRodimusCluster.setReplacementTimeout(60);
-        rodimusManager.updateCluster(clusterName, newRodimusCluster);
-        LOG.error("cluster 123: done updating");
-        rodimusCluster = rodimusManager.getCluster(clusterName);
-        LOG.error("cluster 123: got updated: " + rodimusCluster);
+        //        newRodimusCluster.setReplacementTimeout(60);
+        //        rodimusManager.updateCluster(clusterName, newRodimusCluster);
+        //        LOG.error("cluster 123: done updating");
+        //        rodimusCluster = rodimusManager.getCluster(clusterName);
+        //        LOG.error("cluster 123: got updated: " + rodimusCluster);
 
         //    RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
         //        RodimusAutoScalingPolicies rodimusAutoScalingPolicies =
@@ -109,16 +109,18 @@ public class InfraConfigHandler {
     public void test(SecurityContext sc, String envName, String stageName, InfraBean infraBean)
             throws Exception {
         String clusterName = infraBean.getClusterName();
-        RodimusCluster rodimusCluster = rodimusManager.getCluster(clusterName);
-        if (rodimusCluster == null) {
+        RodimusCluster existingRodimusCluster = rodimusManager.getCluster(clusterName);
+        RodimusCluster desiredRodimusCluster = RodimusCluster.fromInfraBean(infraBean);
+        String existingManagedResourceVersion = "";
+        String desiredManagedResourceVersion = desiredRodimusCluster.getManagedResourceVersion();
+        if (existingRodimusCluster == null) {
             // Create cluster: cluster doesn't exist
             LOG.info(
                     "Creating cluster and supporting teletraan records for cluster: {}",
                     clusterName);
             EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
             try {
-                EnvironBean updateEnvironBean =
-                        originEnvironBean.toBuilder().cluster_name(clusterName).build();
+                EnvironBean updateEnvironBean = originEnvironBean.withCluster_name(clusterName);
                 environmentHandler.updateEnvironment(sc, envName, stageName, updateEnvironBean);
                 environmentHandler.createCapacityForHostOrGroup(
                         sc,
@@ -127,7 +129,12 @@ public class InfraConfigHandler {
                         Optional.of(CapacityType.GROUP),
                         clusterName,
                         originEnvironBean);
-                rodimusManager.createCluster(clusterName, envName, stageName, rodimusCluster);
+                rodimusManager.createCluster(
+                        clusterName,
+                        envName,
+                        stageName,
+                        desiredRodimusCluster.withManagedResourceVersion(
+                                existingManagedResourceVersion));
             } catch (Exception e) {
                 environmentHandler.updateEnvironment(sc, envName, stageName, originEnvironBean);
                 environmentHandler.deleteCapacityForHostOrGroup(sc, envName, stageName);

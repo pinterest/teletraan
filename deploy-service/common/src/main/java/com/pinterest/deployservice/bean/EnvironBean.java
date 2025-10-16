@@ -21,10 +21,12 @@ import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.With;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.validator.constraints.Range;
 
+@With
 @NoArgsConstructor
 @AllArgsConstructor // (optional, if you want an all-args constructor too)
 @Builder(toBuilder = true)
