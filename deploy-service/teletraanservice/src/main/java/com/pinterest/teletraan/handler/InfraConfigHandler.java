@@ -46,7 +46,7 @@ public class InfraConfigHandler {
 
     public void test(String envName, String stageName, String clusterName) throws Exception {
         LOG.error("cluster 123: init");
-        //        clusterName = envName + "_" + stageName;
+        //        clusterName = envName + "_" + stageName; helloworlddummyservice-server_nfallah_iac_test_001
         //        String envName = "helloworlddummyservice-server";
         //        String stageName = "nfallah_iac_test_001";
         Map<String, String> configs = new HashMap<>();
