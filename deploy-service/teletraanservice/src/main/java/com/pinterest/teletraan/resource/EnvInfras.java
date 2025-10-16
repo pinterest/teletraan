@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import org.slf4j.Logger;
@@ -53,32 +54,30 @@ public class EnvInfras {
             notes =
                     "Apply infrastructure configurations given an environment name, stage name, and configurations",
             response = Response.class)
-        @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
-        @ResourceAuthZInfo(
-                type = AuthZResource.Type.ENV_STAGE,
-                idLocation = ResourceAuthZInfo.Location.PATH)
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.ENV_STAGE,
+            idLocation = ResourceAuthZInfo.Location.PATH)
     public Response apply(
-            //            @Context SecurityContext sc,
+            @Context SecurityContext sc,
             @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")
                     String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
-                    String stageName)
-            //            ,
-            //  @Valid InfraBean infraBean
+                    String stageName,
+            @Valid InfraBean infraBean)
             throws Exception {
-        //        String operator = sc.getUserPrincipal().getName();
+        String operator = sc.getUserPrincipal().getName();
 
-        //        LOG.info(
-        //                "No-op endpoint for applying infra configurations was called. envName: {},
-        // stageName: {}, clusterName: {}, accountId: {}",
-        //                envName,
-        //                stageName,
-        //                //                operator,
-        //                infraBean.getClusterName(),
-        //                infraBean.getAccountId());
-        //        infraConfigHandler.test(envName, stageName, infraBean.getClusterName());
-        //        infraConfigHandler.test(envName, stageName, infraBean);
+        LOG.info(
+                "No-op endpoint for applying infra configurations was called. envName: {}, stageName: {}, operator: {}, clusterName: {}, accountId: {}",
+                envName,
+                stageName,
+                operator,
+                infraBean.getClusterName(),
+                infraBean.getAccountId());
+        //                infraConfigHandler.test(envName, stageName, infraBean.getClusterName());
+        //                infraConfigHandler.test(envName, stageName, infraBean);
         return Response.status(200).build();
     }
 }
