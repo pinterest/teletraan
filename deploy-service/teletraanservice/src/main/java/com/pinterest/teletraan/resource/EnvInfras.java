@@ -55,7 +55,7 @@ public class EnvInfras {
             response = Response.class)
         @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
         @ResourceAuthZInfo(
-                type = AuthZResource.Type.ENV,
+                type = AuthZResource.Type.ENV_STAGE,
                 idLocation = ResourceAuthZInfo.Location.PATH)
     public Response apply(
             //            @Context SecurityContext sc,
