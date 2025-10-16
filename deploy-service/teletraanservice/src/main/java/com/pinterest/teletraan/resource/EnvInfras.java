@@ -76,7 +76,7 @@ public class EnvInfras {
                 operator,
                 infraBean.getClusterName(),
                 infraBean.getAccountId());
-        //                infraConfigHandler.test(envName, stageName, infraBean.getClusterName());
+        infraConfigHandler.test(envName, stageName, infraBean.getClusterName());
         //                infraConfigHandler.test(envName, stageName, infraBean);
         return Response.status(200).build();
     }
