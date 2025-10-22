@@ -22,6 +22,7 @@ import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import java.net.ConnectException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -36,6 +37,8 @@ import org.slf4j.LoggerFactory;
 public class DeployTagWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(DeployTagWorker.class);
     private static final int MAX_QUERY_TAGS_SIZE = 200;
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(DeployTagWorker.class);
 
     private final HostDAO hostDAO;
     private final EnvironDAO environDAO;
@@ -217,6 +220,10 @@ public class DeployTagWorker implements Runnable {
 
     @Override
     public void run() {
+        WORKER_TIMER.record(() -> runInternal());
+    }
+
+    private void runInternal() {
         try {
             processBatch();
         } catch (Throwable t) {

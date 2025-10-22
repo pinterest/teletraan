@@ -22,6 +22,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory;
 public class DeployJanitor implements Job {
     private static final Logger LOG = LoggerFactory.getLogger(DeployJanitor.class);
     private static final long MILLIS_PER_DAY = 86400000;
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(DeployJanitor.class);
 
     private EnvironDAO environDAO;
     private DeployDAO deployDAO;
@@ -96,6 +99,10 @@ public class DeployJanitor implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        WORKER_TIMER.record(() -> executeInternal(context));
+    }
+
+    private void executeInternal(JobExecutionContext context) {
         SchedulerContext schedulerContext;
 
         errorBudgetSuccess =
