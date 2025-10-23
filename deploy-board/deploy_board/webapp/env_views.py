@@ -1351,6 +1351,8 @@ class EnvNewDeployView(View):
             deploy = deploys_helper.get(request, env["deployId"])
             current_build = builds_helper.get_build(request, deploy["buildId"])
 
+        pindeploy_config = environs_helper.get_env_pindeploy(request, name, stage)
+
         return render(
             request,
             "deploys/new_deploy.html",
@@ -1362,6 +1364,7 @@ class EnvNewDeployView(View):
                 "pageIndex": 1,
                 "pageSize": common.DEFAULT_BUILD_SIZE,
                 "stage_type_info_link": STAGE_TYPE_INFO_LINK,
+                "pindeploy_config": pindeploy_config,
             },
         )
 
@@ -1583,6 +1586,8 @@ def deploy_build(request, name, stage, build_id):
     builds = [build]
     scm_url = systems_helper.get_scm_url(request, scmType)
 
+    pindeploy_config = environs_helper.get_env_pindeploy(request, name, stage)
+
     html = render_to_string(
         "deploys/deploy_build.html",
         {
@@ -1595,6 +1600,7 @@ def deploy_build(request, name, stage, build_id):
             "csrf_token": get_token(request),
             "deployState": deploy_state,
             "overridePolicy": env.get("overridePolicy"),
+            "pindeploy_config": pindeploy_config,
         },
     )
     return HttpResponse(html)
@@ -1613,6 +1619,8 @@ def deploy_commit(request, name, stage, commit):
         scmType = current_build["type"]
     scm_url = systems_helper.get_scm_url(request, scmType)
 
+    pindeploy_config = environs_helper.get_env_pindeploy(request, name, stage)
+
     html = render_to_string(
         "deploys/deploy_build.html",
         {
@@ -1623,6 +1631,7 @@ def deploy_commit(request, name, stage, commit):
             "buildName": env.get("buildName"),
             "branch": env.get("branch"),
             "csrf_token": get_token(request),
+            "pindeploy_config": pindeploy_config,
         },
     )
     return HttpResponse(html)
@@ -1741,6 +1750,8 @@ def promote(request, name, stage, deploy_id):
     deploy = deploys_helper.get(request, deploy_id)
     build = builds_helper.get_build(request, deploy["buildId"])
 
+    pindeploy_config = environs_helper.get_env_pindeploy(request, name, stage)
+
     html = render_to_string(
         "environs/env_promote.html",
         {
@@ -1751,6 +1762,7 @@ def promote(request, name, stage, deploy_id):
             "deploy": deploy,
             "build": build,
             "csrf_token": get_token(request),
+            "pindeploy_config": pindeploy_config,
         },
     )
     return HttpResponse(html)
