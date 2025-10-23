@@ -17,7 +17,7 @@
                      placeholder="Rollback reason (required)" value=""/>
             </div>
         </div>
-        <p><i>Note: a manual rollback will disable auto deploy</i></p>
+        <p><i>Note: a manual rollback will disable auto deploy on this stage by Teletraan.</i></p>
         <div class="row">
             <div class="form-group" align="center">
                 <label class="radio-inline">
@@ -27,9 +27,21 @@
                     <input type="radio" name="mark_build_as_bad" value="on" checked>On
                 </label>
                 <input id="confirmCurrentBuildId" type="hidden" name="toBeMarkedBuildId" value="" />
-                <label class="radio-inline">Mark Build As bad (bad build will not be auto-deployed) </label>
+                <label class="radio-inline">Mark Build As bad (bad build will not be auto-deployed by Teletraan).</label>
             </div>
         </div>
+
+        {% if pindeploy_config %}
+        {% if pindeploy_config.isPindeploy %}
+        <div class="alert alert-warning" role="alert">
+            <strong>Warning!</strong> This stage is managed by Pindeploy. Deployments should be performed using
+            this <a href="{{ pindeploy_config.pipeline }}" target="_blank">pipeline</a>.
+            Creating a deployment from other sources (such as Teletraan) will disable environment management for the pipeline in PinDeploy.
+            This means PinDeploy will stop automatically deploying new builds to the environment in this pipeline.
+            Only proceed this way in case of emergency, and remember to re-enable environment management in PinDeploy once the emergency is resolved.
+        </div>
+        {% endif %}
+        {% endif %}
 
       </div>
       <div class="modal-footer">
