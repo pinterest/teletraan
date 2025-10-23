@@ -1179,6 +1179,8 @@ def get_env_deploys(request, name, stage):
         current_deploy = deploys.pop(0)
         current_build_id = current_deploy["buildId"]
 
+    pindeploy_config = environs_helper.get_env_pindeploy(request, name, stage)
+
     if filter is None:
         return render(
             request,
@@ -1207,6 +1209,7 @@ def get_env_deploys(request, name, stage):
                 "query_string": query_string,
                 "current_build_id": current_build_id,
                 "pinterest": IS_PINTEREST,
+                "pindeploy_config": pindeploy_config,
             },
         )
 
@@ -1248,6 +1251,7 @@ def get_env_deploys(request, name, stage):
             "query_string": query_string,
             "current_build_id": current_build_id,
             "pinterest": IS_PINTEREST,
+            "pindeploy_config": pindeploy_config,
         },
     )
 
@@ -1682,6 +1686,8 @@ def rollback(request, name, stage):
             build_id = build["id"]
         deploy_summaries.append(summary)
 
+    pindeploy_config = environs_helper.get_env_pindeploy(request, name, stage)
+
     html = render_to_string(
         "environs/env_rollback.html",
         {
@@ -1695,6 +1701,7 @@ def rollback(request, name, stage):
             "build_id": build_id,
             "current_build_id": current_build_id,
             "csrf_token": get_token(request),
+            "pindeploy_config": pindeploy_config,
         },
     )
     return HttpResponse(html)

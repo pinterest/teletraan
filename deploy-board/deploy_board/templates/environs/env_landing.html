@@ -287,10 +287,10 @@ $('#privateBldUploadBtnId button').click(function () {
 {% if pindeploy_config.isPindeploy %}
 <div class="alert alert-warning" role="alert">
     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is managed by Pindeploy. Deployments should be done from
+    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is managed by Pindeploy. Deployments should be performed using
     this <a href="{{ pindeploy_config.pipeline }}" target="_blank">pipeline</a>.
-    Creating a deployment from other sources will disable PinDeploy management on the pipeline.
-    Only do so in case of emergency.
+    Creating a deployment from other sources (such as Teletraan) will disable environment management for the pipeline in PinDeploy.
+    Only proceed this way in case of emergency, and remember to re-enable environment management in PinDeploy once the emergency is resolved.
 </div>
 {% endif %}
 {% endif %}
