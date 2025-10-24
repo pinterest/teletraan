@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan;
 
+import com.pinterest.deployservice.common.DeployInternalExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
 import com.pinterest.teletraan.universal.security.PrincipalNameInjector;
@@ -91,6 +92,10 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.jersey().register(Hosts.class);
         environment.jersey().register(Systems.class);
         environment.jersey().register(Pindeploy.class);
+        
+        // register exception mapper
+        environment.jersey().register(new DeployInternalExceptionMapper());
+        
 
         // Support pings as well
         environment.jersey().register(Pings.class);
