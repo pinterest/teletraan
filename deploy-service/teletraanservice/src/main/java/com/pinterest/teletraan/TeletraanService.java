@@ -93,7 +93,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.jersey().register(Systems.class);
         environment.jersey().register(Pindeploy.class);
         
-        // register exception mapper
+        // register exception mappers
         environment.jersey().register(new DeployInternalExceptionMapper());
         
         // Support pings as well
