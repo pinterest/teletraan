@@ -27,6 +27,7 @@ import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.Collections;
@@ -41,6 +42,8 @@ import org.slf4j.LoggerFactory;
 /** Check active deploys and push them into their final states */
 public class HotfixStateTransitioner implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HotfixStateTransitioner.class);
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(HotfixStateTransitioner.class);
 
     private HotfixDAO hotfixDAO;
     private DeployDAO deployDAO;
@@ -129,6 +132,10 @@ public class HotfixStateTransitioner implements Runnable {
 
     @Override
     public void run() {
+        WORKER_TIMER.record(() -> runInternal());
+    }
+
+    private void runInternal() {
         try {
             LOG.info("Start HotfixStateTransitioner process...");
             processBatch();

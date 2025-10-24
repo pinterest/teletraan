@@ -30,6 +30,7 @@ import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import java.sql.Connection;
 import java.util.*;
 import java.util.function.Function;
@@ -47,6 +48,8 @@ public class AutoPromoter implements Runnable {
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
     public static final int DEFAULT_BUFFER_TIME_MINUTE = 2;
     private static final Logger LOG = LoggerFactory.getLogger(AutoPromoter.class);
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(AutoPromoter.class);
     public BuildDAO buildDAO;
     private EnvironDAO environDAO;
     private PromoteDAO promoteDAO;
@@ -653,6 +656,10 @@ public class AutoPromoter implements Runnable {
 
     @Override
     public void run() {
+        WORKER_TIMER.record(() -> runInternal());
+    }
+
+    private void runInternal() {
         try {
             LOG.info("Start AutoPromoter process...");
             processBatch();

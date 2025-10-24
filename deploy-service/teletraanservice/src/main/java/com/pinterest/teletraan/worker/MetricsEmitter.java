@@ -32,6 +32,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.LongTaskTimer;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -55,6 +56,8 @@ public class MetricsEmitter implements Runnable {
     static final int LAUNCH_TIMEOUT_MINUTE = 20;
     static final int MAX_TRACK_DURATION_MINUTE =
             LAUNCH_TIMEOUT_MINUTE * 5; // keep tracking for 5x timeout
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(MetricsEmitter.class);
 
     static long reportHostsCount(HostAgentDAO hostAgentDAO) {
         try {
@@ -126,6 +129,10 @@ public class MetricsEmitter implements Runnable {
 
     @Override
     public void run() {
+        WORKER_TIMER.record(() -> runInternal());
+    }
+
+    private void runInternal() {
         try {
             emitLaunchingMetrics();
         } catch (Exception e) {
