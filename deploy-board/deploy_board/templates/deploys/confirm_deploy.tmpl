@@ -73,9 +73,9 @@
                     <div class="alert alert-warning" role="alert">
                         <strong>Warning!</strong> This stage is managed by Pindeploy. Deployments should be performed using
                         this <a href="{{ pindeploy_config.pipeline }}" target="_blank">pipeline</a>.
-                        Creating a deployment from other sources (such as Teletraan) will disable environment management for the pipeline in PinDeploy.
-                        This means PinDeploy will stop automatically deploying new builds to the environment in this pipeline.
-                        Only proceed this way in case of emergency, and remember to re-enable environment management in PinDeploy once the emergency is resolved.
+                        Creating a deployment from other sources (such as Teletraan) will disable resource management in the PinDeploy pipeline.
+                        This means PinDeploy will stop automatically deploying new builds to the stage/resource in this pipeline.
+                        Only proceed this way in case of emergency, and remember to re-enable resource management in PinDeploy once the emergency is resolved.
                     </div>
                     {% endif %}
                     {% endif %}
