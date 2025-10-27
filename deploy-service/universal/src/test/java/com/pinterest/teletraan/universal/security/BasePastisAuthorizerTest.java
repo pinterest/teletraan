@@ -112,9 +112,14 @@ class BasePastisAuthorizerTest {
 
     @Test
     void testBuilder() {
-        assertThrows(IllegalArgumentException.class, () -> BasePastisAuthorizer.builder().build());
-        assertDoesNotThrow(() -> BasePastisAuthorizer.builder().serviceName("").build());
-        assertDoesNotThrow(() -> BasePastisAuthorizer.builder().pastis(pastis).build());
+        assertThrows(NullPointerException.class, () -> BasePastisAuthorizer.builder().build());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> BasePastisAuthorizer.builder().pastisTimeout(1).build());
+        assertDoesNotThrow(
+                () -> BasePastisAuthorizer.builder().pastisTimeout(1).serviceName("").build());
+        assertDoesNotThrow(
+                () -> BasePastisAuthorizer.builder().pastisTimeout(1).pastis(pastis).build());
     }
 
     @ParameterizedTest

@@ -29,8 +29,10 @@ import javax.ws.rs.ForbiddenException;
 @JsonTypeName("composite")
 public class CompositeAuthorizationFactory implements AuthorizationFactory {
     private static final String DEFAULT_PASTIS_SERVICE_NAME = "teletraan_dev";
+    private static final int DEFAULT_PASTIS_TIMEOUT = 1000;
 
     @JsonProperty private String pastisServiceName = DEFAULT_PASTIS_SERVICE_NAME;
+    @JsonProperty private int pastisTimeout = DEFAULT_PASTIS_TIMEOUT;
     private BasePastisAuthorizer pastisAuthorizer;
 
     public void setPastisServiceName(String pastisServiceName) {
@@ -41,12 +43,21 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
         return pastisServiceName;
     }
 
+    public void setPastisTimeout(int pastisTimeout) {
+        this.pastisTimeout = pastisTimeout;
+    }
+
+    public int getPastisTimeout() {
+        return pastisTimeout;
+    }
+
     private BasePastisAuthorizer getOrCreateAuthorizer(TeletraanServiceContext context) {
         if (pastisAuthorizer == null) {
             pastisAuthorizer =
                     BasePastisAuthorizer.builder()
                             .factory(context.getAuthZResourceExtractorFactory())
                             .serviceName(pastisServiceName)
+                            .pastisTimeout(pastisTimeout)
                             .build();
         }
         return pastisAuthorizer;

@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import javax.ws.rs.container.ContainerRequestContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,14 +39,17 @@ public class BasePastisAuthorizer extends BaseAuthorizer<TeletraanPrincipal> {
 
     @Builder
     private BasePastisAuthorizer(
-            String serviceName, PastisAuthorizer pastis, AuthZResourceExtractor.Factory factory) {
+            String serviceName,
+            PastisAuthorizer pastis,
+            AuthZResourceExtractor.Factory factory,
+            @NonNull Integer pastisTimeout) {
         super(factory);
         if (pastis == null) {
             if (serviceName == null) {
                 throw new IllegalArgumentException(
                         "PastisAuthorizer and serviceName cannot both be null");
             }
-            this.pastis = new PastisAuthorizer(serviceName);
+            this.pastis = new PastisAuthorizer(serviceName, pastisTimeout);
         } else {
             this.pastis = pastis;
         }
