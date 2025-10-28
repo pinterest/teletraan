@@ -29,6 +29,7 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +52,8 @@ import org.slf4j.LoggerFactory;
  */
 public class AgentJanitor implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(AgentJanitor.class);
     private final RodimusManager rodimusManager;
     private final long maxLaunchLatencyThreshold;
     private final long absoluteThreshold = TimeUnit.DAYS.toMillis(7);
@@ -318,6 +321,10 @@ public class AgentJanitor implements Runnable {
 
     @Override
     public void run() {
+        WORKER_TIMER.record(() -> runInternal());
+    }
+
+    private void runInternal() {
         try {
             LOG.info("Start agent janitor process...");
             processAllHosts();

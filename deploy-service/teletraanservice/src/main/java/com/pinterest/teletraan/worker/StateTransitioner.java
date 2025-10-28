@@ -20,6 +20,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
@@ -28,6 +29,8 @@ import org.slf4j.LoggerFactory;
 /** Check active deploys and transition them into final states */
 public class StateTransitioner implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(StateTransitioner.class);
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(StateTransitioner.class);
 
     private EnvironDAO environDAO;
     private CommonHandler commonHandler;
@@ -70,6 +73,10 @@ public class StateTransitioner implements Runnable {
 
     @Override
     public void run() {
+        WORKER_TIMER.record(() -> runInternal());
+    }
+
+    private void runInternal() {
         try {
             LOG.info("Start StateTransitioner process...");
             processBatch();

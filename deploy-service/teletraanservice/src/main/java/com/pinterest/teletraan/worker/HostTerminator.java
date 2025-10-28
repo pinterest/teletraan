@@ -30,6 +30,7 @@ import com.pinterest.deployservice.handler.HostHandler;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import java.sql.Connection;
 import java.util.*;
 import org.slf4j.Logger;
@@ -37,6 +38,8 @@ import org.slf4j.LoggerFactory;
 
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
+    private static final Timer WORKER_TIMER =
+            WorkerTimerFactory.createWorkerTimer(HostTerminator.class);
     private final AgentDAO agentDAO;
     private final HostAgentDAO hostAgentDAO;
     private final HostDAO hostDAO;
@@ -142,6 +145,10 @@ public class HostTerminator implements Runnable {
 
     @Override
     public void run() {
+        WORKER_TIMER.record(() -> runInternal());
+    }
+
+    private void runInternal() {
         try {
             LOG.info("Start to run HostTerminator");
             processBatch();
