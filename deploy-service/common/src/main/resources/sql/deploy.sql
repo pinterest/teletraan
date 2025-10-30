@@ -313,14 +313,14 @@ CREATE TABLE IF NOT EXISTS schema_versions (
     PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Make sure to update the version everytime we change the schema
-INSERT INTO schema_versions (version) VALUES (6);
-
 CREATE TABLE IF NOT EXISTS infra_jobs (
     id                  CHAR(36)        NOT NULL, -- randomly generated UUID
     infra_config        VARCHAR(8192)   NOT NULL, -- serialized json, need to adjust size
     create_at           BIGINT          NOT NULL,
     last_update_at      BIGINT          NOT NULL,
     status              CHAR(11)        NOT NULL DEFAULT "INITIALIZED" -- (INITIALIZED, PROCESSING, SUCCEEDED, FAILED)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX infra_jobs_priority_idx ON infra_jobs(create_at, status);
+
+-- Make sure to update the version everytime we change the schema
+INSERT INTO schema_versions (version) VALUES (7);
