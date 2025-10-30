@@ -54,8 +54,7 @@ public class RodimusCluster {
                                 .getClusterName()) // "helloworlddummyservice-server_nfallah_iac_test_001"
                 .cellName(infraBean.getCellName()) // "aws-us-east-1"
                 .archName(infraBean.getArchName()) // "x86_64"
-                //              .capacity(infraBean.capa) // ??? we have minCapacity and
-                // maxCapacity, how should we translate this to one single capacity?
+                .capacity(infraBean.getMaxCapacity()) // 2
                 .provider(infraBean.getProvider().name()) // AWS
                 .baseImageId(
                         infraBean.getBaseImageId()) // ??? same as hostType? ami-07cd1899f95a5eae5
@@ -86,7 +85,7 @@ public class RodimusCluster {
                         infraBean
                                 .getUserData()) // ??? is this config_id in clusters table? couldn't
                 // find a related table
-                .state("NORMAL") // ??? Hardcode to "NORMAL"
+//                .state("NORMAL") // ??? Hardcode to "NORMAL"
                 //              .launchConfig(infraBean.con) // ??? where should this come in
                 // teletraan?
                 //              .useLaunchTemplate(infraBean) // ??? where should this come in
@@ -96,7 +95,7 @@ public class RodimusCluster {
                 .autoUpdateBaseImage(infraBean.getAutoUpdateBaseImage()) // false
                 .useIdForBaseImageLookUp(infraBean.getUseIdForBaseImageLookUp()) // null
                 .statefulStatus(infraBean.getStatefulStatus()) // null
-                //              .isManagedResource(infraBean.) // ??? false
+                .isManagedResource(true) // ??? hardcoded since this endpoint is used by orca plugin for now
                 //              .managedResourceVersion(infraBean) // ??? ""
                 .replacementTimeout(infraBean.getReplacementTimeout()) // 45
                 .build();
