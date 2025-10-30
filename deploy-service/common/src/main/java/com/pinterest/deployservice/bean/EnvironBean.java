@@ -159,6 +159,9 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
     @JsonProperty("projectName")
     private String external_project_name;
 
+    @JsonProperty("useEntitlements")
+    private Boolean use_entitlements;
+
     public void validate() throws IllegalArgumentException {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         String envRegEx = "^[A-Za-z0-9_\\-]*$";
@@ -499,6 +502,14 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
         this.external_id = external_id;
     }
 
+    public Boolean getUse_entitlements() {
+        return use_entitlements;
+    }
+
+    public void setUse_entitlements(Boolean use_entitlements) {
+        this.use_entitlements = use_entitlements;
+    }
+
     public Boolean getAllow_private_build() {
         return allow_private_build;
     }
@@ -594,6 +605,7 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
         clause.addColumn("is_sox", is_sox);
         clause.addColumn("termination_limit", termination_limit);
         clause.addColumn("external_project_name", external_project_name);
+        clause.addColumn("use_entitlements", use_entitlements);
         return clause;
     }
 
