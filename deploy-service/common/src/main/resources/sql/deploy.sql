@@ -314,7 +314,8 @@ CREATE TABLE IF NOT EXISTS infra_jobs (
     create_at           BIGINT          NOT NULL,
     last_update_at      BIGINT          NOT NULL,
     status              CHAR(11)        NOT NULL DEFAULT "INITIALIZED" -- (INITIALIZED, PROCESSING, SUCCEEDED, FAILED)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX infra_jobs_priority_idx ON infra_jobs(create_at, status);
 
 CREATE TABLE IF NOT EXISTS schema_versions (
