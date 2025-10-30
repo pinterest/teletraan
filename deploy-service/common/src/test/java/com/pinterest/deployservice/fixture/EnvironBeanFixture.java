@@ -55,6 +55,7 @@ public class EnvironBeanFixture {
         environBean.setStuck_th(50);
         environBean.setSuccess_th(10000);
         environBean.setWatch_recipients(UUID.randomUUID().toString());
+        environBean.setUse_entitlements(Boolean.TRUE);
         return environBean;
     }
 }
