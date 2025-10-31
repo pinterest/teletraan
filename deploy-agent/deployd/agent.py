@@ -521,9 +521,13 @@ class DeployAgent(object):
             if os.path.exists(script_config_path):
                 try:
                     os.remove(script_config_path)
-                    log.info(f"Removed script config file: {script_config_path} because scriptVariables is empty or None.")
+                    log.info(
+                        f"Removed script config file: {script_config_path} because scriptVariables is empty or None."
+                    )
                 except Exception as e:
-                    log.warning(f"Failed to remove script config file {script_config_path}: {e}")
+                    log.warning(
+                        f"Failed to remove script config file {script_config_path}: {e}"
+                    )
 
         # timing stats - deploy stage start
         if deploy_goal != self.deploy_goal_previous:
