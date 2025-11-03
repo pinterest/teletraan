@@ -84,7 +84,7 @@ public class EnvInfras {
                 WorkerJobBean.builder()
                         .id(jobId)
                         .jobType(WorkerJobBean.JobType.INFRA_APPLY)
-                        .config(bean)
+                        .config(bean.getAccountId())
                         .status(WorkerJobBean.Status.INITIALIZED)
                         .createAt(System.currentTimeMillis())
                         .build();
