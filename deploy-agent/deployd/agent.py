@@ -505,17 +505,29 @@ class DeployAgent(object):
         self._envs[env_name].update_by_response(response)
 
         # update script variables
+        env_dir = self._config.get_agent_directory()
+        script_config_path = os.path.join(env_dir, f"{env_name}_SCRIPT_CONFIG")
         if deploy_goal.scriptVariables:
             log.info(
                 "Start to generate script variables for deploy: {}".format(
                     deploy_goal.deployId
                 )
             )
-            env_dir = self._config.get_agent_directory()
-            working_dir = os.path.join(env_dir, "{}_SCRIPT_CONFIG".format(env_name))
-            with open(working_dir, "w+") as f:
+            with open(script_config_path, "w+") as f:
                 for key, value in deploy_goal.scriptVariables.items():
-                    f.write("{}={}\n".format(key, value))
+                    f.write(f"{key}={value}\n")
+        else:
+            # Remove the script config file if scriptVariables is None or empty
+            if os.path.exists(script_config_path):
+                try:
+                    os.remove(script_config_path)
+                    log.info(
+                        f"Removed script config file: {script_config_path} because scriptVariables is empty or None."
+                    )
+                except Exception as e:
+                    log.warning(
+                        f"Failed to remove script config file {script_config_path}: {e}"
+                    )
 
         # timing stats - deploy stage start
         if deploy_goal != self.deploy_goal_previous:
