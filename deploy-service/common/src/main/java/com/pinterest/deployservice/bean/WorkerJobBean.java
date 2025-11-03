@@ -15,8 +15,7 @@
  */
 package com.pinterest.deployservice.bean;
 
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,21 +27,35 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString
-public class InfraBean {
-    private String clusterName;
-    private String accountId;
-    private String region;
-    private String archName;
-    private Integer capacity;
-    private CloudProvider provider;
-    private String baseImage;
-    private String baseImageName;
-    private String hostType;
-    private String securityGroup;
-    private List<String> subnets;
-    private Map<String, String> configs;
-    private Boolean autoUpdateBaseImage;
-    private Boolean statefulStatus;
-    private Boolean autoRefresh;
-    private Long replacementTimeout;
+public class WorkerJobBean extends BaseBean implements Updatable, Serializable {
+
+    private String id;
+    private JobType jobType;
+    private Object config;
+    private Status status;
+    private long createAt;
+    private Long lastUpdateAt;
+
+    @Override
+    public SetClause genSetClause() {
+        SetClause clause = new SetClause();
+        clause.addColumn("id", id);
+        clause.addColumn("job_type", jobType);
+        clause.addColumn("config", config);
+        clause.addColumn("status", status);
+        clause.addColumn("create_at", createAt);
+        clause.addColumn("last_update_at", lastUpdateAt);
+        return clause;
+    }
+
+    public enum JobType {
+        INFRA_APPLY
+    }
+
+    public enum Status {
+        INITIALIZED,
+        RUNNING,
+        COMPLETED,
+        FAILED
+    }
 }

@@ -44,6 +44,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.dao.WorkerJobDAO;
 import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
@@ -82,6 +83,7 @@ public class ServiceContext {
     private HostTagDAO hostTagDAO;
     private DeployConstraintDAO deployConstraintDAO;
     private PindeployDAO pindeployDAO;
+    private WorkerJobDAO workerJobDAO;
 
     private Allowlist buildAllowlist;
 
@@ -221,6 +223,14 @@ public class ServiceContext {
 
     public void setPindeployDAO(PindeployDAO pindeployDAO) {
         this.pindeployDAO = pindeployDAO;
+    }
+
+    public WorkerJobDAO getWorkerJobDAO() {
+        return workerJobDAO;
+    }
+
+    public void setWorkerJobDAO(WorkerJobDAO workerJobDAO) {
+        this.workerJobDAO = workerJobDAO;
     }
 
     public HostAgentDAO getHostAgentDAO() {

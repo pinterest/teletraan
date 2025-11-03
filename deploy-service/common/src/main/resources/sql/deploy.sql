@@ -308,15 +308,16 @@ CREATE TABLE IF NOT EXISTS schedules (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS infra_jobs (
-    id                  CHAR(36)        NOT NULL,
-    infra_config        VARCHAR(8192)   NOT NULL,
-    create_at           BIGINT          NOT NULL,
-    last_update_at      BIGINT          NOT NULL,
-    status              CHAR(11)        NOT NULL DEFAULT "INITIALIZED",
+CREATE TABLE IF NOT EXISTS worker_jobs (
+    id                CHAR(36)                                                 NOT NULL,
+    job_type          ENUM('INFRA_APPLY')                                      NOT NULL DEFAULT 'INFRA_APPLY',
+    config            JSON                                                     NOT NULL,
+    status            ENUM('INITIALIZED', 'RUNNING', 'COMPLETED', 'FAILED')    NOT NULL DEFAULT 'INITIALIZED',
+    create_at         BIGINT                                                   NOT NULL,
+    last_update_at    BIGINT,
     PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE INDEX infra_jobs_priority_idx ON infra_jobs(create_at, status);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE INDEX worker_jobs_priority_idx ON worker_jobs(job_type, status, create_at);
 
 CREATE TABLE IF NOT EXISTS schema_versions (
     version INT NOT NULL DEFAULT 0,
