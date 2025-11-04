@@ -96,6 +96,11 @@ public class EnvInfrasWorker {
                 "Endpoint for getting status of applying infra configurations found job: {}",
                 workerJobBean);
 
+        InfraBean infraBean = (InfraBean)workerJobBean.getConfig()
+        LOG.info(
+                "Endpoint for getting status of applying infra configurations found job 2: {}",
+                infraBean);
+
         return Response.status(200).entity(workerJobBean).build();
     }
 }
