@@ -43,13 +43,13 @@ import org.slf4j.LoggerFactory;
 @Api(tags = "Infras")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class EnvInfrasWorker {
+public class EnvInfrasJob {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EnvInfrasWorker.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EnvInfrasJob.class);
 
     private WorkerJobDAO workerJobDAO;
 
-    public EnvInfrasWorker(@Context TeletraanServiceContext context) {
+    public EnvInfrasJob(@Context TeletraanServiceContext context) {
         workerJobDAO = context.getWorkerJobDAO();
     }
 
@@ -63,7 +63,7 @@ public class EnvInfrasWorker {
             notes = "Get status of applying infrastructure configurations given a job id",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.READ)
-    public Response getJobStatus(
+    public Response getJob(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
             @ApiParam(value = "Job id", required = true) @PathParam("jobId") String jobId)

@@ -72,7 +72,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.jersey().register(EnvAlarms.class);
         environment.jersey().register(EnvDeploys.class);
         environment.jersey().register(EnvInfras.class);
-        environment.jersey().register(EnvInfrasWorker.class);
+        environment.jersey().register(EnvInfrasJob.class);
         environment.jersey().register(EnvCapacities.class);
         environment.jersey().register(Environs.class);
         environment.jersey().register(EnvStages.class);
