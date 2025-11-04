@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.bean;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -28,7 +29,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString
-public class InfraBean {
+public class InfraBean extends BaseBean implements Serializable {
     private String clusterName;
     private String accountId;
     private String region;
