@@ -15,7 +15,6 @@
  */
 package com.pinterest.deployservice.handler;
 
-import static com.pinterest.deployservice.handler.DeployHandler.ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG;
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_EMPTY_BUILD_ID;
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_NON_PRIVATE_UNTRUSTED_LOCATION;
 import static com.pinterest.deployservice.handler.DeployHandler.ERROR_STAGE_NOT_ALLOW_PRIVATE_BUILD;
@@ -33,7 +32,7 @@ import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.common.DeployInternalException;
+import com.pinterest.deployservice.common.InvalidBuildException;
 import com.pinterest.deployservice.dao.BuildDAO;
 import java.util.ArrayList;
 import javax.ws.rs.WebApplicationException;
@@ -97,18 +96,8 @@ public class DeployHandlerTest {
         envBean.setBuild_name("other");
         when(buildDAO.getById(BUILD_ID)).thenReturn(genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH));
 
-        Throwable throwable =
-                assertThrows(
-                        DeployInternalException.class,
-                        () -> deployHandler.validateBuild(envBean, BUILD_ID));
-        assertTrue(
-                throwable
-                        .getMessage()
-                        .contains(
-                                String.format(
-                                        ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
-                                        genBuildBean(NON_PRIVATE_BUILD_SCM_BRANCH).getBuild_name(),
-                                        envBean.getBuild_name())));
+        assertThrows(
+                InvalidBuildException.class, () -> deployHandler.validateBuild(envBean, BUILD_ID));
     }
 
     @Test

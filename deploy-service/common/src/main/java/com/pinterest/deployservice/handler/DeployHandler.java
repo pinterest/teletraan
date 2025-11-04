@@ -43,6 +43,7 @@ import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
+import com.pinterest.deployservice.common.InvalidBuildException;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
 import com.pinterest.deployservice.dao.AgentDAO;
@@ -90,8 +91,6 @@ public class DeployHandler implements DeployHandlerInterface {
             "https://deploy.pinadmin.com/env/%s/%s/compare_deploys_2/?chkbox_1=%s&chkbox_2=%s";
 
     static final String ERROR_EMPTY_BUILD_ID = "Build id can not be empty.";
-    static final String ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG =
-            "Build name (%s) does not match stage config (%s).";
     static final String ERROR_NON_PRIVATE_UNTRUSTED_LOCATION =
             "Non-private build url points to an untrusted location (%s)."
                     + " Please Contact #teletraan to ensure the build artifact is published to a trusted url.";
@@ -465,10 +464,7 @@ public class DeployHandler implements DeployHandlerInterface {
 
         // check build name must match stage config
         if (!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new DeployInternalException(
-                    ERROR_BUILD_NAME_NOT_MATCH_STAGE_CONFIG,
-                    buildBean.getBuild_name(),
-                    envBean.getBuild_name());
+            throw new InvalidBuildException(buildBean.getBuild_name(), envBean.getBuild_name());
         }
 
         if (envBean.getStage_type() != EnvType.DEV
