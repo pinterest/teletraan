@@ -15,14 +15,12 @@
  */
 package com.pinterest.deployservice.bean;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Range;
 
 @Data
 @Builder(toBuilder = true)
@@ -44,11 +42,5 @@ public class ClusterInfoPublicIdsBean {
     private Boolean autoRefresh;
     private String accountId;
     private Boolean isManagedResource;
-
-    @Range(
-            min = 5,
-            max = 24 * 60,
-            message = "Timeout must be between 5 minutes and 1440 minutes (24 hours)")
-    @JsonProperty("replacementTimeout")
     private Long replacementTimeout;
 }

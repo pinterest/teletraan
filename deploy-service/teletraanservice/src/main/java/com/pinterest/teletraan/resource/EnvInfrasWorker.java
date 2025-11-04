@@ -17,25 +17,16 @@ package com.pinterest.teletraan.resource;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pinterest.deployservice.bean.InfraBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
-import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -44,7 +35,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/envs/infras/job")
@@ -53,7 +45,6 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvInfrasWorker {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(EnvInfrasWorker.class);
 
     private WorkerJobDAO workerJobDAO;
@@ -63,7 +54,8 @@ public class EnvInfrasWorker {
     }
 
     @GET
-    @Path("/{jobId : [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}}")
+    @Path(
+            "/{jobId : [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}}")
     @Timed
     @ExceptionMetered
     @ApiOperation(
@@ -95,11 +87,6 @@ public class EnvInfrasWorker {
         LOG.info(
                 "Endpoint for getting status of applying infra configurations found job: {}",
                 workerJobBean);
-
-        InfraBean infraBean = mapper.readValue(workerJobBean.getConfig(), InfraBean.class);
-        LOG.info(
-                "Endpoint for getting status of applying infra configurations found job 2: {}",
-                infraBean);
 
         return Response.status(200).entity(workerJobBean).build();
     }

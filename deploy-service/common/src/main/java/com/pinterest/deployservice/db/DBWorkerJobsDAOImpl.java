@@ -15,7 +15,6 @@
  */
 package com.pinterest.deployservice.db;
 
-import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
