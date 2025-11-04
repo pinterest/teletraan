@@ -16,11 +16,15 @@
 package com.pinterest.deployservice.bean;
 
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import javax.validation.constraints.NotEmpty;
 
 @Data
 @NoArgsConstructor
@@ -29,22 +33,37 @@ import lombok.ToString;
 @ToString
 public class WorkerJobBean extends BaseBean implements Updatable, Serializable {
 
+    @JsonProperty("id")
     private String id;
-    private JobType jobType;
+
+    @NotEmpty
+    @JsonProperty("jobType")
+    private JobType job_type;
+
+    @NotEmpty
+    @JsonProperty("config")
     private Object config;
+
+    @NotEmpty
+    @JsonProperty("status")
     private Status status;
-    private long createAt;
-    private Long lastUpdateAt;
+
+    @NotEmpty
+    @JsonProperty("createAt")
+    private long create_at;
+
+    @JsonProperty("lastUpdateAt")
+    private Long last_update_at;
 
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
         clause.addColumn("id", id);
-        clause.addColumn("job_type", jobType);
+        clause.addColumn("job_type", job_type);
         clause.addColumn("config", config);
         clause.addColumn("status", status);
-        clause.addColumn("create_at", createAt);
-        clause.addColumn("last_update_at", lastUpdateAt);
+        clause.addColumn("create_at", create_at);
+        clause.addColumn("last_update_at", last_update_at);
         return clause;
     }
 

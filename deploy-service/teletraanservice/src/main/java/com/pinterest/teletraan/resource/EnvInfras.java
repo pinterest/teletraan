@@ -80,20 +80,25 @@ public class EnvInfras {
                 bean);
 
         String jobId = UUID.randomUUID().toString();
-        WorkerJobBean workerJobBean =
-                WorkerJobBean.builder()
-                        .id(jobId)
-                        .jobType(WorkerJobBean.JobType.INFRA_APPLY)
-                        .config(bean.getAccountId())
-                        .status(WorkerJobBean.Status.INITIALIZED)
-                        .createAt(System.currentTimeMillis())
-                        .build();
+        try {
+          WorkerJobBean workerJobBean =
+                  WorkerJobBean.builder()
+                          .id(jobId)
+                          .job_type(WorkerJobBean.JobType.INFRA_APPLY)
+                          .config(bean.getAccountId())
+                          .status(WorkerJobBean.Status.INITIALIZED)
+                          .create_at(System.currentTimeMillis())
+                          .build();
 
-        workerJobDAO.insert(workerJobBean);
+          workerJobDAO.insert(workerJobBean);
 
-        LOG.info("Endpoint for applying infra configurations created a worker job: {}", bean);
+          LOG.info("Endpoint for applying infra configurations created a worker job: {}", bean);
 
-        return Response.status(200).entity(workerJobBean).build();
+          return Response.status(200).entity(workerJobBean).build();
+        } catch (Exception e) {
+          LOG.error("Endpoint for applying infra configurations failed", e);
+          throw e;
+        }
     }
 
     @GET
