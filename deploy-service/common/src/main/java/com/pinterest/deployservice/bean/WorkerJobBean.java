@@ -42,7 +42,7 @@ public class WorkerJobBean extends BaseBean implements Updatable, Serializable {
 
     @NotEmpty
     @JsonProperty("config")
-    private Object config;
+    private String config;
 
     @NotEmpty
     @JsonProperty("status")

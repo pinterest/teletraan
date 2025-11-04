@@ -96,7 +96,7 @@ public class EnvInfrasWorker {
                 "Endpoint for getting status of applying infra configurations found job: {}",
                 workerJobBean);
 
-        InfraBean infraBean = (InfraBean)workerJobBean.getConfig();
+        InfraBean infraBean = mapper.readValue(workerJobBean.getConfig(), InfraBean.class);
         LOG.info(
                 "Endpoint for getting status of applying infra configurations found job 2: {}",
                 infraBean);
