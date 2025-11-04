@@ -698,3 +698,49 @@ Vue.component('stateful-help', {
         </div>
     </div>`
 });
+
+Vue.component("ebs-check-checkbox", {
+    template:
+    `<div style="display: flex; align-items: center">
+        <label for="ebsCheckCheckbox" class="control-label col-xs-2">
+            Enable EBS Health Check:
+        </label>
+        <input style="margin-left: 15px" id="ebsCheckCheckbox" name="ebsCheckCheckbox" type="checkbox" v-bind:checked="useEbsCheck" v-on:click="onUseEbsCheckClick($event.target.checked)"/>
+        <div class="col-xs-8" style="margin-top: 4px">
+            <span v-on:click="helpClick" class="glyphicon glyphicon-question-sign" style="color: #428bca; cursor: pointer; margin-right: 2px"></span>
+            <span v-show="showUseEbsCheckHelp">Enables <a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/monitor-and-replace-instances-with-impaired-ebs-volumes.html" target="_blank">EBS Health Check</a> in addition to the EC2 health check</span>
+        </div>
+    </div>`,
+    props: ['useEbsCheck', 'showUseEbsCheckHelp'],
+    methods: {
+        onUseEbsCheckClick: function (value) {
+            this.$emit('on-use-ebs-check-click', value);
+        },
+        helpClick: function () {
+          this.$emit('help-clicked')
+        },
+    }
+});
+
+Vue.component("ena-express-checkbox", {
+    template:
+    `<div style="display: flex; align-items: center">
+        <label for="enaExpressCheckbox" class="control-label col-xs-2">
+            Enable ENA Express:
+        </label>
+        <input style="margin-left: 15px" id="enaExpressCheckbox" name="enaExpressCheckbox" type="checkbox" v-bind:checked="useEnaExpress" v-on:click="onUseEnaExpressClick($event.target.checked)"/>
+        <div class="col-xs-8" style="margin-top: 4px">
+            <span v-on:click="helpClick" class="glyphicon glyphicon-question-sign" style="color: #428bca; cursor: pointer; margin-right: 2px"></span>
+            <span v-show="showUseEnaExpressHelp">Enables <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ena-express.html" target="_blank">ENA Express</a>. This is <strong>only</strong> supported for certain instances. See AWS documentation</span>
+        </div>
+    </div>`,
+    props: ['useEnaExpress', 'showUseEnaExpressHelp'],
+    methods: {
+        onUseEnaExpressClick: function (value) {
+            this.$emit('on-use-ena-express-click', value);
+        },
+        helpClick: function () {
+          this.$emit('help-clicked')
+        },
+    }
+});

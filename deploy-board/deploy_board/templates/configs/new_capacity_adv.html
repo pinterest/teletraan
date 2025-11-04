@@ -69,7 +69,10 @@
                     <stateful-select :statefuloptions="statefulStatusOptions" :value="selectedStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="updateStatefulStatus"></stateful-select>
                     <stateful-help v-show="showStatefulHelp"></stateful-help>
                     <div>
-                        <div class="form-group"></div>
+                        <div class="form-group">
+                          <ebs-check-checkbox v-bind:use-ebs-check="useEbsCheck" v-on:on-use-ebs-check-click="onUseEbsCheckClick" v-bind:show-use-ebs-check-help="showUseEbsCheckHelp" v-on:help-clicked="onUseEbsCheckHelpClick"></ebs-check-checkbox>
+                          <ena-express-checkbox v-bind:use-ena-express="useEnaExpress" v-on:on-use-ena-express-click="onUseEnaExpressClick" v-bind:show-use-ena-express-help="showUseEnaExpressHelp" v-on:help-clicked="onUseEnaExpressHelpClick"></ena-express-checkbox>
+                        </div>
                         <div class="form-group">
                             <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" title="Customize user data">User data configs:</label>
                             {% if is_pinterest %}
@@ -162,6 +165,10 @@ var capacitySetting = new Vue({
         currentCell: getDefaultCell(info.defaultAccountId),
         currentArch: info.defaultArch,
         currentBandwidthWeight: "default",
+        useEbsCheck: false,
+        useEnaExpress: false,
+        showUseEbsCheckHelp: false,
+        showUseEnaExpressHelp: false,
         hostTypeHelpData:[],
         hostTypeOptions: hostTypes.getOptions(),
         hostTypes: info.hostTypes,
@@ -459,6 +466,18 @@ var capacitySetting = new Vue({
             this.currentBandwidthWeight = value;
             capacitySetting.currentBandwidthWeight = value;
         },
+        onUseEbsCheckClick: function(useEbsCheck){
+            this.useEbsCheck = useEbsCheck;
+        },
+        onUseEnaExpressClick: function(useEnaExpress){
+            this.useEnaExpress = useEnaExpress;
+        },
+        onUseEbsCheckHelpClick: function(value) {
+            this.showUseEbsCheckHelp = !this.showUseEbsCheckHelp
+        },
+        onUseEnaExpressHelpClick: function(value) {
+            this.showUseEnaExpressHelp = !this.showUseEnaExpressHelp
+        },
         imageNameChange: function (value) {
             var cell = capacitySetting.currentCell;
             var arch = capacitySetting.currentArch;
@@ -643,6 +662,8 @@ var capacitySetting = new Vue({
             clusterInfo['cellName'] = this.currentCell;
             clusterInfo['archName'] = this.currentArch;
             clusterInfo['bandwidthWeighting'] = this.currentBandwidthWeight;
+            clusterInfo['useEbsCheck'] = this.useEbsCheck;
+            clusterInfo['useEnaExpress'] = this.useEnaExpress;
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['useLaunchTemplate'] =  info.defaultUseLaunchTemplate;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
