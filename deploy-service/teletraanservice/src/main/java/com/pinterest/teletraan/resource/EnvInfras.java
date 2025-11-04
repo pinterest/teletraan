@@ -35,8 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
-//@Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\\\-_]+}/infras")
-@Path("/v1/envs")
+@Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\\\-_]+}/infras")
 @Api(tags = "Infras")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -52,7 +51,6 @@ public class EnvInfras {
     }
 
     @POST
-    @Path("/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\\\-_]+}/infras")
     @Timed
     @ExceptionMetered
     @ApiOperation(
@@ -88,7 +86,6 @@ public class EnvInfras {
                   WorkerJobBean.builder()
                           .id(jobId)
                           .job_type(WorkerJobBean.JobType.INFRA_APPLY)
-//                          .config("{\"accId\":\"" + bean.getAccountId() + "\"}")
                           .config(mapper.writeValueAsString(bean))
                           .status(WorkerJobBean.Status.INITIALIZED)
                           .create_at(System.currentTimeMillis())
@@ -103,43 +100,5 @@ public class EnvInfras {
           LOG.error("Endpoint for applying infra configurations failed", e);
           throw e;
         }
-    }
-
-    @GET
-    @Path(
-            "/infras/job/{jobId : [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}}")
-    @Timed
-    @ExceptionMetered
-    @ApiOperation(
-            value = "Get status of applying infrastructure configurations",
-            notes = "Get status of applying infrastructure configurations given a job id",
-            response = Response.class)
-    @RolesAllowed(TeletraanPrincipalRole.Names.READ)
-    public Response getJobStatus(
-            @Context SecurityContext sc,
-            @Context UriInfo uriInfo,
-            @ApiParam(value = "Job id", required = true) @PathParam("jobId") String jobId)
-            throws Exception {
-        String operator = sc.getUserPrincipal().getName();
-
-        LOG.info(
-                "Endpoint for getting status of applying infra configurations was called. jobId: {}, operator: {}",
-                jobId,
-                operator);
-
-        WorkerJobBean workerJobBean = workerJobDAO.getById(jobId);
-
-        if (workerJobBean == null) {
-            LOG.info(
-                    "Endpoint for getting status of applying infra configurations did not find jobId: {}",
-                    jobId);
-            return Response.status(400).build();
-        }
-
-        LOG.info(
-                "Endpoint for getting status of applying infra configurations found job: {}",
-                workerJobBean);
-
-        return Response.status(200).entity(workerJobBean).build();
     }
 }
