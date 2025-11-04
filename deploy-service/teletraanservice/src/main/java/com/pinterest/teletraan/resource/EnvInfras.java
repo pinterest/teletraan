@@ -17,6 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvInfras {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(EnvInfras.class);
 
     private WorkerJobDAO workerJobDAO;
@@ -85,8 +87,8 @@ public class EnvInfras {
                   WorkerJobBean.builder()
                           .id(jobId)
                           .job_type(WorkerJobBean.JobType.INFRA_APPLY)
-//                          .config("{\"accId\":" + bean.getAccountId() + "}")
-                          .config(bean)
+//                          .config("{\"accId\":\"" + bean.getAccountId() + "\"}")
+                          .config(mapper.writeValueAsString(bean))
                           .status(WorkerJobBean.Status.INITIALIZED)
                           .create_at(System.currentTimeMillis())
                           .build();
