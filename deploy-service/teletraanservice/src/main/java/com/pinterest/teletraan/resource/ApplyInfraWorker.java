@@ -72,7 +72,7 @@ public class ApplyInfraWorker implements Runnable {
         }
     }
 
-    void processBatch() throws Exception {
+  private void processBatch() throws Exception {
         LOG.info("navid DB lock operation getting data: get lock");
         List<WorkerJobBean> workerJobBeans =
                 workerJobDAO.getOldestByJobTypeStatus(

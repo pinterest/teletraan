@@ -66,6 +66,6 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
             throws Exception {
         ResultSetHandler<List<WorkerJobBean>> h = new BeanListHandler<>(WorkerJobBean.class);
         return new QueryRunner(dataSource)
-                .query(GET_OLDEST_BY_JOB_TYPE_STATUS, h, jobType, status, count);
+                .query(GET_OLDEST_BY_JOB_TYPE_STATUS, h, jobType.name(), status.name(), count);
     }
 }
