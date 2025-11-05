@@ -130,6 +130,6 @@ public class ApplyInfraWorker implements Runnable {
     }
 
     private void applyInfra(WorkerJobBean workerJobBean) {
-        LOG.info(String.format("Doing work on %s", workerJobBean.getId()));
+        LOG.info(String.format("navid Doing work on %s", workerJobBean.getId()));
     }
 }
