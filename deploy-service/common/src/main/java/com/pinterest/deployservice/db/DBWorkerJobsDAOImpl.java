@@ -28,10 +28,10 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     private static final String INSERT_ENV_TEMPLATE = "INSERT INTO worker_jobs SET %s";
     private static final String UPDATE_STATUS_TEMPLATE =
-            "UPDATE worker_jobs SET status=? AND last_update_at=? WHERE id=?";
+            "UPDATE worker_jobs SET status=?, last_update_at=? WHERE id=?";
     private static final String GET_ENV_BY_ID = "SELECT * FROM worker_jobs WHERE id=?";
     private static final String GET_OLDEST_BY_JOB_TYPE_STATUS =
-            "SELECT * FROM worker_jobs WHERE job_type=?, status=? ORDER BY create_at LIMIT ?";
+            "SELECT * FROM worker_jobs WHERE job_type=? AND status=? ORDER BY create_at LIMIT ?";
 
     private BasicDataSource dataSource;
 
