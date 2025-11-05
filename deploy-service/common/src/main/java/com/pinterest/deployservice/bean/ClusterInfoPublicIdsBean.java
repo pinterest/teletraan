@@ -43,4 +43,25 @@ public class ClusterInfoPublicIdsBean {
     private String accountId;
     private Boolean isManagedResource;
     private Long replacementTimeout;
+
+    public static ClusterInfoPublicIdsBean fromInfraConfigBean(InfraConfigBean infraConfigBean) {
+        return ClusterInfoPublicIdsBean.builder()
+                .region(infraConfigBean.getRegion())
+                .archName(infraConfigBean.getArchName())
+                .capacity(infraConfigBean.getCapacity())
+                .provider(infraConfigBean.getProvider())
+                .baseImage(infraConfigBean.getBaseImage())
+                .baseImageName(infraConfigBean.getBaseImageName())
+                .hostType(infraConfigBean.getHostType())
+                .securityGroup(infraConfigBean.getSecurityGroup())
+                .subnets(infraConfigBean.getSubnets())
+                .configs(infraConfigBean.getConfigs())
+                .autoUpdateBaseImage(infraConfigBean.getAutoUpdateBaseImage())
+                .statefulStatus(infraConfigBean.getStatefulStatus())
+                .autoRefresh(infraConfigBean.getAutoRefresh())
+                .accountId(infraConfigBean.getAccountId())
+                .isManagedResource(true)
+                .replacementTimeout(infraConfigBean.getReplacementTimeout())
+                .build();
+    }
 }

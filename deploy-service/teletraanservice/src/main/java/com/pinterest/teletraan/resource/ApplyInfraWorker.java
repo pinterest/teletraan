@@ -15,7 +15,10 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.InfraConfigBean;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
@@ -34,6 +37,7 @@ import org.slf4j.LoggerFactory;
 public class ApplyInfraWorker implements Runnable {
 
     private static final int WORKER_JOB_BATCH_COUNT = 10;
+    private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(ApplyInfraWorker.class);
     private static final Timer WORKER_TIMER =
             WorkerTimerFactory.createWorkerTimer(HostTerminator.class);
@@ -101,7 +105,8 @@ public class ApplyInfraWorker implements Runnable {
                         applyInfra(workerJobBean);
                         workerJobDAO.updateStatus(
                                 workerJobBean,
-                                WorkerJobBean.Status.COMPLETED,
+                                WorkerJobBean.Status.INITIALIZED,
+                                //                                WorkerJobBean.Status.COMPLETED,
                                 System.currentTimeMillis());
                         LOG.info(String.format("navid Completed worker job for id %s", id));
                     } else {
@@ -111,8 +116,9 @@ public class ApplyInfraWorker implements Runnable {
                                         id));
                     }
                 } catch (Exception e) {
-                    workerJobDAO.updateStatus(
-                            workerJobBean, WorkerJobBean.Status.FAILED, System.currentTimeMillis());
+                    //                    workerJobDAO.updateStatus(
+                    //                            workerJobBean, WorkerJobBean.Status.FAILED,
+                    // System.currentTimeMillis());
                     LOG.error("navid Failed to process worker job id {}", workerJobBean.getId(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
@@ -129,7 +135,33 @@ public class ApplyInfraWorker implements Runnable {
         }
     }
 
-    private void applyInfra(WorkerJobBean workerJobBean) {
-        LOG.info(String.format("navid Doing work on %s", workerJobBean.getId()));
+    private void applyInfra(WorkerJobBean workerJobBean) throws Exception {
+        LOG.info(String.format("Doing work on %s", workerJobBean.getId()));
+
+        InfraConfigBean infraConfigBean =
+                mapper.readValue(workerJobBean.getConfig(), InfraConfigBean.class);
+        LOG.info(
+                "navid Endpoint for getting status of applying infra configurations found job 2: {}",
+                infraConfigBean);
+        ClusterInfoPublicIdsBean newClusterInfoPublicIdsBean =
+                ClusterInfoPublicIdsBean.fromInfraConfigBean(infraConfigBean);
+        LOG.info("navid 1");
+        ClusterInfoPublicIdsBean existingClusterInfoPublicIdsBean =
+                rodimusManager.getCluster(infraConfigBean.getClusterName());
+        LOG.info("navid 2");
+        if (existingClusterInfoPublicIdsBean == null) {
+            LOG.info("navid 3");
+            rodimusManager.createClusterWithEnvPublicIds(
+                    infraConfigBean.getClusterName(),
+                    infraConfigBean.getEnvName(),
+                    infraConfigBean.getStageName(),
+                    newClusterInfoPublicIdsBean);
+            LOG.info("navid 4");
+        } else {
+            LOG.info("navid 5");
+            rodimusManager.updateClusterWithPublicIds(
+                    infraConfigBean.getClusterName(), newClusterInfoPublicIdsBean);
+            LOG.info("navid 6");
+        }
     }
 }
