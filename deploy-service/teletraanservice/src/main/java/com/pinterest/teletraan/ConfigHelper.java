@@ -57,6 +57,7 @@ import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
+import com.pinterest.teletraan.resource.ApplyInfraWorker;
 import com.pinterest.teletraan.security.TeletraanAuthZResourceExtractorFactory;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
 import com.pinterest.teletraan.worker.AgentJanitor;
@@ -428,6 +429,13 @@ public class ConfigHelper {
                 Runnable worker = new MetricsEmitter(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled MetricsEmitter.");
+            }
+
+            if (workerName.equalsIgnoreCase(ApplyInfraWorker.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new ApplyInfraWorker(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
+                LOG.info("Scheduled ApplyInfraWorker.");
             }
         }
     }

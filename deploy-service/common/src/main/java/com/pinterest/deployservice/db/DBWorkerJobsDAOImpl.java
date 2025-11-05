@@ -22,10 +22,14 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+
+import java.util.List;
 
 public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     private static final String INSERT_ENV_TEMPLATE = "INSERT INTO worker_jobs SET %s";
     private static final String GET_ENV_BY_ID = "SELECT * FROM worker_jobs WHERE id=?";
+    private static final String GET_OLDEST_BY_JOB_TYPE_STATUS = "SELECT * FROM worker_jobs WHERE job_type=? AND status=? ORDER BY created_at LIMIT ?";
 
     private BasicDataSource dataSource;
 
@@ -45,4 +49,10 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
         ResultSetHandler<WorkerJobBean> h = new BeanHandler<>(WorkerJobBean.class);
         return new QueryRunner(dataSource).query(GET_ENV_BY_ID, h, envId);
     }
+
+  @Override
+  public List<WorkerJobBean> getOldestByJobTypeStatus(WorkerJobBean.JobType jobType, WorkerJobBean.Status status, int count) throws Exception {
+    ResultSetHandler<List<WorkerJobBean>> h = new BeanListHandler<>(WorkerJobBean.class);
+    return new QueryRunner(dataSource).query(GET_OLDEST_BY_JOB_TYPE_STATUS, h, jobType, status, count);
+  }
 }
