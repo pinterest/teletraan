@@ -31,7 +31,7 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
             "UPDATE worker_jobs SET status=? WHERE id=?";
     private static final String GET_ENV_BY_ID = "SELECT * FROM worker_jobs WHERE id=?";
     private static final String GET_OLDEST_BY_JOB_TYPE_STATUS =
-            "SELECT * FROM worker_jobs WHERE job_type=? AND status=? ORDER BY created_at LIMIT ?";
+            "SELECT * FROM worker_jobs WHERE job_type=? AND status=? ORDER BY create_at LIMIT ?";
 
     private BasicDataSource dataSource;
 
