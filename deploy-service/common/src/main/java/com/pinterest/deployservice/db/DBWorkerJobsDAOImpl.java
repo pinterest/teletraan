@@ -28,7 +28,7 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     private static final String INSERT_ENV_TEMPLATE = "INSERT INTO worker_jobs SET %s";
     private static final String UPDATE_STATUS_TEMPLATE =
-            "UPDATE worker_jobs SET status=? WHERE id=?";
+            "UPDATE worker_jobs SET status=? AND last_update_at=? WHERE id=?";
     private static final String GET_ENV_BY_ID = "SELECT * FROM worker_jobs WHERE id=?";
     private static final String GET_OLDEST_BY_JOB_TYPE_STATUS =
             "SELECT * FROM worker_jobs WHERE job_type=? AND status=? ORDER BY create_at LIMIT ?";
@@ -47,11 +47,12 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     }
 
     @Override
-    public void updateStatus(WorkerJobBean bean, WorkerJobBean.Status status) throws Exception {
+    public void updateStatus(WorkerJobBean bean, WorkerJobBean.Status status, long lastUpdateAt)
+            throws Exception {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_STATUS_TEMPLATE, setClause.getClause());
         String id = bean.getId();
-        new QueryRunner(dataSource).update(clause, status, id);
+        new QueryRunner(dataSource).update(clause, status.name(), lastUpdateAt, id);
     }
 
     @Override

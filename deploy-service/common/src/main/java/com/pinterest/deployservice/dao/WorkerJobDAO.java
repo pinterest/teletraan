@@ -23,7 +23,8 @@ public interface WorkerJobDAO {
 
     void insert(WorkerJobBean bean) throws Exception;
 
-    void updateStatus(WorkerJobBean bean, WorkerJobBean.Status status) throws Exception;
+    void updateStatus(WorkerJobBean bean, WorkerJobBean.Status status, long lastUpdateAt)
+            throws Exception;
 
     WorkerJobBean getById(String id) throws Exception;
 

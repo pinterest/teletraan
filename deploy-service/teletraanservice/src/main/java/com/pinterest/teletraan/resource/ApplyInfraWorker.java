@@ -72,7 +72,7 @@ public class ApplyInfraWorker implements Runnable {
         }
     }
 
-  private void processBatch() throws Exception {
+    private void processBatch() throws Exception {
         LOG.info("navid DB lock operation getting data: get lock");
         List<WorkerJobBean> workerJobBeans =
                 workerJobDAO.getOldestByJobTypeStatus(
@@ -94,9 +94,15 @@ public class ApplyInfraWorker implements Runnable {
                 try {
                     WorkerJobBean latestWorkerJobBean = workerJobDAO.getById(id);
                     if (latestWorkerJobBean.getStatus() == WorkerJobBean.Status.INITIALIZED) {
-                        workerJobDAO.updateStatus(workerJobBean, WorkerJobBean.Status.RUNNING);
+                        workerJobDAO.updateStatus(
+                                workerJobBean,
+                                WorkerJobBean.Status.RUNNING,
+                                System.currentTimeMillis());
                         applyInfra(workerJobBean);
-                        workerJobDAO.updateStatus(workerJobBean, WorkerJobBean.Status.COMPLETED);
+                        workerJobDAO.updateStatus(
+                                workerJobBean,
+                                WorkerJobBean.Status.COMPLETED,
+                                System.currentTimeMillis());
                         LOG.info(String.format("navid Completed worker job for id %s", id));
                     } else {
                         LOG.info(
@@ -105,7 +111,8 @@ public class ApplyInfraWorker implements Runnable {
                                         id));
                     }
                 } catch (Exception e) {
-                    workerJobDAO.updateStatus(workerJobBean, WorkerJobBean.Status.FAILED);
+                    workerJobDAO.updateStatus(
+                            workerJobBean, WorkerJobBean.Status.FAILED, System.currentTimeMillis());
                     LOG.error("navid Failed to process worker job id {}", workerJobBean.getId(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
