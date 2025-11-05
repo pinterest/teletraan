@@ -18,18 +18,20 @@ package com.pinterest.deployservice.db;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
+import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
-import java.util.List;
-
 public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     private static final String INSERT_ENV_TEMPLATE = "INSERT INTO worker_jobs SET %s";
+    private static final String UPDATE_STATUS_TEMPLATE =
+            "UPDATE worker_jobs SET status=? WHERE id=?";
     private static final String GET_ENV_BY_ID = "SELECT * FROM worker_jobs WHERE id=?";
-    private static final String GET_OLDEST_BY_JOB_TYPE_STATUS = "SELECT * FROM worker_jobs WHERE job_type=? AND status=? ORDER BY created_at LIMIT ?";
+    private static final String GET_OLDEST_BY_JOB_TYPE_STATUS =
+            "SELECT * FROM worker_jobs WHERE job_type=? AND status=? ORDER BY created_at LIMIT ?";
 
     private BasicDataSource dataSource;
 
@@ -45,14 +47,25 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     }
 
     @Override
+    public void updateStatus(WorkerJobBean bean, WorkerJobBean.Status status) throws Exception {
+        SetClause setClause = bean.genSetClause();
+        String clause = String.format(UPDATE_STATUS_TEMPLATE, setClause.getClause());
+        String id = bean.getId();
+        new QueryRunner(dataSource).update(clause, status, id);
+    }
+
+    @Override
     public WorkerJobBean getById(String envId) throws Exception {
         ResultSetHandler<WorkerJobBean> h = new BeanHandler<>(WorkerJobBean.class);
         return new QueryRunner(dataSource).query(GET_ENV_BY_ID, h, envId);
     }
 
-  @Override
-  public List<WorkerJobBean> getOldestByJobTypeStatus(WorkerJobBean.JobType jobType, WorkerJobBean.Status status, int count) throws Exception {
-    ResultSetHandler<List<WorkerJobBean>> h = new BeanListHandler<>(WorkerJobBean.class);
-    return new QueryRunner(dataSource).query(GET_OLDEST_BY_JOB_TYPE_STATUS, h, jobType, status, count);
-  }
+    @Override
+    public List<WorkerJobBean> getOldestByJobTypeStatus(
+            WorkerJobBean.JobType jobType, WorkerJobBean.Status status, int count)
+            throws Exception {
+        ResultSetHandler<List<WorkerJobBean>> h = new BeanListHandler<>(WorkerJobBean.class);
+        return new QueryRunner(dataSource)
+                .query(GET_OLDEST_BY_JOB_TYPE_STATUS, h, jobType, status, count);
+    }
 }
