@@ -111,8 +111,8 @@ public class ApplyInfraWorker implements Runnable {
                                         id));
                     }
                 } catch (Exception e) {
-//                    workerJobDAO.updateStatus(
-//                            workerJobBean, WorkerJobBean.Status.FAILED, System.currentTimeMillis());
+                    workerJobDAO.updateStatus(
+                            workerJobBean, WorkerJobBean.Status.FAILED, System.currentTimeMillis());
                     LOG.error("navid Failed to process worker job id {}", workerJobBean.getId(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
