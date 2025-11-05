@@ -61,23 +61,25 @@ public class ApplyInfraWorker implements Runnable {
 
     private void runInternal() {
         try {
-            LOG.info("Start to run ApplyInfraWorker");
+            LOG.info("navi Start to run ApplyInfraWorker");
             processBatch();
 
             errorBudgetSuccess.increment();
         } catch (Throwable t) {
-            LOG.error("ApplyInfraWorker failed", t);
+            LOG.error("navi ApplyInfraWorker failed", t);
 
             errorBudgetFailure.increment();
         }
     }
 
     void processBatch() throws Exception {
+        LOG.info("navid DB lock operation getting data: get lock");
         List<WorkerJobBean> workerJobBeans =
                 workerJobDAO.getOldestByJobTypeStatus(
                         WorkerJobBean.JobType.INFRA_APPLY,
                         WorkerJobBean.Status.INITIALIZED,
                         WORKER_JOB_BATCH_COUNT);
+        LOG.info(String.format("navid DB lock operation got data %s", workerJobBeans));
         Collections.shuffle(workerJobBeans);
 
         for (WorkerJobBean workerJobBean : workerJobBeans) {
@@ -86,31 +88,36 @@ public class ApplyInfraWorker implements Runnable {
             Connection connection = utilDAO.getLock(lockName);
 
             if (connection != null) {
-                LOG.info(String.format("DB lock operation is successful: get lock %s", lockName));
+                LOG.info(
+                        String.format(
+                                "navid DB lock operation is successful: get lock %s", lockName));
                 try {
                     WorkerJobBean latestWorkerJobBean = workerJobDAO.getById(id);
                     if (latestWorkerJobBean.getStatus() == WorkerJobBean.Status.INITIALIZED) {
                         workerJobDAO.updateStatus(workerJobBean, WorkerJobBean.Status.RUNNING);
                         applyInfra(workerJobBean);
                         workerJobDAO.updateStatus(workerJobBean, WorkerJobBean.Status.COMPLETED);
-                        LOG.info(String.format("Completed worker job for id %s", id));
+                        LOG.info(String.format("navid Completed worker job for id %s", id));
                     } else {
                         LOG.info(
                                 String.format(
-                                        "Worker job is no longer in INITIALIZED state for id %s",
+                                        "navid Worker job is no longer in INITIALIZED state for id %s",
                                         id));
                     }
                 } catch (Exception e) {
                     workerJobDAO.updateStatus(workerJobBean, WorkerJobBean.Status.FAILED);
-                    LOG.error("Failed to process worker job id {}", workerJobBean.getId(), e);
+                    LOG.error("navid Failed to process worker job id {}", workerJobBean.getId(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
                     LOG.info(
                             String.format(
-                                    "DB lock operation is successful: release lock %s", lockName));
+                                    "navid DB lock operation is successful: release lock %s",
+                                    lockName));
                 }
             } else {
-                LOG.warn(String.format("DB lock operation fails: failed to get lock %s", lockName));
+                LOG.warn(
+                        String.format(
+                                "navid DB lock operation fails: failed to get lock %s", lockName));
             }
         }
     }
