@@ -61,12 +61,12 @@ public class ApplyInfraWorker implements Runnable {
 
     private void runInternal() {
         try {
-            LOG.info("Start to run HostTerminator");
+            LOG.info("Start to run ApplyInfraWorker");
             processBatch();
 
             errorBudgetSuccess.increment();
         } catch (Throwable t) {
-            LOG.error("HostTerminator failed", t);
+            LOG.error("ApplyInfraWorker failed", t);
 
             errorBudgetFailure.increment();
         }
