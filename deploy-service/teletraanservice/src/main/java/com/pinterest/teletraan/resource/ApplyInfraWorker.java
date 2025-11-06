@@ -77,7 +77,7 @@ public class ApplyInfraWorker implements Runnable {
     }
 
     private void processBatch() throws Exception {
-        LOG.info("navid DB lock operation getting data: get lock");
+        //        LOG.info("navid DB lock operation getting data: get lock");
         List<WorkerJobBean> workerJobBeans =
                 workerJobDAO.getOldestByJobTypeStatus(
                         WorkerJobBean.JobType.INFRA_APPLY,
@@ -105,8 +105,7 @@ public class ApplyInfraWorker implements Runnable {
                         applyInfra(workerJobBean);
                         workerJobDAO.updateStatus(
                                 workerJobBean,
-                                WorkerJobBean.Status.INITIALIZED,
-                                //                                WorkerJobBean.Status.COMPLETED,
+                                WorkerJobBean.Status.COMPLETED,
                                 System.currentTimeMillis());
                         LOG.info(String.format("navid Completed worker job for id %s", id));
                     } else {
@@ -116,9 +115,8 @@ public class ApplyInfraWorker implements Runnable {
                                         id));
                     }
                 } catch (Exception e) {
-                    //                    workerJobDAO.updateStatus(
-                    //                            workerJobBean, WorkerJobBean.Status.FAILED,
-                    // System.currentTimeMillis());
+                    workerJobDAO.updateStatus(
+                            workerJobBean, WorkerJobBean.Status.FAILED, System.currentTimeMillis());
                     LOG.error("navid Failed to process worker job id {}", workerJobBean.getId(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
