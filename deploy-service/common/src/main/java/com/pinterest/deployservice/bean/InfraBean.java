@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2025 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,53 @@
  */
 package com.pinterest.deployservice.bean;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import com.pinterest.deployservice.bean.rodimus.*;
+import java.util.List;
+import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+@Setter
+@Getter
+@ToString
 public class InfraBean {
-    private String clusterName;
-    private String accountId;
-
-    public String getClusterName() {
-        return clusterName;
-    }
-
-    public void setClusterName(String clusterName) {
-        this.clusterName = clusterName;
-    }
-
-    public String getAccountId() {
-        return accountId;
-    }
-
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
+    private String clusterName; // pindeploy-staging
+    private AccountProvider provider; // AWS
+    private String accountId; // 998131032990
+    private List<AutoScalingAlarm> alarms;
+    private String archName; // x86_64
+    private Boolean autoRefresh; // true
+    private List<AutoRefreshConfig> autoRefreshConfigs;
+    private Boolean autoUpdateBaseImage; // false
+    private String baseImageId; // ami-0819e5c9beb57ec20
+    private String baseImageName; // cmp_base-ebs-18.04
+    private Boolean useIdForBaseImageLookUp; // false
+    private String cellName; // aws-us-east-1
+    private String hostType; // m4.large
+    private Integer maxCapacity; // 4
+    private Integer minCapacity; // 2
+    /*
+    placement:
+      - subnet-3f51dd65
+      - subnet-46cbaf31
+      - subnet-eeab3fc2
+     */
+    private List<String> placement;
+    private Integer replacementTimeout; // 45
+    private List<AutoScalingPolicy> scalingPolicies;
+    private List<AutoScalingScheduledActions> scheduledActions;
+    private String securityZone; // sg-10468758
+    private Boolean statefulStatus; // false
+    /*
+    access_role: eng-prod
+    assign_public_ip: "false"
+    cmp_group: CMP,pindeploy-staging
+    iam_role: PinDeploy
+    pinfo_environment: prod
+    pinfo_role: cmp_base
+    pinfo_team: cloudeng
+    restricteddev: "True"
+    */
+    private Map<String, String> userData;
 }

@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
@@ -24,15 +23,11 @@ import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.handler.EnvironmentHandler;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
-import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.security.Principal;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.security.RolesAllowed;
@@ -40,16 +35,13 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
@@ -70,7 +62,7 @@ public class EnvCapacities {
     private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
     private GroupDAO groupDAO;
-    private AuthorizationFactory authorizationFactory;
+    private EnvironmentHandler environmentHandler;
     private TeletraanServiceContext context;
 
     public EnvCapacities(@Context TeletraanServiceContext context) {
@@ -78,7 +70,7 @@ public class EnvCapacities {
         configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();
         groupDAO = context.getGroupDAO();
-        authorizationFactory = context.getAuthorizationFactory();
+        environmentHandler = new EnvironmentHandler(context);
         this.context = context;
     }
 
@@ -115,7 +107,8 @@ public class EnvCapacities {
             @Context SecurityContext sc)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
+        environmentHandler.authorize(
+                envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
 
         String operator = sc.getUserPrincipal().getName();
         String changeType;
@@ -143,7 +136,7 @@ public class EnvCapacities {
                 operator);
     }
 
-    @POST
+    @POST // tel 2.0
     @ApiOperation(
             value = "Create the capacities for Group and hosts",
             notes = "Create the capacities for Group and hosts")
@@ -158,23 +151,9 @@ public class EnvCapacities {
             @NotEmpty String name,
             @Context SecurityContext sc)
             throws Exception {
-        name = name.replace("\"", "");
-        List<String> names = ImmutableList.of(name);
-
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
-        String operator = sc.getUserPrincipal().getName();
-        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
-            groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
-        } else {
-            groupDAO.addHostCapacity(envBean.getEnv_id(), name);
-        }
-        LOG.info(
-                "Successfully added {} to env {}/{} capacity config by {}.",
-                name,
-                envName,
-                stageName,
-                operator);
+        EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
+        environmentHandler.createCapacityForHostOrGroup(
+                sc, envName, stageName, capacityType, name, environBean);
     }
 
     @DELETE
@@ -227,65 +206,5 @@ public class EnvCapacities {
     public enum CapacityType {
         GROUP,
         HOST
-    }
-
-    void authorize(
-            EnvironBean targetEnvironBean,
-            Principal principal,
-            CapacityType capacityType,
-            List<String> capacities) {
-        if (isSidecarEnvironment(targetEnvironBean)) {
-            // Allow sidecars to add capacity
-            return;
-        }
-
-        if (!(principal instanceof TeletraanPrincipal)) {
-            throw new UnsupportedOperationException("Only TeletraanPrincipal is allowed");
-        }
-        TeletraanPrincipal teletraanPrincipal = (TeletraanPrincipal) principal;
-        TeletraanAuthorizer<TeletraanPrincipal> authorizer =
-                authorizationFactory.createSecondaryAuthorizer(
-                        context, teletraanPrincipal.getClass());
-
-        HashSet<AuthZResource> resources = getCapacityMainEnvironments(capacityType, capacities);
-        for (AuthZResource resource : resources) {
-            if (!authorizer.authorize(
-                    teletraanPrincipal, TeletraanPrincipalRole.Names.WRITE, resource, null)) {
-                throw new ForbiddenException(
-                        String.format(
-                                "Principal %s is not allowed to modify capacity owned by env %s",
-                                principal.getName(), resource.getName()));
-            }
-        }
-    }
-
-    private HashSet<AuthZResource> getCapacityMainEnvironments(
-            CapacityType capacityType, List<String> capacities) throws WebApplicationException {
-        HashSet<AuthZResource> resources = new HashSet<>();
-        for (String capacity : capacities) {
-            EnvironBean envBean;
-            try {
-                if (capacityType == CapacityType.GROUP) {
-                    envBean = environDAO.getByCluster(capacity);
-                } else {
-                    envBean = environDAO.getMainEnvByHostName(capacity);
-                }
-            } catch (Exception e) {
-                throw new InternalServerErrorException(e);
-            }
-
-            if (envBean != null) {
-                resources.add(new AuthZResource(envBean.getEnv_name(), envBean.getStage_name()));
-            } else {
-                LOG.info(
-                        "Failed to find main environment for capacity {}, skip authorization",
-                        capacity);
-            }
-        }
-        return resources;
-    }
-
-    private boolean isSidecarEnvironment(EnvironBean environBean) {
-        return environBean.getSystem_priority() != null && environBean.getSystem_priority() > 0;
     }
 }

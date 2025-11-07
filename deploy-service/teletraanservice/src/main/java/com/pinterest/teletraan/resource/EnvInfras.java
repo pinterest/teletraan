@@ -18,6 +18,8 @@ package com.pinterest.teletraan.resource;
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.handler.InfraConfigHandler;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
@@ -38,6 +40,11 @@ import org.slf4j.LoggerFactory;
 public class EnvInfras {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvInfras.class);
+    private final InfraConfigHandler infraConfigHandler;
+
+    public EnvInfras(@Context TeletraanServiceContext context) {
+        infraConfigHandler = new InfraConfigHandler(context);
+    }
 
     @POST
     @Timed
@@ -47,7 +54,7 @@ public class EnvInfras {
             notes =
                     "Apply infrastructure configurations given an environment name, stage name, and configurations",
             response = Response.class)
-    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     @ResourceAuthZInfo(
             type = AuthZResource.Type.ENV_STAGE,
             idLocation = ResourceAuthZInfo.Location.PATH)
@@ -58,7 +65,7 @@ public class EnvInfras {
                     String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
                     String stageName,
-            @Valid InfraBean bean)
+            @Valid InfraBean infraBean)
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
 
@@ -67,9 +74,10 @@ public class EnvInfras {
                 envName,
                 stageName,
                 operator,
-                bean.getClusterName(),
-                bean.getAccountId());
-
+                infraBean.getClusterName(),
+                infraBean.getAccountId());
+        infraConfigHandler.test(envName, stageName, infraBean.getClusterName());
+        //                infraConfigHandler.test(envName, stageName, infraBean);
         return Response.status(200).build();
     }
 }
