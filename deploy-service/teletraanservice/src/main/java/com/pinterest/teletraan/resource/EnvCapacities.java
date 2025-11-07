@@ -25,6 +25,7 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.handler.EnvironmentHandler;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
@@ -71,6 +72,7 @@ public class EnvCapacities {
     private EnvironDAO environDAO;
     private GroupDAO groupDAO;
     private AuthorizationFactory authorizationFactory;
+    private EnvironmentHandler environmentHandler;
     private TeletraanServiceContext context;
 
     public EnvCapacities(@Context TeletraanServiceContext context) {
@@ -79,6 +81,7 @@ public class EnvCapacities {
         environDAO = context.getEnvironDAO();
         groupDAO = context.getGroupDAO();
         authorizationFactory = context.getAuthorizationFactory();
+        environmentHandler = new EnvironmentHandler(context);
         this.context = context;
     }
 
@@ -161,20 +164,12 @@ public class EnvCapacities {
         name = name.replace("\"", "");
         List<String> names = ImmutableList.of(name);
 
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
+        EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorize(
+                environBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
         String operator = sc.getUserPrincipal().getName();
-        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
-            groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
-        } else {
-            groupDAO.addHostCapacity(envBean.getEnv_id(), name);
-        }
-        LOG.info(
-                "Successfully added {} to env {}/{} capacity config by {}.",
-                name,
-                envName,
-                stageName,
-                operator);
+        environmentHandler.createCapacityForHostOrGroup(
+                operator, envName, stageName, capacityType, name, environBean);
     }
 
     @DELETE

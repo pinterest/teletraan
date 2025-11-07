@@ -216,7 +216,7 @@ public class ResourceAuthorizationTest {
     }
 
     @Test
-    void validToken_200() {
+    void validToken_200() { // ava
         Response response =
                 EXT.target(Targets.root)
                         .request()

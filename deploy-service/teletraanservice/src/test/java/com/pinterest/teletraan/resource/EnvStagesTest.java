@@ -25,8 +25,11 @@ import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
+import java.lang.annotation.Annotation;
+import java.security.Principal;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -39,9 +42,42 @@ class EnvStagesTest {
     private static EnvironDAO environDAO = mock(EnvironDAO.class);
 
     static {
+        SecurityContext mockSecurityContext = mock(SecurityContext.class);
+        Principal mockPrincipal = mock(Principal.class);
+        when(mockPrincipal.getName()).thenReturn("mockPrincipal");
+        when(mockSecurityContext.getUserPrincipal()).thenReturn(mockPrincipal);
+
         TeletraanServiceContext context = new TeletraanServiceContext();
         context.setEnvironDAO(environDAO);
-        EXT = ResourceExtension.builder().addResource(new EnvStages(context)).build();
+        EXT =
+                ResourceExtension.builder()
+                        .addResource(new EnvStages(context))
+                        .addProvider(new SecurityContextProvider(mockSecurityContext))
+                        .build();
+    }
+
+    public static class SecurityContextProvider
+            implements javax.ws.rs.ext.Provider, javax.ws.rs.core.Feature {
+        private final SecurityContext securityContext;
+
+        public SecurityContextProvider(SecurityContext securityContext) {
+            this.securityContext = securityContext;
+        }
+
+        @Override
+        public boolean configure(javax.ws.rs.core.FeatureContext context) {
+            context.register(
+                    (javax.ws.rs.container.ContainerRequestFilter)
+                            requestContext -> {
+                                requestContext.setSecurityContext(securityContext);
+                            });
+            return true;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return null;
+        }
     }
 
     @Test

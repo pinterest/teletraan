@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.resource.EnvStages;
@@ -34,12 +35,15 @@ import org.mockito.Mockito;
 public class EnvStagesTest {
     private EnvStages envStages;
     private EnvironDAO environDAO;
+    private ConfigHistoryDAO configHistoryDAO;
 
     @BeforeEach
     public void setup() throws Exception {
         environDAO = mock(EnvironDAO.class);
+        configHistoryDAO = mock(ConfigHistoryDAO.class);
         TeletraanServiceContext tsc = new TeletraanServiceContext();
         tsc.setEnvironDAO(environDAO);
+        tsc.setConfigHistoryDAO(configHistoryDAO);
         envStages = new EnvStages(tsc);
     }
 
@@ -71,7 +75,7 @@ public class EnvStagesTest {
         SecurityContext mockSC = mock(SecurityContext.class);
         Principal mockPrincipal = mock(Principal.class);
         Mockito.when(mockSC.getUserPrincipal()).thenReturn(mockPrincipal);
-        envStages.update(mockSC, "test-env", "test-stage", envBean);
+        envStages.update(mockSC, "test-env", "test-stage", envBean); // ava
         verify(environDAO).update(Mockito.any(), Mockito.any(), argument.capture());
         assertEquals(false, argument.getValue().getAllow_private_build());
     }

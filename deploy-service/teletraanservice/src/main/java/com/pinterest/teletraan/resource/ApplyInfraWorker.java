@@ -16,13 +16,16 @@
 package com.pinterest.teletraan.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.InfraConfigBean;
 import com.pinterest.deployservice.bean.WorkerJobBean;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.handler.EnvironmentHandler;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import com.pinterest.teletraan.worker.HostTerminator;
 import com.pinterest.teletraan.worker.WorkerTimerFactory;
@@ -31,6 +34,7 @@ import io.micrometer.core.instrument.Timer;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +46,20 @@ public class ApplyInfraWorker implements Runnable {
     private static final Timer WORKER_TIMER =
             WorkerTimerFactory.createWorkerTimer(HostTerminator.class);
 
+    private final EnvironDAO environDAO;
+    private final EnvironmentHandler environmentHandler;
     private final RodimusManager rodimusManager;
     private final UtilDAO utilDAO;
     private final WorkerJobDAO workerJobDAO;
     private Counter errorBudgetSuccess;
     private Counter errorBudgetFailure;
 
-    public ApplyInfraWorker(ServiceContext serviceContext) {
-        workerJobDAO = serviceContext.getWorkerJobDAO();
-        utilDAO = serviceContext.getUtilDAO();
+    public ApplyInfraWorker(TeletraanServiceContext serviceContext) {
+        environDAO = serviceContext.getEnvironDAO();
+        environmentHandler = new EnvironmentHandler(serviceContext);
         rodimusManager = serviceContext.getRodimusManager();
+        utilDAO = serviceContext.getUtilDAO();
+        workerJobDAO = serviceContext.getWorkerJobDAO();
         errorBudgetSuccess =
                 ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
         errorBudgetFailure =
@@ -143,23 +151,65 @@ public class ApplyInfraWorker implements Runnable {
                 infraConfigBean);
         ClusterInfoPublicIdsBean newClusterInfoPublicIdsBean =
                 ClusterInfoPublicIdsBean.fromInfraConfigBean(infraConfigBean);
-      LOG.info(
-              "navid Endpoint for getting status of applying infra configurations found job 3: {}, {}, {}, {}",
-              infraConfigBean.getClusterName(),
-              infraConfigBean.getEnvName(),
-              infraConfigBean.getStageName(),
-              newClusterInfoPublicIdsBean);
+        LOG.info(
+                "navid Endpoint for getting status of applying infra configurations found job 3: {}, {}, {}, {}",
+                infraConfigBean.getClusterName(),
+                infraConfigBean.getEnvName(),
+                infraConfigBean.getStageName(),
+                newClusterInfoPublicIdsBean);
         LOG.info("navid 1");
         ClusterInfoPublicIdsBean existingClusterInfoPublicIdsBean =
                 rodimusManager.getCluster(infraConfigBean.getClusterName());
         LOG.info("navid 2");
         if (existingClusterInfoPublicIdsBean == null) {
             LOG.info("navid 3");
-            rodimusManager.createClusterWithEnvPublicIds(
-                    infraConfigBean.getClusterName(),
-                    infraConfigBean.getEnvName(),
-                    infraConfigBean.getStageName(),
-                    newClusterInfoPublicIdsBean);
+
+            EnvironBean originEnvironBean =
+                    Utils.getEnvStage(
+                            environDAO,
+                            infraConfigBean.getEnvName(),
+                            infraConfigBean.getStageName());
+            LOG.info("navid 3.1");
+            try {
+                EnvironBean updateEnvironBean =
+                        originEnvironBean.withCluster_name(infraConfigBean.getClusterName());
+                LOG.info("navid 3.2");
+                environmentHandler.updateEnvironment(
+                        infraConfigBean.getOperator(),
+                        infraConfigBean.getEnvName(),
+                        infraConfigBean.getStageName(),
+                        updateEnvironBean);
+                LOG.info("navid 3.3");
+                environmentHandler.createCapacityForHostOrGroup(
+                        infraConfigBean.getOperator(),
+                        infraConfigBean.getEnvName(),
+                        infraConfigBean.getStageName(),
+                        Optional.of(EnvCapacities.CapacityType.GROUP),
+                        infraConfigBean.getClusterName(),
+                        originEnvironBean);
+                LOG.info("navid 3.4");
+                rodimusManager.createClusterWithEnvPublicIds(
+                        infraConfigBean.getClusterName(),
+                        infraConfigBean.getEnvName(),
+                        infraConfigBean.getStageName(),
+                        newClusterInfoPublicIdsBean);
+                LOG.info("navid 3.5");
+            } catch (Exception e) {
+                LOG.info("navid 3.6");
+                environmentHandler.updateEnvironment(
+                        infraConfigBean.getOperator(),
+                        infraConfigBean.getEnvName(),
+                        infraConfigBean.getStageName(),
+                        originEnvironBean);
+                LOG.info("navid 3.7");
+                environmentHandler.deleteCapacityForHostOrGroup(
+                        infraConfigBean.getOperator(),
+                        infraConfigBean.getEnvName(),
+                        infraConfigBean.getStageName());
+                LOG.info("navid 3.8");
+                throw e;
+            }
+
             LOG.info("navid 4");
         } else {
             LOG.info("navid 5");

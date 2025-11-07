@@ -30,6 +30,7 @@ import lombok.ToString;
 @Builder
 @ToString
 public class InfraConfigBean extends BaseBean implements Serializable {
+    private String operator;
     private String envName;
     private String stageName;
     private String clusterName;
@@ -50,8 +51,9 @@ public class InfraConfigBean extends BaseBean implements Serializable {
     private Long replacementTimeout;
 
     public static InfraConfigBean fromInfraBean(
-            String envName, String stageName, InfraBean infraBean) {
+            String operator, String envName, String stageName, InfraBean infraBean) {
         return InfraConfigBean.builder()
+                .operator(operator)
                 .envName(envName)
                 .stageName(stageName)
                 .clusterName(infraBean.getClusterName())
