@@ -143,6 +143,12 @@ public class ApplyInfraWorker implements Runnable {
                 infraConfigBean);
         ClusterInfoPublicIdsBean newClusterInfoPublicIdsBean =
                 ClusterInfoPublicIdsBean.fromInfraConfigBean(infraConfigBean);
+      LOG.info(
+              "navid Endpoint for getting status of applying infra configurations found job 3: {}, {}, {}, {}",
+              infraConfigBean.getClusterName(),
+              infraConfigBean.getEnvName(),
+              infraConfigBean.getStageName(),
+              newClusterInfoPublicIdsBean);
         LOG.info("navid 1");
         ClusterInfoPublicIdsBean existingClusterInfoPublicIdsBean =
                 rodimusManager.getCluster(infraConfigBean.getClusterName());
