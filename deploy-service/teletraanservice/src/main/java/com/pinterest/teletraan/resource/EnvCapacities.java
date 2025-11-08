@@ -164,12 +164,11 @@ public class EnvCapacities {
         name = name.replace("\"", "");
         List<String> names = ImmutableList.of(name);
 
-        EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorize(
-                environBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
         String operator = sc.getUserPrincipal().getName();
         environmentHandler.createCapacityForHostOrGroup(
-                operator, envName, stageName, capacityType, name, environBean);
+                operator, envName, stageName, capacityType, name, envBean);
     }
 
     @DELETE
