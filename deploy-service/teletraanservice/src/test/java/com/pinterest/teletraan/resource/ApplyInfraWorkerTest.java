@@ -67,13 +67,9 @@ class ApplyInfraWorkerTest {
         mockSuccessCounter = mock(Counter.class);
         mockFailureCounter = mock(Counter.class);
 
-        // Patch ErrorBudgetCounterFactory statics if you want to assert on counter calls!
-        // Here, just patch constructors
+        // Patch ErrorBudgetCounterFactory statics
         worker = new ApplyInfraWorker(mockContext);
 
-        // Inject our mock env handler since ApplyInfraWorker always creates its own via
-        // constructor.
-        // (Reflection hack, use your own utils as necessary)
         try {
             java.lang.reflect.Field field =
                     ApplyInfraWorker.class.getDeclaredField("environmentHandler");
@@ -81,7 +77,7 @@ class ApplyInfraWorkerTest {
             field.set(worker, mockEnvHandler);
         } catch (Exception ignored) {
         }
-        // Similarly, patch counters if you want to track success/failure
+
         try {
             java.lang.reflect.Field field =
                     ApplyInfraWorker.class.getDeclaredField("errorBudgetSuccess");

@@ -130,53 +130,38 @@ public class ApplyInfraWorker implements Runnable {
     private void applyInfra(WorkerJobBean workerJobBean) throws Exception {
         InfraConfigBean infraConfigBean =
                 mapper.readValue(workerJobBean.getConfig(), InfraConfigBean.class);
+        String operator = infraConfigBean.getOperator();
+        String envName = infraConfigBean.getEnvName();
+        String stageName = infraConfigBean.getStageName();
+        String clusterName = infraConfigBean.getClusterName();
 
         ClusterInfoPublicIdsBean newClusterInfoPublicIdsBean =
                 ClusterInfoPublicIdsBean.fromInfraConfigBean(infraConfigBean);
         ClusterInfoPublicIdsBean existingClusterInfoPublicIdsBean =
-                rodimusManager.getCluster(infraConfigBean.getClusterName());
+                rodimusManager.getCluster(clusterName);
         if (existingClusterInfoPublicIdsBean == null) {
-            EnvironBean originEnvironBean =
-                    Utils.getEnvStage(
-                            environDAO,
-                            infraConfigBean.getEnvName(),
-                            infraConfigBean.getStageName());
+            EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
             try {
-                EnvironBean updateEnvironBean =
-                        originEnvironBean.withCluster_name(infraConfigBean.getClusterName());
+                EnvironBean updateEnvironBean = originEnvironBean.withCluster_name(clusterName);
                 environmentHandler.updateEnvironment(
-                        infraConfigBean.getOperator(),
-                        infraConfigBean.getEnvName(),
-                        infraConfigBean.getStageName(),
-                        updateEnvironBean);
+                        operator, envName, stageName, updateEnvironBean);
                 environmentHandler.createCapacityForHostOrGroup(
-                        infraConfigBean.getOperator(),
-                        infraConfigBean.getEnvName(),
-                        infraConfigBean.getStageName(),
+                        operator,
+                        envName,
+                        stageName,
                         Optional.of(EnvCapacities.CapacityType.GROUP),
-                        infraConfigBean.getClusterName(),
+                        clusterName,
                         originEnvironBean);
                 rodimusManager.createClusterWithEnvPublicIds(
-                        infraConfigBean.getClusterName(),
-                        infraConfigBean.getEnvName(),
-                        infraConfigBean.getStageName(),
-                        newClusterInfoPublicIdsBean);
+                        clusterName, envName, stageName, newClusterInfoPublicIdsBean);
             } catch (Exception e) {
                 environmentHandler.updateEnvironment(
-                        infraConfigBean.getOperator(),
-                        infraConfigBean.getEnvName(),
-                        infraConfigBean.getStageName(),
-                        originEnvironBean);
-                environmentHandler.deleteCapacityForHostOrGroup(
-                        infraConfigBean.getOperator(),
-                        infraConfigBean.getEnvName(),
-                        infraConfigBean.getStageName());
+                        operator, envName, stageName, originEnvironBean);
+                environmentHandler.deleteCapacityForHostOrGroup(operator, envName, stageName);
                 throw e;
             }
-
         } else {
-            rodimusManager.updateClusterWithPublicIds(
-                    infraConfigBean.getClusterName(), newClusterInfoPublicIdsBean);
+            rodimusManager.updateClusterWithPublicIds(clusterName, newClusterInfoPublicIdsBean);
         }
     }
 }
