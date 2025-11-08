@@ -73,25 +73,22 @@ public class ApplyInfraWorker implements Runnable {
 
     private void runInternal() {
         try {
-            LOG.info("navi Start to run ApplyInfraWorker");
+            LOG.info("Start to run ApplyInfraWorker");
             processBatch();
 
             errorBudgetSuccess.increment();
         } catch (Throwable t) {
-            LOG.error("navi ApplyInfraWorker failed", t);
-
+            LOG.error("ApplyInfraWorker failed", t);
             errorBudgetFailure.increment();
         }
     }
 
     private void processBatch() throws Exception {
-        //        LOG.info("navid DB lock operation getting data: get lock");
         List<WorkerJobBean> workerJobBeans =
                 workerJobDAO.getOldestByJobTypeStatus(
                         WorkerJobBean.JobType.INFRA_APPLY,
                         WorkerJobBean.Status.INITIALIZED,
                         WORKER_JOB_BATCH_COUNT);
-        LOG.info(String.format("navid DB lock operation got data %s", workerJobBeans));
         Collections.shuffle(workerJobBeans);
 
         for (WorkerJobBean workerJobBean : workerJobBeans) {
@@ -100,9 +97,7 @@ public class ApplyInfraWorker implements Runnable {
             Connection connection = utilDAO.getLock(lockName);
 
             if (connection != null) {
-                LOG.info(
-                        String.format(
-                                "navid DB lock operation is successful: get lock %s", lockName));
+                LOG.info(String.format("DB lock operation is successful: get lock %s", lockName));
                 try {
                     WorkerJobBean latestWorkerJobBean = workerJobDAO.getById(id);
                     if (latestWorkerJobBean.getStatus() == WorkerJobBean.Status.INITIALIZED) {
@@ -115,71 +110,45 @@ public class ApplyInfraWorker implements Runnable {
                                 workerJobBean,
                                 WorkerJobBean.Status.COMPLETED,
                                 System.currentTimeMillis());
-                        LOG.info(String.format("navid Completed worker job for id %s", id));
-                    } else {
-                        LOG.info(
-                                String.format(
-                                        "navid Worker job is no longer in INITIALIZED state for id %s",
-                                        id));
                     }
                 } catch (Exception e) {
                     workerJobDAO.updateStatus(
                             workerJobBean, WorkerJobBean.Status.FAILED, System.currentTimeMillis());
-                    LOG.error("navid Failed to process worker job id {}", workerJobBean.getId(), e);
+                    LOG.error("Failed to process worker job id {}", workerJobBean.getId(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
                     LOG.info(
                             String.format(
-                                    "navid DB lock operation is successful: release lock %s",
-                                    lockName));
+                                    "DB lock operation is successful: release lock %s", lockName));
                 }
             } else {
-                LOG.warn(
-                        String.format(
-                                "navid DB lock operation fails: failed to get lock %s", lockName));
+                LOG.warn(String.format("DB lock operation fails: failed to get lock %s", lockName));
             }
         }
     }
 
     private void applyInfra(WorkerJobBean workerJobBean) throws Exception {
-        LOG.info(String.format("Doing work on %s", workerJobBean.getId()));
-
         InfraConfigBean infraConfigBean =
                 mapper.readValue(workerJobBean.getConfig(), InfraConfigBean.class);
-        LOG.info(
-                "navid Endpoint for getting status of applying infra configurations found job 2: {}",
-                infraConfigBean);
+
         ClusterInfoPublicIdsBean newClusterInfoPublicIdsBean =
                 ClusterInfoPublicIdsBean.fromInfraConfigBean(infraConfigBean);
-        LOG.info(
-                "navid Endpoint for getting status of applying infra configurations found job 3: {}, {}, {}, {}",
-                infraConfigBean.getClusterName(),
-                infraConfigBean.getEnvName(),
-                infraConfigBean.getStageName(),
-                newClusterInfoPublicIdsBean);
-        LOG.info("navid 1");
         ClusterInfoPublicIdsBean existingClusterInfoPublicIdsBean =
                 rodimusManager.getCluster(infraConfigBean.getClusterName());
-        LOG.info("navid 2");
         if (existingClusterInfoPublicIdsBean == null) {
-            LOG.info("navid 3");
-
             EnvironBean originEnvironBean =
                     Utils.getEnvStage(
                             environDAO,
                             infraConfigBean.getEnvName(),
                             infraConfigBean.getStageName());
-            LOG.info("navid 3_1");
             try {
                 EnvironBean updateEnvironBean =
                         originEnvironBean.withCluster_name(infraConfigBean.getClusterName());
-                LOG.info("navid 3_2");
                 environmentHandler.updateEnvironment(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName(),
                         updateEnvironBean);
-                LOG.info("navid 3_3");
                 environmentHandler.createCapacityForHostOrGroup(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
@@ -187,35 +156,27 @@ public class ApplyInfraWorker implements Runnable {
                         Optional.of(EnvCapacities.CapacityType.GROUP),
                         infraConfigBean.getClusterName(),
                         originEnvironBean);
-                LOG.info("navid 3_4");
                 rodimusManager.createClusterWithEnvPublicIds(
                         infraConfigBean.getClusterName(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName(),
                         newClusterInfoPublicIdsBean);
-                LOG.info("navid 3_5");
             } catch (Exception e) {
-                LOG.info("navid 3_6");
                 environmentHandler.updateEnvironment(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName(),
                         originEnvironBean);
-                LOG.info("navid 3_7");
                 environmentHandler.deleteCapacityForHostOrGroup(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName());
-                LOG.info("navid 3_8");
                 throw e;
             }
 
-            LOG.info("navid 4");
         } else {
-            LOG.info("navid 5");
             rodimusManager.updateClusterWithPublicIds(
                     infraConfigBean.getClusterName(), newClusterInfoPublicIdsBean);
-            LOG.info("navid 6");
         }
     }
 }
