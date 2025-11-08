@@ -105,7 +105,7 @@ public class ConfigHistoryHandler {
                             .create();
             bean.setConfig_change(gson.toJson(request));
 
-            configHistoryDAO.insert(bean); // ava
+            configHistoryDAO.insert(bean);
         } catch (Exception e) {
             LOG.warn("Failed to persist a config change for group: " + configId, e);
         }

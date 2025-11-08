@@ -75,7 +75,7 @@ public class EnvStagesTest {
         SecurityContext mockSC = mock(SecurityContext.class);
         Principal mockPrincipal = mock(Principal.class);
         Mockito.when(mockSC.getUserPrincipal()).thenReturn(mockPrincipal);
-        envStages.update(mockSC, "test-env", "test-stage", envBean); // ava
+        envStages.update(mockSC, "test-env", "test-stage", envBean);
         verify(environDAO).update(Mockito.any(), Mockito.any(), argument.capture());
         assertEquals(false, argument.getValue().getAllow_private_build());
     }

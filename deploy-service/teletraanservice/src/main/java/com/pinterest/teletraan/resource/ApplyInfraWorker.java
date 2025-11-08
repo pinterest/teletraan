@@ -169,17 +169,17 @@ public class ApplyInfraWorker implements Runnable {
                             environDAO,
                             infraConfigBean.getEnvName(),
                             infraConfigBean.getStageName());
-            LOG.info("navid 3.1");
+            LOG.info("navid 3_1");
             try {
                 EnvironBean updateEnvironBean =
                         originEnvironBean.withCluster_name(infraConfigBean.getClusterName());
-                LOG.info("navid 3.2");
+                LOG.info("navid 3_2");
                 environmentHandler.updateEnvironment(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName(),
                         updateEnvironBean);
-                LOG.info("navid 3.3");
+                LOG.info("navid 3_3");
                 environmentHandler.createCapacityForHostOrGroup(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
@@ -187,26 +187,26 @@ public class ApplyInfraWorker implements Runnable {
                         Optional.of(EnvCapacities.CapacityType.GROUP),
                         infraConfigBean.getClusterName(),
                         originEnvironBean);
-                LOG.info("navid 3.4");
+                LOG.info("navid 3_4");
                 rodimusManager.createClusterWithEnvPublicIds(
                         infraConfigBean.getClusterName(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName(),
                         newClusterInfoPublicIdsBean);
-                LOG.info("navid 3.5");
+                LOG.info("navid 3_5");
             } catch (Exception e) {
-                LOG.info("navid 3.6");
+                LOG.info("navid 3_6");
                 environmentHandler.updateEnvironment(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName(),
                         originEnvironBean);
-                LOG.info("navid 3.7");
+                LOG.info("navid 3_7");
                 environmentHandler.deleteCapacityForHostOrGroup(
                         infraConfigBean.getOperator(),
                         infraConfigBean.getEnvName(),
                         infraConfigBean.getStageName());
-                LOG.info("navid 3.8");
+                LOG.info("navid 3_8");
                 throw e;
             }
 

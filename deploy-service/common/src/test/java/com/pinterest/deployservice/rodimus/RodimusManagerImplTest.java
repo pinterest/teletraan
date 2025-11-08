@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -184,6 +185,75 @@ class RodimusManagerImplTest {
 
         Map<String, Map<String, String>> ec2Tags = sut.getEc2Tags(HOST_IDS);
         assertTrue(ec2Tags.isEmpty());
+    }
+
+    @Test
+    void testGetClusterOk() throws Exception {
+        String responseBody = "{\"accountId\": \"accountId1\", \"region\": \"region1\"}";
+        mockWebServer.enqueue(
+                new MockResponse()
+                        .setBody(responseBody)
+                        .setHeader("Content-Type", "application/json"));
+
+        ClusterInfoPublicIdsBean cluster = sut.getCluster(TEST_CLUSTER);
+
+        assertEquals("accountId1", cluster.getAccountId());
+        assertEquals("region1", cluster.getRegion());
+    }
+
+    @Test
+    void testGetClusterNotFound() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+
+        assertThrows(ClientErrorException.class, () -> sut.getCluster(TEST_CLUSTER));
+    }
+
+    @Test
+    void testCreateClusterWithEnvPublicIdsOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+
+        ClusterInfoPublicIdsBean bean = new ClusterInfoPublicIdsBean();
+        assertDoesNotThrow(
+                () -> {
+                    sut.createClusterWithEnvPublicIds("testCluster", "testEnv", "testStage", bean);
+                });
+
+        // Validate HTTP request details if needed
+    }
+
+    @Test
+    void testCreateClusterWithEnvPublicIdsClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+
+        ClusterInfoPublicIdsBean bean = new ClusterInfoPublicIdsBean();
+        assertThrows(
+                ClientErrorException.class,
+                () -> {
+                    sut.createClusterWithEnvPublicIds("testCluster", "testEnv", "testStage", bean);
+                });
+    }
+
+    @Test
+    void testUpdateClusterWithPublicIdsOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+
+        ClusterInfoPublicIdsBean bean = new ClusterInfoPublicIdsBean();
+        assertDoesNotThrow(
+                () -> {
+                    sut.updateClusterWithPublicIds("testCluster", bean);
+                });
+    }
+
+    @Test
+    void testUpdateClusterWithPublicIdsClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+
+        ClusterInfoPublicIdsBean bean = new ClusterInfoPublicIdsBean();
+        assertThrows(
+                ClientErrorException.class,
+                () -> {
+                    sut.updateClusterWithPublicIds("testCluster", bean);
+                });
     }
 
     static class ServerErrorDispatcher extends Dispatcher {

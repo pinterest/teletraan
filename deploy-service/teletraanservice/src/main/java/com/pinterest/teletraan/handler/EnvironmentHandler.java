@@ -101,7 +101,7 @@ public class EnvironmentHandler {
             updateEnvironBean.setExternal_id(originEnvironBean.getExternal_id());
         }
         environHandler.updateStage(updateEnvironBean, operator);
-        configHistoryHandler.updateConfigHistory( // ava
+        configHistoryHandler.updateConfigHistory(
                 originEnvironBean.getEnv_id(),
                 Constants.TYPE_ENV_GENERAL,
                 updateEnvironBean,
