@@ -156,9 +156,69 @@ class EnvironmentHandlerTest {
     }
 
     @Test
-    void testDeleteCapacityForHostOrGroup() throws Exception {
-        handler.deleteCapacityForHostOrGroup("user", "env", "stage");
-        verify(mockEnvironHandler).deleteEnvStage("env", "stage", "user");
+    void testDeleteCapacityForGroup_regularGroup() throws Exception {
+        // Arrange
+        EnvironBean bean = new EnvironBean();
+        bean.setEnv_id("the_env_id");
+        bean.setCluster_name("a-different-cluster"); // Ensure it's not the same as 'groupname'
+        when(mockEnvironDAO.getByStage("env", "stage")).thenReturn(bean);
+
+        try (MockedStatic<Utils> mocked = mockStatic(Utils.class)) {
+            mocked.when(() -> Utils.getEnvStage(mockEnvironDAO, "env", "stage")).thenReturn(bean);
+
+            // Act
+            handler.deleteCapacityForHostOrGroup(
+                    "theOp", "env", "stage", Optional.empty(), "\"groupname\"");
+
+            // Assert
+            verify(mockGroupDAO).removeGroupCapacity("the_env_id", "groupname");
+            verify(mockEnvironDAO, never()).deleteCluster(any(), any());
+            verify(mockGroupDAO, never()).removeHostCapacity(any(), any());
+        }
+    }
+
+    @Test
+    void testDeleteCapacityForGroup_whenGroupIsCluster() throws Exception {
+        // Arrange
+        EnvironBean bean = new EnvironBean();
+        bean.setEnv_id("eid123");
+        bean.setCluster_name("groupname"); // Name matches the to-be-removed group
+        when(mockEnvironDAO.getByStage("env", "stage")).thenReturn(bean);
+
+        try (MockedStatic<Utils> mocked = mockStatic(Utils.class)) {
+            mocked.when(() -> Utils.getEnvStage(mockEnvironDAO, "env", "stage")).thenReturn(bean);
+
+            // Act
+            handler.deleteCapacityForHostOrGroup(
+                    "who", "env", "stage", Optional.empty(), "\"groupname\"");
+
+            // Assert
+            verify(mockGroupDAO).removeGroupCapacity("eid123", "groupname");
+            verify(mockEnvironDAO).deleteCluster("env", "stage");
+            verify(mockGroupDAO, never()).removeHostCapacity(any(), any());
+        }
+    }
+
+    @Test
+    void testDeleteCapacityForHost() throws Exception {
+        // Arrange
+        EnvironBean bean = new EnvironBean();
+        bean.setEnv_id("host_env_id");
+        bean.setCluster_name("irrelevant");
+        when(mockEnvironDAO.getByStage("env", "stage")).thenReturn(bean);
+
+        try (MockedStatic<Utils> mocked = mockStatic(Utils.class)) {
+            mocked.when(() -> Utils.getEnvStage(mockEnvironDAO, "env", "stage")).thenReturn(bean);
+
+            // Act
+            handler.deleteCapacityForHostOrGroup(
+                    "opx", "env", "stage", Optional.of(CapacityType.HOST), "\"host.name\"");
+
+            // Assert
+            verify(mockGroupDAO).removeHostCapacity("host_env_id", "host.name");
+            verify(mockGroupDAO, never()).removeGroupCapacity(any(), any());
+            verify(mockEnvironDAO, never()).deleteCluster(any(), any());
+        }
     }
 }
 

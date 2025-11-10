@@ -54,7 +54,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,36 +185,9 @@ public class EnvCapacities {
             @NotEmpty String name,
             @Context SecurityContext sc)
             throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
-        name = name.replace("\"", "");
-        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
-            LOG.info(
-                    "Delete group {} from environment {} stage {} capacity",
-                    name,
-                    envName,
-                    stageName);
-            groupDAO.removeGroupCapacity(envBean.getEnv_id(), name);
-            if (StringUtils.equalsIgnoreCase(envBean.getCluster_name(), name)) {
-                LOG.info(
-                        "Delete cluster {} from environment {} stage {}", name, envName, stageName);
-                // The group is set to be the cluster
-                environDAO.deleteCluster(envName, stageName);
-            }
-        } else {
-            LOG.info(
-                    "Delete host {} from environment {} stage {} capacity",
-                    name,
-                    envName,
-                    stageName);
-            groupDAO.removeHostCapacity(envBean.getEnv_id(), name);
-        }
-        LOG.info(
-                "Successfully deleted {} from env {}/{} capacity config by {}.",
-                name,
-                envName,
-                stageName,
-                operator);
+        environmentHandler.deleteCapacityForHostOrGroup(
+                operator, envName, stageName, capacityType, name);
     }
 
     public enum CapacityType {

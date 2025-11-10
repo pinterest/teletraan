@@ -157,7 +157,12 @@ public class ApplyInfraWorker implements Runnable {
             } catch (Exception e) {
                 environmentHandler.updateEnvironment(
                         operator, envName, stageName, originEnvironBean);
-                environmentHandler.deleteCapacityForHostOrGroup(operator, envName, stageName);
+                environmentHandler.deleteCapacityForHostOrGroup(
+                        operator,
+                        envName,
+                        stageName,
+                        Optional.of(EnvCapacities.CapacityType.GROUP),
+                        clusterName);
                 throw e;
             }
         } else {

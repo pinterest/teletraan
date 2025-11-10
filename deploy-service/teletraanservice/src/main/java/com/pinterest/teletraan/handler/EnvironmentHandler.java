@@ -28,6 +28,7 @@ import com.pinterest.teletraan.resource.Utils;
 import java.util.*;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,9 +147,41 @@ public class EnvironmentHandler {
         }
     }
 
-    public void deleteCapacityForHostOrGroup(String operator, String envName, String stageName)
+    public void deleteCapacityForHostOrGroup(
+            String operator,
+            String envName,
+            String stageName,
+            Optional<CapacityType> capacityType,
+            String name)
             throws Exception {
-        environHandler.deleteEnvStage(envName, stageName, operator);
-        LOG.info("Successfully deleted env {}/{} by {}.", envName, stageName, operator);
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        name = name.replace("\"", "");
+        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
+            LOG.info(
+                    "Delete group {} from environment {} stage {} capacity",
+                    name,
+                    envName,
+                    stageName);
+            groupDAO.removeGroupCapacity(envBean.getEnv_id(), name);
+            if (StringUtils.equalsIgnoreCase(envBean.getCluster_name(), name)) {
+                LOG.info(
+                        "Delete cluster {} from environment {} stage {}", name, envName, stageName);
+                // The group is set to be the cluster
+                environDAO.deleteCluster(envName, stageName);
+            }
+        } else {
+            LOG.info(
+                    "Delete host {} from environment {} stage {} capacity",
+                    name,
+                    envName,
+                    stageName);
+            groupDAO.removeHostCapacity(envBean.getEnv_id(), name);
+        }
+        LOG.info(
+                "Successfully deleted {} from env {}/{} capacity config by {}.",
+                name,
+                envName,
+                stageName,
+                operator);
     }
 }

@@ -165,7 +165,8 @@ public class EnvStages {
                     String stageName)
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
-        environmentHandler.deleteCapacityForHostOrGroup(operator, envName, stageName);
+        environHandler.deleteEnvStage(envName, stageName, operator);
+        LOG.info("Successfully deleted env {}/{} by {}.", envName, stageName, operator);
     }
 
     @POST
