@@ -123,6 +123,7 @@ public class ApplyInfraWorker implements Runnable {
                 }
             } else {
                 LOG.warn(String.format("DB lock operation fails: failed to get lock %s", lockName));
+                LOG.warn(String.format("DB lock operation fails: failed to get lock %s", lockName));
             }
         }
     }
