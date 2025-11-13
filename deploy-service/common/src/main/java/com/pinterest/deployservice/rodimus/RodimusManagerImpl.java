@@ -22,6 +22,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
+import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
 import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
 import com.pinterest.teletraan.universal.http.HttpClient;
@@ -155,5 +156,35 @@ public class RodimusManagerImpl implements RodimusManager {
         String res = httpClient.post(url, gson.toJson(hostIds), null);
 
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>() {}.getType());
+    }
+
+    @Override
+    public ClusterInfoPublicIdsBean getCluster(String clusterName) throws Exception {
+        String url = String.format("%s/v1/clusters/%s", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
+
+        return gson.fromJson(res, ClusterInfoPublicIdsBean.class);
+    }
+
+    @Override
+    public void createClusterWithEnvPublicIds(
+            String clusterName,
+            String envName,
+            String stageName,
+            ClusterInfoPublicIdsBean clusterInfoPublicIdsBean)
+            throws Exception {
+        String url =
+                String.format(
+                        "%s/v1/clusters/%s/%s/%s/publicids",
+                        rodimusUrl, clusterName, envName, stageName);
+        httpClient.post(url, gson.toJson(clusterInfoPublicIdsBean), null);
+    }
+
+    @Override
+    public void updateClusterWithPublicIds(
+            String clusterName, ClusterInfoPublicIdsBean clusterInfoPublicIdsBean)
+            throws Exception {
+        String url = String.format("%s/v1/clusters/%s/publicids", rodimusUrl, clusterName);
+        httpClient.put(url, gson.toJson(clusterInfoPublicIdsBean), null);
     }
 }

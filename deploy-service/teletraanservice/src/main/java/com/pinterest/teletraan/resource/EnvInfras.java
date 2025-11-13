@@ -85,7 +85,10 @@ public class EnvInfras {
                 WorkerJobBean.builder()
                         .id(jobId)
                         .job_type(WorkerJobBean.JobType.INFRA_APPLY)
-                        .config(mapper.writeValueAsString(bean))
+                        .config(
+                                mapper.writeValueAsString(
+                                        InfraConfigBean.fromInfraBean(
+                                                operator, envName, stageName, bean)))
                         .status(WorkerJobBean.Status.INITIALIZED)
                         .create_at(System.currentTimeMillis())
                         .build();

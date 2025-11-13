@@ -25,6 +25,7 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.handler.EnvironmentHandler;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
@@ -53,7 +54,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +71,7 @@ public class EnvCapacities {
     private EnvironDAO environDAO;
     private GroupDAO groupDAO;
     private AuthorizationFactory authorizationFactory;
+    private EnvironmentHandler environmentHandler;
     private TeletraanServiceContext context;
 
     public EnvCapacities(@Context TeletraanServiceContext context) {
@@ -79,6 +80,7 @@ public class EnvCapacities {
         environDAO = context.getEnvironDAO();
         groupDAO = context.getGroupDAO();
         authorizationFactory = context.getAuthorizationFactory();
+        environmentHandler = new EnvironmentHandler(context);
         this.context = context;
     }
 
@@ -164,17 +166,8 @@ public class EnvCapacities {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorize(envBean, sc.getUserPrincipal(), capacityType.orElse(CapacityType.GROUP), names);
         String operator = sc.getUserPrincipal().getName();
-        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
-            groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
-        } else {
-            groupDAO.addHostCapacity(envBean.getEnv_id(), name);
-        }
-        LOG.info(
-                "Successfully added {} to env {}/{} capacity config by {}.",
-                name,
-                envName,
-                stageName,
-                operator);
+        environmentHandler.createCapacityForHostOrGroup(
+                operator, envName, stageName, capacityType, name, envBean);
     }
 
     @DELETE
@@ -192,36 +185,9 @@ public class EnvCapacities {
             @NotEmpty String name,
             @Context SecurityContext sc)
             throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
-        name = name.replace("\"", "");
-        if (capacityType.orElse(CapacityType.GROUP) == CapacityType.GROUP) {
-            LOG.info(
-                    "Delete group {} from environment {} stage {} capacity",
-                    name,
-                    envName,
-                    stageName);
-            groupDAO.removeGroupCapacity(envBean.getEnv_id(), name);
-            if (StringUtils.equalsIgnoreCase(envBean.getCluster_name(), name)) {
-                LOG.info(
-                        "Delete cluster {} from environment {} stage {}", name, envName, stageName);
-                // The group is set to be the cluster
-                environDAO.deleteCluster(envName, stageName);
-            }
-        } else {
-            LOG.info(
-                    "Delete host {} from environment {} stage {} capacity",
-                    name,
-                    envName,
-                    stageName);
-            groupDAO.removeHostCapacity(envBean.getEnv_id(), name);
-        }
-        LOG.info(
-                "Successfully deleted {} from env {}/{} capacity config by {}.",
-                name,
-                envName,
-                stageName,
-                operator);
+        environmentHandler.deleteCapacityForHostOrGroup(
+                operator, envName, stageName, capacityType, name);
     }
 
     public enum CapacityType {

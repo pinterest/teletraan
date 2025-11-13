@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.rodimus;
 
+import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,4 +46,22 @@ public class DefaultRodimusManager implements RodimusManager {
             throws Exception {
         return new HashMap<>();
     }
+
+    @Override
+    public ClusterInfoPublicIdsBean getCluster(String clusterName) throws Exception {
+        return null;
+    }
+
+    @Override
+    public void createClusterWithEnvPublicIds(
+            String clusterName,
+            String envName,
+            String stageName,
+            ClusterInfoPublicIdsBean clusterInfoPublicIdsBean)
+            throws Exception {}
+
+    @Override
+    public void updateClusterWithPublicIds(
+            String clusterName, ClusterInfoPublicIdsBean clusterInfoPublicIdsBean)
+            throws Exception {}
 }
