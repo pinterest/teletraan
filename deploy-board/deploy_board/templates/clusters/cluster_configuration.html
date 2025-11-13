@@ -95,7 +95,10 @@
                     <stateful-select :statefuloptions="statefulStatusOptions" :value="currentStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="statefulStatusChange"></stateful-select>
                     <stateful-help v-show="showStatefulHelp"></stateful-help>
                     <div v-if="inAdvanced">
-                        <div class="form-group"></div>
+                        <div class="form-group">
+                          <ebs-check-checkbox v-bind:use-ebs-check="useEbsCheck" v-on:on-use-ebs-check-click="onUseEbsCheckClick" v-bind:show-use-ebs-check-help="showUseEbsCheckHelp" v-on:help-clicked="onUseEbsCheckHelpClick"></ebs-check-checkbox>
+                          <ena-express-checkbox v-bind:use-ena-express="useEnaExpress" v-on:on-use-ena-express-click="onUseEnaExpressClick" v-bind:show-use-ena-express-help="showUseEnaExpressHelp" v-on:help-clicked="onUseEnaExpressHelpClick"></ena-express-checkbox>
+                        </div>
                         <div class="form-group">
                             <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip"  title="Customize user data">User data configs:</label>
                             {% if is_pinterest %}
@@ -540,6 +543,10 @@
                 currentCell: currentCluster.cellName,
                 currentArch: currentCluster.archName,
                 currentBandwidthWeight: currentCluster.bandwidthWeighting,
+                useEbsCheck: asgLaunchInfo.useEbsCheck,
+                useEnaExpress: asgLaunchInfo.useEnaExpress,
+                showUseEbsCheckHelp: false,
+                showUseEnaExpressHelp: false,
                 currentStatefulStatus: currentCluster.statefulStatus,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
@@ -1037,6 +1044,18 @@
                     this.currentBandwidthWeight = value;
                     capacitySetting.currentBandwidthWeight = value;
                 },
+                onUseEbsCheckClick: function(useEbsCheck){
+                    this.useEbsCheck = useEbsCheck;
+                },
+                onUseEnaExpressClick: function(useEnaExpress){
+                    this.useEnaExpress = useEnaExpress;
+                },
+                onUseEbsCheckHelpClick: function(value) {
+                    this.showUseEbsCheckHelp = !this.showUseEbsCheckHelp
+                },
+                onUseEnaExpressHelpClick: function(value) {
+                    this.showUseEnaExpressHelp = !this.showUseEnaExpressHelp
+                },
                 updateAwsRole:function(value){
                     this.awsRole = value
                 },
@@ -1050,6 +1069,8 @@
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
                     clusterInfo['bandwidthWeighting'] = this.currentBandwidthWeight;
+                    clusterInfo['useEbsCheck'] = this.useEbsCheck;
+                    clusterInfo['useEnaExpress'] = this.useEnaExpress;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['enableMultipleHostTypes'] = this.enableMultipleHostTypes;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
