@@ -435,7 +435,7 @@ public class ConfigHelper {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 Runnable worker = new ApplyInfraWorker(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
-                LOG.info("navi Scheduled ApplyInfraWorker.");
+                LOG.info("Scheduled ApplyInfraWorker.");
             }
         }
     }
