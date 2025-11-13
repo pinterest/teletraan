@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2025 Pinterest, Inc.
+ * Copyright (c) 2025 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,18 @@
  */
 package com.pinterest.deployservice.bean;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
-@NoArgsConstructor
+@Builder(toBuilder = true)
 @AllArgsConstructor
-@Builder
-@ToString
-public class InfraBean extends BaseBean implements Serializable {
-    private String clusterName;
-    private String accountId;
+@NoArgsConstructor
+public class ClusterInfoPublicIdsBean {
     private String region;
     private String archName;
     private Integer capacity;
@@ -45,5 +40,7 @@ public class InfraBean extends BaseBean implements Serializable {
     private Boolean autoUpdateBaseImage;
     private Boolean statefulStatus;
     private Boolean autoRefresh;
+    private String accountId;
+    private Boolean isManagedResource;
     private Long replacementTimeout;
 }

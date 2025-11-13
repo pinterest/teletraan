@@ -17,12 +17,16 @@ package com.pinterest.teletraan.resource;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.dao.WorkerJobDAO;
+import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -37,7 +41,14 @@ import org.slf4j.LoggerFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvInfras {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(EnvInfras.class);
+
+    private WorkerJobDAO workerJobDAO;
+
+    public EnvInfras(@Context TeletraanServiceContext context) {
+        workerJobDAO = context.getWorkerJobDAO();
+    }
 
     @POST
     @Timed
@@ -63,13 +74,26 @@ public class EnvInfras {
         String operator = sc.getUserPrincipal().getName();
 
         LOG.info(
-                "No-op endpoint for applying infra configurations was called. envName: {}, stageName: {}, operator: {}, clusterName: {}, accountId: {}",
+                "Endpoint for applying infra configurations was called. envName: {}, stageName: {}, operator: {}, bean: {}",
                 envName,
                 stageName,
                 operator,
-                bean.getClusterName(),
-                bean.getAccountId());
+                bean);
 
-        return Response.status(200).build();
+        String jobId = UUID.randomUUID().toString();
+        WorkerJobBean workerJobBean =
+                WorkerJobBean.builder()
+                        .id(jobId)
+                        .job_type(WorkerJobBean.JobType.INFRA_APPLY)
+                        .config(mapper.writeValueAsString(bean))
+                        .status(WorkerJobBean.Status.INITIALIZED)
+                        .create_at(System.currentTimeMillis())
+                        .build();
+
+        workerJobDAO.insert(workerJobBean);
+
+        LOG.info("Endpoint for applying infra configurations created a worker job: {}", bean);
+
+        return Response.status(200).entity(workerJobBean).build();
     }
 }
