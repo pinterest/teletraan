@@ -19,6 +19,7 @@ import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.common.InvalidBuildException;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
@@ -259,14 +260,18 @@ public class EnvDeploys {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
 
-        String deployId =
-                deployHandler.deploy(envBean, buildId, description, deliveryType, operator);
-        LOG.info(
-                "Successfully create deploy {} for env {}/{} by {}.",
-                deployId,
-                envName,
-                stageName,
-                operator);
+        String deployId;
+        try {
+            deployId = deployHandler.deploy(envBean, buildId, description, deliveryType, operator);
+            LOG.info(
+                    "Successfully create deploy {} for env {}/{} by {}.",
+                    deployId,
+                    envName,
+                    stageName,
+                    operator);
+        } catch (InvalidBuildException e) {
+            throw new WebApplicationException(e.getMessage(), Response.Status.BAD_REQUEST);
+        }
 
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
         URI deployUri = ub.path("current").build();
