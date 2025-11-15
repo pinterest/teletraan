@@ -16,18 +16,20 @@
 package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.WorkerJobBean;
+import java.sql.SQLException;
 import java.util.List;
 
 /** A collection of methods to help interact with WorkerJobs tables */
 public interface WorkerJobDAO {
 
-    void insert(WorkerJobBean bean) throws Exception;
+    void insert(WorkerJobBean bean) throws SQLException;
 
     void updateStatus(WorkerJobBean bean, WorkerJobBean.Status status, long lastUpdateAt)
-            throws Exception;
+            throws SQLException;
 
-    WorkerJobBean getById(String id) throws Exception;
+    WorkerJobBean getById(String id) throws SQLException;
 
     List<WorkerJobBean> getOldestByJobTypeStatus(
-            WorkerJobBean.JobType jobType, WorkerJobBean.Status status, int count) throws Exception;
+            WorkerJobBean.JobType jobType, WorkerJobBean.Status status, int count)
+            throws SQLException;
 }

@@ -48,7 +48,7 @@ public class ClusterInfoPublicIdsBean {
         return ClusterInfoPublicIdsBean.builder()
                 .region(infraConfigBean.getRegion())
                 .archName(infraConfigBean.getArchName())
-                .capacity(infraConfigBean.getCapacity())
+                .capacity(infraConfigBean.getMaxCapacity())
                 .provider(infraConfigBean.getProvider())
                 .baseImage(infraConfigBean.getBaseImage())
                 .baseImageName(infraConfigBean.getBaseImageName())

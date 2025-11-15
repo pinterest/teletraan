@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Helper class for handling common operations related to environments. */
 public class EnvironmentHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvironmentHandler.class);
