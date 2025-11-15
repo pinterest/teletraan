@@ -37,7 +37,8 @@ public class InfraConfigBean extends BaseBean implements Serializable {
     private String accountId;
     private String region;
     private String archName;
-    private Integer capacity;
+    private Integer maxCapacity;
+    private Integer minCapacity;
     private CloudProvider provider;
     private String baseImage;
     private String baseImageName;
@@ -60,7 +61,8 @@ public class InfraConfigBean extends BaseBean implements Serializable {
                 .accountId(infraBean.getAccountId())
                 .region(infraBean.getRegion())
                 .archName(infraBean.getArchName())
-                .capacity(infraBean.getCapacity())
+                .maxCapacity(infraBean.getMaxCapacity())
+                .minCapacity(infraBean.getMinCapacity())
                 .provider(infraBean.getProvider())
                 .baseImage(infraBean.getBaseImage())
                 .baseImageName(infraBean.getBaseImageName())

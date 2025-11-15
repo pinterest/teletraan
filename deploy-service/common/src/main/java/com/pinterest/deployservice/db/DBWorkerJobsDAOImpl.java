@@ -18,6 +18,7 @@ package com.pinterest.deployservice.db;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
+import java.sql.SQLException;
 import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
@@ -40,7 +41,7 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     }
 
     @Override
-    public void insert(WorkerJobBean bean) throws Exception {
+    public void insert(WorkerJobBean bean) throws SQLException {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(INSERT_ENV_TEMPLATE, setClause.getClause());
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
@@ -48,15 +49,13 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
 
     @Override
     public void updateStatus(WorkerJobBean bean, WorkerJobBean.Status status, long lastUpdateAt)
-            throws Exception {
-        SetClause setClause = bean.genSetClause();
-        String clause = String.format(UPDATE_STATUS_TEMPLATE, setClause.getClause());
+            throws SQLException {
         String id = bean.getId();
-        new QueryRunner(dataSource).update(clause, status.name(), lastUpdateAt, id);
+        new QueryRunner(dataSource).update(UPDATE_STATUS_TEMPLATE, status.name(), lastUpdateAt, id);
     }
 
     @Override
-    public WorkerJobBean getById(String envId) throws Exception {
+    public WorkerJobBean getById(String envId) throws SQLException {
         ResultSetHandler<WorkerJobBean> h = new BeanHandler<>(WorkerJobBean.class);
         return new QueryRunner(dataSource).query(GET_ENV_BY_ID, h, envId);
     }
@@ -64,7 +63,7 @@ public class DBWorkerJobsDAOImpl implements WorkerJobDAO {
     @Override
     public List<WorkerJobBean> getOldestByJobTypeStatus(
             WorkerJobBean.JobType jobType, WorkerJobBean.Status status, int count)
-            throws Exception {
+            throws SQLException {
         ResultSetHandler<List<WorkerJobBean>> h = new BeanListHandler<>(WorkerJobBean.class);
         return new QueryRunner(dataSource)
                 .query(GET_OLDEST_BY_JOB_TYPE_STATUS, h, jobType.name(), status.name(), count);
