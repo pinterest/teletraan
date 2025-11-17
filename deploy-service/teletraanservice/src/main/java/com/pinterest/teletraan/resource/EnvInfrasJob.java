@@ -81,7 +81,7 @@ public class EnvInfrasJob {
             LOG.info(
                     "Endpoint for getting status of applying infra configurations did not find jobId: {}",
                     jobId);
-            return Response.status(400).build();
+            return Response.status(404).build();
         }
 
         LOG.info(

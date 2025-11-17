@@ -43,12 +43,14 @@ public class ClusterInfoPublicIdsBean {
     private String accountId;
     private Boolean isManagedResource;
     private Long replacementTimeout;
+    private Boolean useEnaExpress;
+    private Boolean useEbsCheck;
 
     public static ClusterInfoPublicIdsBean fromInfraConfigBean(InfraConfigBean infraConfigBean) {
         return ClusterInfoPublicIdsBean.builder()
                 .region(infraConfigBean.getRegion())
                 .archName(infraConfigBean.getArchName())
-                .capacity(infraConfigBean.getCapacity())
+                .capacity(infraConfigBean.getMaxCapacity())
                 .provider(infraConfigBean.getProvider())
                 .baseImage(infraConfigBean.getBaseImage())
                 .baseImageName(infraConfigBean.getBaseImageName())
@@ -62,6 +64,8 @@ public class ClusterInfoPublicIdsBean {
                 .accountId(infraConfigBean.getAccountId())
                 .isManagedResource(true)
                 .replacementTimeout(infraConfigBean.getReplacementTimeout())
+                .useEnaExpress(infraConfigBean.getUseEnaExpress())
+                .useEbsCheck(infraConfigBean.getUseEbsCheck())
                 .build();
     }
 }

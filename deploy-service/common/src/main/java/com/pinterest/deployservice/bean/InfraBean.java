@@ -34,7 +34,8 @@ public class InfraBean extends BaseBean implements Serializable {
     private String accountId;
     private String region;
     private String archName;
-    private Integer capacity;
+    private Integer maxCapacity;
+    private Integer minCapacity;
     private CloudProvider provider;
     private String baseImage;
     private String baseImageName;
@@ -46,4 +47,6 @@ public class InfraBean extends BaseBean implements Serializable {
     private Boolean statefulStatus;
     private Boolean autoRefresh;
     private Long replacementTimeout;
+    private Boolean useEnaExpress;
+    private Boolean useEbsCheck;
 }
