@@ -50,6 +50,8 @@ public class InfraConfigBean extends BaseBean implements Serializable {
     private Boolean statefulStatus;
     private Boolean autoRefresh;
     private Long replacementTimeout;
+    private Boolean useEnaExpress;
+    private Boolean useEbsCheck;
 
     public static InfraConfigBean fromInfraBean(
             String operator, String envName, String stageName, InfraBean infraBean) {
@@ -74,6 +76,8 @@ public class InfraConfigBean extends BaseBean implements Serializable {
                 .statefulStatus(infraBean.getStatefulStatus())
                 .autoRefresh(infraBean.getAutoRefresh())
                 .replacementTimeout(infraBean.getReplacementTimeout())
+                .useEnaExpress(infraBean.getUseEnaExpress())
+                .useEbsCheck(infraBean.getUseEbsCheck())
                 .build();
     }
 }

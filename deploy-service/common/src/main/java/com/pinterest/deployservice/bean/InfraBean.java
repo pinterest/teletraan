@@ -47,4 +47,6 @@ public class InfraBean extends BaseBean implements Serializable {
     private Boolean statefulStatus;
     private Boolean autoRefresh;
     private Long replacementTimeout;
+    private Boolean useEnaExpress;
+    private Boolean useEbsCheck;
 }

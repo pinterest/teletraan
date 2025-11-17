@@ -43,6 +43,8 @@ public class ClusterInfoPublicIdsBean {
     private String accountId;
     private Boolean isManagedResource;
     private Long replacementTimeout;
+    private Boolean useEnaExpress;
+    private Boolean useEbsCheck;
 
     public static ClusterInfoPublicIdsBean fromInfraConfigBean(InfraConfigBean infraConfigBean) {
         return ClusterInfoPublicIdsBean.builder()
@@ -62,6 +64,8 @@ public class ClusterInfoPublicIdsBean {
                 .accountId(infraConfigBean.getAccountId())
                 .isManagedResource(true)
                 .replacementTimeout(infraConfigBean.getReplacementTimeout())
+                .useEnaExpress(infraConfigBean.getUseEnaExpress())
+                .useEbsCheck(infraConfigBean.getUseEbsCheck())
                 .build();
     }
 }
