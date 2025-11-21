@@ -35,6 +35,15 @@ public class ResourceAuthZInfoFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        // Check for multiple annotations first
+        ResourceAuthZInfos authZInfos =
+          resourceInfo.getResourceMethod().getAnnotation(ResourceAuthZInfos.class);
+        if (authZInfos != null) {
+            requestContext.setProperty(ResourceAuthZInfo.class.getName(), authZInfos.value());
+            return;
+        }
+
+        // Fallback to single annotation for backward compatibility
         ResourceAuthZInfo authZInfo =
                 resourceInfo.getResourceMethod().getAnnotation(ResourceAuthZInfo.class);
         requestContext.setProperty(ResourceAuthZInfo.class.getName(), authZInfo);

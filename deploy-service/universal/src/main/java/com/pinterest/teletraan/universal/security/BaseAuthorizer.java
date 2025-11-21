@@ -58,33 +58,42 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
             return authorize(principal, role, AuthZResource.UNSPECIFIED_RESOURCE, context);
         }
 
-        if (!(authZInfo instanceof ResourceAuthZInfo)) {
+        // Handle array of annotations
+        ResourceAuthZInfo[] authZInfoArray;
+        if (authZInfo instanceof ResourceAuthZInfo[]) {
+            authZInfoArray = (ResourceAuthZInfo[]) authZInfo;
+        } else if (authZInfo instanceof ResourceAuthZInfo) {
+            authZInfoArray = new ResourceAuthZInfo[]{(ResourceAuthZInfo) authZInfo};
+        } else {
             log.warn("authZInfo type not supported");
             return false;
         }
 
-        ResourceAuthZInfo safeAuthZInfo = (ResourceAuthZInfo) authZInfo;
-
-        if (AuthZResource.Type.SYSTEM.equals(safeAuthZInfo.type())) {
-            return authorize(principal, role, AuthZResource.SYSTEM_RESOURCE, context);
-        } else {
-            AuthZResource requestedResource;
-            try {
-                requestedResource =
-                        extractorFactory
-                                .create(safeAuthZInfo)
-                                .extractResource(context, safeAuthZInfo.beanClass());
-            } catch (BeanClassExtractionException ex) {
-                // Although within the authorization process, if we cannot extract the bean from
-                // the request body, it is a client error.
-                throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
-            } catch (ExtractionException ex) {
-                // Otherwise, it is a server error.
-                throw new WebApplicationException(
-                        "Failed to extract resource. Did you forget to annotate the resource with @ResourceAuthZInfo?",
-                        ex);
+        for (ResourceAuthZInfo safeAuthZInfo : authZInfoArray) {
+            if (AuthZResource.Type.SYSTEM.equals(safeAuthZInfo.type())) {
+                return authorize(principal, role, AuthZResource.SYSTEM_RESOURCE, context);
+            } else {
+                AuthZResource requestedResource;
+                try {
+                    requestedResource =
+                      extractorFactory
+                        .create(safeAuthZInfo)
+                        .extractResource(context, safeAuthZInfo.beanClass());
+                    if (authorize(principal, role, requestedResource, context)) {
+                        return true;  // One resource granted access
+                    }
+                } catch (BeanClassExtractionException ex) {
+                    // Although within the authorization process, if we cannot extract the bean from
+                    // the request body, it is a client error.
+                    throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
+                } catch (ExtractionException ex) {
+                    // Otherwise, it is a server error.
+                    throw new WebApplicationException(
+                      "Failed to extract resource. Did you forget to annotate the resource with @ResourceAuthZInfo?",
+                      ex);
+                }
             }
-            return authorize(principal, role, requestedResource, context);
         }
+        return false; // None of the resources granted access
     }
 }

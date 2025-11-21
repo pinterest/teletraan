@@ -16,14 +16,13 @@
 package com.pinterest.teletraan.universal.security;
 
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+
+import java.lang.annotation.*;
 
 /** This annotation is used to specify the resource information useful for authorization. */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(ResourceAuthZInfos.class)
 public @interface ResourceAuthZInfo {
     /** The type of the original resource for authorization purpose. */
     AuthZResource.Type type();
