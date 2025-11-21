@@ -113,14 +113,14 @@ class BaseAuthorizerTest {
         AuthZResourceExtractor extractor1 = mock(AuthZResourceExtractor.class);
         AuthZResourceExtractor extractor2 = mock(AuthZResourceExtractor.class);
 
-        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[]{authZInfo1, authZInfo2};
+        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[] {authZInfo1, authZInfo2};
         when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(authZInfoArray);
         when(extractorFactory.create(authZInfo1)).thenReturn(extractor1);
         when(extractorFactory.create(authZInfo2)).thenReturn(extractor2);
         when(extractor1.extractResource(any(), any()))
-          .thenReturn(new AuthZResource("test1", AuthZResource.Type.ENV));
+                .thenReturn(new AuthZResource("test1", AuthZResource.Type.ENV));
         when(extractor2.extractResource(any(), any()))
-          .thenReturn(new AuthZResource("test2", AuthZResource.Type.ENV_STAGE));
+                .thenReturn(new AuthZResource("test2", AuthZResource.Type.ENV_STAGE));
 
         assertTrue(sut.authorize(principal, TEST_ROLE, context));
         verify(extractorFactory).create(authZInfo1);
@@ -130,21 +130,21 @@ class BaseAuthorizerTest {
     void testAuthorize_arrayWithORLogic() throws ExtractionException {
         // Create an authorizer that only grants access to ENV_STAGE resources
         BaseAuthorizer<TeletraanPrincipal> selectiveAuthorizer =
-          new SelectiveTestAuthorizer(extractorFactory);
+                new SelectiveTestAuthorizer(extractorFactory);
 
         ResourceAuthZInfo authZInfo1 = mock(ResourceAuthZInfo.class);
         ResourceAuthZInfo authZInfo2 = mock(ResourceAuthZInfo.class);
         AuthZResourceExtractor extractor1 = mock(AuthZResourceExtractor.class);
         AuthZResourceExtractor extractor2 = mock(AuthZResourceExtractor.class);
 
-        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[]{authZInfo1, authZInfo2};
+        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[] {authZInfo1, authZInfo2};
         when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(authZInfoArray);
         when(extractorFactory.create(authZInfo1)).thenReturn(extractor1);
         when(extractorFactory.create(authZInfo2)).thenReturn(extractor2);
         when(extractor1.extractResource(any(), any()))
-          .thenReturn(new AuthZResource("test1", AuthZResource.Type.ENV));
+                .thenReturn(new AuthZResource("test1", AuthZResource.Type.ENV));
         when(extractor2.extractResource(any(), any()))
-          .thenReturn(new AuthZResource("test2", AuthZResource.Type.ENV_STAGE));
+                .thenReturn(new AuthZResource("test2", AuthZResource.Type.ENV_STAGE));
 
         // Should return true because second resource (ENV_STAGE) grants access
         assertTrue(selectiveAuthorizer.authorize(principal, TEST_ROLE, context));
@@ -154,21 +154,21 @@ class BaseAuthorizerTest {
     void testAuthorize_arrayWithAllDenied() throws ExtractionException {
         // Create an authorizer that denies all access
         BaseAuthorizer<TeletraanPrincipal> denyAuthorizer =
-          new DenyAllTestAuthorizer(extractorFactory);
+                new DenyAllTestAuthorizer(extractorFactory);
 
         ResourceAuthZInfo authZInfo1 = mock(ResourceAuthZInfo.class);
         ResourceAuthZInfo authZInfo2 = mock(ResourceAuthZInfo.class);
         AuthZResourceExtractor extractor1 = mock(AuthZResourceExtractor.class);
         AuthZResourceExtractor extractor2 = mock(AuthZResourceExtractor.class);
 
-        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[]{authZInfo1, authZInfo2};
+        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[] {authZInfo1, authZInfo2};
         when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(authZInfoArray);
         when(extractorFactory.create(authZInfo1)).thenReturn(extractor1);
         when(extractorFactory.create(authZInfo2)).thenReturn(extractor2);
         when(extractor1.extractResource(any(), any()))
-          .thenReturn(new AuthZResource("test1", AuthZResource.Type.ENV));
+                .thenReturn(new AuthZResource("test1", AuthZResource.Type.ENV));
         when(extractor2.extractResource(any(), any()))
-          .thenReturn(new AuthZResource("test2", AuthZResource.Type.ENV_STAGE));
+                .thenReturn(new AuthZResource("test2", AuthZResource.Type.ENV_STAGE));
 
         // Should return false because all resources deny access
         assertFalse(denyAuthorizer.authorize(principal, TEST_ROLE, context));
@@ -179,7 +179,7 @@ class BaseAuthorizerTest {
         ResourceAuthZInfo authZInfo1 = mock(ResourceAuthZInfo.class);
         ResourceAuthZInfo authZInfo2 = mock(ResourceAuthZInfo.class);
 
-        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[]{authZInfo1, authZInfo2};
+        ResourceAuthZInfo[] authZInfoArray = new ResourceAuthZInfo[] {authZInfo1, authZInfo2};
         when(authZInfo1.type()).thenReturn(AuthZResource.Type.SYSTEM);
         when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(authZInfoArray);
 
@@ -194,7 +194,7 @@ class BaseAuthorizerTest {
         when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(emptyArray);
 
         BaseAuthorizer<TeletraanPrincipal> denyAuthorizer =
-          new DenyAllTestAuthorizer(extractorFactory);
+                new DenyAllTestAuthorizer(extractorFactory);
 
         // Should return false for empty array (no resources grant access)
         assertFalse(denyAuthorizer.authorize(principal, TEST_ROLE, context));
@@ -222,10 +222,10 @@ class BaseAuthorizerTest {
 
         @Override
         public boolean authorize(
-          TeletraanPrincipal principal,
-          String role,
-          AuthZResource requestedResource,
-          @Nullable ContainerRequestContext context) {
+                TeletraanPrincipal principal,
+                String role,
+                AuthZResource requestedResource,
+                @Nullable ContainerRequestContext context) {
             // Only authorize ENV_STAGE resources
             return AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType());
         }
@@ -238,10 +238,10 @@ class BaseAuthorizerTest {
 
         @Override
         public boolean authorize(
-          TeletraanPrincipal principal,
-          String role,
-          AuthZResource requestedResource,
-          @Nullable ContainerRequestContext context) {
+                TeletraanPrincipal principal,
+                String role,
+                AuthZResource requestedResource,
+                @Nullable ContainerRequestContext context) {
             return false;
         }
     }

@@ -63,7 +63,7 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
         if (authZInfo instanceof ResourceAuthZInfo[]) {
             authZInfoArray = (ResourceAuthZInfo[]) authZInfo;
         } else if (authZInfo instanceof ResourceAuthZInfo) {
-            authZInfoArray = new ResourceAuthZInfo[]{(ResourceAuthZInfo) authZInfo};
+            authZInfoArray = new ResourceAuthZInfo[] {(ResourceAuthZInfo) authZInfo};
         } else {
             log.warn("authZInfo type not supported");
             return false;
@@ -76,11 +76,11 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
                 AuthZResource requestedResource;
                 try {
                     requestedResource =
-                      extractorFactory
-                        .create(safeAuthZInfo)
-                        .extractResource(context, safeAuthZInfo.beanClass());
+                            extractorFactory
+                                    .create(safeAuthZInfo)
+                                    .extractResource(context, safeAuthZInfo.beanClass());
                     if (authorize(principal, role, requestedResource, context)) {
-                        return true;  // One resource granted access
+                        return true; // One resource granted access
                     }
                 } catch (BeanClassExtractionException ex) {
                     // Although within the authorization process, if we cannot extract the bean from
@@ -89,8 +89,8 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
                 } catch (ExtractionException ex) {
                     // Otherwise, it is a server error.
                     throw new WebApplicationException(
-                      "Failed to extract resource. Did you forget to annotate the resource with @ResourceAuthZInfo?",
-                      ex);
+                            "Failed to extract resource. Did you forget to annotate the resource with @ResourceAuthZInfo?",
+                            ex);
                 }
             }
         }

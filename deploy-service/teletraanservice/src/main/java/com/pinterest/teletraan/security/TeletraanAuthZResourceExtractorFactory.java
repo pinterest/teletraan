@@ -30,7 +30,8 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
     private static final AuthZResourceExtractor SOX_PROPERTY_PATH_EXTRACTOR =
             new SoxPropertyPathExtractor();
     private static final AuthZResourceExtractor HOTFIX_BODY_EXTRACTOR = new HotfixBodyExtractor();
-    private static final AuthZResourceExtractor DEPLOY_SCHEDULE_PATH_EXTRACTOR = new DeploySchedulePathExtractor();
+    private static final AuthZResourceExtractor DEPLOY_SCHEDULE_PATH_EXTRACTOR =
+            new DeploySchedulePathExtractor();
     private final AuthZResourceExtractor buildPathExtractor;
     private final AuthZResourceExtractor deployPathExtractor;
     private final AuthZResourceExtractor hostPathExtractor;

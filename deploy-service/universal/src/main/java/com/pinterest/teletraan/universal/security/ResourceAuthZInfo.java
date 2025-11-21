@@ -16,7 +16,6 @@
 package com.pinterest.teletraan.universal.security;
 
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
 import java.lang.annotation.*;
 
 /** This annotation is used to specify the resource information useful for authorization. */
