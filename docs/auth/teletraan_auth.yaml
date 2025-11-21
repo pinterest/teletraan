@@ -89,6 +89,7 @@ definitions:
           - PROVISION_PREFIX
           - INSTANCE_TYPE_MAPPING
           - SOX_PROPERTY
+          - DEPLOY_SCHEDULE
           - UNSPECIFIED
       resourceName:
         type: string
