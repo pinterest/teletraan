@@ -58,16 +58,12 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
             return authorize(principal, role, AuthZResource.UNSPECIFIED_RESOURCE, context);
         }
 
-        // Handle array of annotations
-        ResourceAuthZInfo[] authZInfoArray;
-        if (authZInfo instanceof ResourceAuthZInfo[]) {
-            authZInfoArray = (ResourceAuthZInfo[]) authZInfo;
-        } else if (authZInfo instanceof ResourceAuthZInfo) {
-            authZInfoArray = new ResourceAuthZInfo[] {(ResourceAuthZInfo) authZInfo};
-        } else {
+        if (!(authZInfo instanceof ResourceAuthZInfo[])) {
             log.warn("authZInfo type not supported");
             return false;
         }
+
+        ResourceAuthZInfo[] authZInfoArray = (ResourceAuthZInfo[]) authZInfo;
 
         for (ResourceAuthZInfo safeAuthZInfo : authZInfoArray) {
             if (AuthZResource.Type.SYSTEM.equals(safeAuthZInfo.type())) {

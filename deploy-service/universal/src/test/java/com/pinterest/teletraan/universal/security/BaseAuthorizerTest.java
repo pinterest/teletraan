@@ -81,7 +81,8 @@ class BaseAuthorizerTest {
         ResourceAuthZInfo authZInfo = mock(ResourceAuthZInfo.class);
         AuthZResourceExtractor extractor = mock(AuthZResourceExtractor.class);
 
-        when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(authZInfo);
+        when(context.getProperty(ResourceAuthZInfo.class.getName()))
+                .thenReturn(new ResourceAuthZInfo[] {authZInfo});
         when(extractorFactory.create(authZInfo)).thenReturn(extractor);
         when(extractor.extractResource(any(), any()))
                 .thenReturn(new AuthZResource("test", AuthZResource.Type.ENV));
@@ -100,7 +101,8 @@ class BaseAuthorizerTest {
         ResourceAuthZInfo authZInfo = mock(ResourceAuthZInfo.class);
 
         when(authZInfo.type()).thenReturn(AuthZResource.Type.SYSTEM);
-        when(context.getProperty(ResourceAuthZInfo.class.getName())).thenReturn(authZInfo);
+        when(context.getProperty(ResourceAuthZInfo.class.getName()))
+                .thenReturn(new ResourceAuthZInfo[] {authZInfo});
 
         assertTrue(sut.authorize(principal, TEST_ROLE, context));
         verify(extractorFactory, never()).create(authZInfo);
