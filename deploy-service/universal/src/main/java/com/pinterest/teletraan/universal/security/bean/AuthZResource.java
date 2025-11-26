@@ -119,6 +119,8 @@ public class AuthZResource {
         HOST,
         /** For cluster provision prefix resource. */
         PROVISION_PREFIX,
+        /** For deploy schedule related resources. */
+        DEPLOY_SCHEDULE,
         /** For instance type mapping url */
         INSTANCE_TYPE_MAPPING,
         /** For SOX, Sarbanes-Oxley Act, related resources */

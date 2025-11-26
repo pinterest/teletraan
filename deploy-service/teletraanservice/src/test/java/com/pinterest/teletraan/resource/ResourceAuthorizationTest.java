@@ -22,12 +22,14 @@ import static org.mockito.Mockito.when;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -80,6 +82,7 @@ public class ResourceAuthorizationTest {
     private static final String TEST_ENV_STAGE_ID = "testEnv/testStage";
     private static final String TEST_ENV_STAGE_PATH = "/envs/" + TEST_ENV_STAGE_ID;
     private static final String TEST_BUILD_ID = "testBuild";
+    private static final String TEST_SCHEDULE_ID = "testSchedule";
 
     private static ResourceExtension EXT;
     private static MockWebServer mockWebServer;
@@ -95,6 +98,8 @@ public class ResourceAuthorizationTest {
         public static final String admin = "/admin";
         public static final String ping = "/ping";
         public static final String build = "/build";
+        public static final String schedule = "/schedule";
+        public static final String scheduleMultiAuth = "/schedule-multi";
     }
 
     private static String[] protectedResourceTargetsProvider() {
@@ -116,11 +121,13 @@ public class ResourceAuthorizationTest {
         GroupRolesDAO groupRolesDAO = mock(GroupRolesDAO.class);
         EnvironDAO environDAO = mock(EnvironDAO.class);
         BuildDAO buildDAO = mock(BuildDAO.class);
+        ScheduleDAO scheduleDAO = mock(ScheduleDAO.class);
         UserRolesBean adminRolesBean = new UserRolesBean();
         TokenRolesBean tokenRolesBean = new TokenRolesBean();
         TokenRolesBean pingerRolesBean = new TokenRolesBean();
         TokenRolesBean publisherRolesBean = new TokenRolesBean();
         BuildBean buildBean = new BuildBean();
+        ScheduleBean scheduleBean = new ScheduleBean();
 
         mockWebServer = new MockWebServer();
         mockWebServer.setDispatcher(new AuthDispatcher());
@@ -140,6 +147,7 @@ public class ResourceAuthorizationTest {
         publisherRolesBean.setResource_type(AuthZResource.Type.SYSTEM);
         publisherRolesBean.setScript_name(PUBLISHER_TOKEN);
         buildBean.setBuild_name(TEST_BUILD_ID);
+        scheduleBean.setId(TEST_SCHEDULE_ID);
 
         context.setAuthorizationFactory(authorizationFactory);
         context.setTokenRolesDAO(tokenRolesDAO);
@@ -147,6 +155,7 @@ public class ResourceAuthorizationTest {
         context.setGroupRolesDAO(groupRolesDAO);
         context.setEnvironDAO(environDAO);
         context.setBuildDAO(buildDAO);
+        context.setScheduleDAO(scheduleDAO);
         context.setAuthZResourceExtractorFactory(
                 new TeletraanAuthZResourceExtractorFactory(context));
 
@@ -160,6 +169,7 @@ public class ResourceAuthorizationTest {
             when(environDAO.getByName(TEST_ENV_ID))
                     .thenReturn(Collections.singletonList(new EnvironBean()));
             when(buildDAO.getById(TEST_BUILD_ID)).thenReturn(buildBean);
+            when(scheduleDAO.getById(TEST_SCHEDULE_ID)).thenReturn(scheduleBean);
             EXT =
                     ResourceExtension.builder()
                             .addProvider(
@@ -329,6 +339,95 @@ public class ResourceAuthorizationTest {
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 
+    // Deploy Schedule tests
+    @Test
+    void validScriptToken_scheduleResource_403() {
+        Response response =
+                EXT.target(Targets.schedule + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + SCRIPT_TOKEN)
+                        .get();
+        assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    void validScriptToken_scheduleMultiAuthResource_200() {
+        Response response =
+                EXT.target(Targets.scheduleMultiAuth + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + SCRIPT_TOKEN)
+                        .get();
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    void adminToken_scheduleResource_200() {
+        Response response =
+                EXT.target(Targets.schedule + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + JWT_ADMIN_TOKEN)
+                        .get();
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    void adminToken_scheduleMultiAuthResource_200() {
+        Response response =
+                EXT.target(Targets.scheduleMultiAuth + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + JWT_ADMIN_TOKEN)
+                        .get();
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    void validToken_scheduleResource_403() {
+        Response response =
+                EXT.target(Targets.schedule + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + JWT_TOKEN)
+                        .get();
+        assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    void validToken_scheduleMultiAuthResource_403() {
+        Response response =
+                EXT.target(Targets.scheduleMultiAuth + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + JWT_TOKEN)
+                        .get();
+        assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    void pingerToken_scheduleResource_403() {
+        Response response =
+                EXT.target(Targets.schedule + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + PINGER_TOKEN)
+                        .get();
+        assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    void publisherToken_scheduleResource_403() {
+        Response response =
+                EXT.target(Targets.schedule + TEST_ENV_STAGE_PATH)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeader.AUTHORIZATION.asString(), "token " + PUBLISHER_TOKEN)
+                        .get();
+        assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
+
     @Produces(MediaType.APPLICATION_JSON)
     @Path(Targets.root)
     public static class TestResource {
@@ -416,6 +515,29 @@ public class ResourceAuthorizationTest {
                 type = AuthZResource.Type.BUILD,
                 idLocation = ResourceAuthZInfo.Location.PATH)
         public Response buildResource() {
+            return Response.ok().build();
+        }
+
+        @GET
+        @Path(Targets.schedule + ENV_STAGE_SUFFIX)
+        @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+        @ResourceAuthZInfo(
+                type = AuthZResource.Type.DEPLOY_SCHEDULE,
+                idLocation = ResourceAuthZInfo.Location.PATH)
+        public Response scheduleResource() {
+            return Response.ok().build();
+        }
+
+        @GET
+        @Path(Targets.scheduleMultiAuth + ENV_STAGE_SUFFIX)
+        @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+        @ResourceAuthZInfo(
+                type = AuthZResource.Type.ENV_STAGE,
+                idLocation = ResourceAuthZInfo.Location.PATH)
+        @ResourceAuthZInfo(
+                type = AuthZResource.Type.DEPLOY_SCHEDULE,
+                idLocation = ResourceAuthZInfo.Location.PATH)
+        public Response scheduleMultiAuthResource() {
             return Response.ok().build();
         }
     }

@@ -72,6 +72,9 @@ public class Schedules {
     @ResourceAuthZInfo(
             type = AuthZResource.Type.ENV_STAGE,
             idLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.DEPLOY_SCHEDULE,
+            idLocation = ResourceAuthZInfo.Location.PATH)
     public ScheduleBean updateSchedule(
             @Context SecurityContext sc,
             @PathParam("envName") String envName,
@@ -132,6 +135,9 @@ public class Schedules {
     @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
     @ResourceAuthZInfo(
             type = AuthZResource.Type.ENV_STAGE,
+            idLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.DEPLOY_SCHEDULE,
             idLocation = ResourceAuthZInfo.Location.PATH)
     public void overrideSession(
             @Context SecurityContext sc,
