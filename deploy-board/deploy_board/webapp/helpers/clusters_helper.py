@@ -162,7 +162,11 @@ def perform_cluster_replacement_action(request, cluster_name, action):
 
 
 def update_cluster_capacity(request, cluster_name, min_size, max_size):
-    params = [("minsize", min_size), ("maxsize", max_size)]
+    params = [
+        ("minsize", min_size),
+        ("maxsize", max_size),
+        ("ismanagedresource", False),
+    ]
     return rodimus_client.put(
         "/clusters/%s/capacity" % cluster_name,
         request.teletraan_user_id.token,

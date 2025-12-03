@@ -501,9 +501,6 @@ class ClusterCapacityUpdateView(View):
             clusters_helper.update_cluster_capacity(
                 request, cluster_name, minSize, maxSize
             )
-            cluster_info = clusters_helper.get_cluster(request, cluster_name)
-            cluster_info["isManagedResource"] = False
-            clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
             return HttpResponse(e, status=403, content_type="application/json")
