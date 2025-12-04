@@ -67,16 +67,43 @@ public class BasePastisAuthorizer extends BaseAuthorizer<TeletraanPrincipal> {
             AuthZResource requestedResource,
             @Nullable ContainerRequestContext context) {
 
+        // Convert resource types that Pastis doesn't directly support to ENV_STAGE
+        AuthZResource convertedResource = convertResourceForPastis(requestedResource);
+
+        log.info(
+                "Authorizing principal={}, role={}, originalResource={}:{}, convertedResource={}:{}",
+                principal.getName(),
+                role,
+                requestedResource.getType(),
+                requestedResource.getName(),
+                convertedResource.getType(),
+                convertedResource.getName());
+
         Map<String, PastisRequest> payload = new HashMap<>();
-        payload.put(INPUT, new PastisRequest(principal, role, requestedResource));
+        payload.put(INPUT, new PastisRequest(principal, role, convertedResource));
         try {
             String pastisPayload = new ObjectMapper().writeValueAsString(payload);
             boolean authorized = pastis.authorize(pastisPayload);
-            log.debug("Authorized: {}", authorized);
+            log.info("Pastis authorization result: {}", authorized);
             return authorized;
         } catch (Exception ex) {
             return handleAuthorizationException(ex);
         }
+    }
+
+    /**
+     * Convert resource types to formats that Pastis understands. DEPLOY_SCHEDULE uses the same
+     * permissions as ENV_STAGE.
+     */
+    private AuthZResource convertResourceForPastis(AuthZResource resource) {
+        if (AuthZResource.Type.DEPLOY_SCHEDULE.equals(resource.getType())) {
+            // DEPLOY_SCHEDULE format is "envName/stageName", convert to ENV_STAGE
+            String[] parts = resource.getName().split("/");
+            if (parts.length == 2) {
+                return new AuthZResource(parts[0], parts[1], resource.getAttributes());
+            }
+        }
+        return resource;
     }
 
     /**
