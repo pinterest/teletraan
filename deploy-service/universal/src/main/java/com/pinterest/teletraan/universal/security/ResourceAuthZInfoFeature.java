@@ -27,9 +27,9 @@ public class ResourceAuthZInfoFeature implements DynamicFeature {
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
         // Check for single annotation or multiple annotations (via @Repeatable)
-        if (resourceInfo.getResourceMethod().getAnnotation(ResourceAuthZInfo.class) != null
-                || resourceInfo.getResourceMethod().getAnnotation(ResourceAuthZInfos.class)
-                        != null) {
+        ResourceAuthZInfo[] authZInfos =
+          resourceInfo.getResourceMethod().getAnnotationsByType(ResourceAuthZInfo.class);
+        if (authZInfos.length > 0) {
             context.register(ResourceAuthZInfoFilter.class);
         }
     }
