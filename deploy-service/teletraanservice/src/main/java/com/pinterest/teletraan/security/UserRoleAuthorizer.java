@@ -64,10 +64,6 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                 // Convert to ENV for backward compatibility
                 convertedRequestedResource =
                         new AuthZResource(requestedResource.getEnvName(), AuthZResource.Type.ENV);
-            } else if (AuthZResource.Type.DEPLOY_SCHEDULE.equals(requestedResource.getType())) {
-                // Convert DEPLOY_SCHEDULE to ENV for authorization (uses env/stage permissions)
-                String envName = requestedResource.getName().split("/")[0];
-                convertedRequestedResource = new AuthZResource(envName, AuthZResource.Type.ENV);
             }
 
             // Consider group role(s)
@@ -121,16 +117,10 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             }
 
             // Special case for creating a new environment
-            if ((AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())
-                            || AuthZResource.Type.DEPLOY_SCHEDULE.equals(
-                                    requestedResource.getType()))
-                    && (requiredRole.equals(TeletraanPrincipalRole.WRITE)
-                            || requiredRole.equals(TeletraanPrincipalRole.EXECUTE))) {
-                String envName =
-                        AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())
-                                ? convertedRequestedResource.getEnvName()
-                                : requestedResource.getName().split("/")[0];
-                List<EnvironBean> environBeans = environDAO.getByName(envName);
+            if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())
+                    && requiredRole.equals(TeletraanPrincipalRole.WRITE)) {
+                List<EnvironBean> environBeans =
+                        environDAO.getByName(convertedRequestedResource.getEnvName());
                 if (CollectionUtils.isEmpty(environBeans)) {
                     return true;
                 }
