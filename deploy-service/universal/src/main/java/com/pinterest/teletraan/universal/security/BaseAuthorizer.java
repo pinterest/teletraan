@@ -64,13 +64,8 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
         }
 
         ResourceAuthZInfo[] authZInfoArray = (ResourceAuthZInfo[]) authZInfo;
-        log.info("Checking {} ResourceAuthZInfo annotations", authZInfoArray.length);
 
         for (ResourceAuthZInfo safeAuthZInfo : authZInfoArray) {
-            log.info(
-                    "Checking authZInfo type={}, location={}",
-                    safeAuthZInfo.type(),
-                    safeAuthZInfo.idLocation());
             if (AuthZResource.Type.SYSTEM.equals(safeAuthZInfo.type())) {
                 return authorize(principal, role, AuthZResource.SYSTEM_RESOURCE, context);
             } else {
@@ -80,12 +75,7 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
                             extractorFactory
                                     .create(safeAuthZInfo)
                                     .extractResource(context, safeAuthZInfo.beanClass());
-                    boolean authorized = authorize(principal, role, requestedResource, context);
-                    log.info(
-                            "Authorization check for type={} resulted in: {}",
-                            safeAuthZInfo.type(),
-                            authorized);
-                    if (authorized) {
+                    if (authorize(principal, role, requestedResource, context)) {
                         return true; // One resource granted access
                     }
                 } catch (BeanClassExtractionException ex) {
@@ -100,7 +90,6 @@ public abstract class BaseAuthorizer<P extends TeletraanPrincipal>
                 }
             }
         }
-        log.info("All {} authorization checks failed", authZInfoArray.length);
         return false; // None of the resources granted access
     }
 }
