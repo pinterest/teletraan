@@ -23,12 +23,17 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
 import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
 import com.pinterest.teletraan.universal.http.HttpClient;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,6 +41,10 @@ import org.slf4j.LoggerFactory;
 
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
+    private static final Type RODIMUS_AUTO_SCALING_ALARM_LIST_TYPE =
+            new TypeToken<List<RodimusAutoScalingAlarm>>() {}.getType();
+    private static final Type RODIMUS_SCHEDULED_ACTION_LIST_TYPE =
+            new TypeToken<List<RodimusScheduledAction>>() {}.getType();
     private final HttpClient httpClient;
 
     private final String rodimusUrl;
@@ -186,5 +195,94 @@ public class RodimusManagerImpl implements RodimusManager {
             throws Exception {
         String url = String.format("%s/v1/clusters/%s/publicids", rodimusUrl, clusterName);
         httpClient.put(url, gson.toJson(clusterInfoPublicIdsBean), null);
+    }
+
+    @Override
+    public void updateClusterCapacity(String clusterName, Integer minSize, Integer maxSize)
+            throws Exception {
+        String url =
+                String.format(
+                        "%s/v1/clusters/%s/capacity?minsize=%s,maxsize=%s",
+                        rodimusUrl, clusterName, minSize, maxSize);
+        httpClient.put(url, null, null);
+    }
+
+    @Override
+    public RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName)
+            throws Exception {
+        String url =
+                String.format("%s/v1/clusters/%s/autoscaling/policies", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
+
+        return gson.fromJson(res, RodimusAutoScalingPolicies.class);
+    }
+
+    @Override
+    public List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) throws Exception {
+        String url = String.format("%s/v1/clusters/%s/autoscaling/alarms", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
+
+        return gson.fromJson(res, RODIMUS_AUTO_SCALING_ALARM_LIST_TYPE);
+    }
+
+    @Override
+    public List<RodimusScheduledAction> getClusterScheduledActions(String clusterName)
+            throws Exception {
+        String url =
+                String.format("%s/v1/clusters/%s/autoscaling/schedules", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
+
+        return gson.fromJson(res, RODIMUS_SCHEDULED_ACTION_LIST_TYPE);
+    }
+
+    @Override
+    public void deleteClusterScalingPolicy(String clusterName, String policyName) throws Exception {
+        String url =
+                String.format(
+                        "%s/v1/clusters/%s/autoscaling/policies/%s",
+                        rodimusUrl, clusterName, policyName);
+        httpClient.delete(url, null, null);
+    }
+
+    @Override
+    public void postClusterScalingPolicies(String clusterName, RodimusAutoScalingPolicies policies)
+            throws Exception {
+        String url =
+                String.format("%s/v1/clusters/%s/autoscaling/policies", rodimusUrl, clusterName);
+        httpClient.post(url, gson.toJson(policies), null);
+    }
+
+    @Override
+    public void deleteClusterAlarm(String clusterName, String alarmId) throws Exception {
+        String url =
+                String.format(
+                        "%s/v1/clusters/%s/autoscaling/alarms/%s",
+                        rodimusUrl, clusterName, alarmId);
+        httpClient.delete(url, null, null);
+    }
+
+    @Override
+    public void createClusterAlarms(String clusterName, List<RodimusAutoScalingAlarm> clusterAlarms)
+            throws Exception {
+        String url = String.format("%s/v1/clusters/%s/autoscaling/alarms", rodimusUrl, clusterName);
+        httpClient.post(url, gson.toJson(clusterAlarms), null);
+    }
+
+    @Override
+    public void deleteClusterScheduledAction(String clusterName, String actionId) throws Exception {
+        String url =
+                String.format(
+                        "%s/v1/clusters/%s/autoscaling/schedules/%s",
+                        rodimusUrl, clusterName, actionId);
+        httpClient.delete(url, null, null);
+    }
+
+    @Override
+    public void postClusterScheduledActions(
+            String clusterName, List<RodimusScheduledAction> clusterScheduledActionsList)
+            throws Exception {
+        String url =
+                String.format("%s/v1/clusters/%s/autoscaling/schedules", rodimusUrl, clusterName);
+        httpClient.post(url, gson.toJson(clusterScheduledActionsList), null);
     }
 }
