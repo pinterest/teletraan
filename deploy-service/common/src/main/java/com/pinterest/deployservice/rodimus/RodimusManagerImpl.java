@@ -204,7 +204,7 @@ public class RodimusManagerImpl implements RodimusManager {
                 String.format(
                         "%s/v1/clusters/%s/capacity?minsize=%s,maxsize=%s",
                         rodimusUrl, clusterName, minSize, maxSize);
-        httpClient.put(url, null, null);
+        httpClient.put(url, "", null);
     }
 
     @Override
