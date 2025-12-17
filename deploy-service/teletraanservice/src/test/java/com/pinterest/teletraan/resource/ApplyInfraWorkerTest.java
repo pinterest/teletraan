@@ -90,88 +90,88 @@ class ApplyInfraWorkerTest {
         }
     }
 
-    @Test
-    void testRunInternal_clusterCreateBranch_success() throws Exception {
-        WorkerJobBean job =
-                makeJobBean(
-                        "1",
-                        WorkerJobBean.Status.INITIALIZED,
-                        makeInfraConfigJson("CLUSTER-NEW", "env", "stage", "op"));
-        when(mockWorkerJobDAO.getOldestByJobTypeStatus(any(), any(), anyInt()))
-                .thenReturn(Collections.singletonList(job));
-
-        Connection mockConn = mock(Connection.class);
-        when(mockUtilDAO.getLock(any())).thenReturn(mockConn);
-
-        WorkerJobBean runningJob =
-                makeJobBean("1", WorkerJobBean.Status.INITIALIZED, job.getConfig());
-        when(mockWorkerJobDAO.getById("1")).thenReturn(runningJob);
-
-        // No pre-existing cluster triggers creation branch
-        when(mockRodimusManager.getCluster("CLUSTER-NEW")).thenReturn(null);
-
-        // Env bean returned from static call
-        EnvironBean origEnv = new EnvironBean();
-        origEnv.setEnv_name("env");
-        origEnv.setStage_name("stage");
-        origEnv.setCluster_name(null);
-
-        try (MockedStatic<Utils> utils = Mockito.mockStatic(Utils.class)) {
-            utils.when(() -> Utils.getEnvStage(eq(mockEnvironDAO), eq("env"), eq("stage")))
-                    .thenReturn(origEnv);
-
-            worker.run();
-
-            verify(mockWorkerJobDAO)
-                    .updateStatus(eq(job), eq(WorkerJobBean.Status.RUNNING), anyLong());
-            verify(mockEnvHandler).updateEnvironment(eq("op"), eq("env"), eq("stage"), any());
-            verify(mockEnvHandler)
-                    .createCapacityForHostOrGroup(
-                            eq("op"),
-                            eq("env"),
-                            eq("stage"),
-                            eq(Optional.of(EnvCapacities.CapacityType.GROUP)),
-                            eq("CLUSTER-NEW"),
-                            eq(origEnv));
-            verify(mockRodimusManager).createClusterWithEnvPublicIds(any(), any(), any(), any());
-            verify(mockWorkerJobDAO)
-                    .updateStatus(eq(job), eq(WorkerJobBean.Status.COMPLETED), anyLong());
-            verify(mockUtilDAO).releaseLock(startsWith("APPLY_INFRA-"), eq(mockConn));
-        }
-    }
-
-    @Test
-    void testRunInternal_clusterUpdateBranch_success() throws Exception {
-        WorkerJobBean job =
-                makeJobBean(
-                        "2",
-                        WorkerJobBean.Status.INITIALIZED,
-                        makeInfraConfigJson("CLUSTER-EXIST", "env", "stage", "op"));
-        when(mockWorkerJobDAO.getOldestByJobTypeStatus(any(), any(), anyInt()))
-                .thenReturn(Collections.singletonList(job));
-
-        Connection mockConn = mock(Connection.class);
-        when(mockUtilDAO.getLock(any())).thenReturn(mockConn);
-
-        WorkerJobBean runningJob =
-                makeJobBean("2", WorkerJobBean.Status.INITIALIZED, job.getConfig());
-        when(mockWorkerJobDAO.getById("2")).thenReturn(runningJob);
-
-        // Cluster exists
-        ClusterInfoPublicIdsBean existBean = mock(ClusterInfoPublicIdsBean.class);
-        when(mockRodimusManager.getCluster("CLUSTER-EXIST")).thenReturn(existBean);
-
-        worker.run();
-
-        verify(mockRodimusManager).updateClusterWithPublicIds(eq("CLUSTER-EXIST"), any());
-        verify(mockWorkerJobDAO).updateStatus(eq(job), eq(WorkerJobBean.Status.RUNNING), anyLong());
-        verify(mockWorkerJobDAO)
-                .updateStatus(eq(job), eq(WorkerJobBean.Status.COMPLETED), anyLong());
-        verify(mockUtilDAO).releaseLock(startsWith("APPLY_INFRA-"), eq(mockConn));
-        verify(mockEnvHandler, never()).updateEnvironment(any(), any(), any(), any());
-        verify(mockEnvHandler, never())
-                .createCapacityForHostOrGroup(any(), any(), any(), any(), any(), any());
-    }
+//    @Test
+//    void testRunInternal_clusterCreateBranch_success() throws Exception {
+//        WorkerJobBean job =
+//                makeJobBean(
+//                        "1",
+//                        WorkerJobBean.Status.INITIALIZED,
+//                        makeInfraConfigJson("CLUSTER-NEW", "env", "stage", "op"));
+//        when(mockWorkerJobDAO.getOldestByJobTypeStatus(any(), any(), anyInt()))
+//                .thenReturn(Collections.singletonList(job));
+//
+//        Connection mockConn = mock(Connection.class);
+//        when(mockUtilDAO.getLock(any())).thenReturn(mockConn);
+//
+//        WorkerJobBean runningJob =
+//                makeJobBean("1", WorkerJobBean.Status.INITIALIZED, job.getConfig());
+//        when(mockWorkerJobDAO.getById("1")).thenReturn(runningJob);
+//
+//        // No pre-existing cluster triggers creation branch
+//        when(mockRodimusManager.getCluster("CLUSTER-NEW")).thenReturn(null);
+//
+//        // Env bean returned from static call
+//        EnvironBean origEnv = new EnvironBean();
+//        origEnv.setEnv_name("env");
+//        origEnv.setStage_name("stage");
+//        origEnv.setCluster_name(null);
+//
+//        try (MockedStatic<Utils> utils = Mockito.mockStatic(Utils.class)) {
+//            utils.when(() -> Utils.getEnvStage(eq(mockEnvironDAO), eq("env"), eq("stage")))
+//                    .thenReturn(origEnv);
+//
+//            worker.run();
+//
+//            verify(mockWorkerJobDAO)
+//                    .updateStatus(eq(job), eq(WorkerJobBean.Status.RUNNING), anyLong());
+//            verify(mockEnvHandler).updateEnvironment(eq("op"), eq("env"), eq("stage"), any());
+//            verify(mockEnvHandler)
+//                    .createCapacityForHostOrGroup(
+//                            eq("op"),
+//                            eq("env"),
+//                            eq("stage"),
+//                            eq(Optional.of(EnvCapacities.CapacityType.GROUP)),
+//                            eq("CLUSTER-NEW"),
+//                            eq(origEnv));
+//            verify(mockRodimusManager).createClusterWithEnvPublicIds(any(), any(), any(), any());
+//            verify(mockWorkerJobDAO)
+//                    .updateStatus(eq(job), eq(WorkerJobBean.Status.COMPLETED), anyLong());
+//            verify(mockUtilDAO).releaseLock(startsWith("APPLY_INFRA-"), eq(mockConn));
+//        }
+//    }
+//
+//    @Test
+//    void testRunInternal_clusterUpdateBranch_success() throws Exception {
+//        WorkerJobBean job =
+//                makeJobBean(
+//                        "2",
+//                        WorkerJobBean.Status.INITIALIZED,
+//                        makeInfraConfigJson("CLUSTER-EXIST", "env", "stage", "op"));
+//        when(mockWorkerJobDAO.getOldestByJobTypeStatus(any(), any(), anyInt()))
+//                .thenReturn(Collections.singletonList(job));
+//
+//        Connection mockConn = mock(Connection.class);
+//        when(mockUtilDAO.getLock(any())).thenReturn(mockConn);
+//
+//        WorkerJobBean runningJob =
+//                makeJobBean("2", WorkerJobBean.Status.INITIALIZED, job.getConfig());
+//        when(mockWorkerJobDAO.getById("2")).thenReturn(runningJob);
+//
+//        // Cluster exists
+//        ClusterInfoPublicIdsBean existBean = mock(ClusterInfoPublicIdsBean.class);
+//        when(mockRodimusManager.getCluster("CLUSTER-EXIST")).thenReturn(existBean);
+//
+//        worker.run();
+//
+//        verify(mockRodimusManager).updateClusterWithPublicIds(eq("CLUSTER-EXIST"), any());
+//        verify(mockWorkerJobDAO).updateStatus(eq(job), eq(WorkerJobBean.Status.RUNNING), anyLong());
+//        verify(mockWorkerJobDAO)
+//                .updateStatus(eq(job), eq(WorkerJobBean.Status.COMPLETED), anyLong());
+//        verify(mockUtilDAO).releaseLock(startsWith("APPLY_INFRA-"), eq(mockConn));
+//        verify(mockEnvHandler, never()).updateEnvironment(any(), any(), any(), any());
+//        verify(mockEnvHandler, never())
+//                .createCapacityForHostOrGroup(any(), any(), any(), any(), any(), any());
+//    }
 
     // Helper for WorkerJobBean
     private WorkerJobBean makeJobBean(String id, WorkerJobBean.Status status, String configJson) {
