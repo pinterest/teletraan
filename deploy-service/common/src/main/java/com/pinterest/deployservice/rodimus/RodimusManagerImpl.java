@@ -202,7 +202,7 @@ public class RodimusManagerImpl implements RodimusManager {
             throws Exception {
         String url =
                 String.format(
-                        "%s/v1/clusters/%s/capacity?minsize=%s,maxsize=%s,ismanagedresource=true",
+                        "%s/v1/clusters/%s/capacity?minsize=%s&maxsize=%s&ismanagedresource=true",
                         rodimusUrl, clusterName, minSize, maxSize);
         LOG.info("Updating cluster capacity URL: " + url);
         httpClient.put(url, "", null);
