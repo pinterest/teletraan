@@ -22,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -254,6 +257,196 @@ class RodimusManagerImplTest {
                 () -> {
                     sut.updateClusterWithPublicIds("testCluster", bean);
                 });
+    }
+
+    @Test
+    void testUpdateClusterCapacityOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        assertDoesNotThrow(() -> sut.updateClusterCapacity(TEST_CLUSTER, 1, 2));
+    }
+
+    @Test
+    void testUpdateClusterCapacityClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+        assertThrows(
+                ClientErrorException.class, () -> sut.updateClusterCapacity(TEST_CLUSTER, 1, 2));
+    }
+
+    @Test
+    void testGetClusterScalingPoliciesOk() throws Exception {
+        // Minimal JSON, all lists present
+        String responseBody =
+                "{\"scalingPolicies\":[],\"scaleupPolicies\":[],\"scaledownPolicies\":[]}";
+        mockWebServer.enqueue(new MockResponse().setBody(responseBody));
+
+        RodimusAutoScalingPolicies result = sut.getClusterScalingPolicies(TEST_CLUSTER);
+        assertTrue(result.allSimplePolicies().isEmpty());
+    }
+
+    @Test
+    void testGetClusterScalingPoliciesClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+        assertThrows(ClientErrorException.class, () -> sut.getClusterScalingPolicies(TEST_CLUSTER));
+    }
+
+    @Test
+    void testGetClusterAlarmsOk() throws Exception {
+        String responseBody =
+                "[{\"alarmId\":\"alarm1\",\"scalingPolicies\":[],\"alarmActions\":[],\"metricSource\":\"cpu\",\"comparator\":\"gt\",\"actionType\":\"scaleUp\",\"groupName\":\"cluster1\",\"threshold\":80.0,\"evaluationTime\":1,\"fromAwsMetric\":false}]";
+        mockWebServer.enqueue(new MockResponse().setBody(responseBody));
+        List<RodimusAutoScalingAlarm> alarms = sut.getClusterAlarms(TEST_CLUSTER);
+
+        assertEquals(1, alarms.size());
+        assertEquals("alarm1", alarms.get(0).getAlarmId());
+        assertEquals("cpu", alarms.get(0).getMetricSource());
+        assertEquals("scaleUp", alarms.get(0).getActionType());
+    }
+
+    @Test
+    void testGetClusterAlarmsClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+        assertThrows(ClientErrorException.class, () -> sut.getClusterAlarms(TEST_CLUSTER));
+    }
+
+    @Test
+    void testGetClusterScheduledActionsOk() throws Exception {
+        String responseBody =
+                "[{\"clusterName\":\"cluster1\",\"actionId\":\"action1\",\"schedule\":\"cron(0 18 * * ? *)\",\"capacity\":2}]";
+        mockWebServer.enqueue(new MockResponse().setBody(responseBody));
+        List<RodimusScheduledAction> actions = sut.getClusterScheduledActions(TEST_CLUSTER);
+
+        assertEquals(1, actions.size());
+        assertEquals("action1", actions.get(0).getActionId());
+        assertEquals("cron(0 18 * * ? *)", actions.get(0).getSchedule());
+        assertEquals(2, actions.get(0).getCapacity());
+    }
+
+    @Test
+    void testGetClusterScheduledActionsClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(403));
+        assertThrows(
+                ClientErrorException.class, () -> sut.getClusterScheduledActions(TEST_CLUSTER));
+    }
+
+    @Test
+    void testDeleteClusterScalingPolicyOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        assertDoesNotThrow(() -> sut.deleteClusterScalingPolicy(TEST_CLUSTER, "policy1"));
+    }
+
+    @Test
+    void testDeleteClusterScalingPolicyClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+        assertThrows(
+                ClientErrorException.class,
+                () -> sut.deleteClusterScalingPolicy(TEST_CLUSTER, "policy1"));
+    }
+
+    @Test
+    void testPostClusterScalingPoliciesOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        RodimusAutoScalingPolicies policies = new RodimusAutoScalingPolicies();
+        assertDoesNotThrow(() -> sut.postClusterScalingPolicies(TEST_CLUSTER, policies));
+    }
+
+    @Test
+    void testPostClusterScalingPoliciesClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+        RodimusAutoScalingPolicies policies = new RodimusAutoScalingPolicies();
+        assertThrows(
+                ClientErrorException.class,
+                () -> sut.postClusterScalingPolicies(TEST_CLUSTER, policies));
+    }
+
+    @Test
+    void testDeleteClusterAlarmOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        assertDoesNotThrow(() -> sut.deleteClusterAlarm(TEST_CLUSTER, "alarm1"));
+    }
+
+    @Test
+    void testDeleteClusterAlarmClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+        assertThrows(
+                ClientErrorException.class, () -> sut.deleteClusterAlarm(TEST_CLUSTER, "alarm1"));
+    }
+
+    @Test
+    void testCreateClusterAlarmsOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        RodimusAutoScalingAlarm alarm = new RodimusAutoScalingAlarm();
+        alarm.setAlarmId("alarm1");
+        alarm.setMetricSource("cpu");
+        alarm.setActionType("scaleUp");
+        alarm.setGroupName("cluster1");
+        alarm.setThreshold(90.0);
+        alarm.setEvaluationTime(1);
+        alarm.setFromAwsMetric(false);
+
+        assertDoesNotThrow(
+                () -> sut.createClusterAlarms(TEST_CLUSTER, Collections.singletonList(alarm)));
+    }
+
+    @Test
+    void testCreateClusterAlarmsClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+        RodimusAutoScalingAlarm alarm = new RodimusAutoScalingAlarm();
+        alarm.setAlarmId("alarm1");
+        alarm.setMetricSource("cpu");
+        alarm.setActionType("scaleUp");
+        alarm.setGroupName("cluster1");
+        alarm.setThreshold(90.0);
+        alarm.setEvaluationTime(1);
+        alarm.setFromAwsMetric(false);
+
+        assertThrows(
+                ClientErrorException.class,
+                () -> sut.createClusterAlarms(TEST_CLUSTER, Collections.singletonList(alarm)));
+    }
+
+    @Test
+    void testDeleteClusterScheduledActionOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        assertDoesNotThrow(() -> sut.deleteClusterScheduledAction(TEST_CLUSTER, "action1"));
+    }
+
+    @Test
+    void testDeleteClusterScheduledActionClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(404));
+        assertThrows(
+                ClientErrorException.class,
+                () -> sut.deleteClusterScheduledAction(TEST_CLUSTER, "action1"));
+    }
+
+    @Test
+    void testPostClusterScheduledActionsOk() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200));
+        RodimusScheduledAction action = new RodimusScheduledAction();
+        action.setClusterName(TEST_CLUSTER);
+        action.setActionId("action1");
+        action.setSchedule("cron(0 20 * * ? *)");
+        action.setCapacity(2);
+
+        assertDoesNotThrow(
+                () ->
+                        sut.postClusterScheduledActions(
+                                TEST_CLUSTER, Collections.singletonList(action)));
+    }
+
+    @Test
+    void testPostClusterScheduledActionsClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(400));
+        RodimusScheduledAction action = new RodimusScheduledAction();
+        action.setClusterName(TEST_CLUSTER);
+        action.setActionId("action1");
+        action.setSchedule("cron(0 20 * * ? *)");
+        action.setCapacity(2);
+
+        assertThrows(
+                ClientErrorException.class,
+                () ->
+                        sut.postClusterScheduledActions(
+                                TEST_CLUSTER, Collections.singletonList(action)));
     }
 
     static class ServerErrorDispatcher extends Dispatcher {
