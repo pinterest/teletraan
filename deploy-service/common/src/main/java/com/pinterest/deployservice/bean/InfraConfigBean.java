@@ -24,7 +24,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-/* Used for worker */
+/* Used to pass details to worker */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

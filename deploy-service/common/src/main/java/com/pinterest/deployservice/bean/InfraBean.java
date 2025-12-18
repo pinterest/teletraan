@@ -24,7 +24,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-/* Used for API */
+/* Used for API request */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
