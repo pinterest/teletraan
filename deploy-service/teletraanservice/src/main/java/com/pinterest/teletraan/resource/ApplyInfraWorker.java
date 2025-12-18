@@ -16,9 +16,12 @@
 package com.pinterest.teletraan.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pinterest.deployservice.bean.AutoScalingAlarmBean;
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.InfraConfigBean;
+import com.pinterest.deployservice.bean.ScalingPolicyBean;
+import com.pinterest.deployservice.bean.ScheduledActionBean;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
@@ -194,9 +197,12 @@ public class ApplyInfraWorker implements Runnable {
         List<RodimusAutoScalingPolicy> existingPolicies =
                 rodimusAutoScalingPolicies.allSimplePolicies();
         List<RodimusAutoScalingPolicy> desiredRodimusAutoScalingPolicies =
-                infraConfigBean.getScalingPolicies().stream()
-                        .map(RodimusAutoScalingPolicy::fromScalingPolicyBean)
-                        .collect(Collectors.toList());
+                (infraConfigBean.getScalingPolicies() == null
+                                ? Collections.<ScalingPolicyBean>emptyList()
+                                : infraConfigBean.getScalingPolicies())
+                        .stream()
+                                .map(RodimusAutoScalingPolicy::fromScalingPolicyBean)
+                                .collect(Collectors.toList());
 
         LOG.info("Updating autoscaling policies for cluster: {}", clusterName);
         updateAutoScalingPolicies(clusterName, existingPolicies, desiredRodimusAutoScalingPolicies);
@@ -209,12 +215,15 @@ public class ApplyInfraWorker implements Runnable {
         RodimusAutoScalingPolicies updatedAutoScalingPolicies =
                 rodimusManager.getClusterScalingPolicies(clusterName);
         List<RodimusAutoScalingAlarm> desiredRodimusAutoScalingAlarms =
-                infraConfigBean.getAutoScalingAlarm().stream()
-                        .map(
-                                autoScalingAlarm ->
-                                        RodimusAutoScalingAlarm.fromAutoScalingAlarmBean(
-                                                clusterName, autoScalingAlarm))
-                        .collect(Collectors.toList());
+                (infraConfigBean.getAutoScalingAlarm() == null
+                                ? Collections.<AutoScalingAlarmBean>emptyList()
+                                : infraConfigBean.getAutoScalingAlarm())
+                        .stream()
+                                .map(
+                                        autoScalingAlarm ->
+                                                RodimusAutoScalingAlarm.fromAutoScalingAlarmBean(
+                                                        clusterName, autoScalingAlarm))
+                                .collect(Collectors.toList());
 
         LOG.info("Updating autoscaling alarms for cluster: {}", clusterName);
         updateAutoScalingAlarms(
@@ -226,12 +235,15 @@ public class ApplyInfraWorker implements Runnable {
         List<RodimusScheduledAction> existingRodimusScheduledActions =
                 rodimusManager.getClusterScheduledActions(clusterName);
         List<RodimusScheduledAction> desiredRodimusScheduledActions =
-                infraConfigBean.getScheduledAction().stream()
-                        .map(
-                                scheduledAction ->
-                                        RodimusScheduledAction.fromScheduledActionBean(
-                                                clusterName, scheduledAction))
-                        .collect(Collectors.toList());
+                (infraConfigBean.getScheduledAction() == null
+                                ? Collections.<ScheduledActionBean>emptyList()
+                                : infraConfigBean.getScheduledAction())
+                        .stream()
+                                .map(
+                                        scheduledAction ->
+                                                RodimusScheduledAction.fromScheduledActionBean(
+                                                        clusterName, scheduledAction))
+                                .collect(Collectors.toList());
 
         LOG.info("Updating autoscaling scheduled actions for cluster: {}", clusterName);
         updateScheduledActions(
