@@ -78,13 +78,18 @@ public class RodimusAutoScalingAlarm {
     }
 
     public static RodimusAutoScalingAlarm fromAutoScalingAlarmBean(
-            AutoScalingAlarmBean autoScalingAlarm) {
+            String clusterName, AutoScalingAlarmBean autoScalingAlarm) {
         return RodimusAutoScalingAlarm.builder()
+                .scalingPolicies(null)
+                .alarmActions(null)
+                .alarmId("")
+                .metricSource(autoScalingAlarm.getMetric())
                 .comparator(autoScalingAlarm.getComparisonOperator().name())
+                .actionType(autoScalingAlarm.getType().name())
+                .groupName(clusterName)
+                .threshold(autoScalingAlarm.getThreshold())
                 .evaluationTime(autoScalingAlarm.getEvaluationPeriod())
                 .fromAwsMetric(autoScalingAlarm.getFromAwsMetric())
-                .threshold(autoScalingAlarm.getThreshold())
-                .actionType(autoScalingAlarm.getType().name())
                 .build();
     }
 }

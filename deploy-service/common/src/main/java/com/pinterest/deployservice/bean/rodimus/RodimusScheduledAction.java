@@ -47,8 +47,10 @@ public class RodimusScheduledAction {
     }
 
     public static RodimusScheduledAction fromScheduledActionBean(
-            ScheduledActionBean scheduledAction) {
+            String clusterName, ScheduledActionBean scheduledAction) {
         return RodimusScheduledAction.builder()
+                .clusterName(clusterName)
+                .actionId("")
                 .schedule(scheduledAction.getSchedule())
                 .capacity(scheduledAction.getCapacity())
                 .build();

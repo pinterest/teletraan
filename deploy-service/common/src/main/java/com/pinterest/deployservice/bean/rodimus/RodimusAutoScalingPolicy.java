@@ -98,10 +98,18 @@ public class RodimusAutoScalingPolicy {
 
     public static RodimusAutoScalingPolicy fromScalingPolicyBean(ScalingPolicyBean scalingPolicy) {
         return RodimusAutoScalingPolicy.builder()
-                .coolDown(scalingPolicy.getCoolDown())
                 .policyType(scalingPolicy.getPolicyType().name())
-                .scaleSize(scalingPolicy.getScaleSize())
+                .policyName("")
+                .minAdjustmentMagnitude(null)
+                .metricAggregationType(null)
+                .stepAdjustments(null)
+                .targetTrackingScalingConfiguration(null)
+                .instanceWarmup(null)
+                .alarms(null)
+                .arn("")
                 .scalingType(scalingPolicy.getScalingType().name())
+                .scaleSize(scalingPolicy.getScaleSize())
+                .coolDown(scalingPolicy.getCoolDown())
                 .build();
     }
 }

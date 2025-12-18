@@ -210,7 +210,10 @@ public class ApplyInfraWorker implements Runnable {
                 rodimusManager.getClusterScalingPolicies(clusterName);
         List<RodimusAutoScalingAlarm> desiredRodimusAutoScalingAlarms =
                 infraConfigBean.getAutoScalingAlarm().stream()
-                        .map(RodimusAutoScalingAlarm::fromAutoScalingAlarmBean)
+                        .map(
+                                autoScalingAlarm ->
+                                        RodimusAutoScalingAlarm.fromAutoScalingAlarmBean(
+                                                clusterName, autoScalingAlarm))
                         .collect(Collectors.toList());
 
         LOG.info("Updating autoscaling alarms for cluster: {}", clusterName);
@@ -224,7 +227,10 @@ public class ApplyInfraWorker implements Runnable {
                 rodimusManager.getClusterScheduledActions(clusterName);
         List<RodimusScheduledAction> desiredRodimusScheduledActions =
                 infraConfigBean.getScheduledAction().stream()
-                        .map(RodimusScheduledAction::fromScheduledActionBean)
+                        .map(
+                                scheduledAction ->
+                                        RodimusScheduledAction.fromScheduledActionBean(
+                                                clusterName, scheduledAction))
                         .collect(Collectors.toList());
 
         LOG.info("Updating autoscaling scheduled actions for cluster: {}", clusterName);
@@ -358,11 +364,7 @@ public class ApplyInfraWorker implements Runnable {
                 desiredAlarms.stream()
                         .filter(
                                 desiredAlarm ->
-                                        existingAlarms.stream()
-                                                .noneMatch(
-                                                        existingAlarm ->
-                                                                desiredAlarm.matches(
-                                                                        existingAlarm)))
+                                        existingAlarms.stream().noneMatch(desiredAlarm::matches))
                         .collect(Collectors.toList());
 
         if (!alarmsToCreate.isEmpty()) {
