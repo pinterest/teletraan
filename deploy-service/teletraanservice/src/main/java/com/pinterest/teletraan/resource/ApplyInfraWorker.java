@@ -189,13 +189,12 @@ public class ApplyInfraWorker implements Runnable {
                 clusterName, infraConfigBean.getMinCapacity(), infraConfigBean.getMaxCapacity());
 
         // Manage Cluster AutoScaling Resources
-        //        RodimusGetAutoScalingPolicies getAutoScalingPolicies
-        RodimusAutoScalingPolicies rodimusAutoScalingPolicies =
+        RodimusAutoScalingPolicies existingRodimusAutoScalingPolicies =
                 rodimusManager.getClusterScalingPolicies(clusterName);
 
         // Only handle simple policies. We don't yet manage step or target tracking in Cluster IaC
         List<RodimusAutoScalingPolicy> existingPolicies =
-                rodimusAutoScalingPolicies.allSimplePolicies();
+                existingRodimusAutoScalingPolicies.allSimplePolicies();
         List<RodimusAutoScalingPolicy> desiredRodimusAutoScalingPolicies =
                 (infraConfigBean.getScalingPolicies() == null
                                 ? Collections.<ScalingPolicyBean>emptyList()
@@ -207,12 +206,11 @@ public class ApplyInfraWorker implements Runnable {
         LOG.info("Updating autoscaling policies for cluster: {}", clusterName);
         updateAutoScalingPolicies(clusterName, existingPolicies, desiredRodimusAutoScalingPolicies);
 
-        List<RodimusAutoScalingAlarm> autoScalingAlarms =
+        List<RodimusAutoScalingAlarm> existingAutoScalingAlarms =
                 rodimusManager.getClusterAlarms(clusterName);
 
         // Fetch the Policies again so we can attach policies to alarms by policy ARN.
-        //        RodimusGetAutoScalingPolicies updatedAutoScalingPolicies =
-        RodimusAutoScalingPolicies updatedAutoScalingPolicies =
+        RodimusAutoScalingPolicies existingAutoScalingPolicies =
                 rodimusManager.getClusterScalingPolicies(clusterName);
         List<RodimusAutoScalingAlarm> desiredRodimusAutoScalingAlarms =
                 (infraConfigBean.getAutoScalingAlarm() == null
@@ -228,9 +226,9 @@ public class ApplyInfraWorker implements Runnable {
         LOG.info("Updating autoscaling alarms for cluster: {}", clusterName);
         updateAutoScalingAlarms(
                 clusterName,
-                autoScalingAlarms,
+                existingAutoScalingAlarms,
                 desiredRodimusAutoScalingAlarms,
-                updatedAutoScalingPolicies);
+                existingAutoScalingPolicies);
 
         List<RodimusScheduledAction> existingRodimusScheduledActions =
                 rodimusManager.getClusterScheduledActions(clusterName);
@@ -255,7 +253,7 @@ public class ApplyInfraWorker implements Runnable {
      *
      * Scheduled actions are managed based on matching only the desired properties from the cluster spec.
      */
-    public void updateScheduledActions(
+    private void updateScheduledActions(
             String rodimusClusterName,
             List<RodimusScheduledAction> existingActions,
             List<RodimusScheduledAction> desiredActions)
@@ -317,7 +315,7 @@ public class ApplyInfraWorker implements Runnable {
      *       This allowed the policy arn to be set on the alarm in the web interface. However, posting the
      *       policy list is unnecessary, each list is 1 policy and only the PolicyBean.arn is used.
      */
-    public void updateAutoScalingAlarms(
+    private void updateAutoScalingAlarms(
             String clusterName,
             List<RodimusAutoScalingAlarm> existingAlarms,
             List<RodimusAutoScalingAlarm> desiredAlarms,
@@ -423,6 +421,7 @@ public class ApplyInfraWorker implements Runnable {
         }
         // Keep existingPolicies up to date, it is used next to check for presence of scaleup or
         //   scaledown simple policies
+        existingPolicies.removeAll(policiesToDelete);
         existingPolicies.removeAll(policiesToDelete);
 
         // Add one scaleup and/or one scaledown policy if each respective type doesn't exist yet.
