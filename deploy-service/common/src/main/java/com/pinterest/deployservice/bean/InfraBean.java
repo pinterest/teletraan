@@ -51,6 +51,6 @@ public class InfraBean extends BaseBean implements Serializable {
     private Boolean useEnaExpress;
     private Boolean useEbsCheck;
     private List<ScalingPolicyBean> scalingPolicies;
-    private List<AutoScalingAlarmBean> autoScalingAlarm;
-    private List<ScheduledActionBean> scheduledAction;
+    private List<AutoScalingAlarmBean> autoScalingAlarms;
+    private List<ScheduledActionBean> scheduledActions;
 }

@@ -224,12 +224,12 @@ class ApplyInfraWorkerTest {
                         .type(AutoScalingAlarmBean.Type.GROW)
                         .build();
 
-        infraConfigBean.setAutoScalingAlarm(Collections.singletonList(alarmBean));
+        infraConfigBean.setAutoScalingAlarms(Collections.singletonList(alarmBean));
 
         ScheduledActionBean actionBean =
                 ScheduledActionBean.builder().schedule("schedule1").capacity(1).build();
 
-        infraConfigBean.setScheduledAction(Collections.singletonList(actionBean));
+        infraConfigBean.setScheduledActions(Collections.singletonList(actionBean));
 
         String configJson = new ObjectMapper().writeValueAsString(infraConfigBean);
 

@@ -54,8 +54,8 @@ public class InfraConfigBean extends BaseBean implements Serializable {
     private Boolean useEnaExpress;
     private Boolean useEbsCheck;
     private List<ScalingPolicyBean> scalingPolicies;
-    private List<AutoScalingAlarmBean> autoScalingAlarm;
-    private List<ScheduledActionBean> scheduledAction;
+    private List<AutoScalingAlarmBean> autoScalingAlarms;
+    private List<ScheduledActionBean> scheduledActions;
 
     public static InfraConfigBean fromInfraBean(
             String operator, String envName, String stageName, InfraBean infraBean) {
@@ -83,8 +83,8 @@ public class InfraConfigBean extends BaseBean implements Serializable {
                 .useEnaExpress(infraBean.getUseEnaExpress())
                 .useEbsCheck(infraBean.getUseEbsCheck())
                 .scalingPolicies(infraBean.getScalingPolicies())
-                .autoScalingAlarm(infraBean.getAutoScalingAlarm())
-                .scheduledAction(infraBean.getScheduledAction())
+                .autoScalingAlarms(infraBean.getAutoScalingAlarms())
+                .scheduledActions(infraBean.getScheduledActions())
                 .build();
     }
 }

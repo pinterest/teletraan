@@ -213,9 +213,9 @@ public class ApplyInfraWorker implements Runnable {
         RodimusAutoScalingPolicies existingAutoScalingPolicies =
                 rodimusManager.getClusterScalingPolicies(clusterName);
         List<RodimusAutoScalingAlarm> desiredRodimusAutoScalingAlarms =
-                (infraConfigBean.getAutoScalingAlarm() == null
+                (infraConfigBean.getAutoScalingAlarms() == null
                                 ? Collections.<AutoScalingAlarmBean>emptyList()
-                                : infraConfigBean.getAutoScalingAlarm())
+                                : infraConfigBean.getAutoScalingAlarms())
                         .stream()
                                 .map(
                                         autoScalingAlarm ->
@@ -233,9 +233,9 @@ public class ApplyInfraWorker implements Runnable {
         List<RodimusScheduledAction> existingRodimusScheduledActions =
                 rodimusManager.getClusterScheduledActions(clusterName);
         List<RodimusScheduledAction> desiredRodimusScheduledActions =
-                (infraConfigBean.getScheduledAction() == null
+                (infraConfigBean.getScheduledActions() == null
                                 ? Collections.<ScheduledActionBean>emptyList()
-                                : infraConfigBean.getScheduledAction())
+                                : infraConfigBean.getScheduledActions())
                         .stream()
                                 .map(
                                         scheduledAction ->
