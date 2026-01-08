@@ -136,58 +136,6 @@ public class EnvInfras {
                 stageName,
                 operator);
 
-        // clusterName: uss-helloworlddummyservice-devapp-tests-dev
-        // accountId: 998131032990
-        // region: us-east-1
-        // archName: x86_64
-        // maxCapacity: 1
-        // minCapacity: 1
-        // provider: AWS
-        // baseImage: ami-0b87f4f8d096dcd70
-        // baseImageName: cmp_base
-        // hostType: m7a.4xlarge
-        // securityGroup: dev-private-service
-        // subnets:
-        //  - subnet-b8cf71e1
-        //  - subnet-6acbaf1d
-        // configs:
-        //  pinfo_role: cmp_base
-        //  config1: config-val1
-        //  config2: config-val2
-        // autoUpdateBaseImage: true
-        // statefulStatus: true
-        // autoRefresh: true
-        // replacementTimeout: 5
-        // useEnaExpress: false
-        // useEbsCheck: false
-        // scalingPolicies:
-        //  - coolDown: 30
-        //    policyType: SCALEUP
-        //    scaleSize: 2
-        //    scalingType: ChangeInCapacity
-        //  - coolDown: 30
-        //    policyType: SCALEDOWN
-        //    scaleSize: 2
-        //    scalingType: ChangeInCapacity
-        // autoScalingAlarms:
-        //  - comparisonOperator: GreaterThanOrEqualToThreshold
-        //    evaluationPeriod: 5
-        //    fromAwsMetric: true
-        //    metric: CPUUtilization
-        //    threshold: 50
-        //    type: GROW
-        //  - comparisonOperator: LessThanThreshold
-        //    evaluationPeriod: 30
-        //    fromAwsMetric: true
-        //    metric: CPUUtilization
-        //    threshold: 25
-        //    type: SHRINK
-        // scheduledActions:
-        //  - schedule: 0 0 * * *
-        //    capacity: 1
-        //  - schedule: 0 6 * * *
-        //    capacity: 2
-
         EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
         ClusterInfoPublicIdsBean clusterInfoPublicIdsBean =
                 rodimusManager.getClusterInfoPublicIdsBean(originEnvironBean.getCluster_name());
