@@ -169,7 +169,8 @@ public class RodimusManagerImpl implements RodimusManager {
     }
 
     @Override
-    public ClusterInfoPublicIdsBean getClusterInfoPublicIdsBean(String clusterName) throws Exception {
+    public ClusterInfoPublicIdsBean getClusterInfoPublicIdsBean(String clusterName)
+            throws Exception {
         String url = String.format("%s/v1/clusters/%s/publicids", rodimusUrl, clusterName);
         String res = httpClient.get(url, null, null);
 
@@ -288,12 +289,10 @@ public class RodimusManagerImpl implements RodimusManager {
     }
 
     @Override
-    public AsgSummaryBean getAutoScalingGroupSummary(String clusterName)
-            throws Exception {
-      String url =
-              String.format("%s/v1/clusters/%s/autoscaling", rodimusUrl, clusterName);
-      String res = httpClient.get(url, null, null);
+    public AsgSummaryBean getAutoScalingGroupSummary(String clusterName) throws Exception {
+        String url = String.format("%s/v1/clusters/%s/autoscaling", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
 
-      return gson.fromJson(res, AsgSummaryBean.class);
+        return gson.fromJson(res, AsgSummaryBean.class);
     }
 }

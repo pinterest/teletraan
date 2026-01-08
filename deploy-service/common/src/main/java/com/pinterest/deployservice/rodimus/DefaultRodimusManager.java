@@ -53,7 +53,8 @@ public class DefaultRodimusManager implements RodimusManager {
     }
 
     @Override
-    public ClusterInfoPublicIdsBean getClusterInfoPublicIdsBean(String clusterName) throws Exception {
+    public ClusterInfoPublicIdsBean getClusterInfoPublicIdsBean(String clusterName)
+            throws Exception {
         return null;
     }
 
@@ -117,6 +118,6 @@ public class DefaultRodimusManager implements RodimusManager {
 
     @Override
     public AsgSummaryBean getAutoScalingGroupSummary(String clusterName) throws Exception {
-      return null;
+        return null;
     }
 }

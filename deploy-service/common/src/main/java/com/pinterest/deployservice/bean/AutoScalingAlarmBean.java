@@ -47,9 +47,11 @@ public class AutoScalingAlarmBean {
         SHRINK
     }
 
-    public static AutoScalingAlarmBean fromRodimusAutoScalingAlarm(RodimusAutoScalingAlarm rodimusAutoScalingAlarm) {
+    public static AutoScalingAlarmBean fromRodimusAutoScalingAlarm(
+            RodimusAutoScalingAlarm rodimusAutoScalingAlarm) {
         return AutoScalingAlarmBean.builder()
-                .comparisonOperator(ComparisonOperator.valueOf(rodimusAutoScalingAlarm.getComparator()))
+                .comparisonOperator(
+                        ComparisonOperator.valueOf(rodimusAutoScalingAlarm.getComparator()))
                 .evaluationPeriod(rodimusAutoScalingAlarm.getEvaluationTime())
                 .fromAwsMetric(rodimusAutoScalingAlarm.getFromAwsMetric())
                 .metric(rodimusAutoScalingAlarm.getMetricSource())

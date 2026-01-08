@@ -43,12 +43,13 @@ public class ScalingPolicyBean {
         PercentChangeInCapacity
     }
 
-    public static ScalingPolicyBean fromRodimusAutoScalingPolicy(RodimusAutoScalingPolicy rodimusAutoScalingPolicy) {
-      return ScalingPolicyBean.builder()
-              .coolDown(rodimusAutoScalingPolicy.getCoolDown())
-              .policyType(PolicyType.valueOf(rodimusAutoScalingPolicy.getPolicyType()))
-              .scalingType(ScalingType.valueOf(rodimusAutoScalingPolicy.getScalingType()))
-              .scaleSize(rodimusAutoScalingPolicy.getScaleSize())
-              .build();
+    public static ScalingPolicyBean fromRodimusAutoScalingPolicy(
+            RodimusAutoScalingPolicy rodimusAutoScalingPolicy) {
+        return ScalingPolicyBean.builder()
+                .coolDown(rodimusAutoScalingPolicy.getCoolDown())
+                .policyType(PolicyType.valueOf(rodimusAutoScalingPolicy.getPolicyType()))
+                .scalingType(ScalingType.valueOf(rodimusAutoScalingPolicy.getScalingType()))
+                .scaleSize(rodimusAutoScalingPolicy.getScaleSize())
+                .build();
     }
 }

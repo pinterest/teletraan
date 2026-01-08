@@ -166,7 +166,8 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodNoLaunchLatencyTh() throws Exception {
+    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodNoLaunchLatencyTh()
+            throws Exception {
         mockWebServer.enqueue(new MockResponse().setBody("{}"));
 
         Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
@@ -208,7 +209,8 @@ class RodimusManagerImplTest {
     void testGetClusterInfoPublicIdsBeanNotFound() throws Exception {
         mockWebServer.enqueue(new MockResponse().setResponseCode(404));
 
-        assertThrows(ClientErrorException.class, () -> sut.getClusterInfoPublicIdsBean(TEST_CLUSTER));
+        assertThrows(
+                ClientErrorException.class, () -> sut.getClusterInfoPublicIdsBean(TEST_CLUSTER));
     }
 
     @Test

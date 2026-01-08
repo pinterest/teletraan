@@ -31,11 +31,11 @@ public class ScheduledActionBean {
     private String schedule;
     private Integer capacity;
 
-  public static ScheduledActionBean fromRodimusScheduledAction(
-          RodimusScheduledAction rodimusScheduledAction) {
-    return ScheduledActionBean.builder()
-            .schedule(rodimusScheduledAction.getSchedule())
-            .capacity(rodimusScheduledAction.getCapacity())
-            .build();
-  }
+    public static ScheduledActionBean fromRodimusScheduledAction(
+            RodimusScheduledAction rodimusScheduledAction) {
+        return ScheduledActionBean.builder()
+                .schedule(rodimusScheduledAction.getSchedule())
+                .capacity(rodimusScheduledAction.getCapacity())
+                .build();
+    }
 }
