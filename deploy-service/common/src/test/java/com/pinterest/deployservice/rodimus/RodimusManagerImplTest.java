@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.AsgSummaryBean;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
@@ -150,7 +151,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodOk() throws Exception {
+    void testGetClusterInstanceLaunchGracePeriodOk() throws Exception {
         mockWebServer.enqueue(new MockResponse().setBody("{\"launchLatencyTh\": 300}"));
 
         Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
@@ -158,7 +159,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodNullResponse() throws Exception {
+    void testGetClusterInstanceLaunchGracePeriodNullResponse() throws Exception {
         mockWebServer.enqueue(new MockResponse());
 
         Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
@@ -166,8 +167,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodNoLaunchLatencyTh()
-            throws Exception {
+    void testGetClusterInstanceLaunchGracePeriodNoLaunchLatencyTh() throws Exception {
         mockWebServer.enqueue(new MockResponse().setBody("{}"));
 
         Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
@@ -275,7 +275,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanScalingPoliciesOk() throws Exception {
+    void testGetClusterScalingPoliciesOk() throws Exception {
         // Minimal JSON, all lists present
         String responseBody =
                 "{\"scalingPolicies\":[],\"scaleupPolicies\":[],\"scaledownPolicies\":[]}";
@@ -286,13 +286,13 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanScalingPoliciesClientError() {
+    void testGetClusterScalingPoliciesClientError() {
         mockWebServer.enqueue(new MockResponse().setResponseCode(404));
         assertThrows(ClientErrorException.class, () -> sut.getClusterScalingPolicies(TEST_CLUSTER));
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanAlarmsOk() throws Exception {
+    void testGetClusterAlarmsOk() throws Exception {
         String responseBody =
                 "[{\"alarmId\":\"alarm1\",\"scalingPolicies\":[],\"alarmActions\":[],\"metricSource\":\"cpu\",\"comparator\":\"gt\",\"actionType\":\"scaleUp\",\"groupName\":\"cluster1\",\"threshold\":80.0,\"evaluationTime\":1,\"fromAwsMetric\":false}]";
         mockWebServer.enqueue(new MockResponse().setBody(responseBody));
@@ -305,13 +305,13 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanAlarmsClientError() {
+    void testGetClusterAlarmsClientError() {
         mockWebServer.enqueue(new MockResponse().setResponseCode(400));
         assertThrows(ClientErrorException.class, () -> sut.getClusterAlarms(TEST_CLUSTER));
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanScheduledActionsOk() throws Exception {
+    void testGetClusterScheduledActionsOk() throws Exception {
         String responseBody =
                 "[{\"clusterName\":\"cluster1\",\"actionId\":\"action1\",\"schedule\":\"cron(0 18 * * ? *)\",\"capacity\":2}]";
         mockWebServer.enqueue(new MockResponse().setBody(responseBody));
@@ -324,7 +324,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInfoPublicIdsBeanScheduledActionsClientError() {
+    void testGetClusterScheduledActionsClientError() {
         mockWebServer.enqueue(new MockResponse().setResponseCode(403));
         assertThrows(
                 ClientErrorException.class, () -> sut.getClusterScheduledActions(TEST_CLUSTER));
@@ -449,6 +449,25 @@ class RodimusManagerImplTest {
                 () ->
                         sut.postClusterScheduledActions(
                                 TEST_CLUSTER, Collections.singletonList(action)));
+    }
+
+    @Test
+    void testGetAutoScalingGroupSummaryOk() throws Exception {
+        String responseBody = "{\"minSize\":1,\"maxSize\":2}";
+        mockWebServer.enqueue(new MockResponse().setBody(responseBody));
+
+        AsgSummaryBean summary = sut.getAutoScalingGroupSummary(TEST_CLUSTER);
+
+        assertEquals(1, summary.getMinSize());
+        assertEquals(2, summary.getMaxSize());
+    }
+
+    @Test
+    void testGetAutoScalingGroupSummaryClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(403));
+
+        assertThrows(
+                ClientErrorException.class, () -> sut.getAutoScalingGroupSummary(TEST_CLUSTER));
     }
 
     static class ServerErrorDispatcher extends Dispatcher {

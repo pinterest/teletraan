@@ -290,7 +290,8 @@ public class RodimusManagerImpl implements RodimusManager {
 
     @Override
     public AsgSummaryBean getAutoScalingGroupSummary(String clusterName) throws Exception {
-        String url = String.format("%s/v1/clusters/%s/autoscaling/summary", rodimusUrl, clusterName);
+        String url =
+                String.format("%s/v1/clusters/%s/autoscaling/summary", rodimusUrl, clusterName);
         String res = httpClient.get(url, null, null);
 
         return gson.fromJson(res, AsgSummaryBean.class);
