@@ -150,7 +150,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInstanceLaunchGracePeriodOk() throws Exception {
+    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodOk() throws Exception {
         mockWebServer.enqueue(new MockResponse().setBody("{\"launchLatencyTh\": 300}"));
 
         Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
@@ -158,7 +158,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInstanceLaunchGracePeriodNullResponse() throws Exception {
+    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodNullResponse() throws Exception {
         mockWebServer.enqueue(new MockResponse());
 
         Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
@@ -166,7 +166,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterInstanceLaunchGracePeriodNoLaunchLatencyTh() throws Exception {
+    void testGetClusterInfoPublicIdsBeanInstanceLaunchGracePeriodNoLaunchLatencyTh() throws Exception {
         mockWebServer.enqueue(new MockResponse().setBody("{}"));
 
         Long gracePeriod = sut.getClusterInstanceLaunchGracePeriod(TEST_CLUSTER);
@@ -191,24 +191,24 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterOk() throws Exception {
+    void testGetClusterInfoPublicIdsBeanOk() throws Exception {
         String responseBody = "{\"accountId\": \"accountId1\", \"region\": \"region1\"}";
         mockWebServer.enqueue(
                 new MockResponse()
                         .setBody(responseBody)
                         .setHeader("Content-Type", "application/json"));
 
-        ClusterInfoPublicIdsBean cluster = sut.getCluster(TEST_CLUSTER);
+        ClusterInfoPublicIdsBean cluster = sut.getClusterInfoPublicIdsBean(TEST_CLUSTER);
 
         assertEquals("accountId1", cluster.getAccountId());
         assertEquals("region1", cluster.getRegion());
     }
 
     @Test
-    void testGetClusterNotFound() throws Exception {
+    void testGetClusterInfoPublicIdsBeanNotFound() throws Exception {
         mockWebServer.enqueue(new MockResponse().setResponseCode(404));
 
-        assertThrows(ClientErrorException.class, () -> sut.getCluster(TEST_CLUSTER));
+        assertThrows(ClientErrorException.class, () -> sut.getClusterInfoPublicIdsBean(TEST_CLUSTER));
     }
 
     @Test
@@ -273,7 +273,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterScalingPoliciesOk() throws Exception {
+    void testGetClusterInfoPublicIdsBeanScalingPoliciesOk() throws Exception {
         // Minimal JSON, all lists present
         String responseBody =
                 "{\"scalingPolicies\":[],\"scaleupPolicies\":[],\"scaledownPolicies\":[]}";
@@ -284,13 +284,13 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterScalingPoliciesClientError() {
+    void testGetClusterInfoPublicIdsBeanScalingPoliciesClientError() {
         mockWebServer.enqueue(new MockResponse().setResponseCode(404));
         assertThrows(ClientErrorException.class, () -> sut.getClusterScalingPolicies(TEST_CLUSTER));
     }
 
     @Test
-    void testGetClusterAlarmsOk() throws Exception {
+    void testGetClusterInfoPublicIdsBeanAlarmsOk() throws Exception {
         String responseBody =
                 "[{\"alarmId\":\"alarm1\",\"scalingPolicies\":[],\"alarmActions\":[],\"metricSource\":\"cpu\",\"comparator\":\"gt\",\"actionType\":\"scaleUp\",\"groupName\":\"cluster1\",\"threshold\":80.0,\"evaluationTime\":1,\"fromAwsMetric\":false}]";
         mockWebServer.enqueue(new MockResponse().setBody(responseBody));
@@ -303,13 +303,13 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterAlarmsClientError() {
+    void testGetClusterInfoPublicIdsBeanAlarmsClientError() {
         mockWebServer.enqueue(new MockResponse().setResponseCode(400));
         assertThrows(ClientErrorException.class, () -> sut.getClusterAlarms(TEST_CLUSTER));
     }
 
     @Test
-    void testGetClusterScheduledActionsOk() throws Exception {
+    void testGetClusterInfoPublicIdsBeanScheduledActionsOk() throws Exception {
         String responseBody =
                 "[{\"clusterName\":\"cluster1\",\"actionId\":\"action1\",\"schedule\":\"cron(0 18 * * ? *)\",\"capacity\":2}]";
         mockWebServer.enqueue(new MockResponse().setBody(responseBody));
@@ -322,7 +322,7 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterScheduledActionsClientError() {
+    void testGetClusterInfoPublicIdsBeanScheduledActionsClientError() {
         mockWebServer.enqueue(new MockResponse().setResponseCode(403));
         assertThrows(
                 ClientErrorException.class, () -> sut.getClusterScheduledActions(TEST_CLUSTER));

@@ -149,7 +149,7 @@ public class ApplyInfraWorker implements Runnable {
         ClusterInfoPublicIdsBean newClusterInfoPublicIdsBean =
                 ClusterInfoPublicIdsBean.fromInfraConfigBean(infraConfigBean);
         ClusterInfoPublicIdsBean existingClusterInfoPublicIdsBean =
-                rodimusManager.getCluster(clusterName);
+                rodimusManager.getClusterInfoPublicIdsBean(clusterName);
         if (existingClusterInfoPublicIdsBean == null) {
             LOG.info(
                     "Creating cluster and supporting teletraan records for cluster: {}",

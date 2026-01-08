@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.rodimus;
 
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.AsgSummaryBean;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
@@ -36,7 +37,7 @@ public interface RodimusManager {
 
     Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception;
 
-    ClusterInfoPublicIdsBean getCluster(String clusterName) throws Exception;
+    ClusterInfoPublicIdsBean getClusterInfoPublicIdsBean(String clusterName) throws Exception;
 
     void createClusterWithEnvPublicIds(
             String clusterName,
@@ -72,4 +73,6 @@ public interface RodimusManager {
     void postClusterScheduledActions(
             String clusterName, List<RodimusScheduledAction> clusterScheduledActionsList)
             throws Exception;
+
+    AsgSummaryBean getAutoScalingGroupSummary(String clusterName) throws Exception;
 }

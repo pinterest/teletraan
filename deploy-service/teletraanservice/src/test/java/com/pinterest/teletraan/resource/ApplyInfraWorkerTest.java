@@ -115,7 +115,7 @@ class ApplyInfraWorkerTest {
         when(mockWorkerJobDAO.getById("1")).thenReturn(runningJob);
 
         // No pre-existing cluster triggers creation branch
-        when(mockRodimusManager.getCluster("CLUSTER-NEW")).thenReturn(null);
+        when(mockRodimusManager.getClusterInfoPublicIdsBean("CLUSTER-NEW")).thenReturn(null);
         when(mockRodimusManager.getClusterScalingPolicies(any()))
                 .thenReturn(RodimusAutoScalingPolicies.builder().build());
 
@@ -168,7 +168,7 @@ class ApplyInfraWorkerTest {
 
         // Cluster exists
         ClusterInfoPublicIdsBean existBean = mock(ClusterInfoPublicIdsBean.class);
-        when(mockRodimusManager.getCluster("CLUSTER-EXIST")).thenReturn(existBean);
+        when(mockRodimusManager.getClusterInfoPublicIdsBean("CLUSTER-EXIST")).thenReturn(existBean);
         when(mockRodimusManager.getClusterScalingPolicies(any()))
                 .thenReturn(RodimusAutoScalingPolicies.builder().build());
 
@@ -239,7 +239,7 @@ class ApplyInfraWorkerTest {
         job.setConfig(configJson);
 
         ClusterInfoPublicIdsBean existBean = mock(ClusterInfoPublicIdsBean.class);
-        when(mockRodimusManager.getCluster(clusterName)).thenReturn(existBean);
+        when(mockRodimusManager.getClusterInfoPublicIdsBean(clusterName)).thenReturn(existBean);
 
         // Prepare mocks for scaling policies
         RodimusAutoScalingPolicy existingPolicy = mock(RodimusAutoScalingPolicy.class);

@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,4 +30,12 @@ import lombok.ToString;
 public class ScheduledActionBean {
     private String schedule;
     private Integer capacity;
+
+  public static ScheduledActionBean fromRodimusScheduledAction(
+          RodimusScheduledAction rodimusScheduledAction) {
+    return ScheduledActionBean.builder()
+            .schedule(rodimusScheduledAction.getSchedule())
+            .capacity(rodimusScheduledAction.getCapacity())
+            .build();
+  }
 }
