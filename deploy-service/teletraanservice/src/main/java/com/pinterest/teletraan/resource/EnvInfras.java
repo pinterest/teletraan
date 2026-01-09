@@ -118,7 +118,7 @@ public class EnvInfras {
     @ApiOperation(
             value = "Get infrastructure configurations",
             notes = "Get infrastructure configurations given environment name and stage name",
-            response = Response.class)
+            response = InfraBean.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.READ)
     public InfraBean get(
             @Context SecurityContext sc,
@@ -187,16 +187,6 @@ public class EnvInfras {
                         .autoScalingAlarms(autoScalingAlarmBeans)
                         .scheduledActions(scheduledActionBeans)
                         .build();
-
-        if (infraBean == null) {
-            LOG.info(
-                    "Endpoint for getting infra configurations did not find envName: {}, stageName: {}",
-                    envName,
-                    stageName);
-            throw new WebApplicationException(
-                    String.format("Environment %s/%s does not exist.", envName, stageName),
-                    Response.Status.NOT_FOUND);
-        }
 
         LOG.info("Endpoint for getting infra configurations found configurations: {}", infraBean);
 
