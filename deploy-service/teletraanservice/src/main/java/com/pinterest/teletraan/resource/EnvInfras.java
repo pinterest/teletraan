@@ -120,7 +120,7 @@ public class EnvInfras {
             notes = "Get infrastructure configurations given environment name and stage name",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.READ)
-    public Response getJob(
+    public Response get(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")
