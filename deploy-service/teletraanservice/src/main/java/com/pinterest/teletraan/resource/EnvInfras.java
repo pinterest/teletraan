@@ -120,7 +120,7 @@ public class EnvInfras {
             notes = "Get infrastructure configurations given environment name and stage name",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRole.Names.READ)
-    public Response get(
+    public InfraBean get(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName")
@@ -193,11 +193,13 @@ public class EnvInfras {
                     "Endpoint for getting infra configurations did not find envName: {}, stageName: {}",
                     envName,
                     stageName);
-            return Response.status(404).build();
+            throw new WebApplicationException(
+                    String.format("Environment %s/%s does not exist.", envName, stageName),
+                    Response.Status.NOT_FOUND);
         }
 
         LOG.info("Endpoint for getting infra configurations found configurations: {}", infraBean);
 
-        return Response.status(200).entity(infraBean).build();
+        return infraBean;
     }
 }
