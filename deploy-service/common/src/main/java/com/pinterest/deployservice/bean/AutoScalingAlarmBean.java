@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,5 +45,18 @@ public class AutoScalingAlarmBean {
     public enum Type {
         GROW,
         SHRINK
+    }
+
+    public static AutoScalingAlarmBean fromRodimusAutoScalingAlarm(
+            RodimusAutoScalingAlarm rodimusAutoScalingAlarm) {
+        return AutoScalingAlarmBean.builder()
+                .comparisonOperator(
+                        ComparisonOperator.valueOf(rodimusAutoScalingAlarm.getComparator()))
+                .evaluationPeriod(rodimusAutoScalingAlarm.getEvaluationTime())
+                .fromAwsMetric(rodimusAutoScalingAlarm.getFromAwsMetric())
+                .metric(rodimusAutoScalingAlarm.getMetricSource())
+                .threshold(rodimusAutoScalingAlarm.getThreshold())
+                .type(Type.valueOf(rodimusAutoScalingAlarm.getActionType()))
+                .build();
     }
 }

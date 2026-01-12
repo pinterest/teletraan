@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Pinterest, Inc.
+ * Copyright (c) 2026 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pinterest.deployservice.bean;
+package com.pinterest.deployservice.bean.rodimus;
 
-import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
-public class ScheduledActionBean {
-    private String schedule;
-    private Integer capacity;
-
-    public static ScheduledActionBean fromRodimusScheduledAction(
-            RodimusScheduledAction rodimusScheduledAction) {
-        return ScheduledActionBean.builder()
-                .schedule(rodimusScheduledAction.getSchedule())
-                .capacity(rodimusScheduledAction.getCapacity())
-                .build();
-    }
+public class AsgSummaryBean {
+    private Integer minSize;
+    private Integer maxSize;
 }

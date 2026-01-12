@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,5 +41,15 @@ public class ScalingPolicyBean {
     public enum ScalingType {
         ChangeInCapacity,
         PercentChangeInCapacity
+    }
+
+    public static ScalingPolicyBean fromRodimusAutoScalingPolicy(
+            RodimusAutoScalingPolicy rodimusAutoScalingPolicy) {
+        return ScalingPolicyBean.builder()
+                .coolDown(rodimusAutoScalingPolicy.getCoolDown())
+                .policyType(PolicyType.valueOf(rodimusAutoScalingPolicy.getPolicyType()))
+                .scalingType(ScalingType.valueOf(rodimusAutoScalingPolicy.getScalingType()))
+                .scaleSize(rodimusAutoScalingPolicy.getScaleSize())
+                .build();
     }
 }

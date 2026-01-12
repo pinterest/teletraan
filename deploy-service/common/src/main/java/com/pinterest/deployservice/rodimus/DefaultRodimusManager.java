@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.rodimus;
 
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.AsgSummaryBean;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
@@ -52,7 +53,8 @@ public class DefaultRodimusManager implements RodimusManager {
     }
 
     @Override
-    public ClusterInfoPublicIdsBean getCluster(String clusterName) throws Exception {
+    public ClusterInfoPublicIdsBean getClusterInfoPublicIdsBean(String clusterName)
+            throws Exception {
         return null;
     }
 
@@ -113,4 +115,9 @@ public class DefaultRodimusManager implements RodimusManager {
     public void postClusterScheduledActions(
             String clusterName, List<RodimusScheduledAction> clusterScheduledActionsList)
             throws Exception {}
+
+    @Override
+    public AsgSummaryBean getAutoScalingGroupSummary(String clusterName) throws Exception {
+        return null;
+    }
 }

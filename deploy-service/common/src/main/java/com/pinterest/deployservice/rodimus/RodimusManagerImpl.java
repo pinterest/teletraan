@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.AsgSummaryBean;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
@@ -168,8 +169,9 @@ public class RodimusManagerImpl implements RodimusManager {
     }
 
     @Override
-    public ClusterInfoPublicIdsBean getCluster(String clusterName) throws Exception {
-        String url = String.format("%s/v1/clusters/%s", rodimusUrl, clusterName);
+    public ClusterInfoPublicIdsBean getClusterInfoPublicIdsBean(String clusterName)
+            throws Exception {
+        String url = String.format("%s/v1/clusters/%s/publicids", rodimusUrl, clusterName);
         String res = httpClient.get(url, null, null);
 
         return gson.fromJson(res, ClusterInfoPublicIdsBean.class);
@@ -284,5 +286,14 @@ public class RodimusManagerImpl implements RodimusManager {
         String url =
                 String.format("%s/v1/clusters/%s/autoscaling/schedules", rodimusUrl, clusterName);
         httpClient.post(url, gson.toJson(clusterScheduledActionsList), null);
+    }
+
+    @Override
+    public AsgSummaryBean getAutoScalingGroupSummary(String clusterName) throws Exception {
+        String url =
+                String.format("%s/v1/clusters/%s/autoscaling/summary", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null);
+
+        return gson.fromJson(res, AsgSummaryBean.class);
     }
 }

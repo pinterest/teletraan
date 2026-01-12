@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.AsgSummaryBean;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
 import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
 import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
@@ -191,24 +192,25 @@ class RodimusManagerImplTest {
     }
 
     @Test
-    void testGetClusterOk() throws Exception {
+    void testGetClusterInfoPublicIdsBeanOk() throws Exception {
         String responseBody = "{\"accountId\": \"accountId1\", \"region\": \"region1\"}";
         mockWebServer.enqueue(
                 new MockResponse()
                         .setBody(responseBody)
                         .setHeader("Content-Type", "application/json"));
 
-        ClusterInfoPublicIdsBean cluster = sut.getCluster(TEST_CLUSTER);
+        ClusterInfoPublicIdsBean cluster = sut.getClusterInfoPublicIdsBean(TEST_CLUSTER);
 
         assertEquals("accountId1", cluster.getAccountId());
         assertEquals("region1", cluster.getRegion());
     }
 
     @Test
-    void testGetClusterNotFound() throws Exception {
+    void testGetClusterInfoPublicIdsBeanNotFound() throws Exception {
         mockWebServer.enqueue(new MockResponse().setResponseCode(404));
 
-        assertThrows(ClientErrorException.class, () -> sut.getCluster(TEST_CLUSTER));
+        assertThrows(
+                ClientErrorException.class, () -> sut.getClusterInfoPublicIdsBean(TEST_CLUSTER));
     }
 
     @Test
@@ -447,6 +449,25 @@ class RodimusManagerImplTest {
                 () ->
                         sut.postClusterScheduledActions(
                                 TEST_CLUSTER, Collections.singletonList(action)));
+    }
+
+    @Test
+    void testGetAutoScalingGroupSummaryOk() throws Exception {
+        String responseBody = "{\"minSize\":1,\"maxSize\":2}";
+        mockWebServer.enqueue(new MockResponse().setBody(responseBody));
+
+        AsgSummaryBean summary = sut.getAutoScalingGroupSummary(TEST_CLUSTER);
+
+        assertEquals(1, summary.getMinSize());
+        assertEquals(2, summary.getMaxSize());
+    }
+
+    @Test
+    void testGetAutoScalingGroupSummaryClientError() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(403));
+
+        assertThrows(
+                ClientErrorException.class, () -> sut.getAutoScalingGroupSummary(TEST_CLUSTER));
     }
 
     static class ServerErrorDispatcher extends Dispatcher {
