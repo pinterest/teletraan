@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/* Used for API request */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -49,4 +50,7 @@ public class InfraBean extends BaseBean implements Serializable {
     private Long replacementTimeout;
     private Boolean useEnaExpress;
     private Boolean useEbsCheck;
+    private List<ScalingPolicyBean> scalingPolicies;
+    private List<AutoScalingAlarmBean> autoScalingAlarms;
+    private List<ScheduledActionBean> scheduledActions;
 }

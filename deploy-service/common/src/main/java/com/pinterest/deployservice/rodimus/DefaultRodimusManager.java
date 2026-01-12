@@ -16,9 +16,13 @@
 package com.pinterest.deployservice.rodimus;
 
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultRodimusManager implements RodimusManager {
@@ -63,5 +67,50 @@ public class DefaultRodimusManager implements RodimusManager {
     @Override
     public void updateClusterWithPublicIds(
             String clusterName, ClusterInfoPublicIdsBean clusterInfoPublicIdsBean)
+            throws Exception {}
+
+    @Override
+    public void updateClusterCapacity(String clusterName, Integer minSize, Integer maxSize)
+            throws Exception {}
+
+    @Override
+    public RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName)
+            throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<RodimusScheduledAction> getClusterScheduledActions(String clusterName)
+            throws Exception {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void deleteClusterScalingPolicy(String clusterName, String policyName)
+            throws Exception {}
+
+    @Override
+    public void postClusterScalingPolicies(String clusterName, RodimusAutoScalingPolicies policies)
+            throws Exception {}
+
+    @Override
+    public void deleteClusterAlarm(String clusterName, String alarmId) throws Exception {}
+
+    @Override
+    public void createClusterAlarms(String clusterName, List<RodimusAutoScalingAlarm> clusterAlarms)
+            throws Exception {}
+
+    @Override
+    public void deleteClusterScheduledAction(String clusterName, String actionId)
+            throws Exception {}
+
+    @Override
+    public void postClusterScheduledActions(
+            String clusterName, List<RodimusScheduledAction> clusterScheduledActionsList)
             throws Exception {}
 }

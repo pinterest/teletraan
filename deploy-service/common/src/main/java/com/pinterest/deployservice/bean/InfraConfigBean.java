@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/* Used to pass details to worker */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -52,6 +53,9 @@ public class InfraConfigBean extends BaseBean implements Serializable {
     private Long replacementTimeout;
     private Boolean useEnaExpress;
     private Boolean useEbsCheck;
+    private List<ScalingPolicyBean> scalingPolicies;
+    private List<AutoScalingAlarmBean> autoScalingAlarms;
+    private List<ScheduledActionBean> scheduledActions;
 
     public static InfraConfigBean fromInfraBean(
             String operator, String envName, String stageName, InfraBean infraBean) {
@@ -78,6 +82,9 @@ public class InfraConfigBean extends BaseBean implements Serializable {
                 .replacementTimeout(infraBean.getReplacementTimeout())
                 .useEnaExpress(infraBean.getUseEnaExpress())
                 .useEbsCheck(infraBean.getUseEbsCheck())
+                .scalingPolicies(infraBean.getScalingPolicies())
+                .autoScalingAlarms(infraBean.getAutoScalingAlarms())
+                .scheduledActions(infraBean.getScheduledActions())
                 .build();
     }
 }

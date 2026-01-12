@@ -16,7 +16,11 @@
 package com.pinterest.deployservice.rodimus;
 
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface RodimusManager {
@@ -43,4 +47,29 @@ public interface RodimusManager {
 
     void updateClusterWithPublicIds(
             String clusterName, ClusterInfoPublicIdsBean clusterInfoPublicIdsBean) throws Exception;
+
+    void updateClusterCapacity(String clusterName, Integer minSize, Integer maxSize)
+            throws Exception;
+
+    RodimusAutoScalingPolicies getClusterScalingPolicies(String clusterName) throws Exception;
+
+    List<RodimusAutoScalingAlarm> getClusterAlarms(String clusterName) throws Exception;
+
+    List<RodimusScheduledAction> getClusterScheduledActions(String clusterName) throws Exception;
+
+    void deleteClusterScalingPolicy(String clusterName, String policyName) throws Exception;
+
+    void postClusterScalingPolicies(String clusterName, RodimusAutoScalingPolicies policies)
+            throws Exception;
+
+    void deleteClusterAlarm(String clusterName, String alarmId) throws Exception;
+
+    void createClusterAlarms(String clusterName, List<RodimusAutoScalingAlarm> clusterAlarms)
+            throws Exception;
+
+    void deleteClusterScheduledAction(String clusterName, String actionId) throws Exception;
+
+    void postClusterScheduledActions(
+            String clusterName, List<RodimusScheduledAction> clusterScheduledActionsList)
+            throws Exception;
 }

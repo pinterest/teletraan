@@ -18,10 +18,17 @@ package com.pinterest.teletraan.resource;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pinterest.deployservice.bean.AutoScalingAlarmBean;
 import com.pinterest.deployservice.bean.ClusterInfoPublicIdsBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.InfraConfigBean;
+import com.pinterest.deployservice.bean.ScalingPolicyBean;
+import com.pinterest.deployservice.bean.ScheduledActionBean;
 import com.pinterest.deployservice.bean.WorkerJobBean;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingAlarm;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicies;
+import com.pinterest.deployservice.bean.rodimus.RodimusAutoScalingPolicy;
+import com.pinterest.deployservice.bean.rodimus.RodimusScheduledAction;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
@@ -109,6 +116,8 @@ class ApplyInfraWorkerTest {
 
         // No pre-existing cluster triggers creation branch
         when(mockRodimusManager.getCluster("CLUSTER-NEW")).thenReturn(null);
+        when(mockRodimusManager.getClusterScalingPolicies(any()))
+                .thenReturn(RodimusAutoScalingPolicies.builder().build());
 
         // Env bean returned from static call
         EnvironBean origEnv = new EnvironBean();
@@ -160,6 +169,8 @@ class ApplyInfraWorkerTest {
         // Cluster exists
         ClusterInfoPublicIdsBean existBean = mock(ClusterInfoPublicIdsBean.class);
         when(mockRodimusManager.getCluster("CLUSTER-EXIST")).thenReturn(existBean);
+        when(mockRodimusManager.getClusterScalingPolicies(any()))
+                .thenReturn(RodimusAutoScalingPolicies.builder().build());
 
         worker.run();
 
@@ -171,6 +182,114 @@ class ApplyInfraWorkerTest {
         verify(mockEnvHandler, never()).updateEnvironment(any(), any(), any(), any());
         verify(mockEnvHandler, never())
                 .createCapacityForHostOrGroup(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void testApplyInfra_invokesCapacityPoliciesAlarmsActionsUpdate() throws Exception {
+        // Prepare test data
+        String clusterName = "CLUSTER-COVER";
+        String envName = "env";
+        String stageName = "stage";
+        String operator = "op";
+
+        // Prepare InfraConfigBean with all properties
+        InfraConfigBean infraConfigBean = new InfraConfigBean();
+        infraConfigBean.setClusterName(clusterName);
+        infraConfigBean.setEnvName(envName);
+        infraConfigBean.setStageName(stageName);
+        infraConfigBean.setOperator(operator);
+        infraConfigBean.setMinCapacity(2);
+        infraConfigBean.setMaxCapacity(10);
+
+        // Add scaling policies, alarms, scheduled actions to config
+        ScalingPolicyBean scalingBean =
+                ScalingPolicyBean.builder()
+                        .coolDown(1)
+                        .policyType(ScalingPolicyBean.PolicyType.SCALEUP)
+                        .scaleSize(2)
+                        .scalingType(ScalingPolicyBean.ScalingType.ChangeInCapacity)
+                        .build();
+
+        infraConfigBean.setScalingPolicies(Collections.singletonList(scalingBean));
+
+        AutoScalingAlarmBean alarmBean =
+                AutoScalingAlarmBean.builder()
+                        .comparisonOperator(
+                                AutoScalingAlarmBean.ComparisonOperator
+                                        .GreaterThanOrEqualToThreshold)
+                        .evaluationPeriod(1)
+                        .fromAwsMetric(true)
+                        .metric("metric1")
+                        .threshold(2.2)
+                        .type(AutoScalingAlarmBean.Type.GROW)
+                        .build();
+
+        infraConfigBean.setAutoScalingAlarms(Collections.singletonList(alarmBean));
+
+        ScheduledActionBean actionBean =
+                ScheduledActionBean.builder().schedule("schedule1").capacity(1).build();
+
+        infraConfigBean.setScheduledActions(Collections.singletonList(actionBean));
+
+        String configJson = new ObjectMapper().writeValueAsString(infraConfigBean);
+
+        WorkerJobBean job = new WorkerJobBean();
+        job.setId("3");
+        job.setStatus(WorkerJobBean.Status.INITIALIZED);
+        job.setConfig(configJson);
+
+        ClusterInfoPublicIdsBean existBean = mock(ClusterInfoPublicIdsBean.class);
+        when(mockRodimusManager.getCluster(clusterName)).thenReturn(existBean);
+
+        // Prepare mocks for scaling policies
+        RodimusAutoScalingPolicy existingPolicy = mock(RodimusAutoScalingPolicy.class);
+        when(existingPolicy.getPolicyType()).thenReturn("SCALEUP");
+        when(existingPolicy.getPolicyName()).thenReturn("PolicyName1");
+        when(existingPolicy.matches(any())).thenReturn(false); // So it'll be deleted
+
+        RodimusAutoScalingPolicies existingPolicies = mock(RodimusAutoScalingPolicies.class);
+        when(existingPolicies.allSimplePolicies())
+                .thenReturn(new java.util.ArrayList<>(Collections.singletonList(existingPolicy)));
+        when(existingPolicies.getScaleupPolicies())
+                .thenReturn(new java.util.ArrayList<>(Collections.singletonList(existingPolicy)));
+        when(existingPolicies.getScaledownPolicies()).thenReturn(Collections.emptyList());
+
+        // This method is called twice in applyInfra (second time for alarms)
+        when(mockRodimusManager.getClusterScalingPolicies(clusterName))
+                .thenReturn(existingPolicies);
+
+        // Prepare mocks for alarms
+        RodimusAutoScalingAlarm existingAlarm = mock(RodimusAutoScalingAlarm.class);
+        when(existingAlarm.matches(any())).thenReturn(false); // So it'll be deleted
+        when(existingAlarm.getAlarmId()).thenReturn("alarmId");
+        when(mockRodimusManager.getClusterAlarms(clusterName))
+                .thenReturn(new java.util.ArrayList<>(Collections.singletonList(existingAlarm)));
+
+        // Prepare mocks for scheduled actions
+        RodimusScheduledAction existingAction = mock(RodimusScheduledAction.class);
+        when(existingAction.matches(any())).thenReturn(false); // So it'll be deleted
+        when(existingAction.getActionId()).thenReturn("actionId");
+        when(mockRodimusManager.getClusterScheduledActions(clusterName))
+                .thenReturn(new java.util.ArrayList<>(Collections.singletonList(existingAction)));
+
+        // Actually run applyInfra via reflection to isolate test
+        java.lang.reflect.Method m =
+                ApplyInfraWorker.class.getDeclaredMethod("applyInfra", WorkerJobBean.class);
+        m.setAccessible(true);
+        m.invoke(worker, job);
+
+        // Verify cluster capacity update
+        verify(mockRodimusManager).updateClusterCapacity(eq(clusterName), eq(2), eq(10));
+        // Verify scaling policies updated and undesired deleted
+        verify(mockRodimusManager).deleteClusterScalingPolicy(eq(clusterName), eq("PolicyName1"));
+        verify(mockRodimusManager)
+                .postClusterScalingPolicies(eq(clusterName), any(RodimusAutoScalingPolicies.class));
+        // Verify alarms deleted & posted
+        verify(mockRodimusManager).deleteClusterAlarm(eq(clusterName), eq("alarmId"));
+        verify(mockRodimusManager).createClusterAlarms(eq(clusterName), any());
+        // Verify scheduled actions deleted & posted
+        verify(mockRodimusManager).deleteClusterScheduledAction(eq(clusterName), eq("actionId"));
+        verify(mockRodimusManager).postClusterScheduledActions(eq(clusterName), any());
     }
 
     // Helper for WorkerJobBean
