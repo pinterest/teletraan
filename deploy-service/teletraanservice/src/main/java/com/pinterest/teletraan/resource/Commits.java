@@ -15,8 +15,8 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.codahale.metrics.annotation.ExceptionMetered;
-import com.codahale.metrics.annotation.Timed;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
@@ -49,7 +49,7 @@ public class Commits {
 
     @GET
     @Timed
-    @ExceptionMetered
+    @Counted
     @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-_/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get commit infos",
@@ -77,7 +77,7 @@ public class Commits {
      */
     @GET
     @Timed
-    @ExceptionMetered
+    @Counted
     public List<CommitBean> getCommits(
             @QueryParam("scm") Optional<String> scm,
             @QueryParam("repo") String repo,

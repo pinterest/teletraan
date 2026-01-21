@@ -15,8 +15,8 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.codahale.metrics.annotation.ExceptionMetered;
-import com.codahale.metrics.annotation.Timed;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.DeployBean;
@@ -76,7 +76,7 @@ public class Deploys {
 
     @GET
     @Timed
-    @ExceptionMetered
+    @Counted
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get deploy info",
@@ -131,7 +131,7 @@ public class Deploys {
 
     @PUT
     @Timed
-    @ExceptionMetered
+    @Counted
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Update deploy",

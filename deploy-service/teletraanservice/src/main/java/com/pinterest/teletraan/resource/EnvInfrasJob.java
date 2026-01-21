@@ -15,8 +15,8 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.codahale.metrics.annotation.ExceptionMetered;
-import com.codahale.metrics.annotation.Timed;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
@@ -57,7 +57,7 @@ public class EnvInfrasJob {
     @Path(
             "/{jobId : [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}}")
     @Timed
-    @ExceptionMetered
+    @Counted
     @ApiOperation(
             value = "Get status of applying infrastructure configurations",
             notes = "Get status of applying infrastructure configurations given a job id",
