@@ -131,7 +131,7 @@ class DeployAgent(object):
     def serve_build(self) -> None:
         """This is the main function of the ``DeployAgent``."""
 
-        log.info("The deploy agent is starting.")
+        log.info("The deploy agent is starting. dummy change")
         if not self._executor:
             self._executor = Executor(callback=PingServer(self), config=self._config)
         # include healthStatus info for each container

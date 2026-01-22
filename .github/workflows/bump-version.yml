@@ -1,0 +1,13 @@
+name: Bump Version
+
+on:
+  pull_request:
+    paths:
+      - 'deploy-agent/deployd/**'
+      - '!deploy-agent/deployd/__init__.py'
+jobs:
+  check-for-version-update:
+    runs-on: default
+    steps:
+      - name: Fail job
+        run: exit 1
