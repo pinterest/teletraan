@@ -15,12 +15,12 @@
  */
 package com.pinterest.teletraan.resource;
 
-import io.micrometer.core.annotation.Counted;
-import io.micrometer.core.annotation.Timed;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.WorkerJobBean;
 import com.pinterest.deployservice.dao.WorkerJobDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

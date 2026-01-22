@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import io.micrometer.core.annotation.Counted;
-import io.micrometer.core.annotation.Timed;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.InvalidBuildException;
@@ -29,6 +27,8 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

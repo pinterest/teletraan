@@ -15,8 +15,6 @@
  */
 package com.pinterest.deployservice.handler;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Metrics;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
@@ -27,6 +25,8 @@ import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.DeployEvent;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
@@ -151,12 +151,14 @@ public class CommonHandler {
     }
 
     private void initializeMetrics() {
-        successCounter = Counter.builder("deploys.success.count")
-                .description("Count of successful deploys")
-                .register(Metrics.globalRegistry);
-        failureCounter = Counter.builder("deploys.failure.count")
-                .description("Count of failed deploys")
-                .register(Metrics.globalRegistry);
+        successCounter =
+                Counter.builder("deploys.success.count")
+                        .description("Count of successful deploys")
+                        .register(Metrics.globalRegistry);
+        failureCounter =
+                Counter.builder("deploys.failure.count")
+                        .description("Count of failed deploys")
+                        .register(Metrics.globalRegistry);
     }
 
     public String getDeployAction(DeployType deployType) {
