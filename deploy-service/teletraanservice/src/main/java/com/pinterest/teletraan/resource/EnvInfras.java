@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.codahale.metrics.annotation.ExceptionMetered;
-import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.bean.rodimus.AsgSummaryBean;
@@ -29,6 +27,8 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -64,7 +64,7 @@ public class EnvInfras {
 
     @POST
     @Timed
-    @ExceptionMetered
+    @Counted
     @ApiOperation(
             value = "Apply infrastructure configurations",
             notes =
@@ -114,7 +114,7 @@ public class EnvInfras {
 
     @GET
     @Timed
-    @ExceptionMetered
+    @Counted
     @ApiOperation(
             value = "Get infrastructure configurations",
             notes = "Get infrastructure configurations given environment name and stage name",

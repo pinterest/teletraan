@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.codahale.metrics.annotation.ExceptionMetered;
-import com.codahale.metrics.annotation.Timed;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.InvalidBuildException;
@@ -29,6 +27,8 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -84,7 +84,7 @@ public class EnvDeploys {
 
     @GET
     @Timed
-    @ExceptionMetered
+    @Counted
     @Path("/current")
     @ApiOperation(
             value = "Get deploy info by environment",
@@ -106,7 +106,7 @@ public class EnvDeploys {
 
     @POST
     @Timed
-    @ExceptionMetered
+    @Counted
     @Path("/current/actions")
     @ApiOperation(
             value = "Take deploy action",
@@ -174,7 +174,7 @@ public class EnvDeploys {
 
     @PUT
     @Timed
-    @ExceptionMetered
+    @Counted
     @Path("/hostactions")
     @ApiOperation(
             value = "Take a deploy action",
@@ -233,7 +233,7 @@ public class EnvDeploys {
 
     @POST
     @Timed
-    @ExceptionMetered
+    @Counted
     @ApiOperation(
             value = "Create a deploy",
             notes =
@@ -283,7 +283,7 @@ public class EnvDeploys {
     // needed
     @PUT
     @Timed
-    @ExceptionMetered
+    @Counted
     @Path("/current/progress")
     @ApiOperation(
             value = "Update deploy progress",

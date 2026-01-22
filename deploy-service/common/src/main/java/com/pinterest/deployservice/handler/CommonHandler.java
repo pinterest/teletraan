@@ -15,8 +15,6 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.MetricRegistry;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
@@ -27,6 +25,8 @@ import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.DeployEvent;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
@@ -40,8 +40,6 @@ import org.slf4j.LoggerFactory;
 
 public class CommonHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommonHandler.class);
-    // metrics
-    private final MetricRegistry metrics = new MetricRegistry();
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
@@ -90,7 +88,7 @@ public class CommonHandler {
             String color = state == DeployState.SUCCEEDING ? "green" : "red";
 
             if (state == DeployState.SUCCEEDING) {
-                successCounter.inc();
+                successCounter.increment();
             }
 
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
@@ -116,7 +114,7 @@ public class CommonHandler {
                                     envBean.getEnv_name(), envBean.getStage_name());
                     sendEmailMessage(message, subject, recipients);
                 }
-                failureCounter.inc();
+                failureCounter.increment();
             }
         }
 
@@ -153,8 +151,14 @@ public class CommonHandler {
     }
 
     private void initializeMetrics() {
-        successCounter = metrics.counter("deploys.success.count");
-        failureCounter = metrics.counter("deploys.failure.count");
+        successCounter =
+                Counter.builder("deploys.success.count")
+                        .description("Count of successful deploys")
+                        .register(Metrics.globalRegistry);
+        failureCounter =
+                Counter.builder("deploys.failure.count")
+                        .description("Count of failed deploys")
+                        .register(Metrics.globalRegistry);
     }
 
     public String getDeployAction(DeployType deployType) {

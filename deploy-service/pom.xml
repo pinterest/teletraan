@@ -115,10 +115,16 @@
                     <version>${aspectj-maven-plugin.version}</version>
                     <executions>
                         <execution>
+                            <id>default-compile</id>
                             <phase>process-classes</phase>
                             <goals>
                                 <goal>compile</goal>
                             </goals>
+                            <configuration>
+                                <weaveDirectories>
+                                    <weaveDirectory>${project.build.outputDirectory}</weaveDirectory>
+                                </weaveDirectories>
+                            </configuration>
                         </execution>
                     </executions>
                     <configuration>
@@ -127,9 +133,6 @@
                         <Xlint>ignore</Xlint>
                         <verbose>true</verbose>
                         <forceAjcCompile>true</forceAjcCompile>
-                        <weaveDirectories>
-                            <weaveDirectory>${project.build.outputDirectory}</weaveDirectory>
-                        </weaveDirectories>
                         <weaveDependencies>
                             <weaveDependency>
                                 <groupId>io.micrometer</groupId>
