@@ -14,7 +14,6 @@
 
 import argparse
 from typing import List, Optional, Union
-import daemon
 import logging
 import os
 import sys
@@ -761,12 +760,7 @@ def main():
     )
     utils_listen()
     if args.daemon:
-        logger = logging.getLogger()
-        handles = []
-        for handler in logger.handlers:
-            handles.append(handler.stream.fileno())
-        with daemon.DaemonContext(files_preserve=handles):
-            agent.serve_forever()
+        agent.serve_forever()
     else:
         agent.serve_once()
 
