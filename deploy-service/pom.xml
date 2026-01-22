@@ -126,18 +126,6 @@
                                 </weaveDirectories>
                             </configuration>
                         </execution>
-                        <execution>
-                            <id>default-testcompile</id>
-                            <phase>process-test-classes</phase>
-                            <goals>
-                                <goal>test-compile</goal>
-                            </goals>
-                            <configuration>
-                                <weaveDirectories>
-                                    <weaveDirectory>${project.build.testOutputDirectory}</weaveDirectory>
-                                </weaveDirectories>
-                            </configuration>
-                        </execution>
                     </executions>
                     <configuration>
                         <showWeaveInfo>true</showWeaveInfo>
