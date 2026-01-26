@@ -345,15 +345,15 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                     except Exception:
                         continue
             returnValue = ";".join(result) if result else None
-            if returnValue and "unhealthy" in returnValue:
-                create_sc_increment(
-                    name="deployd.service_health_status",
-                    tags={"status": "unhealthy", "service": service, "commit": commit},
-                )
-            elif returnValue and "unhealthy" not in returnValue:
+            if returnValue and "healthy" in returnValue:
                 create_sc_increment(
                     name="deployd.service_health_status",
                     tags={"status": "healthy", "service": service, "commit": commit},
+                )
+            elif returnValue and "healthy" not in returnValue:
+                create_sc_increment(
+                    name="deployd.service_health_status",
+                    tags={"status": "unhealthy", "service": service, "commit": commit},
                 )
             if returnValue:
                 return returnValue
