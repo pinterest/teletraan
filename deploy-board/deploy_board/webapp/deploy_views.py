@@ -20,6 +20,10 @@ from deploy_board.settings import (
     SITE_METRICS_CONFIGS,
     TELETRAAN_DISABLE_CREATE_ENV_PAGE,
     TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,
+    IS_PINTEREST,
+    PINCOMPUTE_ONBOARDING_LINK,
+    PINCOMPUTE_EXCEPTION_FORM_LINK,
+    PINCOMPUTE_SLACK_LINK,
 )
 from django.middleware.csrf import get_token
 from .accounts import get_accounts_from_deploy
@@ -107,6 +111,10 @@ def get_landing_page(request):
             "envs_tag": envs_tag,
             "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
             "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,
+            "pinterest": IS_PINTEREST,
+            "pincompute_onboarding_link": PINCOMPUTE_ONBOARDING_LINK,
+            "pincompute_exception_form_link": PINCOMPUTE_EXCEPTION_FORM_LINK,
+            "pincompute_slack_link": PINCOMPUTE_SLACK_LINK,
         },
     )
 
