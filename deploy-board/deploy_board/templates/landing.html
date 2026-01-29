@@ -8,6 +8,11 @@
 <li><a href="/builds">Builds</a></li>
 {% endblock %}
 
+{% block breadcrumb-items %}
+{% if pinterest %}
+    {% include "deploys/warning_no_tier3.tmpl" %}
+{% endif %}
+{% endblock breadcrumb-items %}
 
 {% block main %}
 <div class="panel panel-default">

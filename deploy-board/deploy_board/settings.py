@@ -450,3 +450,8 @@ if IS_PINTEREST:
     AWS_SUB_ACCOUNT = os.getenv("AWS_SUB_ACCOUNT", "562567494283")
 
     UNAUTHORIZED_ERROR_TEXT = "Access denied. To resolve this issue, please follow: http://pinch.pinadmin.com/teletraan-auth-tsg"
+
+    # PinCompute Links
+    PINCOMPUTE_ONBOARDING_LINK = os.getenv("PINCOMPUTE_ONBOARDING_LINK")
+    PINCOMPUTE_EXCEPTION_FORM_LINK = os.getenv("PINCOMPUTE_EXCEPTION_FORM_LINK")
+    PINCOMPUTE_SLACK_LINK = os.getenv("PINCOMPUTE_SLACK_LINK")
