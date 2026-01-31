@@ -149,7 +149,7 @@ function getCapacityDoubleAlertMessage(isFixed) {
 }
 
 function getTerminationLimitAlertMessage(isWarning) {
-    const message = isWarning ? `The size you manually scaled down plus the number of hosts in terminating status exceed the specified termination limit.` 
+    const message = isWarning ? `The size you manually scaled down plus the number of hosts in terminating status exceed the specified termination limit.`
     : `The size you manually scaled down is more than the specified termination limit.`
     return message;
 }
@@ -195,7 +195,7 @@ Vue.component("static-capacity-config", {
             Capacity
         </label>
         <div class="col-xs-2" >
-            <input name="capacity" class="form-control" type="number" min="0" required
+            <input disabled name="capacity" class="form-control" type="number" min="0" required
                 :value="capacity" v-on:change="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
             <div v-model="remainingCapacity">\
                 Remaining Subnet Capacity: {{remainingCapacity}}\
@@ -294,7 +294,7 @@ Vue.component("static-capacity-config", {
                     }
                 }
                 );
-            } 
+            }
         }
     }
 });
@@ -312,14 +312,14 @@ Vue.component("asg-capacity-config", {
         <div :class="inputBootstrapClass">
             <div class="input-group">
                 <span class="input-group-addon">Min Size</span>
-                <input name="minSize" class="form-control" type="number" min="0" required
+                <input disabled name="minSize" class="form-control" type="number" min="0" required
                     :value="minSize" v-on:change="onMinSizeChange($event.target.value)" @keydown.enter.prevent="" >
             </div>
         </div>
         <div :class="inputBootstrapClass">
             <div class="input-group">
                 <span class="input-group-addon">Max Size</span>
-                <input name="maxSize" class="form-control" type="number" min="0" required
+                <input disabled name="maxSize" class="form-control" type="number" min="0" required
                     :value="maxSize" v-on:change="onMaxSizeChange($event.target.value)" @keydown.enter.prevent="">
             </div>
         </div>

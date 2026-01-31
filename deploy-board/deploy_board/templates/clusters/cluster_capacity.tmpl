@@ -37,19 +37,13 @@
     </div>
     <div class="panel-footer clearfix">
         <div class="pull-right">
-            <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
-                    data-toggle="modal"
-                    :data-target="`#${confirmDialogId}`"
-                    title="Save cluster capacity configuration"
-                    {% if is_managed_resource %}disabled{% endif %}>
-                <span class="glyphicon glyphicon-floppy-save"></span>
-                Save
-            </button>
+            <a href="https://pinterest.com" type="button" id="saveClusterConfigBtnId" class="btn btn-default"
+                    title="View in Entitlements UI">
+                <span class="glyphicon glyphicon-new-window"></span>
+                View Entitlement
+            </a>
         </div>
     </div>
-    <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
-        <div slot="body"> Are you sure you want to <strong>change capacity</strong> for this cluster?</div>
-    </modal>
 </div>
 
 {% if is_managed_resource %}
@@ -57,12 +51,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         const checkbox = document.getElementById('isManagedResourceCheckboxId');
         const fieldset = document.getElementById('clusterConfigFieldSetId');
-        const submitBtn = document.getElementById('saveClusterConfigBtnId');
         const banner = document.getElementById('resourceManagedBanner');
 
         checkbox.addEventListener('change', function() {
             fieldset.disabled = !!checkbox.checked;
-            submitBtn.disabled = !!checkbox.checked;
             banner.style.display = checkbox.checked ? 'none' : 'block';
         });
     });
@@ -90,8 +82,6 @@
                 cell: cluster.cellName,
                 clusterstate: cluster.state,
                 clusterStateStyle: cluster.state === "NORMAL" ? "text-success" : "text-danger",
-                confirmDialogTitle:"Change Cluster Capacity Confirmation",
-                confirmDialogId:"confirmClusterCapacityDialog",
                 desiredCapacity: cluster.capacity,
                 instancetype: cluster.hostType,
                 minsize: asg_launch_info.minSize,
@@ -105,42 +95,6 @@
                 groupName: groupName,
             },
             methods:{
-                clickDialog: function(value){
-                    if (value){
-                        this.save();
-                    }
-                },
-                save:function(){
-                    if (!this.autoscalingEnabled){
-                        //Set min and max size directly to group. Right now, cluster itself has no autoscaling info
-                        this.minsize = this.desiredCapacity
-                        this.maxsize = this.desiredCapacity
-                    }
-
-                    $.ajax({
-                        type: 'POST',
-                        url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/capacity/',
-                        data: JSON.stringify({minsize:this.minsize, maxsize:this.maxsize}),
-                        dataType: "json",
-                        beforeSend: function(xhr, settings) {
-                            var csrftoken = getCookie('csrftoken')
-                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-
-                        },
-                        success: function (data) {
-                            globalNotificationBanner.info = "Capacity updated successfully";
-                            //Reload page
-                            window.location.href=window.location.href
-                        },
-                        error: function (data) {
-                            var optionalInstruction = '';
-                            if (window.info.is_pinterest && data.responseText.includes('capacity')) {
-                                optionalInstruction = 'If you encounter a capacity issue, please follow this guide: http://pinch/teletraan_subnets';
-                            }
-                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText, optionalInstruction].join(' ');
-                        }
-                    });
-                }
             }
           }
         )
