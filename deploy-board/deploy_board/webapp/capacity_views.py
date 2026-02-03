@@ -29,7 +29,11 @@ from .helpers import (
     placements_helper,
 )
 from .helpers import baseimages_helper
-from deploy_board.settings import IS_PINTEREST, CONFLICTING_DEPLOY_SERVICE_WIKI_URL
+from deploy_board.settings import (
+    IS_PINTEREST,
+    CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
+    ENTITLEMENTS_UI_LINK,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -126,6 +130,7 @@ class EnvCapacityConfigView(View):
             "cluster_name": cluster_name,
             "conflicting_deploy_service_wiki_url": CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
             "is_managed_resource": is_managed_resource,
+            "entitlements_ui_link": ENTITLEMENTS_UI_LINK,
         }
         data["info"] = json.dumps(data)
         return render(request, "configs/capacity.html", data)

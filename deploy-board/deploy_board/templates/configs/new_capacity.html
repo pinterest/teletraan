@@ -59,7 +59,9 @@
                 <div class="row">
                     <label>This is for CMP docker with cpu architecture x86_64 only hosts. For other types, please click the Advanced Settings on the left. </label>
                 </div>
+                {% if not env.useEntitlements %}
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
+                {% endif %}
                 <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
                 v-bind:disablebackupinstancetypes="disableBackupInstanceTypes" v-bind:enablemultiplehosttypes="enableMultipleHostTypes" v-on:enablemultiplehosttypesclick="selecttypes"></hosttype-select>
                 <backup-hosttypes v-bind:backuphosttypes="backupHosttypes"></backup-hosttypes>
@@ -114,7 +116,11 @@ var capacitySetting = new Vue({
         baseImageValue: getDefaultBaseImageId(capacityCreationInfo.baseImages.sort(baseImageSorter)),
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
+        {% if env.useEntitlements %}
+        instanceCount:"0",
+        {% else %}
         instanceCount:"",
+        {% endif %}
         hostTypeOptions: hostTypes.getOptions(),
         placements: placements.getSimpleList(false, null),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
