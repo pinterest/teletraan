@@ -19,6 +19,8 @@ import com.pinterest.deployservice.bean.PingRequestBean;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.MetricsDataFactory;
 import java.util.Set;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +54,10 @@ public class Ec2InstanceValidator extends PingRequestValidator {
                     "Ignore ping request from host {} with unknown account id: {}",
                     bean.getHostName(),
                     accountId);
-            throw new DeployInternalException(
-                    String.format(
-                            "Host id %s is from an disallowed AWS account: %s",
+            throw new WebApplicationException(
+                    String.format("Host id %s is from an disallowed AWS account: %s",
                             bean.getHostId(), accountId),
-                    StringUtils.defaultString(bean.getHostId()),
-                    accountId);
+                    Response.Status.BAD_REQUEST);
         }
     }
 }
