@@ -55,7 +55,8 @@ public class Ec2InstanceValidator extends PingRequestValidator {
                     bean.getHostName(),
                     accountId);
             throw new WebApplicationException(
-                    String.format("Host id %s is from an disallowed AWS account: %s",
+                    String.format(
+			    "Host id %s is from an disallowed AWS account: %s",
                             bean.getHostId(), accountId),
                     Response.Status.BAD_REQUEST);
         }
