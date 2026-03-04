@@ -155,8 +155,14 @@ class Client(BaseClient):
 
         if not self._id:
             if self._use_facter:
-                # Must fail here as it cannot identify the host if id is missing
-                return False
+                # Try again without using Facter's cache.
+                facter_data = utils.get_info_from_facter({id_key}, True)
+
+                self._id = facter_data.get(id_key, None)
+
+                if not self._id:
+                    # Must fail here as it cannot identify the host if id is missing
+                    return False
             else:
                 self._id = self._hostname
 
@@ -200,6 +206,22 @@ class Client(BaseClient):
 
             if not self._availability_zone:
                 self._availability_zone = facter_data.get(secondary_az_key, None)
+
+            if not self._availability_zone:
+                # We're having an issue where hosts sometimes don't have
+                # availabilty_zone when facter runs.  This causes facter to
+                # cache the EC2 metadata without availability_zone for an
+                # hour, resulting in hosts not deploying during that time.
+                # So, if we don't get availability_zone the first time, try
+                # again without the cache.
+                facter_data = utils.get_info_from_facter(
+                    {az_key, secondary_az_key}, True
+                )
+
+                self._availability_zone = facter_data.get(az_key, None)
+
+                if not self._availability_zone:
+                    self._availability_zone = facter_data.get(secondary_az_key, None)
 
             # Hosts brought up outside of ASG or Teletraan might not have ASG
             # Note: on U14, facter -p ec2_tags.Autoscaling does not work.

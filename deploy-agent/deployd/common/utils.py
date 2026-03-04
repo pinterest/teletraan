@@ -213,13 +213,15 @@ def check_first_puppet_run_success(config) -> bool:
     return puppet_failures == 0
 
 
-def get_info_from_facter(keys) -> Optional[dict]:
+def get_info_from_facter(keys, no_cache=False) -> Optional[dict]:
     try:
         time_facter = TimeElapsed()
         # increment stats - facter calls
         create_sc_increment("deployd.stats.internal.facter_calls_sum", 1)
         log.info(f"Fetching {keys} keys from facter")
         cmd = ["facter", "-jp"]
+        if no_cache:
+            cmd.append("--no-cache")
         cmd.extend(keys)
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         # timing stats - facter run time
