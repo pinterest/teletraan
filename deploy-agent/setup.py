@@ -51,6 +51,7 @@ setup(
         "deployd.staging",
         "deployd.client",
         "deployd.types",
+        "deployd.conf",
     ],
     include_package_data=True,
     package_data={"deployd/conf": ["*.conf"]},
