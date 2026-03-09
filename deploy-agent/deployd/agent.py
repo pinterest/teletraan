@@ -515,13 +515,16 @@ class DeployAgent(object):
             with open(script_config_path, "w+") as f:
                 for key, value in deploy_goal.scriptVariables.items():
                     f.write("{}={}\n".format(key, value))
-        elif deploy_goal != self.deploy_goal_previous:
-            # Only remove on a new deploy where scriptVariables is explicitly empty
+        elif deploy_goal.scriptVariables is not None:
+            # scriptVariables is an empty dict {} — the server explicitly told us
+            # there are no script variables (user cleared them via the UI).
+            # This is distinct from None, which means the server did not include
+            # scriptVariables in this response (e.g. not the first deploy stage).
             if os.path.exists(script_config_path):
                 try:
                     os.remove(script_config_path)
                     log.info(
-                        "Removed script config file: {} because scriptVariables is empty or None.".format(
+                        "Removed script config file: {} because scriptVariables is explicitly empty.".format(
                             script_config_path
                         )
                     )

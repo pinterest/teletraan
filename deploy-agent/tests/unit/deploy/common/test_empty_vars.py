@@ -40,7 +40,7 @@ class TestScriptVariablesConfig(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
 
     def test_script_variables_file_created(self):
-        # Simulate a deploy_goal with scriptVariables
+        """File is created when scriptVariables is a non-empty dict."""
         deploy_goal = MagicMock()
         deploy_goal.envName = self.env_name
         deploy_goal.scriptVariables = {"FOO": "bar", "BAZ": "qux"}
@@ -56,20 +56,19 @@ class TestScriptVariablesConfig(unittest.TestCase):
         self.assertIn("FOO=bar", content)
         self.assertIn("BAZ=qux", content)
 
-    def test_script_variables_file_removed_on_new_deploy(self):
-        """File should be removed when a NEW deploy goal has no scriptVariables."""
+    def test_script_variables_file_removed_when_empty_dict(self):
+        """File should be removed when scriptVariables is an explicit empty dict {}.
+
+        The server sends {} on the first deploy stage (PRE_DOWNLOAD) when the
+        user has cleared all script variables.  This is distinct from None which
+        means 'not included in this response'.
+        """
         with open(self.script_config_path, "w") as f:
             f.write("SHOULD_BE_REMOVED=1\n")
 
-        # Set a previous deploy goal so the new one is detected as different
-        previous_goal = MagicMock()
-        previous_goal.envName = self.env_name
-        self.agent.deploy_goal_previous = previous_goal
-
-        # Simulate a NEW deploy_goal with no scriptVariables
         deploy_goal = MagicMock()
         deploy_goal.envName = self.env_name
-        deploy_goal.scriptVariables = None
+        deploy_goal.scriptVariables = {}  # explicit empty dict from server
         deploy_goal.deployId = "deploy-2"
 
         response = MagicMock()
@@ -79,18 +78,42 @@ class TestScriptVariablesConfig(unittest.TestCase):
 
         self.assertFalse(os.path.exists(self.script_config_path))
 
-    def test_script_variables_file_preserved_on_same_deploy(self):
-        """File should NOT be removed on a routine ping with the same deploy goal.
+    def test_script_variables_file_preserved_when_none(self):
+        """File should NOT be removed when scriptVariables is None.
 
-        This is the key scenario that caused the incident: on every ping cycle the
-        server returns scriptVariables=None for an unchanged deploy.  The config
-        file must be left intact so that containers keep using the previously
-        written variables.
+        None means the server did not include scriptVariables in this response
+        (e.g. it is not the first deploy stage).  The previously written config
+        file must be left intact so that containers keep using the variables.
+        This is the key scenario that caused the incident.
         """
         with open(self.script_config_path, "w") as f:
             f.write("EXISTING_VAR=1\n")
 
-        # Simulate a deploy_goal with no scriptVariables
+        deploy_goal = MagicMock()
+        deploy_goal.envName = self.env_name
+        deploy_goal.scriptVariables = None
+        deploy_goal.deployId = "deploy-1"
+
+        response = MagicMock()
+        response.deployGoal = deploy_goal
+
+        self.agent._update_internal_deploy_goal(response)
+
+        # File must still exist
+        self.assertTrue(os.path.exists(self.script_config_path))
+        with open(self.script_config_path) as f:
+            content = f.read()
+        self.assertIn("EXISTING_VAR=1", content)
+
+    def test_script_variables_file_preserved_on_same_deploy_none(self):
+        """File preserved when same deploy goal pings again with scriptVariables=None.
+
+        On routine ping cycles the server returns scriptVariables=None for an
+        unchanged deploy.  The config file must be left intact.
+        """
+        with open(self.script_config_path, "w") as f:
+            f.write("EXISTING_VAR=1\n")
+
         deploy_goal = MagicMock()
         deploy_goal.envName = self.env_name
         deploy_goal.scriptVariables = None
@@ -104,20 +127,28 @@ class TestScriptVariablesConfig(unittest.TestCase):
 
         self.agent._update_internal_deploy_goal(response)
 
-        # File must still exist — this is what the buggy code broke
         self.assertTrue(os.path.exists(self.script_config_path))
         with open(self.script_config_path) as f:
             content = f.read()
         self.assertIn("EXISTING_VAR=1", content)
 
-    def test_script_variables_file_removed_when_no_previous_goal(self):
-        """File should be removed when there is no previous deploy goal (first deploy)."""
+    def test_script_variables_file_preserved_on_next_stage(self):
+        """File preserved when deploy advances to next stage with scriptVariables=None.
+
+        The server only sends scriptVariables during PRE_DOWNLOAD.  On DOWNLOADING
+        and later stages, scriptVariables is None.  Even though the deploy goal
+        changed (different stage), the config file must NOT be deleted.
+        """
         with open(self.script_config_path, "w") as f:
-            f.write("STALE_VAR=1\n")
+            f.write("V=1\n")
 
-        # No previous deploy goal (agent just started)
-        self.agent.deploy_goal_previous = None
+        # Simulate a previous goal from PRE_DOWNLOAD stage
+        previous_goal = MagicMock()
+        previous_goal.envName = self.env_name
+        previous_goal.scriptVariables = {"V": "1"}
+        self.agent.deploy_goal_previous = previous_goal
 
+        # Now the agent gets the DOWNLOADING stage — scriptVariables is None
         deploy_goal = MagicMock()
         deploy_goal.envName = self.env_name
         deploy_goal.scriptVariables = None
@@ -128,26 +159,43 @@ class TestScriptVariablesConfig(unittest.TestCase):
 
         self.agent._update_internal_deploy_goal(response)
 
-        self.assertFalse(os.path.exists(self.script_config_path))
+        # File must still exist — this is critical
+        self.assertTrue(os.path.exists(self.script_config_path))
+        with open(self.script_config_path) as f:
+            content = f.read()
+        self.assertIn("V=1", content)
 
-    def test_script_variables_file_not_present_no_error(self):
-        """No error when file doesn't exist and scriptVariables is empty on new deploy."""
-        # Ensure no file exists
+    def test_empty_dict_no_file_no_error(self):
+        """No error when file doesn't exist and scriptVariables is empty dict."""
         if os.path.exists(self.script_config_path):
             os.remove(self.script_config_path)
 
-        previous_goal = MagicMock()
-        self.agent.deploy_goal_previous = previous_goal
-
         deploy_goal = MagicMock()
         deploy_goal.envName = self.env_name
-        deploy_goal.scriptVariables = None
+        deploy_goal.scriptVariables = {}
         deploy_goal.deployId = "deploy-2"
 
         response = MagicMock()
         response.deployGoal = deploy_goal
 
         # Should not raise
+        self.agent._update_internal_deploy_goal(response)
+        self.assertFalse(os.path.exists(self.script_config_path))
+
+    def test_none_no_file_no_error(self):
+        """No error when file doesn't exist and scriptVariables is None."""
+        if os.path.exists(self.script_config_path):
+            os.remove(self.script_config_path)
+
+        deploy_goal = MagicMock()
+        deploy_goal.envName = self.env_name
+        deploy_goal.scriptVariables = None
+        deploy_goal.deployId = "deploy-1"
+
+        response = MagicMock()
+        response.deployGoal = deploy_goal
+
+        # Should not raise, file should still not exist
         self.agent._update_internal_deploy_goal(response)
         self.assertFalse(os.path.exists(self.script_config_path))
 
