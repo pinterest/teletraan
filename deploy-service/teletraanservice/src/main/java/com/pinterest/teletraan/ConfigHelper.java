@@ -50,12 +50,14 @@ import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
+import com.pinterest.deployservice.udm.UdmDataUpdateService;
 import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
 import com.pinterest.teletraan.config.CIPlatformFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
+import com.pinterest.teletraan.config.UdmDataUpdateServiceFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 import com.pinterest.teletraan.resource.ApplyInfraWorker;
 import com.pinterest.teletraan.security.TeletraanAuthZResourceExtractorFactory;
@@ -233,6 +235,16 @@ public class ConfigHelper {
                             jenkinsFactory.getUseProxy(),
                             jenkinsFactory.getHttpProxyAddr(),
                             jenkinsFactory.getHttpProxyPort()));
+        }
+
+        UdmDataUpdateServiceFactory udmDataUpdateServiceFactory =
+                configuration.getUdmDataUpdateServiceFactory();
+        if (udmDataUpdateServiceFactory != null) {
+            context.setUdmDataUpdateService(
+                    new UdmDataUpdateService(
+                            udmDataUpdateServiceFactory.getUdmDataUpdateServiceUrl(),
+                            udmDataUpdateServiceFactory.getHttpProxyAddr(),
+                            udmDataUpdateServiceFactory.getHttpProxyPort()));
         }
 
         LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());

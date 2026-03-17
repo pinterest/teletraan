@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,6 +36,8 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.udm.UdmDataUpdateService;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +52,9 @@ import org.mockito.MockitoAnnotations;
 
 class EnvironHandlerTest {
     private static final String TEST_OPERATOR = "operator";
+    private static final String TEST_ENV_NAME = "testEnv";
+    private static final String TEST_STAGE_NAME = "testStage";
+    private static final String TEST_ENV_ID = "testEnvId";
     private static final String TEST_CLUSTER_NAME = "clusterName";
     private static final String DEFAULT_HOST_ID = "hostId";
 
@@ -58,6 +64,8 @@ class EnvironHandlerTest {
     @Mock private AgentDAO mockAgentDAO;
     @Mock private EnvironDAO environDAO;
     @Mock private GroupDAO groupDAO;
+    @Mock private PromoteDAO promoteDAO;
+    @Mock private UdmDataUpdateService udmDataUpdateService;
     EnvironBean testEnvBean;
     private List<String> hostIds = Arrays.asList("hostId1", "hostId2");
 
@@ -67,6 +75,8 @@ class EnvironHandlerTest {
         serviceContext.setAgentDAO(mockAgentDAO);
         serviceContext.setEnvironDAO(environDAO);
         serviceContext.setGroupDAO(groupDAO);
+        serviceContext.setPromoteDAO(promoteDAO);
+        serviceContext.setUdmDataUpdateService(udmDataUpdateService);
         return serviceContext;
     }
 
@@ -74,7 +84,7 @@ class EnvironHandlerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         testEnvBean = new EnvironBean();
-        testEnvBean.setEnv_id("envId");
+        testEnvBean.setEnv_id(TEST_ENV_ID);
         testEnvBean.setCluster_name(TEST_CLUSTER_NAME);
         environHandler = new EnvironHandler(createMockServiceContext());
     }
@@ -103,8 +113,13 @@ class EnvironHandlerTest {
         ArgumentCaptor<EnvironBean> argument = ArgumentCaptor.forClass(EnvironBean.class);
         testEnvBean.setStage_type(EnvType.DEV);
         environHandler.createEnvStage(testEnvBean, "Anonymous");
+
         verify(environDAO).insert(argument.capture());
         assertEquals(true, argument.getValue().getAllow_private_build());
+
+        verify(udmDataUpdateService, times(1)).notifyStageCreated(argument.capture());
+        assertEquals(testEnvBean.getEnv_id(), argument.getValue().getEnv_id());
+        assertEquals(TEST_CLUSTER_NAME, argument.getValue().getCluster_name());
     }
 
     @Test
@@ -186,5 +201,16 @@ class EnvironHandlerTest {
 
         List<String> removedGroups = removedGroupCaptor.getAllValues();
         assertEquals("group1", removedGroups.get(0));
+    }
+
+    @Test
+    void deleteEnvStage_cleansUpResources() throws Exception {
+        when(environDAO.getByStage(eq(TEST_ENV_NAME), eq(TEST_STAGE_NAME))).thenReturn(testEnvBean);
+        environHandler.deleteEnvStage(TEST_ENV_NAME, TEST_STAGE_NAME, TEST_OPERATOR);
+
+        verify(environDAO, times(1)).delete(eq(TEST_ENV_ID));
+        verify(promoteDAO, times(1)).delete(eq(TEST_ENV_ID));
+        verify(udmDataUpdateService, times(1))
+                .notifyStageDeleted(eq(TEST_ENV_NAME), eq(TEST_STAGE_NAME));
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2024 Pinterest, Inc.
+ * Copyright (c) 2016-2026 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
+import com.pinterest.deployservice.udm.UdmDataUpdateService;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
 import java.util.Collection;
 import java.util.HashSet;
@@ -95,6 +96,7 @@ public class ServiceContext {
     private ExecutorService jobPool;
     private RodimusManager rodimusManager;
     private BuildTagsManager buildTagsManager;
+    private UdmDataUpdateService udmDataUpdateService;
 
     private boolean buildCacheEnabled;
     private String buildCacheSpec;
@@ -367,6 +369,14 @@ public class ServiceContext {
 
     public void setRodimusManager(RodimusManager rodimusManager) {
         this.rodimusManager = rodimusManager;
+    }
+
+    public UdmDataUpdateService getUdmDataUpdateService() {
+        return udmDataUpdateService;
+    }
+
+    public void setUdmDataUpdateService(UdmDataUpdateService udmDataUpdateService) {
+        this.udmDataUpdateService = udmDataUpdateService;
     }
 
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
