@@ -524,31 +524,18 @@ public class DeployHandler implements DeployHandlerInterface {
         deployBean.setOperator(operator);
 
         // compare the current stage_type and the delivery_type
-        // When the delivery_type is different with stage_type and stage_type is not DEFAULT, we log
-        // the deployment API call;
-        // When the delivery_type is different with stage_type and stage_type is DEFAULT, we update
-        // the stage_type;
+        // When the delivery_type is different with stage_type, we update the stage_type
+        // to honor PinDeploy's env type
         if (StringUtils.isNotBlank(deliveryType)
                 && !envBean.getStage_type().toString().equals(deliveryType)) {
-            if (envBean.getStage_type() != EnvType.DEFAULT) {
-                String errorMessage =
-                        String.format(
-                                "The delivery type %s is different with the stage type %s for %s/%s",
-                                deliveryType,
-                                envBean.getStage_type(),
-                                envBean.getEnv_name(),
-                                envBean.getStage_name());
-                LOG.error(errorMessage);
-                throw new WebApplicationException(errorMessage, Response.Status.CONFLICT);
-            } else {
-                EnvType type = EnvType.valueOf(deliveryType);
-                envBean.setStage_type(type);
-                LOG.info(
-                        "The stage type is updated from {} to {} for env {}",
-                        envBean.getStage_type(),
-                        type,
-                        envBean.getEnv_id());
-            }
+            EnvType type = EnvType.valueOf(deliveryType);
+            EnvType previousType = envBean.getStage_type();
+            envBean.setStage_type(type);
+            LOG.info(
+                    "The stage type is updated from {} to {} for env {}",
+                    previousType,
+                    type,
+                    envBean.getEnv_id());
         }
 
         disableAutoPromote(envBean, operator, false);
