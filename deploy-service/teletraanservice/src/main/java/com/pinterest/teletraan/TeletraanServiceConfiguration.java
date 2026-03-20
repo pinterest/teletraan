@@ -35,6 +35,7 @@ import com.pinterest.teletraan.config.OpenAuthorizationFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.SystemFactory;
+import com.pinterest.teletraan.config.UdmDataUpdateServiceFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 import io.dropwizard.Configuration;
 import java.util.Collections;
@@ -97,6 +98,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("jenkins")
     private JenkinsFactory jenkinsFactory;
+
+    @Valid
+    @JsonProperty("udmDataUpdateService")
+    private UdmDataUpdateServiceFactory udmDataUpdateServiceFactory;
 
     @Valid
     @JsonProperty("buildAllowlist")
@@ -240,6 +245,15 @@ public class TeletraanServiceConfiguration extends Configuration {
             return Collections.emptyList();
         }
         return workerConfigs;
+    }
+
+    public UdmDataUpdateServiceFactory getUdmDataUpdateServiceFactory() {
+        return udmDataUpdateServiceFactory;
+    }
+
+    public void setUdmDataUpdateServiceFactry(
+            UdmDataUpdateServiceFactory udmDataUpdateServiceFactory) {
+        this.udmDataUpdateServiceFactory = udmDataUpdateServiceFactory;
     }
 
     public void setWorkerConfigs(List<WorkerConfig> workerConfigs) {
