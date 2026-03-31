@@ -41,5 +41,7 @@ public interface HostAgentDAO {
     List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize)
             throws Exception;
 
+    void touchLastUpdate(String hostId, long lastUpdate) throws Exception;
+
     long getDistinctHostsCount() throws SQLException;
 }

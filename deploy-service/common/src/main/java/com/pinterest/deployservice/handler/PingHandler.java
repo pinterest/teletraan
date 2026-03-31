@@ -76,6 +76,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.apache.commons.collections4.CollectionUtils;
@@ -221,30 +222,54 @@ public class PingHandler {
             NormandieStatus normandieStatus,
             KnoxStatus knoxStatus)
             throws Exception {
-        HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
+        HostAgentBean existingBean = hostAgentDAO.getHostById(hostId);
         long currentTime = System.currentTimeMillis();
-        boolean isExisting = true;
-        if (hostAgentBean == null) {
-            hostAgentBean = new HostAgentBean();
+
+        if (existingBean == null) {
+            // First ping - insert a new row
+            HostAgentBean hostAgentBean = new HostAgentBean();
             hostAgentBean.setHost_id(hostId);
             hostAgentBean.setCreate_date(currentTime);
-            isExisting = false;
-        }
-        hostAgentBean.setHost_name(hostName);
-        hostAgentBean.setIp(hostIp);
-        hostAgentBean.setLast_update(currentTime);
-        hostAgentBean.setAgent_version(agentVersion);
-        hostAgentBean.setAuto_scaling_group(asg);
-        hostAgentBean.setNormandie_status(normandieStatus);
-        hostAgentBean.setKnox_status(knoxStatus);
-
-        if (!isExisting) {
-            // First ping
+            hostAgentBean.setHost_name(hostName);
+            hostAgentBean.setIp(hostIp);
+            hostAgentBean.setLast_update(currentTime);
+            hostAgentBean.setAgent_version(agentVersion);
+            hostAgentBean.setAuto_scaling_group(asg);
+            hostAgentBean.setNormandie_status(normandieStatus);
+            hostAgentBean.setKnox_status(knoxStatus);
             hostAgentDAO.insert(hostAgentBean);
             emitProvisionLatency(currentTime, hostId, asg);
+        } else if (hasFieldChanged(
+                existingBean, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus)) {
+            // Fields changed - do a full update
+            existingBean.setHost_name(hostName);
+            existingBean.setIp(hostIp);
+            existingBean.setLast_update(currentTime);
+            existingBean.setAgent_version(agentVersion);
+            existingBean.setAuto_scaling_group(asg);
+            existingBean.setNormandie_status(normandieStatus);
+            existingBean.setKnox_status(knoxStatus);
+            hostAgentDAO.update(hostId, existingBean);
         } else {
-            hostAgentDAO.update(hostId, hostAgentBean);
+            // Nothing changed except the heartbeat timestamp - lightweight single-column update
+            hostAgentDAO.touchLastUpdate(hostId, currentTime);
         }
+    }
+
+    static boolean hasFieldChanged(
+            HostAgentBean existing,
+            String hostName,
+            String hostIp,
+            String agentVersion,
+            String asg,
+            NormandieStatus normandieStatus,
+            KnoxStatus knoxStatus) {
+        return !Objects.equals(existing.getHost_name(), hostName)
+                || !Objects.equals(existing.getIp(), hostIp)
+                || !Objects.equals(existing.getAgent_version(), agentVersion)
+                || !Objects.equals(existing.getAuto_scaling_group(), asg)
+                || !Objects.equals(existing.getNormandie_status(), normandieStatus)
+                || !Objects.equals(existing.getKnox_status(), knoxStatus);
     }
 
     void emitProvisionLatency(long currentTime, String hostId, String asg) {
