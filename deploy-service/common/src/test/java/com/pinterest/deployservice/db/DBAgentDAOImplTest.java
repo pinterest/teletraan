@@ -95,6 +95,27 @@ public class DBAgentDAOImplTest {
         assertEquals(0, hostCount2);
     }
 
+    @Test
+    public void testTouchLastUpdate() throws Exception {
+        final String hostId = "host-touch";
+
+        HostAgentBean hostAgentBean = genDefaultHostAgentBean(hostId);
+        hostAgentDAO.insert(hostAgentBean);
+
+        long newLastUpdate = hostAgentBean.getLast_update() + 60_000;
+        hostAgentDAO.touchLastUpdate(hostId, newLastUpdate);
+
+        HostAgentBean result = hostAgentDAO.getHostById(hostId);
+        assertEquals(newLastUpdate, result.getLast_update());
+        // Other fields should remain unchanged
+        assertEquals(hostAgentBean.getIp(), result.getIp());
+        assertEquals(hostAgentBean.getAgent_version(), result.getAgent_version());
+        assertEquals(hostAgentBean.getHost_name(), result.getHost_name());
+        assertEquals(hostAgentBean.getAuto_scaling_group(), result.getAuto_scaling_group());
+        assertEquals(hostAgentBean.getNormandie_status(), result.getNormandie_status());
+        assertEquals(hostAgentBean.getKnox_status(), result.getKnox_status());
+    }
+
     private HostAgentBean genDefaultHostAgentBean(String hostId) {
         return HostAgentBean.builder()
                 .ip("127.0.0.1")
