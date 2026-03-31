@@ -20,9 +20,11 @@ import static com.pinterest.deployservice.fixture.EnvironBeanFixture.createRando
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -31,6 +33,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.KnoxStatus;
@@ -50,6 +56,11 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -333,5 +344,66 @@ public class PingHandlerTest {
         assertEquals(1, PingHandler.calculateParallelThreshold(bean, 2, 1), 1);
         assertEquals(10, PingHandler.calculateParallelThreshold(bean, 2, 1), 10);
         assertEquals(10, PingHandler.calculateParallelThreshold(bean, 2, 1), 100);
+    }
+
+    @Test
+    public void testUpdateAgentsSafely_callsBatchInsertOrUpdate() throws Exception {
+        AgentBean bean1 = createAgentBean("host-1", "env-1");
+        AgentBean bean2 = createAgentBean("host-1", "env-2");
+        List<AgentBean> beans = Arrays.asList(bean1, bean2);
+        Map<String, String> errorMessages = Collections.emptyMap();
+
+        pingHandler.updateAgentsSafely(beans, errorMessages);
+
+        verify(agentDAO, times(1)).batchInsertOrUpdate(anyList());
+        verify(agentDAO, never()).insertOrUpdate(any(AgentBean.class));
+    }
+
+    @Test
+    public void testUpdateAgentsSafely_fallsBackOnBatchFailure() throws Exception {
+        AgentBean bean1 = createAgentBean("host-1", "env-1");
+        AgentBean bean2 = createAgentBean("host-1", "env-2");
+        List<AgentBean> beans = Arrays.asList(bean1, bean2);
+        Map<String, String> errorMessages = Collections.emptyMap();
+
+        doThrow(new RuntimeException("batch failed")).when(agentDAO).batchInsertOrUpdate(anyList());
+
+        pingHandler.updateAgentsSafely(beans, errorMessages);
+
+        verify(agentDAO, times(1)).batchInsertOrUpdate(anyList());
+        verify(agentDAO, times(2)).insertOrUpdate(any(AgentBean.class));
+    }
+
+    @Test
+    public void testUpdateAgentsSafely_handlesAgentErrors() throws Exception {
+        AgentBean bean = createAgentBean("host-1", "env-1");
+        bean.setLast_err_no(1);
+        List<AgentBean> beans = Collections.singletonList(bean);
+        Map<String, String> errorMessages = new HashMap<>();
+        errorMessages.put("env-1", "deploy script failed");
+
+        when(agentErrorDAO.get("host-1-name", "env-1")).thenReturn(null);
+
+        pingHandler.updateAgentsSafely(beans, errorMessages);
+
+        verify(agentErrorDAO, times(1)).insert(any());
+        verify(agentDAO, times(1)).batchInsertOrUpdate(anyList());
+    }
+
+    private AgentBean createAgentBean(String hostId, String envId) {
+        AgentBean bean = new AgentBean();
+        bean.setHost_id(hostId);
+        bean.setHost_name(hostId + "-name");
+        bean.setEnv_id(envId);
+        bean.setDeploy_id("deploy-1");
+        bean.setDeploy_stage(DeployStage.SERVING_BUILD);
+        bean.setState(AgentState.NORMAL);
+        bean.setStatus(AgentStatus.SUCCEEDED);
+        bean.setLast_update(System.currentTimeMillis());
+        bean.setStart_date(System.currentTimeMillis());
+        bean.setLast_err_no(0);
+        bean.setFail_count(0);
+        bean.setFirst_deploy(false);
+        return bean;
     }
 }
