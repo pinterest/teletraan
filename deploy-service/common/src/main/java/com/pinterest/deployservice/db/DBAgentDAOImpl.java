@@ -150,7 +150,6 @@ public class DBAgentDAOImpl implements AgentDAO {
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
-
     @Override
     public void batchInsertOrUpdate(List<AgentBean> agentBeans) throws Exception {
         if (agentBeans == null || agentBeans.isEmpty()) {
@@ -192,10 +191,19 @@ public class DBAgentDAOImpl implements AgentDAO {
             throw e;
         } finally {
             if (ps != null) {
-                try { ps.close(); } catch (SQLException closeEx) { LOG.error("Failed to close PreparedStatement", closeEx); }
+                try {
+                    ps.close();
+                } catch (SQLException closeEx) {
+                    LOG.error("Failed to close PreparedStatement", closeEx);
+                }
             }
             if (conn != null) {
-                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException closeEx) { LOG.error("Failed to close connection", closeEx); }
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    LOG.error("Failed to close connection", closeEx);
+                }
             }
         }
     }
