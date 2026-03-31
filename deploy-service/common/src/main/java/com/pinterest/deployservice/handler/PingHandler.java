@@ -239,7 +239,8 @@ public class PingHandler {
             hostAgentBean.setKnox_status(knoxStatus);
             hostAgentDAO.insert(hostAgentBean);
             emitProvisionLatency(currentTime, hostId, asg);
-        } else if (hasFieldChanged(existingBean, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus)) {
+        } else if (hasFieldChanged(
+                existingBean, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus)) {
             // Fields changed - do a full update
             existingBean.setHost_name(hostName);
             existingBean.setIp(hostIp);

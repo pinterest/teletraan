@@ -174,8 +174,13 @@ public class PingHandlerTest {
         when(hostAgentDAO.getHostById("host-1")).thenReturn(null);
 
         pingHandler.updateHostStatus(
-                "host-1", "hostname", "10.0.0.1", "2.0", "asg-1",
-                NormandieStatus.OK, KnoxStatus.OK);
+                "host-1",
+                "hostname",
+                "10.0.0.1",
+                "2.0",
+                "asg-1",
+                NormandieStatus.OK,
+                KnoxStatus.OK);
 
         verify(hostAgentDAO).insert(any(HostAgentBean.class));
         verify(hostAgentDAO, never()).update(anyString(), any(HostAgentBean.class));
@@ -184,23 +189,29 @@ public class PingHandlerTest {
 
     @Test
     public void testUpdateHostStatus_fieldsChanged_fullUpdate() throws Exception {
-        HostAgentBean existing = HostAgentBean.builder()
-                .host_id("host-1")
-                .host_name("hostname")
-                .ip("10.0.0.1")
-                .agent_version("1.0")
-                .auto_scaling_group("asg-1")
-                .normandie_status(NormandieStatus.OK)
-                .knox_status(KnoxStatus.OK)
-                .last_update(1000L)
-                .create_date(500L)
-                .build();
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_id("host-1")
+                        .host_name("hostname")
+                        .ip("10.0.0.1")
+                        .agent_version("1.0")
+                        .auto_scaling_group("asg-1")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .last_update(1000L)
+                        .create_date(500L)
+                        .build();
         when(hostAgentDAO.getHostById("host-1")).thenReturn(existing);
 
         // Change agent_version from 1.0 -> 2.0
         pingHandler.updateHostStatus(
-                "host-1", "hostname", "10.0.0.1", "2.0", "asg-1",
-                NormandieStatus.OK, KnoxStatus.OK);
+                "host-1",
+                "hostname",
+                "10.0.0.1",
+                "2.0",
+                "asg-1",
+                NormandieStatus.OK,
+                KnoxStatus.OK);
 
         verify(hostAgentDAO).update(eq("host-1"), any(HostAgentBean.class));
         verify(hostAgentDAO, never()).touchLastUpdate(anyString(), anyLong());
@@ -209,23 +220,29 @@ public class PingHandlerTest {
 
     @Test
     public void testUpdateHostStatus_noFieldsChanged_touchLastUpdateOnly() throws Exception {
-        HostAgentBean existing = HostAgentBean.builder()
-                .host_id("host-1")
-                .host_name("hostname")
-                .ip("10.0.0.1")
-                .agent_version("2.0")
-                .auto_scaling_group("asg-1")
-                .normandie_status(NormandieStatus.OK)
-                .knox_status(KnoxStatus.OK)
-                .last_update(1000L)
-                .create_date(500L)
-                .build();
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_id("host-1")
+                        .host_name("hostname")
+                        .ip("10.0.0.1")
+                        .agent_version("2.0")
+                        .auto_scaling_group("asg-1")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .last_update(1000L)
+                        .create_date(500L)
+                        .build();
         when(hostAgentDAO.getHostById("host-1")).thenReturn(existing);
 
         // Same fields as existing
         pingHandler.updateHostStatus(
-                "host-1", "hostname", "10.0.0.1", "2.0", "asg-1",
-                NormandieStatus.OK, KnoxStatus.OK);
+                "host-1",
+                "hostname",
+                "10.0.0.1",
+                "2.0",
+                "asg-1",
+                NormandieStatus.OK,
+                KnoxStatus.OK);
 
         verify(hostAgentDAO).touchLastUpdate(eq("host-1"), anyLong());
         verify(hostAgentDAO, never()).update(anyString(), any(HostAgentBean.class));
@@ -234,36 +251,55 @@ public class PingHandlerTest {
 
     @Test
     public void testHasFieldChanged_allSame_returnsFalse() {
-        HostAgentBean existing = HostAgentBean.builder()
-                .host_name("h").ip("1.2.3.4").agent_version("v1")
-                .auto_scaling_group("asg").normandie_status(NormandieStatus.OK)
-                .knox_status(KnoxStatus.OK).build();
-        assertFalse(PingHandler.hasFieldChanged(
-                existing, "h", "1.2.3.4", "v1", "asg", NormandieStatus.OK, KnoxStatus.OK));
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_name("h")
+                        .ip("1.2.3.4")
+                        .agent_version("v1")
+                        .auto_scaling_group("asg")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .build();
+        assertFalse(
+                PingHandler.hasFieldChanged(
+                        existing, "h", "1.2.3.4", "v1", "asg", NormandieStatus.OK, KnoxStatus.OK));
     }
 
     @Test
     public void testHasFieldChanged_ipDiffers_returnsTrue() {
-        HostAgentBean existing = HostAgentBean.builder()
-                .host_name("h").ip("1.2.3.4").agent_version("v1")
-                .auto_scaling_group("asg").normandie_status(NormandieStatus.OK)
-                .knox_status(KnoxStatus.OK).build();
-        assertTrue(PingHandler.hasFieldChanged(
-                existing, "h", "5.6.7.8", "v1", "asg", NormandieStatus.OK, KnoxStatus.OK));
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_name("h")
+                        .ip("1.2.3.4")
+                        .agent_version("v1")
+                        .auto_scaling_group("asg")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .build();
+        assertTrue(
+                PingHandler.hasFieldChanged(
+                        existing, "h", "5.6.7.8", "v1", "asg", NormandieStatus.OK, KnoxStatus.OK));
     }
 
     @Test
     public void testHasFieldChanged_nullFields_handledCorrectly() {
-        HostAgentBean existing = HostAgentBean.builder()
-                .host_name("h").ip(null).agent_version("v1")
-                .auto_scaling_group(null).normandie_status(NormandieStatus.OK)
-                .knox_status(KnoxStatus.OK).build();
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_name("h")
+                        .ip(null)
+                        .agent_version("v1")
+                        .auto_scaling_group(null)
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .build();
         // Both null - no change
-        assertFalse(PingHandler.hasFieldChanged(
-                existing, "h", null, "v1", null, NormandieStatus.OK, KnoxStatus.OK));
+        assertFalse(
+                PingHandler.hasFieldChanged(
+                        existing, "h", null, "v1", null, NormandieStatus.OK, KnoxStatus.OK));
         // One null, one not - changed
-        assertTrue(PingHandler.hasFieldChanged(
-                existing, "h", "1.2.3.4", "v1", null, NormandieStatus.OK, KnoxStatus.OK));
+        assertTrue(
+                PingHandler.hasFieldChanged(
+                        existing, "h", "1.2.3.4", "v1", null, NormandieStatus.OK, KnoxStatus.OK));
     }
 
     @Test
