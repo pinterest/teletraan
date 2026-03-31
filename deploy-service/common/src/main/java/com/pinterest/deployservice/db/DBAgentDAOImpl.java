@@ -21,6 +21,9 @@ import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.AgentDAO;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -28,8 +31,12 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DBAgentDAOImpl implements AgentDAO {
+    private static final Logger LOG = LoggerFactory.getLogger(DBAgentDAOImpl.class);
+
     private static final String UPDATE_AGENT_TEMPLATE =
             "UPDATE agents SET %s WHERE host_id=? AND env_id=?";
     private static final String UPDATE_AGENTS_BY_HOSTIDS =
@@ -141,6 +148,70 @@ public class DBAgentDAOImpl implements AgentDAO {
                         setClause.getClause(),
                         AgentBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public void batchInsertOrUpdate(List<AgentBean> agentBeans) throws Exception {
+        if (agentBeans == null || agentBeans.isEmpty()) {
+            return;
+        }
+        if (agentBeans.size() == 1) {
+            insertOrUpdate(agentBeans.get(0));
+            return;
+        }
+        SetClause firstClause = agentBeans.get(0).genSetClause();
+        String sql =
+                String.format(
+                        INSERT_OR_UPDATE_AGENT_TEMPLATE,
+                        firstClause.getClause(),
+                        AgentBean.UPDATE_CLAUSE);
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement(sql);
+            setParameters(ps, firstClause.getValueArray());
+            ps.addBatch();
+            for (int i = 1; i < agentBeans.size(); i++) {
+                SetClause setClause = agentBeans.get(i).genSetClause();
+                setParameters(ps, setClause.getValueArray());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    LOG.error("Failed to rollback batch insert/update", rollbackEx);
+                }
+            }
+            throw e;
+        } finally {
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException closeEx) {
+                    LOG.error("Failed to close PreparedStatement", closeEx);
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    LOG.error("Failed to close connection", closeEx);
+                }
+            }
+        }
+    }
+
+    private void setParameters(PreparedStatement ps, Object[] values) throws SQLException {
+        for (int i = 0; i < values.length; i++) {
+            ps.setObject(i + 1, values[i]);
+        }
     }
 
     @Override

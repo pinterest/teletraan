@@ -16,13 +16,21 @@
 package com.pinterest.deployservice.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.KnoxStatus;
 import com.pinterest.deployservice.bean.NormandieStatus;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -34,17 +42,91 @@ public class DBAgentDAOImplTest {
 
     private static BasicDataSource dataSource;
     private static HostAgentDAO hostAgentDAO;
+    private static AgentDAO agentDAO;
 
     @BeforeAll
     public static void setUpClass() throws Exception {
         dataSource = DBUtils.createTestDataSource();
 
         hostAgentDAO = new DBHostAgentDAOImpl(dataSource);
+        agentDAO = new DBAgentDAOImpl(dataSource);
     }
 
     @AfterEach
     void tearDown() throws Exception {
         DBUtils.truncateAllTables(dataSource);
+    }
+
+    @Test
+    public void testBatchInsertOrUpdate_insertsMultipleAgents() throws Exception {
+        AgentBean agent1 = genDefaultAgentBean("host-1", "env-1");
+        AgentBean agent2 = genDefaultAgentBean("host-2", "env-1");
+
+        agentDAO.batchInsertOrUpdate(Arrays.asList(agent1, agent2));
+
+        AgentBean result1 = agentDAO.getByHostEnvIds("host-1", "env-1");
+        assertNotNull(result1);
+        assertEquals("host-1", result1.getHost_id());
+        assertEquals("env-1", result1.getEnv_id());
+
+        AgentBean result2 = agentDAO.getByHostEnvIds("host-2", "env-1");
+        assertNotNull(result2);
+        assertEquals("host-2", result2.getHost_id());
+    }
+
+    @Test
+    public void testBatchInsertOrUpdate_updatesExistingAgents() throws Exception {
+        AgentBean agent = genDefaultAgentBean("host-1", "env-1");
+        agentDAO.insertOrUpdate(agent);
+
+        agent.setDeploy_stage(DeployStage.SERVING_BUILD);
+        agentDAO.batchInsertOrUpdate(Collections.singletonList(agent));
+
+        AgentBean result = agentDAO.getByHostEnvIds("host-1", "env-1");
+        assertNotNull(result);
+        assertEquals(DeployStage.SERVING_BUILD, result.getDeploy_stage());
+    }
+
+    @Test
+    public void testBatchInsertOrUpdate_emptyList() throws Exception {
+        agentDAO.batchInsertOrUpdate(Collections.emptyList());
+    }
+
+    @Test
+    public void testBatchInsertOrUpdate_mixedInsertAndUpdate() throws Exception {
+        AgentBean existing = genDefaultAgentBean("host-1", "env-1");
+        agentDAO.insertOrUpdate(existing);
+
+        existing.setStatus(AgentStatus.UNKNOWN);
+        AgentBean newAgent = genDefaultAgentBean("host-2", "env-1");
+
+        agentDAO.batchInsertOrUpdate(Arrays.asList(existing, newAgent));
+
+        AgentBean result1 = agentDAO.getByHostEnvIds("host-1", "env-1");
+        assertNotNull(result1);
+        assertEquals(AgentStatus.UNKNOWN, result1.getStatus());
+
+        AgentBean result2 = agentDAO.getByHostEnvIds("host-2", "env-1");
+        assertNotNull(result2);
+        assertEquals(AgentStatus.SUCCEEDED, result2.getStatus());
+    }
+
+    private AgentBean genDefaultAgentBean(String hostId, String envId) {
+        AgentBean bean = new AgentBean();
+        bean.setHost_id(hostId);
+        bean.setHost_name(hostId + "-name");
+        bean.setEnv_id(envId);
+        bean.setDeploy_id("deploy-1");
+        bean.setDeploy_stage(DeployStage.PRE_DOWNLOAD);
+        bean.setState(AgentState.NORMAL);
+        bean.setStatus(AgentStatus.SUCCEEDED);
+        bean.setLast_update(System.currentTimeMillis());
+        bean.setStart_date(System.currentTimeMillis());
+        bean.setLast_err_no(0);
+        bean.setFail_count(0);
+        bean.setFirst_deploy(false);
+        bean.setStage_start_date(System.currentTimeMillis());
+        return bean;
     }
 
     @Test

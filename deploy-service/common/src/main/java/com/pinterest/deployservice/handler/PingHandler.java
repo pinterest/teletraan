@@ -299,6 +299,8 @@ public class PingHandler {
 
     void updateAgentsSafely(Collection<AgentBean> updateBeans, Map<String, String> errorMessages) {
         LOG.debug("Update agent beans with the following: {}", updateBeans);
+
+        // Handle error messages individually - these are less frequent
         for (AgentBean bean : updateBeans) {
             try {
                 Integer errorNo = bean.getLast_err_no();
@@ -324,9 +326,23 @@ public class PingHandler {
                         }
                     }
                 }
-                agentDAO.insertOrUpdate(bean);
             } catch (Exception e) {
-                LOG.error("Failed to update agent {}.", bean, e);
+                LOG.error("Failed to update agent error for {}.", bean, e);
+            }
+        }
+
+        // Batch all agent status writes into a single JDBC batch execution
+        List<AgentBean> agentList = new ArrayList<>(updateBeans);
+        try {
+            agentDAO.batchInsertOrUpdate(agentList);
+        } catch (Exception e) {
+            LOG.error("Batch agent update failed, falling back to individual updates.", e);
+            for (AgentBean bean : agentList) {
+                try {
+                    agentDAO.insertOrUpdate(bean);
+                } catch (Exception individualEx) {
+                    LOG.error("Failed to update agent {}.", bean, individualEx);
+                }
             }
         }
     }

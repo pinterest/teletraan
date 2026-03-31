@@ -23,6 +23,8 @@ import java.util.List;
 public interface AgentDAO {
     void insertOrUpdate(AgentBean agentBean) throws Exception;
 
+    void batchInsertOrUpdate(List<AgentBean> agentBeans) throws Exception;
+
     void update(String hostId, String envId, AgentBean updateBean) throws Exception;
 
     void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean)
