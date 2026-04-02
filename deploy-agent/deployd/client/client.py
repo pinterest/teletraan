@@ -72,6 +72,7 @@ class Client(BaseClient):
         self._knox_status = None
 
     def _read_host_info(self) -> bool:
+        cache_ttl = self._config.get_facter_query_cache_ttl()
         if self._use_facter:
             log.info("Use facter to get host info")
             name_key = self._config.get_facter_name_key()
@@ -93,7 +94,9 @@ class Client(BaseClient):
                 keys_to_fetch.add(group_key)
 
             if keys_to_fetch:
-                facter_data = utils.get_info_from_facter(keys_to_fetch)
+                facter_data = utils.get_info_from_facter(
+                    keys_to_fetch, cache_ttl=cache_ttl
+                )
 
             if not self._hostname:
                 self._hostname = facter_data.get(name_key, None)
@@ -199,7 +202,9 @@ class Client(BaseClient):
                 keys_to_fetch.add(account_id_key)
 
             if keys_to_fetch:
-                facter_data = utils.get_info_from_facter(keys_to_fetch)
+                facter_data = utils.get_info_from_facter(
+                    keys_to_fetch, cache_ttl=cache_ttl
+                )
 
             if not self._availability_zone:
                 self._availability_zone = facter_data.get(az_key, None)
