@@ -1086,11 +1086,15 @@ public class PingHandler {
             String scriptConfigId = envBean.getSc_config_id();
             if (scriptConfigId != null) {
                 Map<String, String> variables = dataHandler.getMapById(scriptConfigId);
-                goal.setScriptVariables(variables);
+                goal.setScriptVariables(variables != null ? variables : Collections.emptyMap());
                 LOG.debug(
                         "Add script varibles {} to goal at {} stage",
                         variables,
                         updateBean.getDeploy_stage());
+            } else {
+                // Explicitly send empty map so the agent knows there are no script
+                // variables, rather than leaving it null (which means "not sent").
+                goal.setScriptVariables(Collections.emptyMap());
             }
         }
 
