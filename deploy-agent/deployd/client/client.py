@@ -72,7 +72,7 @@ class Client(BaseClient):
         self._knox_status = None
 
     def _read_host_info(self) -> bool:
-        cache_ttl = self._config.get_facter_query_cache_ttl()
+        cache_ttl = self._config.get_facter_query_cache_ttl() if self._config else 0
         if self._use_facter:
             log.info("Use facter to get host info")
             name_key = self._config.get_facter_name_key()
