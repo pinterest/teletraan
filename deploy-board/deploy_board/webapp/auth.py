@@ -216,21 +216,20 @@ class OAuth(object):
             data=str(body) if body else None,
             method="POST",
         )
+
+        # NEW: log status and a truncated body for debugging
+        try:
+            snippet = content.decode(errors="replace")[:300]
+        except Exception:
+            snippet = str(content)[:300]
+        logger = logging.getLogger("oauth")
+        logger.debug("OAuth token response: status=%s, body_snippet=%s", getattr(resp, "code", None), snippet)
+
         if resp.code == 401:
             raise OAuthExpiredTokenException("Expired Token")
 
         if resp.code not in (200, 201):
             raise OAuthException("Invalid OAuth response")
-        try:
-            resp_data = json.loads(content.decode())
-        except ValueError:
-            raise OAuthException("Invalid OAuth response")
-
-        expires = time.time() + resp_data["expires_in"]
-        self.oauth_handler.token_setter(resp_data["access_token"], expires, **kwargs)
-
-        # No extra data returned from state
-        return None
 
     def get_authorization_url(self, data=None, **kwargs):
         client = self.get_client()
