@@ -95,7 +95,7 @@ class Client(BaseClient):
 
             if keys_to_fetch:
                 facter_data = utils.get_info_from_facter(
-                    keys_to_fetch, cache_ttl=cache_ttl
+                    keys_to_fetch, cache_ttl=self.cache_ttl
                 )
 
             if not self._hostname:
