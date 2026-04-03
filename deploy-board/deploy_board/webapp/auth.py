@@ -199,10 +199,9 @@ class OAuth(object):
         if old_state is None:
             raise OAuthException("Invalid state")
 
-        state, enc_data = (
-            state_with_data[: len(old_state)],
-            state_with_data[len(old_state) :],
-        )
+        # In the new scheme, the `state` we get back is exactly what we sent.
+        # We only enforce CSRF via old_state; we don't parse any extra data here.
+        state = state_with_data
         if not is_equal(old_state, state):
             raise OAuthException("Invalid state")
 
@@ -219,7 +218,6 @@ class OAuth(object):
             method="POST",
         )
         if resp.code == 401:
-            # When auth.pinadmin.com returns a 401 error. remove token and redirect to / page
             raise OAuthExpiredTokenException("Expired Token")
 
         if resp.code not in (200, 201):
@@ -232,22 +230,25 @@ class OAuth(object):
         expires = time.time() + resp_data["expires_in"]
         self.oauth_handler.token_setter(resp_data["access_token"], expires, **kwargs)
 
-        try:
-            return json.loads(base64.b64decode(enc_data).decode())
-        except ValueError:
-            return None
+        # No extra data is returned from state anymore
+        return None
 
     def get_authorization_url(self, data=None, **kwargs):
         client = self.get_client()
         scope = str(self.scope)
 
-        # generate and set state
+        # generate and set state (CSRF token)
         state = self.oauth_handler.state_generator(**kwargs)
         self.oauth_handler.state_setter(state, **kwargs)
 
-        # hack to add data to state
-        encoded_data = base64.b64encode(json.dumps(data).encode("utf-8"))
-        state_with_data = state + encoded_data.decode("utf-8")
+        # If `data` is provided, we treat it as the final state value
+        # (e.g., a short, signed string from DelegatedOAuthMiddleware).
+        # Otherwise, we just use the random state.
+        if data:
+            state_with_data = data
+        else:
+            state_with_data = state
+
         return client.prepare_request_uri(
             self.authorize_url,
             redirect_uri=self.callback_url,
