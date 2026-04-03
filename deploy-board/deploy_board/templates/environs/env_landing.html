@@ -5,137 +5,149 @@
 
 {% block breadcrumb-items %}
 <ul class="breadcrumb">
-    <li><a href="/">Home</a></li>
-    <li><a href="/envs">Environments</a></li>
-    <li class="active">{{ env.envName }} ({{ env.stageName }})</li>
+  <li><a href="/">Home</a></li>
+  <li><a href="/envs">Environments</a></li>
+  {% if env %}
+    <li class="active">{{ env.envName|default:"" }} ({{ env.stageName|default:"" }})</li>
+  {% else %}
+    <li class="active">Environment</li>
+  {% endif %}
 </ul>
 
-{% if pinterest %}
-    {% if code_freeze %}
-        {% include "deploys/warning_no_deploy.tmpl" %}
-    {% else %}
-        {% include "deploys/warning_no_deploy.tmpl" with hidden='display: none;'%}
-    {% endif %}
+{% if pinterest|default:False %}
+  {% if code_freeze|default:False %}
+    {% include "deploys/warning_no_deploy.tmpl" %}
+  {% else %}
+    {% include "deploys/warning_no_deploy.tmpl" with hidden='display: none;' %}
+  {% endif %}
 {% endif %}
 
-{% if project_name_is_default %}
-    {% include "deploys/warning_no_nimbus_project_no_deploy.tmpl" %}
+{% if project_name_is_default|default:False %}
+  {% include "deploys/warning_no_nimbus_project_no_deploy.tmpl" %}
 {% endif %}
 
-{% if request_feedback %}
-    {% include "feedbacks/feedback_banner.tmpl" %}
+{% if request_feedback|default:False %}
+  {% include "feedbacks/feedback_banner.tmpl" %}
 {% else %}
-    {% include "feedbacks/feedback_banner.tmpl" with hidden='display: none;'%}
+  {% include "feedbacks/feedback_banner.tmpl" with hidden='display: none;' %}
 {% endif %}
 {% endblock breadcrumb-items %}
 
-
 {% block side-panel-actions %}
 <div class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Current Deploy</h4>
-    </div>
-    {% if env|isEnvEnabled %}
-        <div class="row">
-            <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
-                type="button" class="deployToolTip btn btn-default btn-block"
-                data-toggle="tooltip" title="Create a new deploy in current environment">
-                <span class="glyphicon glyphicon-file"></span> Create Deploy
-            </a>
-        </div>
-
-        {% if has_deploy %}
-            <div class="row">
-                <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback/"
-                    type="button" class="deployToolTip btn btn-default btn-block"
-                    title="Rollback to a previous deploys">
-                    <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
-                </a>
-            </div>
-            {% if stages|length > 1 %}
-                <div class="row">
-                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ env.deployId }}"
-                        type="button" class="deployToolTip btn btn-default btn-block"
-                        title="Promote current deploy to different stages">
-                        <span class="glyphicon glyphicon-transfer"></span> Promote
-                    </a>
-                </div>
-            {% endif %}
-            {% if pinterest %}
-                <div class="row">
-                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/"
-                        type="button" class="deployToolTip btn btn-default btn-block"
-                        data-toggle="tooltip" title="Create a hotfix based on current deploy">
-                        <span class="glyphicon glyphicon-fire"></span> Hotfix
-                    </a>
-                </div>
-            {% endif %}
-        {% endif %}
-    {% endif %}
+  <div class="panel-heading clearfix">
+    <h4 class="panel-title pull-left">Current Deploy</h4>
+  </div>
+  {% if env|isEnvEnabled %}
     <div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="Check current deploy schedule">
-            <span class="glyphicon glyphicon-time"></span> Deploy Schedule
-        </a>
-    </div>
-    <div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/constraint"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="Check current deploy constraint">
-            <span class="glyphicon glyphicon-time"></span> Deploy Constraint
-        </a>
+      <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
+         type="button" class="deployToolTip btn btn-default btn-block"
+         data-toggle="tooltip" title="Create a new deploy in current environment">
+        <span class="glyphicon glyphicon-file"></span> Create Deploy
+      </a>
     </div>
 
     {% if has_deploy %}
-	<div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_commits/"
+      <div class="row">
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback/"
            type="button" class="deployToolTip btn btn-default btn-block"
-           data-toggle="tooltip"
-           title="Show all the new commits introduced by current deploy since last one">
-            <span class="glyphicon glyphicon-zoom-in"></span> Show Commits
+           title="Rollback to a previous deploys">
+          <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
         </a>
-    </div>
-	<div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploys"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="Show deploy history">
-            <span class="glyphicon glyphicon-time"></span> Deploy History
-        </a>
-    </div>
+      </div>
+      {% if stages|length > 1 %}
+        <div class="row">
+          <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ env.deployId }}"
+             type="button" class="deployToolTip btn btn-default btn-block"
+             title="Promote current deploy to different stages">
+            <span class="glyphicon glyphicon-transfer"></span> Promote
+          </a>
+        </div>
+      {% endif %}
+      {% if pinterest|default:False %}
+        <div class="row">
+          <a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/"
+             type="button" class="deployToolTip btn btn-default btn-block"
+             data-toggle="tooltip" title="Create a hotfix based on current deploy">
+            <span class="glyphicon glyphicon-fire"></span> Hotfix
+          </a>
+        </div>
+      {% endif %}
     {% endif %}
-	<div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/config"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="Config current environment, add hosts or groups etc.">
-            <span class="glyphicon glyphicon-cog"></span> Configure
-        </a>
+  {% endif %}
+  <div class="row">
+    <a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule"
+       type="button" class="deployToolTip btn btn-default btn-block"
+       data-toggle="tooltip" title="Check current deploy schedule">
+      <span class="glyphicon glyphicon-time"></span> Deploy Schedule
+    </a>
+  </div>
+  <div class="row">
+    <a href="/env/{{ env.envName }}/{{ env.stageName }}/constraint"
+       type="button" class="deployToolTip btn btn-default btn-block"
+       data-toggle="tooltip" title="Check current deploy constraint">
+      <span class="glyphicon glyphicon-time"></span> Deploy Constraint
+    </a>
+  </div>
+
+  {% if has_deploy %}
+    <div class="row">
+      <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_commits/"
+         type="button" class="deployToolTip btn btn-default btn-block"
+         data-toggle="tooltip"
+         title="Show all the new commits introduced by current deploy since last one">
+        <span class="glyphicon glyphicon-zoom-in"></span> Show Commits
+      </a>
     </div>
+    <div class="row">
+      <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploys"
+         type="button" class="deployToolTip btn btn-default btn-block"
+         data-toggle="tooltip" title="Show deploy history">
+        <span class="glyphicon glyphicon-time"></span> Deploy History
+      </a>
+    </div>
+  {% endif %}
+  <div class="row">
+    <a href="/env/{{ env.envName }}/{{ env.stageName }}/config"
+       type="button" class="deployToolTip btn btn-default btn-block"
+       data-toggle="tooltip" title="Config current environment, add hosts or groups etc.">
+      <span class="glyphicon glyphicon-cog"></span> Configure
+    </a>
+  </div>
 </div>
 
-{% if pinterest %}
+{% if pinterest|default:False %}
 <script type="text/javascript" src='{% static "js/components/sharedcomponents.js" %}?changedate=2017.1.4.140000'></script>
 <div class="panel panel-default" id="capacityPanel">
-    <div class="panel-heading clearfix">
-        {% verbatim %}
-        <h4 class="panel-title pull-left">{{title}}</h4>
-        {% endverbatim %}
-    </div>
+  <div class="panel-heading clearfix">
+    {% verbatim %}
+    <h4 class="panel-title pull-left">{{title}}</h4>
+    {% endverbatim %}
+  </div>
+  <div v-if="showCluster" class="row">
+    <side-button styleclass="fa fa-database" :style="capacityStateStyle"
+                 v-bind:text="capacityText"
+                 href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity"
+                 title="Configure capacity"></side-button>
+  </div>
+  {% if hasGroups %}
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
+      <side-button styleclass="fa fa-expand"
+                   v-bind:text="autoScalingSettingsText"
+                   href="/groups/{{ env.clusterName }}/config"
+                   title="Configure autoscaling group"></side-button>
     </div>
-    {% if hasGroups %}
+  {% endif %}
+  {% if hasCluster %}
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.clusterName }}/config" title="Configure autoscaling group"></side-button>
+      <side-button styleclass="fa fa-cog"
+                   v-bind:text="clusterSettingsText"
+                   href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/"
+                   title="Go to the cluster configuration page."></side-button>
     </div>
-    {% endif %}
-    {% if hasCluster %}
-    <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-cog" v-bind:text="clusterSettingsText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page."></side-button>
-    </div>
-    {% endif %}
-    <div v-if="!showCluster" id="groupsDiv">
-    </div>
+  {% endif %}
+  <div v-if="!showCluster" id="groupsDiv">
+  </div>
 </div>
 
 {% endif %}
@@ -156,9 +168,9 @@
         <a type="button" href="/env/{{ env.envName }}/{{ env.stageName }}/restart"
            class="btn btn-primary">Restart</a>
       </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+    </div>
+  </div>
+</div>
 
 <div class="modal fade" id="pauseConfirmModelId" tabindex="-1" role="dialog"
      aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
@@ -173,9 +185,9 @@
            Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster.
         </p>
         <div class="alert alert-danger" role="alert">
-            <strong>WARNING</strong>:
-            Please don't leave deployment in the PAUSED state permanently. <br>
-            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.
+          <strong>WARNING</strong>:
+          Please don't leave deployment in the PAUSED state permanently. <br>
+          Cluster will be running two different builds (old on existing instances and new on new instances) as long as deployment is paused.
         </div>
       </div>
       <div class="modal-footer">
@@ -183,9 +195,9 @@
         <a type="button" href="/env/{{ env.envName }}/{{ env.stageName }}/pause"
            class="btn btn-primary">Pause</a>
       </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+    </div>
+  </div>
+</div>
 
 <div class="modal fade" id="resumeConfirmModelId" tabindex="-1" role="dialog"
      aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
@@ -203,68 +215,62 @@
         <a type="button" href="/env/{{ env.envName }}/{{ env.stageName }}/resume"
            class="btn btn-primary">Resume</a>
       </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+    </div>
+  </div>
+</div>
 
-<!-- Removed launch Host modals -->
-
-{% if pinterest %}
+{% if pinterest|default:False %}
 <script>
-
-var capacityInfo = {{capacity_info | safe}}
-function loadGroupConfig() {
+  var capacityInfo = {{ capacity_info|safe }};
+  function loadGroupConfig() {
     var selected_value = $("#group_name option:selected").val();
     var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
     $.get(config_url, function(response) {
-        $("#config_div_id").html(response);
+      $("#config_div_id").html(response);
     });
-}
+  }
 
-var renderCapacity = capacityInfo['cluster'] !=null ||
-    capacityInfo['groups'] === null || capacityInfo['groups'].length === 0
+  var renderCapacity = capacityInfo['cluster'] != null ||
+                       capacityInfo['groups'] === null ||
+                       capacityInfo['groups'].length === 0;
 
+  var capacityPanel = new Vue({
+    el: "#capacityPanel",
+    data: {
+      title: renderCapacity ? "Cluster" : "Deploy Groups",
+      showCluster: renderCapacity,
+      remainingCapacity: {{ remaining_capacity|safe }},
+      capacityStateStyle: ""
+    },
+    computed: {
+      capacityText: function() {
+        if (this.remainingCapacity != null && this.remainingCapacity < 100) {
+          this.capacityStateStyle = "color: #d32a0e";
+          return `Capacity (Remaining Subnet Capacity: ${this.remainingCapacity})`;
+        } else {
+          return "Capacity";
+        }
+      },
+      autoScalingSettingsText: function() {
+        return "Auto Scaling Configuration";
+      },
+      clusterSettingsText: function() {
+        return "Cluster Configuration";
+      }
+    },
+    mounted: function() {
+      if (!renderCapacity) {
+        $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
+        $("#group_name").change(function() {
+          loadGroupConfig();
+        });
+      }
+    }
+  });
 
-var capacityPanel = new Vue({
-            el:"#capacityPanel",
-            data:{
-               title: renderCapacity ? "Cluster" : "Deploy Groups",
-               showCluster: renderCapacity,
-               remainingCapacity: {{remaining_capacity | safe}},
-               capacityStateStyle: "",
-            },
-            computed: {
-                capacityText: function() {
-                    if (this.remainingCapacity != null && this.remainingCapacity < 100) {
-                        this.capacityStateStyle = "color: #d32a0e"
-                        return `Capacity (Remaining Subnet Capacity: ${this.remainingCapacity})`
-                    } else {
-                        return "Capacity"
-                    }
-                },
-                autoScalingSettingsText: function() {
-                    return "Auto Scaling Configuration"
-                },
-                clusterSettingsText: function() {
-                    return "Cluster Configuration"
-                },
-
-            },
-            mounted: function(){
-                if (!renderCapacity){
-                    $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
-                    $("#group_name").change(function() {
-                            loadGroupConfig();
-                    })
-                }
-            },
-});
-
-$('#privateBldUploadBtnId button').click(function () {
+  $('#privateBldUploadBtnId button').click(function () {
     $('#uploadPrivateBldModalId').modal();
-});
-
-
+  });
 </script>
 {% endif %}
 
@@ -273,72 +279,72 @@ $('#privateBldUploadBtnId button').click(function () {
 {% block main %}
 
 {% if not env|isEnvEnabled %}
-{% if env_tag.value == "DISABLE_ENV" %}
-<div class="alert alert-warning" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is disabled by {{ env_tag.operator }} due to
-    {{ env_tag.comments }} on {{ env_tag.createdDate|convertTimestamp }}.<br>
-    You cannot make any new configuration and deploy changes until this environment is enabled.
-</div>
-{% endif %}
+  {% if env_tag.value == "DISABLE_ENV" %}
+    <div class="alert alert-warning" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is disabled by {{ env_tag.operator }} due to
+      {{ env_tag.comments }} on {{ env_tag.createdDate|convertTimestamp }}.<br>
+      You cannot make any new configuration and deploy changes until this environment is enabled.
+    </div>
+  {% endif %}
 {% endif %}
 
 {% if pindeploy_config %}
-{% if pindeploy_config.isPindeploy %}
-<div class="alert alert-warning" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is managed by Pindeploy. Deployments should be performed using
-    this <a href="{{ pindeploy_config.pipeline }}" target="_blank">pipeline</a>.
-    Creating a deployment from other sources (such as Teletraan) will disable resource management in the PinDeploy pipeline.
-    This means PinDeploy will stop automatically deploying new builds to the stage/resource in this pipeline.
-    Only proceed this way in case of emergency, and remember to re-enable resource management in PinDeploy once the emergency is resolved.
-</div>
-{% endif %}
+  {% if pindeploy_config.isPindeploy %}
+    <div class="alert alert-warning" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is managed by Pindeploy. Deployments should be performed using
+      this <a href="{{ pindeploy_config.pipeline }}" target="_blank">pipeline</a>.
+      Creating a deployment from other sources (such as Teletraan) will disable resource management in the PinDeploy pipeline.
+      This means PinDeploy will stop automatically deploying new builds to the stage/resource in this pipeline.
+      Only proceed this way in case of emergency, and remember to re-enable resource management in PinDeploy once the emergency is resolved.
+    </div>
+  {% endif %}
 {% endif %}
 
 {% if lastClusterRefreshStatus %}
-    {% if lastClusterRefreshStatus.status == "Pending" or lastClusterRefreshStatus.status == "InProgress" %}
+  {% if lastClusterRefreshStatus.status == "Pending" or lastClusterRefreshStatus.status == "InProgress" %}
     <div class="alert alert-info alert-dismissible">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong>Info!</strong> This cluster is being refreshed with {{ lastClusterRefreshStatus.percentageComplete|default_if_none:0 }}% completed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <strong>Info!</strong> This cluster is being refreshed with {{ lastClusterRefreshStatus.percentageComplete|default_if_none:0 }}% completed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
     </div>
-    {% elif lastClusterRefreshStatus.status == "Successful" %}
+  {% elif lastClusterRefreshStatus.status == "Successful" %}
     <div class="alert alert-success alert-dismissible">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong>Success!</strong> This cluster was refreshed successfully at {{ lastClusterRefreshStatus.endTime|convertTimestamp }}. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <strong>Success!</strong> This cluster was refreshed successfully at {{ lastClusterRefreshStatus.endTime|convertTimestamp }}. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
     </div>
-    {% elif lastClusterRefreshStatus.status == "Failed" %}
+  {% elif lastClusterRefreshStatus.status == "Failed" %}
     <div class="alert alert-warning alert-dismissible">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong>Warning!</strong> This cluster was failed to be refreshed (or partially refreshed). Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <strong>Warning!</strong> This cluster was failed to be refreshed (or partially refreshed). Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
     </div>
-    {% endif %}
+  {% endif %}
 {% endif %}
 
-{% if is_auto_refresh_enabled == True %}
-    <div class="alert alert-success alert-dismissible">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong><span class="glyphicon glyphicon-leaf" style="color:green;"></span> This cluster is enabled for auto refresh.</strong>
-        You can customize auto refresh configuration <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/auto_refresh" target="_blank">here</a>.
-    </div>
+{% if is_auto_refresh_enabled %}
+  <div class="alert alert-success alert-dismissible">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <strong><span class="glyphicon glyphicon-leaf" style="color:green;"></span> This cluster is enabled for auto refresh.</strong>
+    You can customize auto refresh configuration <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/auto_refresh" target="_blank">here</a>.
+  </div>
 {% endif %}
 
 {% if cluster_refresh_suggestion_for_golden_ami %}
-    <div class="alert alert-info alert-dismissible">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong>Info!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
-        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for image update history.
-        Click <a href="/groups/{{ env.clusterName }}/host-ami-dist/" target="_blank">here</a> to see AMI(s) used by hosts.
-        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> to replace the cluster.
-    </div>
+  <div class="alert alert-info alert-dismissible">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <strong>Info!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
+    Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for image update history.
+    Click <a href="/groups/{{ env.clusterName }}/host-ami-dist/" target="_blank">here</a> to see AMI(s) used by hosts.
+    Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> to replace the cluster.
+  </div>
 {% endif %}
 
 {% if "AZRebalance" in asg_suspended_processes %}
-    <div class="alert alert-danger alert-dismissible">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        Your cluster is <strong>not</strong> enabled for automatic AZ rebalancing. If your service is stateless, consider enabling it <a href="/groups/{{ env.envName }}-{{ env.stageName }}/config" target="_blank">here</a>.
-        Check this <a href="/groups/{{ env.envName }}-{{ env.stageName }}/dist-charts/az/" target="_blank">chart</a> for the current hosts-AZ distribution.
-    </div>
+  <div class="alert alert-danger alert-dismissible">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    Your cluster is <strong>not</strong> enabled for automatic AZ rebalancing. If your service is stateless, consider enabling it <a href="/groups/{{ env.envName }}-{{ env.stageName }}/config" target="_blank">here</a>.
+    Check this <a href="/groups/{{ env.envName }}-{{ env.stageName }}/dist-charts/az/" target="_blank">chart</a> for the current hosts-AZ distribution.
+  </div>
 {% endif %}
 
 {% include "message_banner.tmpl" %}
@@ -346,281 +352,261 @@ $('#privateBldUploadBtnId button').click(function () {
 {% include "environs/site_health.tmpl" with metricsKind="service" %}
 
 {% if has_deploy %}
-    <div class="panel {% if env|canResume %}panel-danger{% else %}panel-default{% endif %}">
-        <div class="panel-heading clearfix">
-            <h4 class="panel-title pull-left pointer-cursor">
-                <a data-toggle="collapse" data-target="#activeDeployId">
-                <span id="activeDeployIdToggler"
-                    class="glyphicon glyphicon-chevron-down">
-                </span>
-                {% if env|canResume %}
-                Active Deployment (Paused)
-                {% else %}
-                Active Deployment
-                {% endif %}
-                </a>
-            </h4>
-            {% if pinterest %}
-                {% if project_info %}
-                <div class="btn-project-info">
-                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-                    <a href="{{ project_info.project_url }}" target="_blank">Project: {{ project_info.project_name }}</a>
-                </div>
-                {% else %}
-                <div class="btn-project-info-warning">
-                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-                    <p>Missing project ownership information, please contact slack #infra-nimbus to add it.</p>
-                </div>
-                {% endif %}
+  <div class="panel {% if env|canResume %}panel-danger{% else %}panel-default{% endif %}">
+    <div class="panel-heading clearfix">
+      <h4 class="panel-title pull-left pointer-cursor">
+        <a data-toggle="collapse" data-target="#activeDeployId">
+          <span id="activeDeployIdToggler"
+                class="glyphicon glyphicon-chevron-down">
+          </span>
+          {% if env|canResume %}
+            Active Deployment (Paused)
+          {% else %}
+            Active Deployment
+          {% endif %}
+        </a>
+      </h4>
+      {% if pinterest|default:False %}
+        {% if project_info %}
+          <div class="btn-project-info">
+            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+            <a href="{{ project_info.project_url }}" target="_blank">Project: {{ project_info.project_name }}</a>
+          </div>
+        {% else %}
+          <div class="btn-project-info-warning">
+            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            <p>Missing project ownership information, please contact slack #infra-nimbus to add it.</p>
+          </div>
+        {% endif %}
+      {% endif %}
+      <h6 class="stage-type-badge">
+        {{ env.stageType|default:"NO STAGE TYPE" }}
+      </h6>
+      <div class="btn-group pull-right">
+        {% if has_deploy and env|isEnvEnabled %}
+          <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
+             type="button" class="deployToolTip btn btn-primary btn-sm"
+             title="Rollback to a previous deploy">
+            <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
+          </a>
+        {% endif %}
+        {% if env|canResume %}
+          <button type="button" class="deployToolTip btn btn-default btn-sm"
+                  data-toggle="modal" data-target="#resumeConfirmModelId"
+                  title="Resume the current deploy">
+            <span class="glyphicon glyphicon-play"></span> Resume
+          </button>
+        {% else %}
+          <button type="button" class="deployToolTip btn btn-default btn-sm"
+                  data-toggle="modal" data-target="#pauseConfirmModelId"
+                  title="Pause the current deploy">
+            <span class="glyphicon glyphicon-pause"></span> Pause
+          </button>
+        {% endif %}
+        <button type="button" class="deployToolTip btn btn-default btn-sm"
+                data-toggle="modal" data-target="#restartConfirmModelId"
+                title="Rolling restart the service on all hosts">
+          <span class="glyphicon glyphicon-refresh"></span> Restart
+        </button>
+        <div class="btn-group">
+          <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                  title="Change how the hosts are displayed"
+                  data-toggle="dropdown" type="button">
+            Display Mode:
+            {% if report.showMode == "simple" %}
+              Simple
+            {% elif report.showMode == "compact" %}
+              Compact
+            {% elif report.showMode == "complete" %}
+              Complete
+            {% elif report.showMode == "containerStatus" %}
+              Health Check Status
             {% endif %}
-            <h6 class="stage-type-badge">
-                {{env.stageType|default:"NO STAGE TYPE"}}
-            </h6>
-            <div class="btn-group pull-right">
-                {% if has_deploy and env|isEnvEnabled %}
-                <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
-                    type="button" class="deployToolTip btn btn-primary btn-sm"
-                    title="Rollback to a previous deploy">
-                    <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
-                </a>
-                {% endif %}
-                {% if env|canResume %}
-                <button type="button" class="deployToolTip btn btn-default btn-sm"
-                        data-toggle="modal" data-target="#resumeConfirmModelId"
-                        title="Resume the current deploy">
-                    <span class="glyphicon glyphicon-play"></span> Resume
-                </button>
-                {% else %}
-                <button type="button" class="deployToolTip btn btn-default btn-sm"
-                        data-toggle="modal" data-target="#pauseConfirmModelId"
-                        title="Pause the current deploy">
-                    <span class="glyphicon glyphicon-pause"></span> Pause
-                </button>
-                {% endif %}
-                <button type="button" class="deployToolTip btn btn-default btn-sm"
-                        data-toggle="modal" data-target="#restartConfirmModelId"
-                        title="Rolling restart the service on all hosts">
-                    <span class="glyphicon glyphicon-refresh"></span> Restart
-                </button>
-                <div class="btn-group">
-                <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
-                        title="Change how the hosts are displayed"
-                        data-toggle="dropdown" type="button">
-                    Display Mode:
-                    {% if report.showMode == "simple" %}
-                        Simple
-                    {% elif report.showMode == "compact" %}
-                        Compact
-                    {% elif report.showMode == "complete" %}
-                        Complete
-                    {% elif report.showMode == "containerStatus" %}
-                        Health Check Status
-                    {% endif %}
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" role="menu">
-                    <form id="updateModeFormId">
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="showMode" value="simple"
-                            {% if report.showMode == "simple" %}
-                            checked
-                            {% endif %}
-                            > Simple
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="showMode" value="compact"
-                            {% if report.showMode == "compact" %}
-                            checked
-                            {% endif %}
-                            > Compact
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="showMode" value="complete"
-                            {% if report.showMode == "complete" %}
-                            checked
-                            {% endif %}
-                            > Complete
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="showMode" value="containerStatus"
-                            {% if report.showMode == "containerStatus" %}
-                            checked
-                            {% endif %}
-                            > Health Check Status
-                            </label></div>
-                        </li>
-                        <li role="presentation" class="divider"></li>
-                        <li>
-                            <div class="checkbox"><label>&nbsp;
-                            <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
-                            {% if report.sortByStatus == "true" %}
-                            checked
-                            {% endif %}
-                            > Sort by status
-                            </label></div>
-                        </li>
-                    </form>
-                </ul>
-                </div>
-
-                <div class="btn-group">
-                    <div class="dropdown">
-                        <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
-                                title="Change how the hosts are displayed based on Account"
-                                data-toggle="dropdown" type="button">
-                            Account:
-                            {{ report.account|capfirst }}
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                            <form id="accountFormId">
-                                <li>
-                                    <div class="radio"><label>&nbsp;
-                                        <input type="radio" name="account" value="all"
-                                               {% if report.account == "all" %}
-                                        checked
-                                        {% endif %}
-                                        > All
-                                    </label></div>
-                                </li>
-                                {% for account in accounts %}
-                                    <li>
-                                        <div class="radio"><label>&nbsp;
-                                            <input type="radio" name="account" value="{{ account.data.ownerId }}"
-                                                   {% if report.account == account.data.ownerId %}
-                                                   checked
-                                                   {% endif %}
-                                            > {{ account.data.ownerId }}
-                                        </label></div>
-                                    </li>
-                                {% endfor %}
-                            </form>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <form id="updateModeFormId">
+              <li>
+                <div class="radio"><label>&nbsp;
+                  <input type="radio" name="showMode" value="simple"
+                         {% if report.showMode == "simple" %}checked{% endif %}> Simple
+                </label></div>
+              </li>
+              <li>
+                <div class="radio"><label>&nbsp;
+                  <input type="radio" name="showMode" value="compact"
+                         {% if report.showMode == "compact" %}checked{% endif %}> Compact
+                </label></div>
+              </li>
+              <li>
+                <div class="radio"><label>&nbsp;
+                  <input type="radio" name="showMode" value="complete"
+                         {% if report.showMode == "complete" %}checked{% endif %}> Complete
+                </label></div>
+              </li>
+              <li>
+                <div class="radio"><label>&nbsp;
+                  <input type="radio" name="showMode" value="containerStatus"
+                         {% if report.showMode == "containerStatus" %}checked{% endif %}> Health Check Status
+                </label></div>
+              </li>
+              <li role="presentation" class="divider"></li>
+              <li>
+                <div class="checkbox"><label>&nbsp;
+                  <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
+                         {% if report.sortByStatus == "true" %}checked{% endif %}> Sort by status
+                </label></div>
+              </li>
+            </form>
+          </ul>
         </div>
 
-        <script>
-            $(function () {
-                $('#' + '{{ panel_body_id }}').on('hide.bs.collapse show.bs.collapse', function () {
-                    $('#' + '{{ panel_body_id }}Toggler').toggleClass('glyphicon-chevron-down glyphicon-chevron-right', 100);
-                });
-            });
-        </script>
-        <div class="collapse in panel-body">
-            <div id="activeDeployId">
-                {% include "deploys/deploy_progress.html" %}
-            </div>
-            <div class="row" id="serviceAddOnsId">
-                {% include "deploys/deploy_add_ons.tmpl" %}
-            </div>
+        <div class="btn-group">
+          <div class="dropdown">
+            <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                    title="Change how the hosts are displayed based on Account"
+                    data-toggle="dropdown" type="button">
+              Account:
+              {{ report.account|capfirst }}
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+              <form id="accountFormId">
+                <li>
+                  <div class="radio"><label>&nbsp;
+                    <input type="radio" name="account" value="all"
+                           {% if report.account == "all" %}checked{% endif %}> All
+                  </label></div>
+                </li>
+                {% for account in accounts %}
+                  <li>
+                    <div class="radio"><label>&nbsp;
+                      <input type="radio" name="account" value="{{ account.data.ownerId }}"
+                             {% if report.account == account.data.ownerId %}checked{% endif %}>
+                      {{ account.data.ownerId }}
+                    </label></div>
+                  </li>
+                {% endfor %}
+              </form>
+            </ul>
+          </div>
         </div>
+      </div>
     </div>
 
     <script>
-    $(function () {
-        var startTime = new Date().getTime();
-        $('#serviceAddOnsId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_service_add_ons/');
-
-        var interval = setInterval(function() {
-            if(new Date().getTime() - startTime > 3600000) {
-                clearInterval(interval);
-            }
-            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
-        }, 30000);
-
-        $(".dropdown-menu li").click(function() {
-            query_string_account = $("#accountFormId").serialize();
-            query_string = query_string_account;
-            query_string_mode = $("#updateModeFormId").serialize();
-            // we need to explicitly turn off sortByStatus
-            if (query_string_mode.indexOf("sortByStatus") == -1) {
-                query_string_mode += "&sortByStatus=false";
-            }
-            query_string += "&" + query_string_mode;
-            window.location ="/env/{{ env.envName }}/{{ env.stageName }}/deploy/?" + query_string;
+      $(function () {
+        $('#{{ panel_body_id|default:"activeDeployId" }}').on('hide.bs.collapse show.bs.collapse', function () {
+          $('#{{ panel_body_id|default:"activeDeployId" }}Toggler').toggleClass('glyphicon-chevron-down glyphicon-chevron-right', 100);
         });
-    });
+      });
     </script>
+    <div class="collapse in panel-body">
+      <div id="activeDeployId">
+        {% include "deploys/deploy_progress.html" %}
+      </div>
+      <div class="row" id="serviceAddOnsId">
+        {% include "deploys/deploy_add_ons.tmpl" %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $(function () {
+      var startTime = new Date().getTime();
+      $('#serviceAddOnsId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_service_add_ons/');
+
+      var interval = setInterval(function() {
+        if (new Date().getTime() - startTime > 3600000) {
+          clearInterval(interval);
+        }
+        $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
+      }, 30000);
+
+      $(".dropdown-menu li").click(function() {
+        var query_string_account = $("#accountFormId").serialize();
+        var query_string = query_string_account;
+        var query_string_mode = $("#updateModeFormId").serialize();
+        // explicitly turn off sortByStatus when unchecked
+        if (query_string_mode.indexOf("sortByStatus") === -1) {
+          query_string_mode += "&sortByStatus=false";
+        }
+        query_string += "&" + query_string_mode;
+        window.location = "/env/{{ env.envName }}/{{ env.stageName }}/deploy/?" + query_string;
+      });
+    });
+  </script>
 
 {% else %}
-    <p align="center" style="padding:2%;"><i>Deploy not yet started in stage {{ env.stageName }}.</i></p>
-{% if provisioning_hosts %}
-<div class="panel panel-default table-responsive">
-    <table class="table table-condensed table-hover">
+  <p align="center" style="padding:2%;"><i>Deploy not yet started in stage {{ env.stageName|default:"" }}.</i></p>
+  {% if provisioning_hosts %}
+    <div class="panel panel-default table-responsive">
+      <table class="table table-condensed table-hover">
         <tr>
-            <td class="col-lg-2">
-                <span class="deployToolTip" data-toggle="tooltip"
-                   title="Host is new to this env.">
-                <small>New Hosts</small>
-                </span>
-            </td>
-            <td class="col-lg-10">
-                <small>
-                    {% for host in provisioning_hosts %}
-                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
-                       type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
-                       title="{{ host | hostTip }}">
-                        {{ host.hostName }}
-                        <i class="fa fa-fw {{ host | hostIcon }}"></i>
-                    </a>
-                    {% endfor %}
-                </small>
-            </td>
-            <td class="col-lg-1 text-right">
-                <small>
-                <a href="/env/{{ env.envName }}/{{ env.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
-                    {{ provisioning_hosts | length }}
+          <td class="col-lg-2">
+            <span class="deployToolTip" data-toggle="tooltip"
+                  title="Host is new to this env.">
+              <small>New Hosts</small>
+            </span>
+          </td>
+          <td class="col-lg-10">
+            <small>
+              {% for host in provisioning_hosts %}
+                <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
+                   type="button" class="deployToolTip btn btn-xs {{ host|hostButton }} host-btn"
+                   title="{{ host|hostTip }}">
+                  {{ host.hostName }}
+                  <i class="fa fa-fw {{ host|hostIcon }}"></i>
                 </a>
-                </small>
-            </td>
+              {% endfor %}
+            </small>
+          </td>
+          <td class="col-lg-1 text-right">
+            <small>
+              <a href="/env/{{ env.envName }}/{{ env.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
+                 title="Click to see more details">
+                {{ provisioning_hosts|length }}
+              </a>
+            </small>
+          </td>
         </tr>
-    </table>
-</div>
-{% endif %}
+      </table>
+    </div>
+  {% endif %}
 
-{% if capacity_hosts %}
-<div class="panel panel-default table-responsive">
-    <table class="table table-condensed table-hover">
+  {% if capacity_hosts %}
+    <div class="panel panel-default table-responsive">
+      <table class="table table-condensed table-hover">
         <tr>
-            <td class="col-lg-2">
-                <span class="deployToolTip" data-toggle="tooltip"
-                   title="Host status is unknown to this env. If the host is terminated,
-                   remove it from this env manually.">
-                <small>Unknown Hosts</small>
-                </span>
-            </td>
-            <td class="col-lg-10">
-                <small>
-                    {% for host in capacity_hosts %}
-                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host }}"
-                       type="button" class="btn btn-xs btn-warning">
-                        {{ host }}
-                    </a>
-                    {% endfor %}
-                </small>
-            </td>
-            <td class="col-lg-1 text-right">
-                <small>
-                <a href="/env/{{ env.envName }}/{{ env.stageName }}/hosts/unknowns/" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
-                    {{ capacity_hosts|length }}
+          <td class="col-lg-2">
+            <span class="deployToolTip" data-toggle="tooltip"
+                  title="Host status is unknown to this env. If the host is terminated,
+remove it from this env manually.">
+              <small>Unknown Hosts</small>
+            </span>
+          </td>
+          <td class="col-lg-10">
+            <small>
+              {% for host in capacity_hosts %}
+                <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host }}"
+                   type="button" class="btn btn-xs btn-warning">
+                  {{ host }}
                 </a>
-                </small>
-            </td>
+              {% endfor %}
+            </small>
+          </td>
+          <td class="col-lg-1 text-right">
+            <small>
+              <a href="/env/{{ env.envName }}/{{ env.stageName }}/hosts/unknowns/" class="deployToolTip" data-toggle="tooltip"
+                 title="Click to see more details">
+                {{ capacity_hosts|length }}
+              </a>
+            </small>
+          </td>
         </tr>
-    </table>
-</div>
-{% endif %}
+      </table>
+    </div>
+  {% endif %}
 {% endif %}
 
 {% endblock main %}

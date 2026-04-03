@@ -3,11 +3,11 @@
 
 {% block main %}
 <div class="alert alert-info" role="alert">
-<h4>
+  <h4>
     Failed to authenticate with OAuth service, please contact your friendly Teletraan owners for further help!
-</h4>
+  </h4>
 </div>
 <div class="well">
-    {{ message }}
+  {{ message|default:"An unexpected authentication error occurred." }}
 </div>
 {% endblock %}
