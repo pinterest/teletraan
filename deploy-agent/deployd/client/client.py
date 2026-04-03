@@ -61,6 +61,9 @@ class Client(BaseClient):
         self._config = config
         self._use_facter = use_facter
         self._use_host_info = use_host_info
+        self._cache_ttl = (
+            self._config.get_facter_query_cache_ttl() if self._use_facter else 0
+        )
         self._autoscaling_group = None
         self._availability_zone = None
         self._stage_type = None
@@ -72,7 +75,6 @@ class Client(BaseClient):
         self._knox_status = None
 
     def _read_host_info(self) -> bool:
-        cache_ttl = self._config.get_facter_query_cache_ttl()
         if self._use_facter:
             log.info("Use facter to get host info")
             name_key = self._config.get_facter_name_key()
@@ -95,7 +97,7 @@ class Client(BaseClient):
 
             if keys_to_fetch:
                 facter_data = utils.get_info_from_facter(
-                    keys_to_fetch, cache_ttl=cache_ttl
+                    keys_to_fetch, cache_ttl=self._cache_ttl
                 )
 
             if not self._hostname:
@@ -159,7 +161,9 @@ class Client(BaseClient):
         if not self._id:
             if self._use_facter:
                 # Try again without using Facter's cache.
-                facter_data = utils.get_info_from_facter({id_key}, True)
+                facter_data = utils.get_info_from_facter(
+                    {id_key}, no_cache=True, cache_ttl=self._cache_ttl
+                )
 
                 self._id = facter_data.get(id_key, None)
 
@@ -203,7 +207,7 @@ class Client(BaseClient):
 
             if keys_to_fetch:
                 facter_data = utils.get_info_from_facter(
-                    keys_to_fetch, cache_ttl=cache_ttl
+                    keys_to_fetch, cache_ttl=self._cache_ttl
                 )
 
             if not self._availability_zone:
@@ -220,7 +224,7 @@ class Client(BaseClient):
                 # So, if we don't get availability_zone the first time, try
                 # again without the cache.
                 facter_data = utils.get_info_from_facter(
-                    {az_key, secondary_az_key}, True
+                    {az_key, secondary_az_key}, no_cache=True, cache_ttl=self._cache_ttl
                 )
 
                 self._availability_zone = facter_data.get(az_key, None)
