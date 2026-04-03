@@ -74,11 +74,14 @@ class DelegatedOAuthMiddleware(object):
             # TODO call logout to remove session cleanly
             # self.logout(request)
 
-            # Store a compact, signed state instead of a huge JSON blob
-            state = signing.dumps(
-                {"origin_path": request.get_full_path()},
-                salt="teletraan-oauth-state",
-            )
+            # Generate a random state and remember origin_path in the session
+            state = self.oauth.oauth_handler.state_generator(session=request.session)
+            # store origin path keyed by state
+            request.session[f"oauth_origin_{state}"] = request.get_full_path()
+            # set the state for CSRF validation
+            self.oauth.oauth_handler.state_setter(state, session=request.session)
+
+            # ask OAuth to build the authorization URL with this short state
             url = self.oauth.get_authorization_url(session=request.session, data=state)
             logger.debug("Redirect oauth for authentication!, url = " + url)
             return HttpResponseRedirect(url)
@@ -131,6 +134,7 @@ def login_authorized(request):
         user_name = oauth.oauth_data(
             user_info_uri=settings.OAUTH_USER_INFO_URI, session=request.session
         )
+        # existing username extraction...
         if settings.OAUTH_USERNAME_INFO_KEY:
             keys = settings.OAUTH_USERNAME_INFO_KEY.split()
             for key in keys:
@@ -142,7 +146,6 @@ def login_authorized(request):
             user_name = user_name.split("@")[0]
 
     except OAuthException as e:
-        # failed to login for some reason, do something
         logger.error(traceback.format_exc())
         return render(
             request,
@@ -153,24 +156,20 @@ def login_authorized(request):
         )
 
     except OAuthExpiredTokenException:
-        # When auth.pinadmin.com returns a 401 error
         logger.error(traceback.format_exc())
-
-        # remove access token from session cookie and redirect to / page
-        # this will cause a re trigger of auth.pinadmin.com login process
         oauth.oauth_handler.token_remove(session=request.session)
         return HttpResponseRedirect("/")
 
     logger.info("get user_name %s and data %s back from oauth!" % (user_name, data))
     request.session["teletraan_user"] = user_name
 
+    # Recover origin_path from session using state
     origin_path = "/"
     if state:
-        try:
-            state_data = signing.loads(state, salt="teletraan-oauth-state")
-            origin_path = state_data.get("origin_path", "/")
-        except BadSignature:
-            origin_path = "/"
+        key = f"oauth_origin_{state}"
+        origin_path = request.session.get(key, "/")
+        if key in request.session:
+            del request.session[key]
 
     return HttpResponseRedirect(origin_path)
 

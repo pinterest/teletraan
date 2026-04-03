@@ -199,8 +199,7 @@ class OAuth(object):
         if old_state is None:
             raise OAuthException("Invalid state")
 
-        # In the new scheme, the `state` we get back is exactly what we sent.
-        # We only enforce CSRF via old_state; we don't parse any extra data here.
+        # state_with_data is exactly the state we originally sent
         state = state_with_data
         if not is_equal(old_state, state):
             raise OAuthException("Invalid state")
@@ -230,23 +229,20 @@ class OAuth(object):
         expires = time.time() + resp_data["expires_in"]
         self.oauth_handler.token_setter(resp_data["access_token"], expires, **kwargs)
 
-        # No extra data is returned from state anymore
+        # No extra data returned from state
         return None
 
     def get_authorization_url(self, data=None, **kwargs):
         client = self.get_client()
         scope = str(self.scope)
 
-        # generate and set state (CSRF token)
-        state = self.oauth_handler.state_generator(**kwargs)
-        self.oauth_handler.state_setter(state, **kwargs)
-
-        # If `data` is provided, we treat it as the final state value
-        # (e.g., a short, signed string from DelegatedOAuthMiddleware).
-        # Otherwise, we just use the random state.
+        # If data is provided, treat it as the full state value (already generated
+        # and stored by the caller). Otherwise, generate and store a new state.
         if data:
             state_with_data = data
         else:
+            state = self.oauth_handler.state_generator(**kwargs)
+            self.oauth_handler.state_setter(state, **kwargs)
             state_with_data = state
 
         return client.prepare_request_uri(
