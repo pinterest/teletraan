@@ -103,7 +103,8 @@ class TestClient(TestCase):
                     "hostname",
                     "ec2_instance_id",
                     "deploy_service_combined",
-                }
+                },
+                cache_ttl=0,
             ),  # original call (no no_cache arg)
             mock.call({"ec2_instance_id"}, True),  # retry with no_cache=True
             mock.call(
@@ -113,7 +114,8 @@ class TestClient(TestCase):
                     "deploy_service_stage_type",
                     "ec2_placement_availability_zone",
                     "ec2_metadata.identity-credentials.ec2.info",
-                }
+                },
+                cache_ttl=0,
             ),
         ]
 
@@ -155,7 +157,8 @@ class TestClient(TestCase):
                     "ec2_instance_id",
                     "ec2_local_ipv4",
                     "hostname",
-                }
+                },
+                cache_ttl=0,
             ),
             mock.call(
                 {
