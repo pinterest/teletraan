@@ -230,6 +230,16 @@ class OAuth(object):
 
         if resp.code not in (200, 201):
             raise OAuthException("Invalid OAuth response")
+        try:
+            resp_data = json.loads(content.decode())
+        except ValueError:
+            raise OAuthException("Invalid OAuth response")
+
+        expires = time.time() + resp_data["expires_in"]
+        self.oauth_handler.token_setter(resp_data["access_token"], expires, **kwargs)
+
+        # No extra data returned from state
+        return None
 
     def get_authorization_url(self, data=None, **kwargs):
         client = self.get_client()
