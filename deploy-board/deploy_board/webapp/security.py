@@ -14,6 +14,8 @@
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.core import signing
+from django.core.signing import BadSignature
 
 from .auth import OAuth
 from .auth import OAuthException, OAuthExpiredTokenException
@@ -71,8 +73,13 @@ class DelegatedOAuthMiddleware(object):
         else:
             # TODO call logout to remove session cleanly
             # self.logout(request)
-            data = {"origin_path": request.get_full_path()}
-            url = self.oauth.get_authorization_url(session=request.session, data=data)
+
+            # Store a compact, signed state instead of a huge JSON blob
+            state = signing.dumps(
+                {"origin_path": request.get_full_path()},
+                salt="teletraan-oauth-state",
+            )
+            url = self.oauth.get_authorization_url(session=request.session, data=state)
             logger.debug("Redirect oauth for authentication!, url = " + url)
             return HttpResponseRedirect(url)
 
@@ -124,7 +131,6 @@ def login_authorized(request):
         user_name = oauth.oauth_data(
             user_info_uri=settings.OAUTH_USER_INFO_URI, session=request.session
         )
-        # extract user_name from oauth_data based on OAUTH_USERNAME_INFO_KEY and OAUTH_EXTRACT_USERNAME_FROM_EMAIL
         if settings.OAUTH_USERNAME_INFO_KEY:
             keys = settings.OAUTH_USERNAME_INFO_KEY.split()
             for key in keys:
@@ -158,10 +164,15 @@ def login_authorized(request):
     logger.info("get user_name %s and data %s back from oauth!" % (user_name, data))
     request.session["teletraan_user"] = user_name
 
-    if data and "origin_path" in data:
-        return HttpResponseRedirect(data["origin_path"])
+    origin_path = "/"
+    if state:
+        try:
+            state_data = signing.loads(state, salt="teletraan-oauth-state")
+            origin_path = state_data.get("origin_path", "/")
+        except BadSignature:
+            origin_path = "/"
 
-    return HttpResponseRedirect("/")
+    return HttpResponseRedirect(origin_path)
 
 
 def logout(request):
