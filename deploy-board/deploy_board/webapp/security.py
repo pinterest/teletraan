@@ -14,8 +14,6 @@
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from django.core import signing
-from django.core.signing import BadSignature
 
 from .auth import OAuth
 from .auth import OAuthException, OAuthExpiredTokenException
