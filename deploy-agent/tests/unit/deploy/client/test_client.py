@@ -167,7 +167,8 @@ class TestClient(TestCase):
                     "deploy_service_stage_type",
                     "ec2_placement_availability_zone",
                     "ec2_metadata.identity-credentials.ec2.info",
-                }
+                },
+                cache_ttl=0,
             ),  # original call (no no_cache arg)
             mock.call(
                 {
