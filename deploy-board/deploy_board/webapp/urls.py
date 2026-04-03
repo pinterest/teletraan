@@ -37,7 +37,9 @@ from . import host_tags_views
 urlpatterns = [
     # deploy related
     re_path(r"^deploy/inline_update/$", deploy_views.inline_update),
-    re_path(r"^deploy/(?P<deploy_id>[a-zA-Z0-9\-_]+)", deploy_views.DeployView.as_view()),
+    re_path(
+        r"^deploy/(?P<deploy_id>[a-zA-Z0-9\-_]+)", deploy_views.DeployView.as_view()
+    ),
     re_path(r"^deploys/ongoing/$", deploy_views.get_ongoing_deploys),
     re_path(r"^deploys/ongoing_sidecar/$", deploy_views.get_ongoing_sidecar_deploys),
     re_path(r"^deploys/dailycount", deploy_views.get_daily_deploy_count),
@@ -376,7 +378,9 @@ urlpatterns = [
         r"^builds/search_commit/(?P<commit>[a-zA-Z0-9\-_]+)/$",
         build_views.search_commit,
     ),
-    re_path(r"^builds/names/(?P<name>[a-zA-Z0-9\-_.]+)/builds/$", build_views.list_builds),
+    re_path(
+        r"^builds/names/(?P<name>[a-zA-Z0-9\-_.]+)/builds/$", build_views.list_builds
+    ),
     re_path(
         r"^builds/names/(?P<name>[a-zA-Z0-9\-_.]+)/branches/$",
         build_views.list_build_branches,

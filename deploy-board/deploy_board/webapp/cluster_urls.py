@@ -74,9 +74,13 @@ urlpatterns = [
         cluster_view.cancel_image_update,
     ),
     re_path(r"^clouds/create_host_type/$", cluster_view.create_host_type),
-    re_path(r"^clouds/create_host_type_mapping/$", cluster_view.create_host_type_mapping),
+    re_path(
+        r"^clouds/create_host_type_mapping/$", cluster_view.create_host_type_mapping
+    ),
     re_path(r"^clouds/modify_host_type/$", cluster_view.modify_host_type),
-    re_path(r"^clouds/modify_host_type_mapping/$", cluster_view.modify_host_type_mapping),
+    re_path(
+        r"^clouds/modify_host_type_mapping/$", cluster_view.modify_host_type_mapping
+    ),
     re_path(r"^clouds/hosttypes/$", cluster_view.get_host_types),
     re_path(r"^clouds/hosttypesmapping/$", cluster_view.get_host_types_mapping),
     re_path(r"^clouds/get_host_types/$", cluster_view.get_host_types_by_provider),
@@ -95,7 +99,9 @@ urlpatterns = [
     ),
     re_path(r"^clouds/create_security_zone/$", cluster_view.create_security_zone),
     re_path(r"^clouds/securityzones/$", cluster_view.get_security_zones),
-    re_path(r"^clouds/get_security_zones/$", cluster_view.get_security_zones_by_provider),
+    re_path(
+        r"^clouds/get_security_zones/$", cluster_view.get_security_zones_by_provider
+    ),
     re_path(r"^clouds/get_security_zone_info/$", cluster_view.get_security_zone_info),
     re_path(r"^clouds/create_placement/$", cluster_view.create_placement),
     re_path(r"^clouds/placements/$", cluster_view.get_placements),

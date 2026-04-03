@@ -84,7 +84,9 @@ urlpatterns = [
         r"^group_launch_rate/(?P<group_name>[a-zA-Z0-9\-_]+)/$",
         util_views.get_launch_rate,
     ),
-    re_path(r"^pas_stats/(?P<group_name>[a-zA-Z0-9\-_]+)/$", util_views.get_pas_metrics),
+    re_path(
+        r"^pas_stats/(?P<group_name>[a-zA-Z0-9\-_]+)/$", util_views.get_pas_metrics
+    ),
     # instances related
     re_path(
         r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/add_instance/$",
@@ -118,7 +120,9 @@ urlpatterns = [
     # groups related
     re_path(r"^groups/$", group_view.group_landing),
     re_path(r"^groups/names", group_view.get_group_names),
-    re_path(r"^groups/search/(?P<group_name>[a-zA-Z0-9\-_]+)/$", group_view.search_groups),
+    re_path(
+        r"^groups/search/(?P<group_name>[a-zA-Z0-9\-_]+)/$", group_view.search_groups
+    ),
     re_path(r"^groups/search/$", group_view.group_landing),
     re_path(
         r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/host-az-dist/$",
@@ -148,9 +152,15 @@ urlpatterns = [
     re_path(
         r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/disable_asg/$", group_view.disable_asg
     ),
-    re_path(r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/resume_asg/$", group_view.resume_asg),
-    re_path(r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/create_asg/$", group_view.create_asg),
-    re_path(r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/delete_asg/$", group_view.delete_asg),
+    re_path(
+        r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/resume_asg/$", group_view.resume_asg
+    ),
+    re_path(
+        r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/create_asg/$", group_view.create_asg
+    ),
+    re_path(
+        r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/delete_asg/$", group_view.delete_asg
+    ),
     re_path(
         r"^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/get_deleted_asg_status/$",
         group_view.get_deleted_asg_status,
