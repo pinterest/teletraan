@@ -80,7 +80,6 @@ class TestClient(TestCase):
         client = Client(config=Config(config_file))
         client._use_facter = True
         client._id = None
-        client._cache_ttl = 300  # Set cache TTL to a positive value to allow testing of no_cache behavior
 
         # First call (cached) returns missing id; second call (no_cache) returns id.
         side_effects = [
@@ -132,7 +131,6 @@ class TestClient(TestCase):
         client = Client(config=Config(config_file))
         client._use_facter = True
         client._availability_zone = None
-        client._cache_ttl = 0  # Set cache TTL to 0 to force no-cache behavior on retry
 
         # First call (cached) returns no AZ; second call returns AZ.
         side_effects = [
