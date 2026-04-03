@@ -50,7 +50,7 @@ class DelegatedOAuthMiddleware(object):
             self.is_oauth_enabled = False
 
     def __call__(self, request):
-        if request.path.startswith("/auth/"):
+        if request.path == "/auth" or request.path.startswith("/auth/"):
             logger.info("Bypass OAuth redirect request " + request.path)
             return self.get_response(request)
 
