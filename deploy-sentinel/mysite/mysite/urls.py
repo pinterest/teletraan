@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf.urls import include, url
+from django.urls import include, re_path
 
 from django.contrib import admin
 admin.autodiscover()
@@ -22,5 +22,5 @@ urlpatterns = [
     # url(r'^$', 'mysite.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
-    url(r'^admin/', include(admin.site.urls)),
+    re_path(r'^admin/', include(admin.site.urls)),
 ]
