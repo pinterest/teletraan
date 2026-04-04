@@ -18,6 +18,7 @@ import json
 from django.shortcuts import render
 from deploy_board.settings import DEBUG
 from django.http import HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from .helpers.exceptions import (
     IllegalArgumentException,
     NotAuthorizedException,
@@ -43,7 +44,8 @@ class ExceptionHandlerMiddleware:
         logger.exception("Exception thrown when handling request " + str(request))
 
         # Error is displayed as a fragment over related feature area
-        if request.is_ajax():
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if is_ajax:
             ajax_vars = {"success": False, "error": str(exception)}
             ret = 500
             if isinstance(exception, IllegalArgumentException):

@@ -18,6 +18,7 @@
 import json
 import logging
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.views.generic import View
@@ -81,7 +82,8 @@ class EnvCapacityConfigView(View):
             if params.get("create_new"):
                 create_new = params.get("create_new")
 
-        if request.is_ajax():
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if is_ajax:
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(
                 request, name, stage, capacity_type="HOST"

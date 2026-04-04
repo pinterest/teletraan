@@ -17,6 +17,7 @@
 
 import json
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -36,7 +37,8 @@ class EnvPromoteConfigView(View):
             if stage_name != env["stageName"]:
                 stage_names.append(stage_name)
 
-        if request.is_ajax():
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if is_ajax:
             # return data for ajax calls
             html = render_to_string(
                 "configs/promote_config.tmpl",

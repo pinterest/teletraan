@@ -17,6 +17,7 @@
 
 import json
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -49,7 +50,8 @@ class EnvConfigMapView(View):
             configs = environs_helper.get_env_agent_config(request, name, stage)
         else:
             configs = environs_helper.get_env_script_config(request, name, stage)
-        if request.is_ajax():
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if is_ajax:
             # return data for ajax calls
             env = environs_helper.get_env_by_stage(request, name, stage)
             html = render_to_string(
