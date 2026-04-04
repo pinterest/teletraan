@@ -36,7 +36,8 @@ class EnvPromoteConfigView(View):
             if stage_name != env["stageName"]:
                 stage_names.append(stage_name)
 
-        if request.is_ajax():
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if is_ajax:
             # return data for ajax calls
             html = render_to_string(
                 "configs/promote_config.tmpl",

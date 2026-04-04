@@ -263,52 +263,52 @@ def isHotfixBranch(branch):
     return branch and branch.startswith("hotfix")
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_deploy_priorities(context):
     return environs_helper.DEPLOY_PRIORITY_VALUES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_accept_types(context):
     return environs_helper.ACCEPTANCE_TYPE_VALUES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_promote_types(context):
     return environs_helper.PROMOTE_TYPE_VALUES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_web_hook_methods(context):
     return ["POST", "GET"]
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_promote_fail_policies(context):
     return environs_helper.PROMOTE_FAILED_POLICY_VALUES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_promote_disable_policies(context):
     return environs_helper.PROMOTE_DISABLE_POLICY_VALUES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_override_policies(context):
     return environs_helper.OVERRIDE_POLICY_VALUES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_stage_types(context):
     return environs_helper.STAGE_TYPES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_deploy_constraint_types(context):
     return environs_helper.DEPLOY_CONSTRAINT_TYPES
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_advanced_config_names(context):
     configNames = []
     for value in environs_helper.DEPLOY_STAGE_VALUES:
