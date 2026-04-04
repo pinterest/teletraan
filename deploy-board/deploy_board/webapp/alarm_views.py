@@ -23,7 +23,6 @@ from django.template.loader import render_to_string
 from django.views.generic import View
 from . import common
 from .helpers import environs_helper
-from django.http import JsonResponse
 
 
 class EnvAlarmView(View):

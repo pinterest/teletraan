@@ -18,7 +18,6 @@
 import json
 import logging
 from django.http import HttpResponse
-from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.views.generic import View
