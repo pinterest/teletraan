@@ -10,7 +10,11 @@
 
 {% block breadcrumb-items %}
 {% if pinterest %}
-    {% include "deploys/warning_no_tier3.tmpl" %}
+    {% if tier3_onboarding_disabled %}
+        {% include "deploys/warning_no_tier3.tmpl" %}
+    {% else %}
+        {% include "deploys/warning_no_tier3.tmpl" with hidden='display: none;' %}
+    {% endif %}
 {% endif %}
 {% endblock breadcrumb-items %}
 
