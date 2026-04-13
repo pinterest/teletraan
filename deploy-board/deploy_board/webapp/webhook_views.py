@@ -27,7 +27,8 @@ from .helpers import environs_helper
 
 class EnvWebhooksView(View):
     def get(self, request, name, stage):
-        if request.is_ajax():
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if is_ajax:
             env = environs_helper.get_env_by_stage(request, name, stage)
             webhooks = environs_helper.get_env_hooks_config(request, name, stage)
             html = render_to_string(

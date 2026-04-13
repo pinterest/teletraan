@@ -15,20 +15,20 @@
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <input type="radio" name="maxParallel" value="Number" id="maxParallelRadio"
-                                    {% ifequal env.showNumber True%}checked{% endifequal %} >
+                                    {% if env.showNumber == True%}checked{% endif %} >
                             </span>
                                 <input type="number" id="maxParallelValue" name="maxParallelValue" class="form-control"
-                                    value="{% ifequal env.showNumber True%}{{env.maxParallel}}{% endifequal %}">
+                                    value="{% if env.showNumber == True%}{{env.maxParallel}}{% endif %}">
                         </div>
                     </div>
                     <div class="col-xs-2">
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <input type="radio" name="maxParallel" value="Percentage" id="maxParallelPctRadio"
-                                    {% ifequal env.showNumber False%}checked{% endifequal %}>
+                                    {% if env.showNumber == False%}checked{% endif %}>
                             </span>
                             <input type="text" id="maxParallelPctValue" name="maxParallelPctValue" class="form-control"
-                                    value="{% ifequal env.showNumber False %}{{ env.maxParallelPct }}{% endifequal %}">
+                                    value="{% if env.showNumber == False %}{{ env.maxParallelPct }}{% endif %}">
                             <span class="input-group-addon">%</span>
                         </div>
                     </div>
