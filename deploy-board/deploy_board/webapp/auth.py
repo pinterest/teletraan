@@ -216,18 +216,6 @@ class OAuth(object):
             method="POST",
         )
 
-        # NEW: log status and a truncated body for debugging
-        try:
-            snippet = content.decode(errors="replace")[:300]
-        except Exception:
-            snippet = str(content)[:300]
-        logger = logging.getLogger("oauth")
-        logger.debug(
-            "OAuth token response: status=%s, body_snippet=%s",
-            getattr(resp, "code", None),
-            snippet,
-        )
-
         if resp.code == 401:
             raise OAuthExpiredTokenException("Expired Token")
 
