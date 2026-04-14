@@ -86,6 +86,8 @@ public class DeployHandler implements DeployHandlerInterface {
                     + "\"author\":\"%s\","
                     + "\"automation\":\"%s\","
                     + "\"source\":\"Teletraan\","
+                    + "\"deploy_build_id\":\"%s\","
+                    + "\"replaced_build_id\":\"%s\","
                     + "\"nimbus_uuid\":\"%s\"}";
     private static final String COMPARE_DEPLOY_URL =
             "https://deploy.pinadmin.com/env/%s/%s/compare_deploys_2/?chkbox_1=%s&chkbox_2=%s";
@@ -159,6 +161,8 @@ public class DeployHandler implements DeployHandlerInterface {
                                 newDeployBean.getDeploy_type(),
                                 newDeployBean.getOperator(),
                                 autoPromote,
+                                newDeployBean.getBuild_id(),
+                                oldDeployBean != null ? oldDeployBean.getBuild_id() : "",
                                 envBean.getExternal_id());
                 httpClient.post(changeFeedUrl, feedPayload, null);
                 LOG.info("Send change feed {} to {} successfully", feedPayload, changeFeedUrl);
