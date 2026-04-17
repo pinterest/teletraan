@@ -30,6 +30,8 @@ import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.PromoteBean;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.AgentDAO;
@@ -212,5 +214,13 @@ class EnvironHandlerTest {
         verify(promoteDAO, times(1)).delete(eq(TEST_ENV_ID));
         verify(udmDataUpdateService, times(1))
                 .notifyStageDeleted(eq(TEST_ENV_NAME), eq(TEST_STAGE_NAME));
+    }
+
+    @Test
+    void getEnvPromote_nonExistentEnv_throwsNotFoundException() throws Exception {
+        when(environDAO.getByStage("noEnv", "noStage")).thenReturn(null);
+        assertThrows(
+                NotFoundException.class,
+                () -> environHandler.getEnvPromote("noEnv", "noStage"));
     }
 }
