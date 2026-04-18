@@ -391,18 +391,45 @@ public class EnvironHandler {
         String envId = envBean.getEnv_id();
         List<String> groups = groupDAO.getCapacityGroups(envBean.getEnv_id());
         if (groups != null && !groups.isEmpty()) {
+            // T011: surface the blocking capacity so oncalls/users can act without digging
+            LOG.warn(
+                    "Env-delete blocked env={}/{} env_id={} reason=group_capacity_present groups={} operator={}",
+                    envName,
+                    envStage,
+                    envId,
+                    groups,
+                    operator);
             throw new DeployInternalException(
-                    "Reject the delete of env %s while it still has group capacity", envId);
+                    "Reject the delete of env %s while it still has group capacity: %s",
+                    envId, groups);
         }
 
         List<String> hosts = groupDAO.getCapacityHosts(envBean.getEnv_id());
         if (hosts != null && !hosts.isEmpty()) {
+            // T011: surface the orphan host ids so the operator can terminate via PinConsole
+            LOG.warn(
+                    "Env-delete blocked env={}/{} env_id={} reason=host_capacity_present host_count={} hosts={} operator={}",
+                    envName,
+                    envStage,
+                    envId,
+                    hosts.size(),
+                    hosts,
+                    operator);
             throw new DeployInternalException(
-                    "Reject the delete of env %s while it still has host capacity", envId);
+                    "Reject the delete of env %s while it still has host capacity: %s",
+                    envId, hosts);
         }
 
         long total = agentDAO.countAgentByEnv(envId);
         if (total > 0) {
+            // T011: active-agent count is the third orphan-EC2 failure mode — name it explicitly
+            LOG.warn(
+                    "Env-delete blocked env={}/{} env_id={} reason=active_agents_present active_count={} operator={}",
+                    envName,
+                    envStage,
+                    envId,
+                    total,
+                    operator);
             throw new DeployInternalException(
                     "Reject the delete of env %s while there are still %d hosts active",
                     envId, total);
@@ -549,20 +576,51 @@ public class EnvironHandler {
             try {
                 EnvironBean mainEnv = environDAO.getMainEnvByHostId(hostId);
                 if (mainEnv == null) {
+                    // T003: structured WARN — no owning env found for host; caller will get 404
+                    LOG.warn(
+                            "Host-operation rejected host_id={} requested_env={}/{} reason=no_owning_env",
+                            hostId,
+                            environBean.getEnv_name(),
+                            environBean.getStage_name());
                     throw new NotFoundException(
                             String.format(
                                     "No main environment found for host %s, refuse to proceed",
                                     hostId));
                 }
                 if (!mainEnv.getEnv_id().equals(environBean.getEnv_id())) {
+                    // T003: structured WARN — host belongs to a different env; caller will get 403.
+                    // Include the actual owning env so operators can route to the correct stage.
+                    LOG.warn(
+                            "Host-operation rejected host_id={} requested_env={}/{} actual_env={}/{} reason=wrong_env correct_env_url=/env/{}/{}/host/{}",
+                            hostId,
+                            environBean.getEnv_name(),
+                            environBean.getStage_name(),
+                            mainEnv.getEnv_name(),
+                            mainEnv.getStage_name(),
+                            mainEnv.getEnv_name(),
+                            mainEnv.getStage_name(),
+                            hostId);
                     throw new ForbiddenException(
                             String.format(
-                                    "%s/%s is not the owning environment of host %s",
+                                    "%s/%s is not the owning environment of host %s. "
+                                            + "Host belongs to %s/%s — use /env/%s/%s/host/%s instead.",
                                     environBean.getEnv_name(),
                                     environBean.getStage_name(),
+                                    hostId,
+                                    mainEnv.getEnv_name(),
+                                    mainEnv.getStage_name(),
+                                    mainEnv.getEnv_name(),
+                                    mainEnv.getStage_name(),
                                     hostId));
                 }
             } catch (SQLException e) {
+                // T003: log the DB-level failure (was silently wrapped as 500 before).
+                LOG.error(
+                        "Host-ownership lookup failed host_id={} requested_env={}/{}",
+                        hostId,
+                        environBean.getEnv_name(),
+                        environBean.getStage_name(),
+                        e);
                 throw new WebApplicationException(
                         String.format("Failed to get main environment for host %s", hostId), e);
             }
