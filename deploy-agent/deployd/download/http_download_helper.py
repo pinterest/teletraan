@@ -55,7 +55,22 @@ class HTTPDownloadHelper(DownloadHelper):
 
         status_code = self._download_files(local_full_fn)
         if status_code != Status.SUCCEEDED:
-            log.error("Failed to download the tar ball for {}".format(local_full_fn))
+            # Note: the local_full_fn path below is a HOST-LOCAL path (e.g.
+            # /mnt/builds/...). Users and oncalls frequently misread this as an
+            # S3 / IAM permission issue — it is NOT. This is a tarball download
+            # failure over HTTPS. If the file is missing from the build
+            # tarball (e.g. ServicesetConfNotFound: '.../serviceset.<stage>.conf
+            # is not in the build'), this is a PACKAGING / RESTARTING-wildcard
+            # problem, not S3/IAM. See T004.
+            log.error(
+                "Failed to download the tar ball for %s (source_url=%s). "
+                "This is a tarball download failure, NOT an S3/IAM permission "
+                "issue. If a subsequent step reports a missing serviceset conf, "
+                "verify that the expected config file is packaged in the build "
+                "tarball (check RESTARTING / POST_DOWNLOAD script wildcards).",
+                local_full_fn,
+                self._url,
+            )
             build_name = Helper.get_build_name(local_full_fn.rsplit("/", 1)[-1])
             tags = {"type": "http", "build_name": build_name}
             create_sc_increment("deployd.stats.download.failed", tags=tags)
