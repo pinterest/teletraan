@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.ws.rs.NotAuthorizedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -330,6 +331,9 @@ public class Buildkite extends BaseCIPlatformManager {
         KeyReader knoxKeyReader = new KnoxKeyReader();
         knoxKeyReader.init(knoxKeyString);
         String apiToken = knoxKeyReader.getKey();
+        // T024: record token source at call time so a subsequent 401 can correlate directly
+        // to which Knox key the service was reading.
+        boolean tokenPresent = StringUtils.isNotBlank(apiToken);
         String metadata = "";
         int count = 0;
         Set<String> keys = buildMetadata.keySet();
@@ -374,8 +378,23 @@ public class Buildkite extends BaseCIPlatformManager {
             String[] delimitStrings = url.getAsString().split("/");
             String jobNum = delimitStrings[delimitStrings.length - 1];
             return jobNum;
+        } catch (NotAuthorizedException t) {
+            // T021 / T024: 401 from Buildkite — surface token source + pipeline identity so
+            // oncalls don't have to re-derive which Knox key is misrotated.
+            LOG.error(
+                    "Buildkite trigger failed status=401 pipeline={} bk_org=pinterest token_source=knox token_name={} token_present={} remediation=check_knox_key_rotation",
+                    pipeline,
+                    knoxKeyString,
+                    tokenPresent,
+                    t);
+            return "";
         } catch (Exception t) {
-            LOG.error("Error in triggering build for pipeline " + pipeline, t);
+            LOG.error(
+                    "Error in triggering build for pipeline {} token_source=knox token_name={} token_present={}",
+                    pipeline,
+                    knoxKeyString,
+                    tokenPresent,
+                    t);
             return "";
         }
     }

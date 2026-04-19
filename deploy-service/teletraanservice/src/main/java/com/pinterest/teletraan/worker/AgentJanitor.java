@@ -257,10 +257,19 @@ public class AgentJanitor implements Runnable {
                 HostAgentBean hostAgent = staleHostMap.get(staleId);
                 if (isHostStale(hostAgent)) {
                     markUnreachableHost(staleId);
+                    Long lastUpdate = hostAgent.getLast_update();
+                    long lastPingSecondsAgo =
+                            lastUpdate == null
+                                    ? -1L
+                                    : TimeUnit.MILLISECONDS.toSeconds(
+                                            janitorStartTime - lastUpdate);
                     LOG.warn(
-                            "{}:{} is stale (not Pinging Teletraan), but might be running.",
+                            "AgentJanitor: host stale (not pinging Teletraan), but might be running host_id={} auto_scaling_group={} last_ping_ts={} last_ping_s_ago={} max_stale_threshold_ms={}",
+                            hostAgent.getHost_id(),
                             hostAgent.getAuto_scaling_group(),
-                            hostAgent.getHost_id());
+                            lastUpdate,
+                            lastPingSecondsAgo,
+                            maxStaleHostThreshold);
                     staleHostCount++;
                     errorBudgetSuccess.increment();
                 } else {
@@ -295,7 +304,11 @@ public class AgentJanitor implements Runnable {
             if (terminatedHosts.contains(hostId)) {
                 removeStaleHost(hostId);
             } else {
-                LOG.warn("Agentless host {} is stale but might be running", hostId);
+                LOG.warn(
+                        "AgentJanitor: agentless host stale but might be running host_id={} no_update_since_ts={} no_update_since_s_ago={}",
+                        hostId,
+                        noUpdateSince,
+                        TimeUnit.MILLISECONDS.toSeconds(janitorStartTime - noUpdateSince));
                 errorBudgetSuccess.increment();
             }
         }
