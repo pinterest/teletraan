@@ -53,6 +53,7 @@ public class UdmDataUpdateService {
                             "%s/v1/teletraan_stage/%s/%s",
                             udmDataUpdateServiceUrl, envName, stageName);
             String body = mapper.writeValueAsString(environBean);
+            LOG.info("Notifying udm of stage creation with body: {}", body);
             httpClient.put(url, body, null);
         } catch (Exception e) {
             LOG.error("Failed to notify udm of stage creation {}/{}", envName, stageName, e);
