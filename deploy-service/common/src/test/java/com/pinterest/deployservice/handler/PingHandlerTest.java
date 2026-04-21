@@ -37,6 +37,9 @@ import com.pinterest.deployservice.bean.KnoxStatus;
 import com.pinterest.deployservice.bean.NormandieStatus;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.ScheduleState;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import com.pinterest.deployservice.dao.AgentCountDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
@@ -300,6 +303,102 @@ public class PingHandlerTest {
         assertTrue(
                 PingHandler.hasFieldChanged(
                         existing, "h", "1.2.3.4", "v1", null, NormandieStatus.OK, KnoxStatus.OK));
+    }
+
+    private static EnvironBean env(String envId, String envName, String stageName) {
+        EnvironBean b = createRandomEnvironBean();
+        b.setEnv_id(envId);
+        b.setEnv_name(envName);
+        b.setStage_name(stageName);
+        return b;
+    }
+
+    @Test
+    public void testConvergeEnvs_reportedGroupBeatsShardedGroup() {
+        // Both envs share env_name "foo" but come from different match tiers.
+        EnvironBean reported = env("env-reported", "foo", "prod");
+        EnvironBean sharded = env("env-sharded", "foo", "prod-us-west-2b");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.emptyList(),
+                        Collections.singletonList(reported),
+                        Collections.singletonList(sharded));
+
+        assertEquals(1, converged.size());
+        assertTrue(converged.containsKey("env-reported"));
+        assertFalse(converged.containsKey("env-sharded"));
+    }
+
+    @Test
+    public void testConvergeEnvs_hostCapacityBeatsAllGroupTiers() {
+        EnvironBean hostEnv = env("env-host", "foo", "canary");
+        EnvironBean reported = env("env-reported", "foo", "prod");
+        EnvironBean sharded = env("env-sharded", "foo", "prod-us-west-2b");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.singletonList(hostEnv),
+                        Collections.singletonList(reported),
+                        Collections.singletonList(sharded));
+
+        assertEquals(1, converged.size());
+        assertTrue(converged.containsKey("env-host"));
+    }
+
+    @Test
+    public void testConvergeEnvs_noConflictKeepsAllTiers() {
+        EnvironBean hostEnv = env("env-host", "alpha", "prod");
+        EnvironBean reported = env("env-reported", "beta", "prod");
+        EnvironBean sharded = env("env-sharded", "gamma", "prod");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.singletonList(hostEnv),
+                        Collections.singletonList(reported),
+                        Collections.singletonList(sharded));
+
+        assertEquals(3, converged.size());
+        assertTrue(converged.containsKey("env-host"));
+        assertTrue(converged.containsKey("env-reported"));
+        assertTrue(converged.containsKey("env-sharded"));
+    }
+
+    @Test
+    public void testConvergeEnvs_onlyShardedFallsThrough() {
+        EnvironBean sharded = env("env-sharded", "foo", "prod");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.singletonList(sharded));
+
+        assertEquals(1, converged.size());
+        assertTrue(converged.containsKey("env-sharded"));
+    }
+
+    @Test
+    public void testConvergeEnvs_deprecatedTwoArgMatchesLegacyBehavior() {
+        // Pre-change behavior: single group list, host beats group.
+        EnvironBean hostEnv = env("env-host", "foo", "canary");
+        EnvironBean groupEnv = env("env-group", "foo", "prod");
+        EnvironBean otherGroupEnv = env("env-other", "bar", "prod");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.singletonList(hostEnv),
+                        Arrays.asList(groupEnv, otherGroupEnv));
+
+        assertEquals(2, converged.size());
+        assertTrue(converged.containsKey("env-host"));
+        assertTrue(converged.containsKey("env-other"));
+        assertFalse(converged.containsKey("env-group"));
     }
 
     @Test
