@@ -668,12 +668,11 @@ public class PingHandler {
     /**
      * Converge the envs reachable via host capacity, reported-group capacity and sharded-group
      * capacity into a single env_id-keyed map, applying priority
+     * 1. host capacity
+     * 2. group capacity
+     * 3. shard capacity
      *
-     * <pre>
-     *     host capacity  &gt;  reported-group match  &gt;  sharded-group match
-     * </pre>
-     *
-     * When two envs share the same {@code env_name} across tiers, the higher-priority tier wins
+     * When two envs are both assigned to different groups, the higher-priority tier wins
      * and the lower-priority entry is dropped. Conflicts within a single tier still fall through
      * to {@link #mergeEnvs}, which keeps the first-seen env and logs a warning.
      */
@@ -716,6 +715,7 @@ public class PingHandler {
         }
 
         // Tier 2: reported-group matches beat sharded-group matches for the same env_name.
+        // Allows switching sidecar groups
         for (Map.Entry<String, EnvironBean> entry : reportedGroupEnvMap.entrySet()) {
             EnvironBean envBean = entry.getValue();
             String envName = entry.getKey();
@@ -732,7 +732,7 @@ public class PingHandler {
             }
         }
 
-        // Tier 3: sharded (server-synthesized) matches, lowest priority.
+        // Tier 3: sharded (CMP) matches, lowest priority.
         for (Map.Entry<String, EnvironBean> entry : shardedGroupEnvMap.entrySet()) {
             envs.put(entry.getValue().getEnv_id(), entry.getValue());
         }
