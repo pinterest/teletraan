@@ -667,14 +667,12 @@ public class PingHandler {
 
     /**
      * Converge the envs reachable via host capacity, reported-group capacity and sharded-group
-     * capacity into a single env_id-keyed map, applying priority
-     * 1. host capacity
-     * 2. group capacity
+     * capacity into a single env_id-keyed map, applying priority 1. host capacity 2. group capacity
      * 3. shard capacity
      *
-     * When two envs are both assigned to different groups, the higher-priority tier wins
-     * and the lower-priority entry is dropped. Conflicts within a single tier still fall through
-     * to {@link #mergeEnvs}, which keeps the first-seen env and logs a warning.
+     * <p>When two envs are both assigned to different groups, the higher-priority tier wins and the
+     * lower-priority entry is dropped. Conflicts within a single tier still fall through to {@link
+     * #mergeEnvs}, which keeps the first-seen env and logs a warning.
      */
     Map<String, EnvironBean> convergeEnvs(
             String host,
@@ -867,9 +865,9 @@ public class PingHandler {
      * <ul>
      *   <li>{@code reported} - the group strings the agent actually sent in the ping.
      *   <li>{@code sharded} - synthesized names of the form {@code <reported>-<stage>-<az>} that
-     *       the server adds on top of the reported set. If a sharded name happens to collide with
-     *       a reported one, it is dropped from {@code sharded} so {@code reported} stays the
-     *       source of truth.
+     *       the server adds on top of the reported set. If a sharded name happens to collide with a
+     *       reported one, it is dropped from {@code sharded} so {@code reported} stays the source
+     *       of truth.
      * </ul>
      *
      * Matches against {@code reported} are treated as more specific than matches against {@code
