@@ -690,25 +690,25 @@ public class PingHandler {
             EnvironBean envBean = entry.getValue();
             String envName = entry.getKey();
             envs.put(envBean.getEnv_id(), envBean);
-            EnvironBean loser = reportedGroupEnvMap.remove(envName);
-            if (loser != null) {
+            EnvironBean duplicate = reportedGroupEnvMap.remove(envName);
+            if (duplicate != null) {
                 LOG.debug(
                         "Found conflict env for host {}: {}/{} and {}/{}, choose the former since it is associated with host directly.",
                         host,
                         envName,
                         envBean.getStage_name(),
                         envName,
-                        loser.getStage_name());
+                        duplicate.getStage_name());
             }
-            loser = shardedGroupEnvMap.remove(envName);
-            if (loser != null) {
+            duplicate = shardedGroupEnvMap.remove(envName);
+            if (duplicate != null) {
                 LOG.debug(
                         "Found conflict env for host {}: {}/{} and {}/{}, choose the former since it is associated with host directly.",
                         host,
                         envName,
                         envBean.getStage_name(),
                         envName,
-                        loser.getStage_name());
+                        duplicate.getStage_name());
             }
         }
 
@@ -718,15 +718,15 @@ public class PingHandler {
             EnvironBean envBean = entry.getValue();
             String envName = entry.getKey();
             envs.put(envBean.getEnv_id(), envBean);
-            EnvironBean loser = shardedGroupEnvMap.remove(envName);
-            if (loser != null) {
+            EnvironBean duplicate = shardedGroupEnvMap.remove(envName);
+            if (duplicate != null) {
                 LOG.info(
                         "Found conflict env for host {}: {}/{} and {}/{}, choose the former since it matches a reported group directly.",
                         host,
                         envName,
                         envBean.getStage_name(),
                         envName,
-                        loser.getStage_name());
+                        duplicate.getStage_name());
             }
         }
 
