@@ -62,7 +62,7 @@
                 try {
                     result = await $.ajax({
                         type: 'GET',
-                        url: `/groups/{{ group_name }}/hosts`,
+                        url: `/groups/{{ asg_group }}/hosts`,
                         dataType: "json",
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken');
