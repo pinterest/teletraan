@@ -1722,7 +1722,6 @@ def gen_replacement_config(request):
         else:
             rollingUpdateConfig["maxHealthyPercentage"] = params["maxHealthyPercentage"]
     elif params["availabilitySettingRadio"] == "terminateAndLaunch":
-        rollingUpdateConfig["maxHealthyPercentage"] = None
         if (
             params["minHealthyPercentage"] is None
             or len(params["minHealthyPercentage"]) == 0
