@@ -47,6 +47,9 @@
                         <th>Completion Percentage</th>
                         <td>
                             {{ replace_summary.percentageComplete }}%
+                            {% if replace_summary.startTime|isStalledReplacement and replace_summary.percentageComplete|default_if_none:0 == 0 and replace_summary.status == "InProgress" or replace_summary.startTime|isStalledReplacement and replace_summary.percentageComplete|default_if_none:0 == 0 and replace_summary.status == "Pending" %}
+                                <span class="label label-warning">Potentially Stalled — no progress for over 20 minutes</span>
+                            {% endif %}
                         </td>
                     </tr>
                     <tr>

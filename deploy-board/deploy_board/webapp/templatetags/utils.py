@@ -190,6 +190,15 @@ def convertTimestamp(timestamp):
     return temp_time.strftime("%Y-%m-%d %H:%M:%S")
 
 
+@register.filter("isStalledReplacement")
+def isStalledReplacement(timestamp):
+    """Return True if the given epoch-ms timestamp is more than 20 minutes ago."""
+    if not timestamp:
+        return False
+    elapsed_ms = time.time() * 1000 - float(timestamp)
+    return elapsed_ms > 20 * 60 * 1000
+
+
 @register.filter("computeDuration")
 def computeDuration(timestamp):
     delta = timedelta(milliseconds=(time.time() * 1000 - timestamp))
