@@ -76,6 +76,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.apache.commons.collections4.CollectionUtils;
@@ -221,30 +222,54 @@ public class PingHandler {
             NormandieStatus normandieStatus,
             KnoxStatus knoxStatus)
             throws Exception {
-        HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
+        HostAgentBean existingBean = hostAgentDAO.getHostById(hostId);
         long currentTime = System.currentTimeMillis();
-        boolean isExisting = true;
-        if (hostAgentBean == null) {
-            hostAgentBean = new HostAgentBean();
+
+        if (existingBean == null) {
+            // First ping - insert a new row
+            HostAgentBean hostAgentBean = new HostAgentBean();
             hostAgentBean.setHost_id(hostId);
             hostAgentBean.setCreate_date(currentTime);
-            isExisting = false;
-        }
-        hostAgentBean.setHost_name(hostName);
-        hostAgentBean.setIp(hostIp);
-        hostAgentBean.setLast_update(currentTime);
-        hostAgentBean.setAgent_version(agentVersion);
-        hostAgentBean.setAuto_scaling_group(asg);
-        hostAgentBean.setNormandie_status(normandieStatus);
-        hostAgentBean.setKnox_status(knoxStatus);
-
-        if (!isExisting) {
-            // First ping
+            hostAgentBean.setHost_name(hostName);
+            hostAgentBean.setIp(hostIp);
+            hostAgentBean.setLast_update(currentTime);
+            hostAgentBean.setAgent_version(agentVersion);
+            hostAgentBean.setAuto_scaling_group(asg);
+            hostAgentBean.setNormandie_status(normandieStatus);
+            hostAgentBean.setKnox_status(knoxStatus);
             hostAgentDAO.insert(hostAgentBean);
             emitProvisionLatency(currentTime, hostId, asg);
+        } else if (hasFieldChanged(
+                existingBean, hostName, hostIp, agentVersion, asg, normandieStatus, knoxStatus)) {
+            // Fields changed - do a full update
+            existingBean.setHost_name(hostName);
+            existingBean.setIp(hostIp);
+            existingBean.setLast_update(currentTime);
+            existingBean.setAgent_version(agentVersion);
+            existingBean.setAuto_scaling_group(asg);
+            existingBean.setNormandie_status(normandieStatus);
+            existingBean.setKnox_status(knoxStatus);
+            hostAgentDAO.update(hostId, existingBean);
         } else {
-            hostAgentDAO.update(hostId, hostAgentBean);
+            // Nothing changed except the heartbeat timestamp - lightweight single-column update
+            hostAgentDAO.touchLastUpdate(hostId, currentTime);
         }
+    }
+
+    static boolean hasFieldChanged(
+            HostAgentBean existing,
+            String hostName,
+            String hostIp,
+            String agentVersion,
+            String asg,
+            NormandieStatus normandieStatus,
+            KnoxStatus knoxStatus) {
+        return !Objects.equals(existing.getHost_name(), hostName)
+                || !Objects.equals(existing.getIp(), hostIp)
+                || !Objects.equals(existing.getAgent_version(), agentVersion)
+                || !Objects.equals(existing.getAuto_scaling_group(), asg)
+                || !Objects.equals(existing.getNormandie_status(), normandieStatus)
+                || !Objects.equals(existing.getKnox_status(), knoxStatus);
     }
 
     void emitProvisionLatency(long currentTime, String hostId, String asg) {
@@ -640,31 +665,86 @@ public class PingHandler {
         }
     }
 
-    // Host env will override group env, if there is conflicts, and convert to Map
+    /**
+     * Converge the envs reachable via host capacity, reported-group capacity and sharded-group
+     * capacity into a single env_id-keyed map, applying priority 1. host capacity 2. group capacity
+     * 3. shard capacity
+     *
+     * <p>When two envs are both assigned to different groups, the higher-priority tier wins and the
+     * lower-priority entry is dropped. Conflicts within a single tier still fall through to {@link
+     * #mergeEnvs}, which keeps the first-seen env and logs a warning.
+     */
     Map<String, EnvironBean> convergeEnvs(
-            String host, List<EnvironBean> hostEnvs, List<EnvironBean> groupEnvs) {
+            String host,
+            List<EnvironBean> hostEnvs,
+            List<EnvironBean> reportedGroupEnvs,
+            List<EnvironBean> shardedGroupEnvs) {
         Map<String, EnvironBean> hostEnvMap = mergeEnvs(host, hostEnvs);
-        Map<String, EnvironBean> groupEnvMap = mergeEnvs(host, groupEnvs);
+        Map<String, EnvironBean> reportedGroupEnvMap = mergeEnvs(host, reportedGroupEnvs);
+        Map<String, EnvironBean> shardedGroupEnvMap = mergeEnvs(host, shardedGroupEnvs);
+
         Map<String, EnvironBean> envs = new HashMap<>();
+
+        // Tier 1: host capacity always wins over any group-level match.
         for (Map.Entry<String, EnvironBean> entry : hostEnvMap.entrySet()) {
             EnvironBean envBean = entry.getValue();
-            envs.put(envBean.getEnv_id(), envBean);
             String envName = entry.getKey();
-            if (groupEnvMap.containsKey(envName)) {
+            envs.put(envBean.getEnv_id(), envBean);
+            EnvironBean duplicate = reportedGroupEnvMap.remove(envName);
+            if (duplicate != null) {
                 LOG.debug(
                         "Found conflict env for host {}: {}/{} and {}/{}, choose the former since it is associated with host directly.",
                         host,
                         envName,
                         envBean.getStage_name(),
                         envName,
-                        groupEnvMap.get(envName).getStage_name());
-                groupEnvMap.remove(envName);
+                        duplicate.getStage_name());
+            }
+            duplicate = shardedGroupEnvMap.remove(envName);
+            if (duplicate != null) {
+                LOG.debug(
+                        "Found conflict env for host {}: {}/{} and {}/{}, choose the former since it is associated with host directly.",
+                        host,
+                        envName,
+                        envBean.getStage_name(),
+                        envName,
+                        duplicate.getStage_name());
             }
         }
-        for (Map.Entry<String, EnvironBean> entry : groupEnvMap.entrySet()) {
+
+        // Tier 2: reported-group matches beat sharded-group matches for the same env_name.
+        // Allows switching sidecar groups
+        for (Map.Entry<String, EnvironBean> entry : reportedGroupEnvMap.entrySet()) {
+            EnvironBean envBean = entry.getValue();
+            String envName = entry.getKey();
+            envs.put(envBean.getEnv_id(), envBean);
+            EnvironBean duplicate = shardedGroupEnvMap.remove(envName);
+            if (duplicate != null) {
+                LOG.info(
+                        "Found conflict env for host {}: {}/{} and {}/{}, choose the former since it matches a reported group directly.",
+                        host,
+                        envName,
+                        envBean.getStage_name(),
+                        envName,
+                        duplicate.getStage_name());
+            }
+        }
+
+        // Tier 3: sharded (CMP) matches, lowest priority.
+        for (Map.Entry<String, EnvironBean> entry : shardedGroupEnvMap.entrySet()) {
             envs.put(entry.getValue().getEnv_id(), entry.getValue());
         }
         return envs;
+    }
+
+    /**
+     * @deprecated Prefer {@link #convergeEnvs(String, List, List, List)} which distinguishes
+     *     reported-group matches from server-synthesized sharded-group matches.
+     */
+    @Deprecated
+    Map<String, EnvironBean> convergeEnvs(
+            String host, List<EnvironBean> hostEnvs, List<EnvironBean> groupEnvs) {
+        return convergeEnvs(host, hostEnvs, groupEnvs, Collections.emptyList());
     }
 
     // Host env will override group env, if there is conflicts, and convert to Map
@@ -779,9 +859,42 @@ public class PingHandler {
         return EnvType.PRODUCTION;
     }
 
+    /**
+     * Buckets of group names used to look up {@code groups_and_envs}:
+     *
+     * <ul>
+     *   <li>{@code reported} - the group strings the agent actually sent in the ping.
+     *   <li>{@code sharded} - synthesized names of the form {@code <reported>-<stage>-<az>} that
+     *       the server adds on top of the reported set. If a sharded name happens to collide with a
+     *       reported one, it is dropped from {@code sharded} so {@code reported} stays the source
+     *       of truth.
+     * </ul>
+     *
+     * Matches against {@code reported} are treated as more specific than matches against {@code
+     * sharded} when resolving env conflicts (see {@link #convergeEnvs}).
+     */
+    static final class GroupBuckets {
+        final Set<String> reported;
+        final Set<String> sharded;
+
+        GroupBuckets(Set<String> reported, Set<String> sharded) {
+            this.reported = reported;
+            this.sharded = sharded;
+        }
+
+        Set<String> all() {
+            Set<String> union = new HashSet<>(reported.size() + sharded.size());
+            union.addAll(reported);
+            union.addAll(sharded);
+            return union;
+        }
+    }
+
     // Creates composite deploy group. size is limited by group_name size in hosts table.
     // TODO: Consider storing host <-> shard mapping separately.
-    private Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
+    GroupBuckets bucketGroups(PingRequestBean pingRequest) throws Exception {
+        Set<String> reported = new HashSet<>(pingRequest.getGroups());
+
         List<String> shards = new ArrayList<>();
         EnvType stageType = populateStageType(pingRequest);
         // A tmp solution to map dev and staging to latest.
@@ -794,18 +907,31 @@ public class PingHandler {
         if (availabilityZone != null) {
             shards.add(availabilityZone);
         }
-        Set<String> groups = new HashSet<>(pingRequest.getGroups());
-        if (shards.size() > 0) {
-            for (String group : pingRequest.getGroups()) {
-                String shardedGroup = group + "-" + String.join("-", shards);
+
+        Set<String> sharded = new HashSet<>();
+        if (!shards.isEmpty()) {
+            String suffix = "-" + String.join("-", shards);
+            for (String group : reported) {
+                String shardedGroup = group + suffix;
                 LOG.info(
                         "Updating host {} with sharded group {}",
                         pingRequest.getHostName(),
                         shardedGroup);
-                groups.add(shardedGroup);
+                sharded.add(shardedGroup);
             }
         }
-        return groups;
+        // Reported wins if a reported group literally equals a sharded one.
+        sharded.removeAll(reported);
+        return new GroupBuckets(reported, sharded);
+    }
+
+    /**
+     * @deprecated Use {@link #bucketGroups(PingRequestBean)} and its {@link GroupBuckets#all()} for
+     *     persistence and the split sets for env lookup.
+     */
+    @Deprecated
+    Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
+        return bucketGroups(pingRequest).all();
     }
 
     /** This is the core function to update agent status and compute deploy goal */
@@ -824,7 +950,9 @@ public class PingHandler {
         String hostId = pingRequest.getHostId();
         String hostName = pingRequest.getHostName();
         String asg = pingRequest.getAutoscalingGroup();
-        Set<String> groups = this.shardGroups(pingRequest);
+        GroupBuckets groupBuckets = this.bucketGroups(pingRequest);
+        // Union of reported + sharded groups, used for host <-> group membership and logging.
+        Set<String> groups = groupBuckets.all();
         String accountId = pingRequest.getAccountId();
 
         // go through ec2Tags
@@ -860,11 +988,22 @@ public class PingHandler {
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);
 
-        // Find all the appropriate environments for this host and these groups,
-        // The converged env map is keyed by envId
+        // Find all the appropriate environments for this host and these groups.
+        // Group lookups are split into two buckets so that matches against the
+        // agent-reported group names take priority over matches against the
+        // server-synthesized sharded group names (see convergeEnvs). The converged
+        // env map is keyed by envId.
         List<EnvironBean> hostEnvs = environDAO.getEnvsByHost(hostName);
-        List<EnvironBean> groupEnvs = environDAO.getEnvsByGroups(groups);
-        Map<String, EnvironBean> envs = convergeEnvs(hostName, hostEnvs, groupEnvs);
+        List<EnvironBean> reportedGroupEnvs =
+                groupBuckets.reported.isEmpty()
+                        ? Collections.emptyList()
+                        : environDAO.getEnvsByGroups(groupBuckets.reported);
+        List<EnvironBean> shardedGroupEnvs =
+                groupBuckets.sharded.isEmpty()
+                        ? Collections.emptyList()
+                        : environDAO.getEnvsByGroups(groupBuckets.sharded);
+        Map<String, EnvironBean> envs =
+                convergeEnvs(hostName, hostEnvs, reportedGroupEnvs, shardedGroupEnvs);
         LOG.debug(
                 "Found the following envs {} associated with host {} and group {}.",
                 envs.keySet(),

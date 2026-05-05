@@ -23,6 +23,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.udm.UdmDataUpdateService;
 import java.sql.SQLException;
 import java.util.*;
 import javax.ws.rs.ForbiddenException;
@@ -40,6 +41,7 @@ public class EnvironHandler {
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
     private HostDAO hostDAO;
+    private UdmDataUpdateService udmDataUpdateService;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
 
@@ -49,6 +51,7 @@ public class EnvironHandler {
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
+        udmDataUpdateService = serviceContext.getUdmDataUpdateService();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
     }
@@ -190,6 +193,7 @@ public class EnvironHandler {
         }
         envBean.setEnv_id(envId);
         environDAO.insert(envBean);
+        udmDataUpdateService.notifyStageCreated(envBean);
         return envId;
     }
 
@@ -418,6 +422,7 @@ public class EnvironHandler {
         if (envBean.getMetrics_config_id() != null) {
             dataHandler.deleteData(envBean.getMetrics_config_id());
         }
+        udmDataUpdateService.notifyStageDeleted(envName, envStage);
     }
 
     /**

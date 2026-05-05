@@ -19,7 +19,6 @@ from oauthlib.common import add_params_to_uri
 import oauthlib.oauth2
 import random
 import time
-import base64
 
 try:
     import urllib2 as http
@@ -199,10 +198,8 @@ class OAuth(object):
         if old_state is None:
             raise OAuthException("Invalid state")
 
-        state, enc_data = (
-            state_with_data[: len(old_state)],
-            state_with_data[len(old_state) :],
-        )
+        # state_with_data is exactly the state we originally sent
+        state = state_with_data
         if not is_equal(old_state, state):
             raise OAuthException("Invalid state")
 
@@ -218,8 +215,8 @@ class OAuth(object):
             data=str(body) if body else None,
             method="POST",
         )
+
         if resp.code == 401:
-            # When auth.pinadmin.com returns a 401 error. remove token and redirect to / page
             raise OAuthExpiredTokenException("Expired Token")
 
         if resp.code not in (200, 201):
@@ -232,22 +229,22 @@ class OAuth(object):
         expires = time.time() + resp_data["expires_in"]
         self.oauth_handler.token_setter(resp_data["access_token"], expires, **kwargs)
 
-        try:
-            return json.loads(base64.b64decode(enc_data).decode())
-        except ValueError:
-            return None
+        # No extra data returned from state
+        return None
 
     def get_authorization_url(self, data=None, **kwargs):
         client = self.get_client()
         scope = str(self.scope)
 
-        # generate and set state
-        state = self.oauth_handler.state_generator(**kwargs)
-        self.oauth_handler.state_setter(state, **kwargs)
+        # If data is provided, treat it as the full state value (already generated
+        # and stored by the caller). Otherwise, generate and store a new state.
+        if data:
+            state_with_data = data
+        else:
+            state = self.oauth_handler.state_generator(**kwargs)
+            self.oauth_handler.state_setter(state, **kwargs)
+            state_with_data = state
 
-        # hack to add data to state
-        encoded_data = base64.b64encode(json.dumps(data).encode("utf-8"))
-        state_with_data = state + encoded_data.decode("utf-8")
         return client.prepare_request_uri(
             self.authorize_url,
             redirect_uri=self.callback_url,

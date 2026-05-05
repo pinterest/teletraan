@@ -31,7 +31,6 @@ pip install pre-commit
 pre-commit install
 ```
 
-
 ### Documentation
 
 [Check out our wiki!](https://github.com/pinterest/teletraan/wiki)

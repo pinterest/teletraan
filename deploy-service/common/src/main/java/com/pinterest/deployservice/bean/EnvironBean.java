@@ -382,11 +382,11 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
         this.email_recipients = email_recipients;
     }
 
-    public boolean getNotify_authors() {
+    public Boolean getNotify_authors() {
         return notify_authors;
     }
 
-    public void setNotify_authors(boolean notify_authors) {
+    public void setNotify_authors(Boolean notify_authors) {
         this.notify_authors = notify_authors;
     }
 

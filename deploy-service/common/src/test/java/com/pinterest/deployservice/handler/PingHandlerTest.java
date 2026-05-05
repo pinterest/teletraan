@@ -21,14 +21,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.bean.KnoxStatus;
+import com.pinterest.deployservice.bean.NormandieStatus;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.dao.AgentCountDAO;
@@ -44,6 +50,9 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -161,6 +170,235 @@ public class PingHandlerTest {
                 Arguments.of(0l, 3l, "3%,20%,60%", true),
                 Arguments.of(2l, 100l, "3%,20%,60%", true),
                 Arguments.of(3l, 100l, "3%,20%,60%", false));
+    }
+
+    @Test
+    public void testUpdateHostStatus_newHost_insertsRow() throws Exception {
+        when(hostAgentDAO.getHostById("host-1")).thenReturn(null);
+
+        pingHandler.updateHostStatus(
+                "host-1",
+                "hostname",
+                "10.0.0.1",
+                "2.0",
+                "asg-1",
+                NormandieStatus.OK,
+                KnoxStatus.OK);
+
+        verify(hostAgentDAO).insert(any(HostAgentBean.class));
+        verify(hostAgentDAO, never()).update(anyString(), any(HostAgentBean.class));
+        verify(hostAgentDAO, never()).touchLastUpdate(anyString(), anyLong());
+    }
+
+    @Test
+    public void testUpdateHostStatus_fieldsChanged_fullUpdate() throws Exception {
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_id("host-1")
+                        .host_name("hostname")
+                        .ip("10.0.0.1")
+                        .agent_version("1.0")
+                        .auto_scaling_group("asg-1")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .last_update(1000L)
+                        .create_date(500L)
+                        .build();
+        when(hostAgentDAO.getHostById("host-1")).thenReturn(existing);
+
+        // Change agent_version from 1.0 -> 2.0
+        pingHandler.updateHostStatus(
+                "host-1",
+                "hostname",
+                "10.0.0.1",
+                "2.0",
+                "asg-1",
+                NormandieStatus.OK,
+                KnoxStatus.OK);
+
+        verify(hostAgentDAO).update(eq("host-1"), any(HostAgentBean.class));
+        verify(hostAgentDAO, never()).touchLastUpdate(anyString(), anyLong());
+        verify(hostAgentDAO, never()).insert(any(HostAgentBean.class));
+    }
+
+    @Test
+    public void testUpdateHostStatus_noFieldsChanged_touchLastUpdateOnly() throws Exception {
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_id("host-1")
+                        .host_name("hostname")
+                        .ip("10.0.0.1")
+                        .agent_version("2.0")
+                        .auto_scaling_group("asg-1")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .last_update(1000L)
+                        .create_date(500L)
+                        .build();
+        when(hostAgentDAO.getHostById("host-1")).thenReturn(existing);
+
+        // Same fields as existing
+        pingHandler.updateHostStatus(
+                "host-1",
+                "hostname",
+                "10.0.0.1",
+                "2.0",
+                "asg-1",
+                NormandieStatus.OK,
+                KnoxStatus.OK);
+
+        verify(hostAgentDAO).touchLastUpdate(eq("host-1"), anyLong());
+        verify(hostAgentDAO, never()).update(anyString(), any(HostAgentBean.class));
+        verify(hostAgentDAO, never()).insert(any(HostAgentBean.class));
+    }
+
+    @Test
+    public void testHasFieldChanged_allSame_returnsFalse() {
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_name("h")
+                        .ip("1.2.3.4")
+                        .agent_version("v1")
+                        .auto_scaling_group("asg")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .build();
+        assertFalse(
+                PingHandler.hasFieldChanged(
+                        existing, "h", "1.2.3.4", "v1", "asg", NormandieStatus.OK, KnoxStatus.OK));
+    }
+
+    @Test
+    public void testHasFieldChanged_ipDiffers_returnsTrue() {
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_name("h")
+                        .ip("1.2.3.4")
+                        .agent_version("v1")
+                        .auto_scaling_group("asg")
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .build();
+        assertTrue(
+                PingHandler.hasFieldChanged(
+                        existing, "h", "5.6.7.8", "v1", "asg", NormandieStatus.OK, KnoxStatus.OK));
+    }
+
+    @Test
+    public void testHasFieldChanged_nullFields_handledCorrectly() {
+        HostAgentBean existing =
+                HostAgentBean.builder()
+                        .host_name("h")
+                        .ip(null)
+                        .agent_version("v1")
+                        .auto_scaling_group(null)
+                        .normandie_status(NormandieStatus.OK)
+                        .knox_status(KnoxStatus.OK)
+                        .build();
+        // Both null - no change
+        assertFalse(
+                PingHandler.hasFieldChanged(
+                        existing, "h", null, "v1", null, NormandieStatus.OK, KnoxStatus.OK));
+        // One null, one not - changed
+        assertTrue(
+                PingHandler.hasFieldChanged(
+                        existing, "h", "1.2.3.4", "v1", null, NormandieStatus.OK, KnoxStatus.OK));
+    }
+
+    private static EnvironBean env(String envId, String envName, String stageName) {
+        EnvironBean b = createRandomEnvironBean();
+        b.setEnv_id(envId);
+        b.setEnv_name(envName);
+        b.setStage_name(stageName);
+        return b;
+    }
+
+    @Test
+    public void testConvergeEnvs_reportedGroupBeatsShardedGroup() {
+        // Both envs share env_name "foo" but come from different match tiers.
+        EnvironBean reported = env("env-reported", "foo", "prod");
+        EnvironBean sharded = env("env-sharded", "foo", "prod-us-west-2b");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.emptyList(),
+                        Collections.singletonList(reported),
+                        Collections.singletonList(sharded));
+
+        assertEquals(1, converged.size());
+        assertTrue(converged.containsKey("env-reported"));
+        assertFalse(converged.containsKey("env-sharded"));
+    }
+
+    @Test
+    public void testConvergeEnvs_hostCapacityBeatsAllGroupTiers() {
+        EnvironBean hostEnv = env("env-host", "foo", "canary");
+        EnvironBean reported = env("env-reported", "foo", "prod");
+        EnvironBean sharded = env("env-sharded", "foo", "prod-us-west-2b");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.singletonList(hostEnv),
+                        Collections.singletonList(reported),
+                        Collections.singletonList(sharded));
+
+        assertEquals(1, converged.size());
+        assertTrue(converged.containsKey("env-host"));
+    }
+
+    @Test
+    public void testConvergeEnvs_noConflictKeepsAllTiers() {
+        EnvironBean hostEnv = env("env-host", "alpha", "prod");
+        EnvironBean reported = env("env-reported", "beta", "prod");
+        EnvironBean sharded = env("env-sharded", "gamma", "prod");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.singletonList(hostEnv),
+                        Collections.singletonList(reported),
+                        Collections.singletonList(sharded));
+
+        assertEquals(3, converged.size());
+        assertTrue(converged.containsKey("env-host"));
+        assertTrue(converged.containsKey("env-reported"));
+        assertTrue(converged.containsKey("env-sharded"));
+    }
+
+    @Test
+    public void testConvergeEnvs_onlyShardedFallsThrough() {
+        EnvironBean sharded = env("env-sharded", "foo", "prod");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.singletonList(sharded));
+
+        assertEquals(1, converged.size());
+        assertTrue(converged.containsKey("env-sharded"));
+    }
+
+    @Test
+    public void testConvergeEnvs_deprecatedTwoArgMatchesLegacyBehavior() {
+        // Pre-change behavior: single group list, host beats group.
+        EnvironBean hostEnv = env("env-host", "foo", "canary");
+        EnvironBean groupEnv = env("env-group", "foo", "prod");
+        EnvironBean otherGroupEnv = env("env-other", "bar", "prod");
+
+        Map<String, EnvironBean> converged =
+                pingHandler.convergeEnvs(
+                        "host-1",
+                        Collections.singletonList(hostEnv),
+                        Arrays.asList(groupEnv, otherGroupEnv));
+
+        assertEquals(2, converged.size());
+        assertTrue(converged.containsKey("env-host"));
+        assertTrue(converged.containsKey("env-other"));
+        assertFalse(converged.containsKey("env-group"));
     }
 
     @Test

@@ -28,7 +28,8 @@ from .helpers import environs_helper
 
 class EnvConfigView(View):
     def get(self, request, name, stage):
-        if request.is_ajax():
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+        if is_ajax:
             env = environs_helper.get_env_by_stage(request, name, stage)
             environs_helper.set_active_max_parallel(env)
             html = render_to_string(

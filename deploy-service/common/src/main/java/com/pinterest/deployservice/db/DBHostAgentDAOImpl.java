@@ -44,6 +44,8 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
             "SELECT DISTINCT hosts_and_agents.* FROM hosts_and_agents INNER JOIN hosts_and_envs ON hosts_and_agents.host_name=hosts_and_envs.host_name WHERE hosts_and_agents.last_update<?";
     private static final String GET_HOSTS_BY_AGENT =
             "SELECT * FROM hosts_statuses WHERE agent_version=? ORDER BY host_id LIMIT ?,?";
+    private static final String TOUCH_LAST_UPDATE =
+            "UPDATE hosts_and_agents SET last_update=? WHERE host_id=?";
     private static final String GET_DISTINCT_HOSTS_COUNT =
             "SELECT COUNT(DISTINCT host_id) FROM hosts_and_agents";
 
@@ -113,6 +115,11 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
         ResultSetHandler<List<HostAgentBean>> h = new BeanListHandler<>(HostAgentBean.class);
         return new QueryRunner(dataSource)
                 .query(GET_HOSTS_BY_AGENT, h, agentVersion, (pageIndex - 1) * pageSize, pageSize);
+    }
+
+    @Override
+    public void touchLastUpdate(String hostId, long lastUpdate) throws Exception {
+        new QueryRunner(dataSource).update(TOUCH_LAST_UPDATE, lastUpdate, hostId);
     }
 
     @Override
