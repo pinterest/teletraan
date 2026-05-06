@@ -192,11 +192,11 @@ def convertTimestamp(timestamp):
 
 @register.filter("isStalledReplacement")
 def isStalledReplacement(timestamp):
-    """Return True if the given epoch-ms timestamp is more than 20 minutes ago."""
+    """Return True if the given epoch-ms timestamp is more than 30 minutes ago."""
     if not timestamp:
         return False
     elapsed_ms = time.time() * 1000 - float(timestamp)
-    return elapsed_ms > 20 * 60 * 1000
+    return elapsed_ms > 30 * 60 * 1000
 
 
 @register.filter("computeDuration")

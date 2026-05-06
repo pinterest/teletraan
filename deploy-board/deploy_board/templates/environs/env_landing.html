@@ -307,7 +307,7 @@
     <div class="alert {% if lastClusterRefreshStatus.startTime|isStalledReplacement and lastClusterRefreshStatus.percentageComplete|default_if_none:0 == 0 %}alert-warning{% else %}alert-info{% endif %} alert-dismissible">
       <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
       {% if lastClusterRefreshStatus.startTime|isStalledReplacement and lastClusterRefreshStatus.percentageComplete|default_if_none:0 == 0 %}
-      <strong>Warning!</strong> This cluster replacement may be stalled — 0% progress since {{ lastClusterRefreshStatus.startTime|convertTimestamp }} (over 20 minutes). Check <a href="/groups/{{ env.clusterName }}/scaling_activities/" target="_blank">scaling activities</a> for launch errors.
+      <strong>Warning!</strong> This cluster replacement may be stalled — 0% progress since {{ lastClusterRefreshStatus.startTime|convertTimestamp }} (over 30 minutes). Check <a href="/groups/{{ env.clusterName }}/scaling_activities/" target="_blank">scaling activities</a> for launch errors.
       Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
       {% else %}
       <strong>Info!</strong> This cluster is being refreshed with {{ lastClusterRefreshStatus.percentageComplete|default_if_none:0 }}% completed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
