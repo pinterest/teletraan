@@ -1983,9 +1983,7 @@ def add_scheduled_actions(request, group_name):
     # Optional Min/Max overrides for this scheduled action.
     scheduled_min = _parse_optional_int(params.get("min_capacity"), "Min Capacity")
     scheduled_max = _parse_optional_int(params.get("max_capacity"), "Max Capacity")
-    _validate_schedule_bounds(
-        scheduled_action_capacity, scheduled_min, scheduled_max
-    )
+    _validate_schedule_bounds(scheduled_action_capacity, scheduled_min, scheduled_max)
 
     try:
         schedule_action = {}
@@ -2091,8 +2089,16 @@ def _parse_actions_configs(query_data, group_name):
 
             min_key = "min_capacity_{}".format(action_id)
             max_key = "max_capacity_{}".format(action_id)
-            min_val = page_data[min_key][0] if min_key in page_data and page_data[min_key] else ""
-            max_val = page_data[max_key][0] if max_key in page_data and page_data[max_key] else ""
+            min_val = (
+                page_data[min_key][0]
+                if min_key in page_data and page_data[min_key]
+                else ""
+            )
+            max_val = (
+                page_data[max_key][0]
+                if max_key in page_data and page_data[max_key]
+                else ""
+            )
             min_size = _parse_optional_int(min_val, "Min Capacity")
             max_size = _parse_optional_int(max_val, "Max Capacity")
             try:
@@ -2126,7 +2132,9 @@ def _parse_optional_int(raw_value, field_label):
         parsed = int(value)
     except ValueError:
         raise TeletraanException(
-            "{} must be a non-negative integer (got '{}').".format(field_label, raw_value)
+            "{} must be a non-negative integer (got '{}').".format(
+                field_label, raw_value
+            )
         )
     if parsed < 0:
         raise TeletraanException(
