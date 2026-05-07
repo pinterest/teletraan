@@ -1980,11 +1980,22 @@ def add_scheduled_actions(request, group_name):
             )
         )
 
+    # Optional Min/Max overrides for this scheduled action.
+    scheduled_min = _parse_optional_int(params.get("min_capacity"), "Min Capacity")
+    scheduled_max = _parse_optional_int(params.get("max_capacity"), "Max Capacity")
+    _validate_schedule_bounds(
+        scheduled_action_capacity, scheduled_min, scheduled_max
+    )
+
     try:
         schedule_action = {}
         schedule_action["clusterName"] = group_name
         schedule_action["schedule"] = params["schedule"]
         schedule_action["capacity"] = params["capacity"]
+        if scheduled_min is not None:
+            schedule_action["minSize"] = scheduled_min
+        if scheduled_max is not None:
+            schedule_action["maxSize"] = scheduled_max
 
         autoscaling_groups_helper.add_scheduled_actions(
             request, group_name, [schedule_action]
@@ -2077,8 +2088,79 @@ def _parse_actions_configs(query_data, group_name):
             action_info["schedule"] = page_data["schedule_{}".format(action_id)][0]
             action_info["capacity"] = page_data["capacity_{}".format(action_id)][0]
             action_info["clusterName"] = group_name
+
+            min_key = "min_capacity_{}".format(action_id)
+            max_key = "max_capacity_{}".format(action_id)
+            min_val = page_data[min_key][0] if min_key in page_data and page_data[min_key] else ""
+            max_val = page_data[max_key][0] if max_key in page_data and page_data[max_key] else ""
+            min_size = _parse_optional_int(min_val, "Min Capacity")
+            max_size = _parse_optional_int(max_val, "Max Capacity")
+            try:
+                desired = int(action_info["capacity"])
+            except (TypeError, ValueError):
+                raise TeletraanException(
+                    "Invalid Desired Capacity for action {}: {}".format(
+                        action_id, action_info["capacity"]
+                    )
+                )
+            _validate_schedule_bounds(desired, min_size, max_size, label=action_id)
+            if min_size is not None:
+                action_info["minSize"] = min_size
+            if max_size is not None:
+                action_info["maxSize"] = max_size
+
             configs.append(action_info)
     return configs
+
+
+def _parse_optional_int(raw_value, field_label):
+    """Parse an optional integer form field. Returns None when blank.
+
+    Raises TeletraanException with a user-friendly message on invalid input."""
+    if raw_value is None:
+        return None
+    value = str(raw_value).strip()
+    if value == "":
+        return None
+    try:
+        parsed = int(value)
+    except ValueError:
+        raise TeletraanException(
+            "{} must be a non-negative integer (got '{}').".format(field_label, raw_value)
+        )
+    if parsed < 0:
+        raise TeletraanException(
+            "{} must be a non-negative integer (got {}).".format(field_label, parsed)
+        )
+    return parsed
+
+
+def _validate_schedule_bounds(desired, min_size, max_size, label=None):
+    """Validate that an optional (min, desired, max) triple is internally consistent.
+
+    AWS rejects PutScheduledUpdateGroupAction calls where MinSize > MaxSize or
+    where DesiredCapacity falls outside [MinSize, MaxSize] when those values are
+    provided in the same call, so we surface a clearer error before the API call.
+    """
+    prefix = "Action {}: ".format(label) if label else ""
+    if min_size is not None and max_size is not None and min_size > max_size:
+        raise TeletraanException(
+            "{}Min Capacity ({}) cannot be greater than Max Capacity ({}).".format(
+                prefix, min_size, max_size
+            )
+        )
+    if min_size is not None and desired < min_size:
+        raise TeletraanException(
+            "{}Desired Capacity ({}) must be >= Min Capacity ({}).".format(
+                prefix, desired, min_size
+            )
+        )
+    if max_size is not None and desired > max_size:
+        raise TeletraanException(
+            "{}Desired Capacity ({}) must be <= Max Capacity ({}).".format(
+                prefix, desired, max_size
+            )
+        )
 
 
 def update_scheduled_actions(request, group_name):
