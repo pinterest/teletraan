@@ -66,10 +66,6 @@ urlpatterns = [
     ),
     re_path(r"^env/(?P<name>[a-zA-Z0-9\-_]+)/get_users/$", user_views.get_users),
     re_path(
-        r"^env/(?P<name>[a-zA-Z0-9\-_]+)/get_user_token/(?P<user_name>[a-zA-Z0-9\-_]+)/$",
-        user_views.get_user_token,
-    ),
-    re_path(
         r"^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/deploy/$",
         env_views.EnvLandingView.as_view(),
     ),

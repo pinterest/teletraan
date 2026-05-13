@@ -30,6 +30,14 @@ public enum TeletraanPrincipalRole implements RoleEnum<ValueBasedRole> {
     WRITE(9),
     DELETE(9),
     /**
+     * Role required to read or mutate Teletraan script-token metadata (env- and system-scoped
+     * /token_roles APIs). Hardened away from READ/WRITE/DELETE in BUG-285640 because the metadata
+     * (script name, role, expiry) is sensitive. In the Pastis policy it is granted only to the
+     * `admin` and `envOwner` roles; other roles such as `legacyOperator`, `envMember`, `deployer`,
+     * and `reader` do NOT receive it.
+     */
+    MANAGE_SCRIPT_TOKEN(15),
+    /**
      * Role where user can modify a specific environment's config and perform deploy related
      * actions.
      */
@@ -54,6 +62,8 @@ public enum TeletraanPrincipalRole implements RoleEnum<ValueBasedRole> {
         public static final String WRITE = "WRITE";
         public static final String EXECUTE = "EXECUTE";
         public static final String DELETE = "DELETE";
+
+        public static final String MANAGE_SCRIPT_TOKEN = "MANAGE_SCRIPT_TOKEN";
 
         public static final String UPDATE_EXTERNAL_ID = "UPDATE_EXTERNAL_ID";
     }

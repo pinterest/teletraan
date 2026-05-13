@@ -37,13 +37,27 @@ public class DBTokenRolesDAOImpl implements TokenRolesDAO {
     private static final String UPDATE_TEMPLATE =
             "UPDATE tokens_and_roles SET %s WHERE script_name=? AND resource_id=? AND resource_type=?";
 
+    /**
+     * Defense in depth (BUG-285640): the read paths that feed HTTP responses must never load the
+     * {@code token} column, so a future regression cannot leak the bearer secret even if a Jackson
+     * annotation is dropped or a new endpoint forgets to redact.
+     */
+    private static final String SAFE_COLUMNS =
+            "script_name, resource_id, resource_type, role, expire_date";
+
+    // GET_BY_TOKEN is the authentication lookup path used by TeletraanScriptTokenProvider; it must
+    // select the token column to match the presented bearer credential against the stored value.
     private static final String GET_BY_TOKEN = "SELECT * FROM tokens_and_roles WHERE token=?";
 
     private static final String GET_BY_RESOURCE =
-            "SELECT * FROM tokens_and_roles WHERE resource_id=? AND resource_type=? ORDER BY script_name";
+            "SELECT "
+                    + SAFE_COLUMNS
+                    + " FROM tokens_and_roles WHERE resource_id=? AND resource_type=? ORDER BY script_name";
 
     private static final String GET_BY_NAME_AND_RESOURCE =
-            "SELECT * FROM tokens_and_roles WHERE script_name =? AND resource_id=? AND resource_type=?";
+            "SELECT "
+                    + SAFE_COLUMNS
+                    + " FROM tokens_and_roles WHERE script_name=? AND resource_id=? AND resource_type=?";
 
     private BasicDataSource dataSource;
 

@@ -39,9 +39,9 @@
                 title="Revoke this permission"> Revoke
         </button>
         {% if user_types == 'token_roles' %}
-            <button type="button" class="showTokenBtn deployToolTip btn btn-default"
-                    title="Show the token in clear text">Show Token</button>
-            <div class="control-label col-md-2" >
+            <div class="control-label col-md-3">
+                <span class="glyphicon glyphicon-lock" aria-hidden="true"
+                      title="The token value is only displayed once, at creation time, and cannot be retrieved afterwards."></span>
                 Expires on {{ user.expireDate|convertTimestamp }}
             </div>
         {% endif %}
@@ -128,26 +128,26 @@
 </div>
 
 <div class="modal fade" id="tokenModalId" tabindex="-1" role="dialog"
-     aria-labelledby="tokenModalLabel" aria-hidden="true">
+     aria-labelledby="tokenModalLabel" aria-hidden="true"
+     data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form id="tokenFormId" class="form-horizontal" method="post" role="form">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span
-                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-                    </button>
-                    <h4 class="modal-title">Show Token</h4>
+            <div class="modal-header">
+                <h4 class="modal-title" id="tokenModalLabel">New script token(s) - save them now</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert">
+                    <strong>This is the only time these token values will be displayed.</strong>
+                    Copy each one and store it in your secrets manager before dismissing this dialog.
+                    Lost tokens cannot be recovered - you will need to revoke and create new ones.
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-warning" role="alert">
-                        Remember to keep this token secret; treat it just like passwords!
-                    </div>
-                    <pre><div id="tokenDivId"></div></pre>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">Got It!</button>
-                </div>
-            </form>
+                <div id="newTokensListId"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="tokenModalDismissBtnId">
+                    I have saved the token(s)
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -199,6 +199,67 @@
         });
 
 
+        // BUG-285640: A freshly minted bearer token is included in the POST response exactly
+        // once. Render the list of new tokens (if any) into a modal so the operator can copy
+        // each value before the page refreshes the user list.
+        function renderNewTokensModal(newTokens) {
+            var $list = $('#newTokensListId').empty();
+            for (var i = 0; i < newTokens.length; i++) {
+                var t = newTokens[i];
+                var name = String(t.name || '');
+                var role = String(t.role || '');
+                var token = String(t.token || '');
+                var inputId = 'newTokenValue_' + i;
+                var rowId = 'newTokenRow_' + i;
+                var row = $('<div class="form-group row" id="' + rowId + '"></div>');
+                row.append(
+                    $('<label class="control-label col-md-2"></label>').text(name)
+                );
+                row.append(
+                    $('<div class="control-label col-md-2"></div>').text(role)
+                );
+                var inputCol = $('<div class="col-md-6"></div>');
+                inputCol.append(
+                    $('<input type="text" class="form-control" readonly="readonly" />')
+                        .attr('id', inputId)
+                        .val(token)
+                );
+                row.append(inputCol);
+                var btnCol = $('<div class="col-md-2"></div>');
+                btnCol.append(
+                    $('<button type="button" class="btn btn-default copyTokenBtn">' +
+                      '<span class="glyphicon glyphicon-copy"></span> Copy</button>')
+                        .attr('data-target', '#' + inputId)
+                );
+                row.append(btnCol);
+                $list.append(row);
+            }
+            $('#tokenModalId').modal('show');
+        }
+
+        $('#tokenModalId').on('click', '.copyTokenBtn', function () {
+            var $btn = $(this);
+            var $input = $($btn.data('target'));
+            $input.select();
+            try {
+                document.execCommand('copy');
+                $btn.html('<span class="glyphicon glyphicon-ok"></span> Copied');
+                setTimeout(function () {
+                    $btn.html('<span class="glyphicon glyphicon-copy"></span> Copy');
+                }, 1500);
+            } catch (e) {
+                // Fallback: leave the value selected so the user can copy manually.
+            }
+        });
+
+        $('#tokenModalDismissBtnId').click(function () {
+            // Scrub token values from the DOM before closing - they exist in this page only
+            // until the user explicitly acknowledges them.
+            $('#newTokensListId input').val('');
+            $('#tokenModalId').modal('hide');
+            $('#newTokensListId').empty();
+        });
+
         $('#saveConfigMapBtnId').click(function () {
             var btn = $(this);
             $.ajax({
@@ -216,6 +277,9 @@
                     } else {
                         $('#usersConfigId').html(data.html);
                         $('#errorBannerId').empty().hide();
+                        if (data && data.new_tokens && data.new_tokens.length > 0) {
+                            renderNewTokensModal(data.new_tokens);
+                        }
                     }
                     btn.button('reset');
                 },
@@ -245,13 +309,6 @@
             $(this).parent().remove();
             $('#saveConfigMapBtnId').removeAttr('disabled');
             $('#resetConfigMapBtnId').removeAttr('disabled');
-        });
-
-        $('#usersFormId').on('click', '.showTokenBtn', function () {
-            var user_name = $(this).parent().find("label").text();
-            $('#tokenDivId').load('/env/{{ env_name }}/get_user_token/' +
-                user_name + '/?user_types={{ user_types }}');
-            $('#tokenModalId').modal();
         });
 
     });

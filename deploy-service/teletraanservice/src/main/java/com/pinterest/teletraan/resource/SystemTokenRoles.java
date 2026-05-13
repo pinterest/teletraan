@@ -27,7 +27,7 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
-@RolesAllowed(TeletraanPrincipalRole.Names.READ)
+@RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
 @Path("/v1/system/token_roles")
 @Api(tags = "Script Tokens")
 @SwaggerDefinition(
@@ -44,13 +44,18 @@ public class SystemTokenRoles extends TokenRoles {
         super(context);
     }
 
+    // BUG-285640: All endpoints (read AND mutate) require MANAGE_SCRIPT_TOKEN. Kept consistent with
+    // EnvTokenRoles even though this resource is not currently registered in TeletraanService and
+    // is therefore unreachable; if/when it is re-enabled the role guard must already be correct.
+    // MANAGE_SCRIPT_TOKEN on a SYSTEM resource is granted only by SYSTEM:* admin (groups: cdp,
+    // sre-sec).
     @GET
     @ApiOperation(
             value = "Get system script tokens",
             notes = "Returns all system TokenRoles objects",
             response = TokenRolesBean.class,
             responseContainer = "List")
-    @RolesAllowed(TeletraanPrincipalRole.Names.READ)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public List<TokenRolesBean> getByResource() throws Exception {
         return super.getByResource(RESOURCE_ID, RESOURCE_TYPE);
@@ -62,7 +67,7 @@ public class SystemTokenRoles extends TokenRoles {
             value = "Get system TokenRoles object by script name",
             notes = "Returns a TokenRoles object for given script name",
             response = TokenRolesBean.class)
-    @RolesAllowed(TeletraanPrincipalRole.Names.READ)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public TokenRolesBean getByNameAndResource(
             @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")
@@ -77,7 +82,7 @@ public class SystemTokenRoles extends TokenRoles {
             value = "Update a system script token",
             notes =
                     "Updates a TokenRoles object by given script name and replacement TokenRoles object")
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void update(
             @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")
@@ -92,7 +97,7 @@ public class SystemTokenRoles extends TokenRoles {
             value = "Create a system script token",
             notes = "Creates a specified system wide TokenRole and returns a Response object",
             response = Response.class)
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public Response create(
             @Context UriInfo uriInfo,
@@ -106,7 +111,7 @@ public class SystemTokenRoles extends TokenRoles {
     @ApiOperation(
             value = "Delete a system wide script token",
             notes = "Deletes a system wide TokenRoles object by specified script name")
-    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void delete(
             @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")

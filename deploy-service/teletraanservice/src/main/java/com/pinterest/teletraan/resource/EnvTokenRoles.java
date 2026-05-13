@@ -29,7 +29,7 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
-@RolesAllowed(TeletraanPrincipalRole.Names.READ)
+@RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/token_roles")
 @Api(value = "Script Tokens")
 @Produces(MediaType.APPLICATION_JSON)
@@ -41,13 +41,19 @@ public class EnvTokenRoles extends TokenRoles {
         super(context);
     }
 
+    // BUG-285640: All endpoints (read AND mutate) require MANAGE_SCRIPT_TOKEN. Script-token
+    // metadata
+    // (script name, role, expiry) is sensitive, and the bearer secret itself can be re-issued via
+    // create/update/delete; both surfaces must be restricted to admin/envOwner principals only.
+    // MANAGE_SCRIPT_TOKEN is granted by exactly two Pastis roles (admin, envOwner); legacyOperator,
+    // envMember, deployer, and reader do not receive it.
     @GET
     @ApiOperation(
             value = "Get environment TokenRoles objects",
             notes = "Returns all the TokenRoles objects for a given environment.",
             response = TokenRolesBean.class,
             responseContainer = "List")
-    @RolesAllowed(TeletraanPrincipalRole.Names.READ)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public List<TokenRolesBean> getByResource(
             @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
@@ -62,7 +68,7 @@ public class EnvTokenRoles extends TokenRoles {
             value = "Get TokenRoles object by script and environment names",
             notes = "Returns a TokenRoles object given a script and environment name.",
             response = TokenRolesBean.class)
-    @RolesAllowed(TeletraanPrincipalRole.Names.READ)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public TokenRolesBean getByNameAndResource(
             @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
@@ -79,7 +85,7 @@ public class EnvTokenRoles extends TokenRoles {
             value = "Update an envrionment's script token",
             notes =
                     "Update a specific environment script token given environment and script names.")
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(
             @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
@@ -97,7 +103,7 @@ public class EnvTokenRoles extends TokenRoles {
             notes =
                     "Creates an environment script token with given environment name and TokenRoles object.",
             response = Response.class)
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response create(
             @Context UriInfo uriInfo,
@@ -113,7 +119,7 @@ public class EnvTokenRoles extends TokenRoles {
     @ApiOperation(
             value = "Delete an environment script token",
             notes = "Deletes a script token by given environment and script name.")
-    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void delete(
             @ApiParam(value = "Environment name.", required = true) @PathParam("envName")
