@@ -25,17 +25,36 @@
                 </div>
 
                 <label for="capacity" class="deployToolTip control-label col-xs-2"
-                    data-toggle="tooltip" title="The total number of hosts in this group">
-                    Capacity
+                    data-toggle="tooltip" title="The desired number of hosts in this group at the scheduled time">
+                    Desired Capacity
                 </label>
                 <div class="col-xs-3">
                     <input class="form-control" name="capacity_{{ scheduled_action.actionId }}" required="true" id="capacity"
-                           type="text" value="{{ scheduled_action.capacity }}"/>
+                           type="number" min="0" value="{{ scheduled_action.capacity }}"/>
                 </div>
 
                 <div>
                     <button id="deleteItem_{{ scheduled_action.actionId }}" type="button" style="float:left; margin-left:6px;"
                             class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="min_capacity" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip" title="Optional. The minimum number of hosts the ASG should have at the scheduled time. Leave empty to keep current ASG min size.">
+                    Min Capacity
+                </label>
+                <div class="col-xs-3">
+                    <input class="form-control" name="min_capacity_{{ scheduled_action.actionId }}" id="min_capacity"
+                           type="number" min="0" value="{% if scheduled_action.minSize != None %}{{ scheduled_action.minSize }}{% endif %}"/>
+                </div>
+
+                <label for="max_capacity" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip" title="Optional. The maximum number of hosts the ASG should have at the scheduled time. Leave empty to keep current ASG max size.">
+                    Max Capacity
+                </label>
+                <div class="col-xs-3">
+                    <input class="form-control" name="max_capacity_{{ scheduled_action.actionId }}" id="max_capacity"
+                           type="number" min="0" value="{% if scheduled_action.maxSize != None %}{{ scheduled_action.maxSize }}{% endif %}"/>
                 </div>
             </div>
         </fieldset>
@@ -140,11 +159,28 @@ $(function() {
                     </div>
 
                     <label for="capacity" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
-                        title="The total number of hosts in this group">
-                        Capacity
+                        title="The desired number of hosts in this group at the scheduled time">
+                        Desired Capacity
                     </label>
                     <div class="col-xs-4">
-                        <input class="form-control" name="capacity" required="true" id="capacity" type="text" value=""/>
+                        <input class="form-control" name="capacity" required="true" id="capacity" type="number" min="0" value=""/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="min_capacity" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
+                        title="Optional. Minimum ASG size at the scheduled time. Leave empty to keep current ASG min size.">
+                        Min Capacity
+                    </label>
+                    <div class="col-xs-4">
+                        <input class="form-control" name="min_capacity" id="min_capacity" type="number" min="0" value=""/>
+                    </div>
+
+                    <label for="max_capacity" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
+                        title="Optional. Maximum ASG size at the scheduled time. Leave empty to keep current ASG max size.">
+                        Max Capacity
+                    </label>
+                    <div class="col-xs-4">
+                        <input class="form-control" name="max_capacity" id="max_capacity" type="number" min="0" value=""/>
                     </div>
                 </div>
             </div>
@@ -162,6 +198,36 @@ $("#cronExpressionId").click(function() {
     $("#cronExpressionDetailsId").collapse('toggle');
 
 });
+
+// Returns null when valid, or a human-readable error message describing the
+// first invalid scheduled action found in the supplied (desired, min, max)
+// triples. Empty min/max means "leave unchanged" and is allowed.
+function validateScheduledAction(desiredStr, minStr, maxStr, label) {
+    var desired = parseInt(desiredStr, 10);
+    if (isNaN(desired) || desired < 0) {
+        return (label ? label + ': ' : '') + 'Desired Capacity is required and must be a non-negative integer.';
+    }
+    var hasMin = minStr !== undefined && minStr !== null && String(minStr).trim() !== '';
+    var hasMax = maxStr !== undefined && maxStr !== null && String(maxStr).trim() !== '';
+    var min = hasMin ? parseInt(minStr, 10) : null;
+    var max = hasMax ? parseInt(maxStr, 10) : null;
+    if (hasMin && (isNaN(min) || min < 0)) {
+        return (label ? label + ': ' : '') + 'Min Capacity must be a non-negative integer.';
+    }
+    if (hasMax && (isNaN(max) || max < 0)) {
+        return (label ? label + ': ' : '') + 'Max Capacity must be a non-negative integer.';
+    }
+    if (hasMin && hasMax && min > max) {
+        return (label ? label + ': ' : '') + 'Min Capacity (' + min + ') cannot be greater than Max Capacity (' + max + ').';
+    }
+    if (hasMin && desired < min) {
+        return (label ? label + ': ' : '') + 'Desired Capacity (' + desired + ') must be >= Min Capacity (' + min + ').';
+    }
+    if (hasMax && desired > max) {
+        return (label ? label + ': ' : '') + 'Desired Capacity (' + desired + ') must be <= Max Capacity (' + max + ').';
+    }
+    return null;
+}
 
 $(function () {
     $('#saveAsSchedulesBtnId').attr('disabled','disabled');
@@ -183,7 +249,33 @@ $(function () {
         $('#resetAsSchedulesBtnId').removeAttr('disabled');
     });
 
+    $('#newEntryFormId').on('submit', function (e) {
+        var desired = $('#newEntryFormId input[name="capacity"]').val();
+        var minVal = $('#newEntryFormId input[name="min_capacity"]').val();
+        var maxVal = $('#newEntryFormId input[name="max_capacity"]').val();
+        var err = validateScheduledAction(desired, minVal, maxVal, null);
+        if (err) {
+            e.preventDefault();
+            alert(err);
+            return false;
+        }
+    });
+
     $('#saveAsSchedulesBtnId').click(function () {
+        // Client-side validation across every existing scheduled action row.
+        var validationError = null;
+        $('#asSchedulesId input[name^="capacity_"]').each(function () {
+            if (validationError) { return; }
+            var actionId = this.name.substring('capacity_'.length);
+            var desired = $(this).val();
+            var minVal = $('#asSchedulesId input[name="min_capacity_' + actionId + '"]').val();
+            var maxVal = $('#asSchedulesId input[name="max_capacity_' + actionId + '"]').val();
+            validationError = validateScheduledAction(desired, minVal, maxVal, 'Action ' + actionId);
+        });
+        if (validationError) {
+            $('#errorBannerId').empty().append(validationError).show();
+            return;
+        }
         var btn = $(this);
         $.ajax({
             type: 'POST',
