@@ -18,6 +18,9 @@ defaults:
     shell: bash
     working-directory: ./deploy-agent
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
