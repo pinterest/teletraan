@@ -65,14 +65,9 @@ def get_users(request, name):
     return HttpResponse(json.dumps({"html": html}), content_type="application/json")
 
 
-def get_user_token(request, name, user_name):
-    user_types = request.GET.get("user_types")
-    user = users_helper.get_env_user(request, name, user_name, user_types)
-    return HttpResponse(user["token"], content_type="application/text")
-
-
 def update_users_config(request, name):
     user_types = request.GET.get("user_types")
+    is_token_roles = user_types == "token_roles"
     # First, retrive all the original users
     origin_user_dict = {}
     for key, value in request.POST.items():
@@ -108,8 +103,22 @@ def update_users_config(request, name):
         users_helper.delete_env_user(request, name, key, user_types)
     for key, value in updated_user_dict.items():
         users_helper.update_env_user(request, name, key, value, user_types)
+
+    # BUG-285640: For token_roles, the POST response is the *only* time the raw bearer secret is
+    # disclosed. Capture it here so the UI can surface it to the operator once; afterwards it is
+    # not retrievable through any GET endpoint.
+    new_tokens = []
     for key, value in new_user_dict.items():
-        users_helper.create_env_user(request, name, key, value, user_types)
+        created = users_helper.create_env_user(request, name, key, value, user_types)
+        if is_token_roles and isinstance(created, dict) and created.get("token"):
+            new_tokens.append(
+                {
+                    "name": created.get("name", key),
+                    "role": created.get("role", value),
+                    "token": created["token"],
+                    "expireDate": created.get("expireDate"),
+                }
+            )
 
     users = users_helper.get_env_users(request, name, user_types)
     html = render_to_string(
@@ -123,4 +132,7 @@ def update_users_config(request, name):
         },
     )
 
-    return HttpResponse(json.dumps({"html": html}), content_type="application/json")
+    return HttpResponse(
+        json.dumps({"html": html, "new_tokens": new_tokens}),
+        content_type="application/json",
+    )

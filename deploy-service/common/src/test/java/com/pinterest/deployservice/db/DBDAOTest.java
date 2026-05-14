@@ -1111,6 +1111,21 @@ public class DBDAOTest {
         TokenRolesBean bean2 =
                 tokenRolesDAO.getByNameAndResource("test", "envTest", AuthZResource.Type.ENV);
         assertEquals(bean2.getRole(), TeletraanPrincipalRole.ADMIN);
+
+        // BUG-285640: read paths that feed HTTP responses must not load the token column.
+        assertNull(bean2.getToken());
+        List<TokenRolesBean> byResource =
+                tokenRolesDAO.getByResource("envTest", AuthZResource.Type.ENV);
+        assertEquals(1, byResource.size());
+        assertNull(byResource.get(0).getToken());
+        assertEquals("test", byResource.get(0).getScript_name());
+
+        // The authentication lookup path (used by TeletraanScriptTokenProvider) must still return
+        // the token so that bearer-credential comparison continues to work.
+        TokenRolesBean byToken = tokenRolesDAO.getByToken("token");
+        assertNotNull(byToken);
+        assertEquals("token", byToken.getToken());
+        assertEquals(TeletraanPrincipalRole.ADMIN, byToken.getRole());
     }
 
     @Test

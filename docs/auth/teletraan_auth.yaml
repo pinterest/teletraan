@@ -43,6 +43,7 @@ definitions:
       - PINGER
       - USE
       - UPDATE_EXTERNAL_ID
+      - MANAGE_SCRIPT_TOKEN
   role:
     type: object
     description: |

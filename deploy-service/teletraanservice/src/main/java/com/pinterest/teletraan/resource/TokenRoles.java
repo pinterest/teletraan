@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.pinterest.deployservice.bean.CreatedTokenRolesResponse;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
@@ -74,15 +75,15 @@ public abstract class TokenRoles {
         bean.setResource_type(resourceType);
         bean.setExpire_date(Instant.now().plus(VALIDATE_TIME, ChronoUnit.DAYS).toEpochMilli());
         tokenRolesDAO.insert(bean);
-        bean.setToken("xxxxxxxx");
         LOG.info(
                 "Successfully created new script permission for resource {} with {}",
                 resourceId,
                 bean);
-        TokenRolesBean newBean = tokenRolesDAO.getByToken(token);
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-        URI roleUri = ub.path(newBean.getScript_name()).build();
-        return Response.created(roleUri).entity(newBean).build();
+        URI roleUri = ub.path(bean.getScript_name()).build();
+        // BUG-285640: the raw token is disclosed exactly once, here, in the 201 Created response
+        // to the WRITE-role caller. GET endpoints redact the token field on TokenRolesBean.
+        return Response.created(roleUri).entity(new CreatedTokenRolesResponse(bean, token)).build();
     }
 
     public void delete(String scriptName, String resourceId, AuthZResource.Type resourceType)
