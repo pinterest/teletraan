@@ -56,6 +56,7 @@ public class AgentJanitor implements Runnable {
             WorkerTimerFactory.createWorkerTimer(AgentJanitor.class);
     private final RodimusManager rodimusManager;
     private final long maxLaunchLatencyThreshold;
+    private final long agentlessHostLookbackThreshold;
     private final long absoluteThreshold = TimeUnit.DAYS.toMillis(7);
     private final int agentlessHostBatchSize = 300;
     private final AtomicInteger unreachableHostsCount;
@@ -74,7 +75,8 @@ public class AgentJanitor implements Runnable {
             ServiceContext serviceContext,
             int minStaleHostThresholdSeconds,
             int maxStaleHostThresholdSeconds,
-            int maxLaunchLatencyThresholdSeconds) {
+            int maxLaunchLatencyThresholdSeconds,
+            int agentlessHostLookbackThresholdSeconds) {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
         hostAgentDAO = serviceContext.getHostAgentDAO();
@@ -83,6 +85,8 @@ public class AgentJanitor implements Runnable {
         this.maxStaleHostThreshold = maxStaleHostThresholdSeconds * 1000;
         this.minStaleHostThreshold = minStaleHostThresholdSeconds * 1000;
         maxLaunchLatencyThreshold = TimeUnit.SECONDS.toMillis(maxLaunchLatencyThresholdSeconds);
+        agentlessHostLookbackThreshold =
+                TimeUnit.SECONDS.toMillis(agentlessHostLookbackThresholdSeconds);
         unreachableHostsCount = Metrics.gauge("unreachable_hosts", new AtomicInteger(0));
         staleHostsCount = Metrics.gauge("stale_hosts", new AtomicInteger(0));
 
@@ -277,13 +281,24 @@ public class AgentJanitor implements Runnable {
      * <p>If a host is directly added to Teletraan, there will be no agent associated with it
      * immediately. Hosts may stuck in this state so we should clean up here. We wait 10x
      * maxLaunchLatencyThreshold before doing cleanup.
+     *
+     * <p>The query is bounded below by {@code agentlessHostLookbackThreshold} so the underlying
+     * range scan does not walk the entire historical {@code hosts} table. Hosts older than the
+     * lookback are persistently broken — Rodimus reports them as still running on every cycle and
+     * the janitor takes no action — so excluding them does not change observable behavior. A
+     * value of 0 disables the lower bound.
      */
     private void cleanUpAgentlessHosts() {
         long noUpdateSince = janitorStartTime - 10 * maxLaunchLatencyThreshold;
+        long lookbackFloor =
+                agentlessHostLookbackThreshold > 0
+                        ? janitorStartTime - agentlessHostLookbackThreshold
+                        : 0;
         List<String> agentlessHosts;
         try {
             agentlessHosts =
-                    hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
+                    hostDAO.getStaleAgentlessHostIds(
+                            noUpdateSince, lookbackFloor, agentlessHostBatchSize);
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
             errorBudgetFailure.increment();

@@ -63,7 +63,17 @@ public interface HostDAO {
 
     List<HostBean> getTerminatingHosts() throws Exception;
 
-    List<String> getStaleAgentlessHostIds(long lastUpdateBefore, int limit) throws SQLException;
+    /**
+     * Return ids of hosts whose {@code last_update} falls within the half-open window {@code
+     * (lastUpdateAfter, lastUpdateBefore)} and that have no row in {@code hosts_and_agents}.
+     *
+     * <p>The lower bound exists to prevent the underlying index range scan from walking the entire
+     * historical {@code hosts} table; agentless hosts older than the lower bound are persistently
+     * broken and re-finding them on every cycle adds DB load without changing behavior. Pass {@code
+     * 0} for {@code lastUpdateAfter} to disable the lower bound.
+     */
+    List<String> getStaleAgentlessHostIds(long lastUpdateBefore, long lastUpdateAfter, int limit)
+            throws SQLException;
 
     List<HostBean> getAgentlessHosts(long lastUpdateAfter, int limit) throws SQLException;
 

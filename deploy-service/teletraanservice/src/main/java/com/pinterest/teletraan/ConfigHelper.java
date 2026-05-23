@@ -106,6 +106,7 @@ public class ConfigHelper {
     private static final int DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS = 600; // 10 min
     private static final int DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS = 150; // 2.5 min
     private static final int DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS = 600;
+    private static final int DEFAULT_AGENTLESS_HOST_LOOKBACK_THRESHOLD_SECONDS = 86400; // 1 day
     private static final String DEFAULT_DEPLOY_JANITOR_SCHEDULE = "0 30 3 * * ?";
     private static final String DEFAULT_BUILD_JANITOR_SCHEDULE = "0 40 3 * * ?";
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
@@ -358,12 +359,18 @@ public class ConfigHelper {
                                 properties,
                                 "maxLaunchLatencyThreshold",
                                 DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS);
+                int agentlessHostLookbackThreshold =
+                        MapUtils.getIntValue(
+                                properties,
+                                "agentlessHostLookbackThreshold",
+                                DEFAULT_AGENTLESS_HOST_LOOKBACK_THRESHOLD_SECONDS);
                 Runnable worker =
                         new AgentJanitor(
                                 serviceContext,
                                 minStaleHostThreshold,
                                 maxStaleHostThreshold,
-                                maxLaunchLatencyThreshold);
+                                maxLaunchLatencyThreshold,
+                                agentlessHostLookbackThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AgentJanitor.");
             }

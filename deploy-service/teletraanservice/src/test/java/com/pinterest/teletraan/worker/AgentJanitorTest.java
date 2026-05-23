@@ -16,6 +16,7 @@
 package com.pinterest.teletraan.worker;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.longThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.eq;
@@ -36,6 +37,7 @@ import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +56,7 @@ public class AgentJanitorTest {
     private final int maxStaleHostThresholdSeconds = 150;
     private final int minStaleHostThresholdSeconds = 600;
     private final int maxLaunchLatencyThresholdSeconds = 600;
+    private final int agentlessHostLookbackThresholdSeconds = 86400;
 
     @BeforeAll
     public static void setUpClass() {
@@ -80,7 +83,8 @@ public class AgentJanitorTest {
                         serviceContext,
                         minStaleHostThresholdSeconds,
                         maxStaleHostThresholdSeconds,
-                        maxLaunchLatencyThresholdSeconds);
+                        maxLaunchLatencyThresholdSeconds,
+                        agentlessHostLookbackThresholdSeconds);
     }
 
     @AfterEach
@@ -177,7 +181,7 @@ public class AgentJanitorTest {
         // Set up mock data
         HostAgentBean hostAgentBean = createHostAgentBean();
         String hostId = hostAgentBean.getHost_id();
-        when(hostDAO.getStaleAgentlessHostIds(anyLong(), eq(300)))
+        when(hostDAO.getStaleAgentlessHostIds(anyLong(), anyLong(), eq(300)))
                 .thenReturn(ImmutableList.of(hostId));
         when(rodimusManager.getTerminatedHosts(eq(ImmutableList.of(hostId))))
                 .thenReturn(ImmutableSet.of(hostId));
@@ -191,6 +195,42 @@ public class AgentJanitorTest {
         verify(hostAgentDAO, times(1)).delete(eq(hostId));
         verify(hostDAO, times(1)).deleteAllById(eq(hostId));
         verify(agentDAO, times(0)).updateAgentById(any(), any());
+    }
+
+    @Test
+    public void testCleanUpAgentlessHosts_lookbackBoundsApplied() throws Exception {
+        // Verify the configured lookback is applied as a non-zero lower bound and the upper bound
+        // is strictly greater than the lower bound.
+        long beforeRun = System.currentTimeMillis();
+        long lookbackMs = TimeUnit.SECONDS.toMillis(agentlessHostLookbackThresholdSeconds);
+        when(hostDAO.getStaleAgentlessHostIds(anyLong(), anyLong(), eq(300)))
+                .thenReturn(ImmutableList.of());
+
+        agentJanitor.run();
+
+        verify(hostDAO, times(1))
+                .getStaleAgentlessHostIds(
+                        longThat(upper -> upper > 0 && upper <= System.currentTimeMillis()),
+                        longThat(lower -> lower >= beforeRun - lookbackMs - 1000 && lower > 0),
+                        eq(300));
+    }
+
+    @Test
+    public void testCleanUpAgentlessHosts_lookbackDisabled() throws Exception {
+        // When configured to 0 the lower bound should be 0 (disabled).
+        AgentJanitor janitorNoLookback =
+                new AgentJanitor(
+                        serviceContext,
+                        minStaleHostThresholdSeconds,
+                        maxStaleHostThresholdSeconds,
+                        maxLaunchLatencyThresholdSeconds,
+                        0);
+        when(hostDAO.getStaleAgentlessHostIds(anyLong(), anyLong(), eq(300)))
+                .thenReturn(ImmutableList.of());
+
+        janitorNoLookback.run();
+
+        verify(hostDAO, times(1)).getStaleAgentlessHostIds(anyLong(), eq(0L), eq(300));
     }
 
     private HostAgentBean createHostAgentBean() {
