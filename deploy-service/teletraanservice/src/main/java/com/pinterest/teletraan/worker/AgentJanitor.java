@@ -285,8 +285,8 @@ public class AgentJanitor implements Runnable {
      * <p>The query is bounded below by {@code agentlessHostLookbackThreshold} so the underlying
      * range scan does not walk the entire historical {@code hosts} table. Hosts older than the
      * lookback are persistently broken — Rodimus reports them as still running on every cycle and
-     * the janitor takes no action — so excluding them does not change observable behavior. A
-     * value of 0 disables the lower bound.
+     * the janitor takes no action — so excluding them does not change observable behavior. A value
+     * of 0 disables the lower bound.
      */
     private void cleanUpAgentlessHosts() {
         long noUpdateSince = janitorStartTime - 10 * maxLaunchLatencyThreshold;
