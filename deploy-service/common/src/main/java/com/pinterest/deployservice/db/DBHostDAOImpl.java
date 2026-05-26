@@ -70,7 +70,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_GROUP_NAMES_BY_HOST =
             "SELECT group_name FROM hosts WHERE host_name=?";
     private static final String GET_STALE_AGENTLESS_HOST_IDS =
-            "SELECT DISTINCT hosts.host_id FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE hosts.last_update < ? AND hosts_and_agents.host_id IS NULL ORDER BY hosts.last_update DESC LIMIT ?";
+            "SELECT DISTINCT hosts.host_id FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE hosts.last_update < ? AND hosts.last_update > ? AND hosts_and_agents.host_id IS NULL ORDER BY hosts.last_update DESC LIMIT ?";
     private static final String GET_AGENTLESS_HOSTS =
             "SELECT hosts.* FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE hosts.last_update > ? AND hosts_and_agents.host_id IS NULL ORDER BY hosts.last_update DESC LIMIT ?";
     private static final String GET_HOST_NAMES_BY_GROUP =
@@ -280,13 +280,14 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public List<String> getStaleAgentlessHostIds(long lastUpdateBefore, int limit)
-            throws SQLException {
+    public List<String> getStaleAgentlessHostIds(
+            long lastUpdateBefore, long lastUpdateAfter, int limit) throws SQLException {
         return new QueryRunner(dataSource)
                 .query(
                         GET_STALE_AGENTLESS_HOST_IDS,
                         SingleResultSetHandlerFactory.<String>newListObjectHandler(),
                         lastUpdateBefore,
+                        lastUpdateAfter,
                         limit);
     }
 
