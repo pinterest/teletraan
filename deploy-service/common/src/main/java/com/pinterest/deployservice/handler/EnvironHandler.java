@@ -320,6 +320,10 @@ public class EnvironHandler {
 
     public PromoteBean getEnvPromote(String envName, String stageName) throws Exception {
         EnvironBean envBean = environDAO.getByStage(envName, stageName);
+        if (envBean == null) {
+            throw new NotFoundException(
+                    String.format("Environment %s/%s does not exist.", envName, stageName));
+        }
         PromoteBean promoteBean = promoteDAO.getById(envBean.getEnv_id());
         if (promoteBean == null) {
             return genDefaultEnvPromote(envBean.getEnv_id());

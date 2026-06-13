@@ -213,4 +213,11 @@ class EnvironHandlerTest {
         verify(udmDataUpdateService, times(1))
                 .notifyStageDeleted(eq(TEST_ENV_NAME), eq(TEST_STAGE_NAME));
     }
+
+    @Test
+    void getEnvPromote_nonExistentEnv_throwsNotFoundException() throws Exception {
+        when(environDAO.getByStage("noEnv", "noStage")).thenReturn(null);
+        assertThrows(
+                NotFoundException.class, () -> environHandler.getEnvPromote("noEnv", "noStage"));
+    }
 }
