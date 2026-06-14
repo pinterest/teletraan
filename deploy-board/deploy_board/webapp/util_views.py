@@ -22,7 +22,9 @@ from deploy_board.settings import (
 )
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+import ipaddress
 import json
+import socket
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -35,6 +37,37 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def _validate_url(url):
+    """Validate that a URL is safe to fetch server-side.
+
+    Blocks requests to private/internal networks to prevent SSRF attacks.
+    Only http and https schemes are allowed.
+
+    Raises ValueError if the URL is not safe.
+    """
+    parsed = urllib.parse.urlparse(url)
+
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"URL scheme '{parsed.scheme}' is not allowed, only http/https")
+
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError("URL has no hostname")
+
+    # Resolve hostname to IP addresses and check each one
+    try:
+        addrinfos = socket.getaddrinfo(hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
+    except socket.gaierror:
+        raise ValueError(f"Cannot resolve hostname '{hostname}'")
+
+    for family, _, _, _, sockaddr in addrinfos:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            raise ValueError(
+                f"URL resolves to non-public address {ip} which is not allowed"
+            )
+
+
 # convert json opentsdb to array based
 def _convert_opentsdb_data(dps):
     data = []
@@ -45,6 +78,7 @@ def _convert_opentsdb_data(dps):
 
 
 def _get_latest_metrics(url):
+    _validate_url(url)
     response = urllib.request.urlopen(url)
     data_str = response.read().decode("utf-8")
     if not data_str:
@@ -94,6 +128,7 @@ def get_site_health_metrics(request):
 
 
 def _get_latest_alarm(url):
+    _validate_url(url)
     response = urllib.request.urlopen(url)
     data_str = response.read().decode("utf-8")
     if not data_str:
@@ -126,6 +161,7 @@ def validate_metrics_url(request):
         return HttpResponse(
             json.dumps({"result": False}), content_type="application/json"
         )
+    _validate_url(url)
     response = urllib.request.urlopen(url)
     data = json.loads(response.read().decode("utf-8"))
     if len(data) > 0:
