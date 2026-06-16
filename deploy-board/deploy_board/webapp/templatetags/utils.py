@@ -1197,7 +1197,10 @@ def isQualified(qualified):
 
 @register.filter("isEnvEnabled")
 def isEnvEnabled(env):
-    return env["state"] == "NORMAL"
+    # Handle None or missing env gracefully
+    if env is None:
+        return False
+    return env.get("state") == "NORMAL"
 
 
 @register.filter("isDisabledEnvTag")

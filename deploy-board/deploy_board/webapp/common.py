@@ -35,12 +35,18 @@ class UserIdentity(object):
 def get_all_stages(envs, stage):
     stages = []
     env = None
+
+    # Handle None or empty envs gracefully
+    if not envs:
+        return stages, env
+
     for temp in envs:
         if stage and stage == temp["stageName"]:
             env = temp
         stages.append(temp["stageName"])
     stages.sort()
-    if not env:
+
+    if not env and stages:
         stage = stages[0]
         for temp in envs:
             if temp["stageName"] == stage:

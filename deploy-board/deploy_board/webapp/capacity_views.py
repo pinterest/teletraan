@@ -17,7 +17,7 @@
 
 import json
 import logging
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.views.generic import View
@@ -47,6 +47,8 @@ class EnvCapacityConfigView(View):
         create_new = False
         adv = False
         env = environs_helper.get_env_by_stage(request, name, stage)
+        if env is None:
+            raise Http404("Environment %s/%s does not exist." % (name, stage))
         cluster_name = env.get("clusterName")
         termination_limit = env.get("terminationLimit")
         placements = None

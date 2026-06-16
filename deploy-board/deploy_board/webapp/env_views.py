@@ -2202,6 +2202,11 @@ def get_env_config_history(request, name, stage):
     size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
     env = environs_helper.get_env_by_stage(request, name, stage)
     configs = environs_helper.get_config_history(request, name, stage, index, size)
+
+    # Handle None response from API (404 or empty response)
+    if configs is None:
+        configs = []
+
     for config in configs:
         replaced_config = (
             config["configChange"]
@@ -2224,7 +2229,7 @@ def get_env_config_history(request, name, stage):
         {
             "envName": name,
             "stageName": stage,
-            "envId": env["id"],
+            "envId": env["id"] if env else None,
             "configs": configs,
             "pageIndex": index,
             "pageSize": DEFAULT_PAGE_SIZE,
