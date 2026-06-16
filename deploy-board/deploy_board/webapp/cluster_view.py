@@ -339,7 +339,7 @@ class ClusterConfigurationView(View):
             return HttpResponse(
                 json.dumps({"error": "Cluster configuration not found"}),
                 content_type="application/json",
-                status=404
+                status=404,
             )
 
         accounts = accounts_helper.get_all_accounts(request)
