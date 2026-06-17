@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * Class for converting deploy metrics data into JsonObjects and Strings to be used with the Data
  * table.
  */
-public class MetricsDataFactory implements t<List<MetricsConfigBean>> {
+public class MetricsDataFactory implements PersistableJSONFactory<List<MetricsConfigBean>> {
     private static final Logger LOG = LoggerFactory.getLogger(MetricsDataFactory.class);
 
     /** Convert this.URLs to a JSON string. */

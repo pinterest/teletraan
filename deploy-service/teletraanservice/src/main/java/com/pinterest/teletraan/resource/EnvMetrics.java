@@ -124,10 +124,7 @@ public class EnvMetrics {
                     metricsUrlAllowedPrefixes.stream().anyMatch(prefix -> url.startsWith(prefix));
             if (!allowed) {
                 throw new WebApplicationException(
-                        String.format(
-                                "Metrics URL '%s' is not allowed. URL must start with one of: %s",
-                                url, metricsUrlAllowedPrefixes),
-                        Response.Status.BAD_REQUEST);
+                        "Metrics URL is not allowed.", Response.Status.BAD_REQUEST);
             }
         }
     }
