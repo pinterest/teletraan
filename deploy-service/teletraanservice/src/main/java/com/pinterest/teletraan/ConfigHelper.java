@@ -53,6 +53,7 @@ import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.udm.UdmDataUpdateService;
 import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
+import com.pinterest.teletraan.config.MetricsUrlAllowlistFactory;
 import com.pinterest.teletraan.config.CIPlatformFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -225,6 +226,15 @@ public class ConfigHelper {
             context.setBuildAllowlist(
                     new BuildAllowlistImpl(
                             new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+        }
+
+        MetricsUrlAllowlistFactory metricsUrlAllowlistFactory =
+                configuration.getMetricsUrlAllowlistFactory();
+        if (metricsUrlAllowlistFactory != null
+                && metricsUrlAllowlistFactory.getAllowedPrefixes() != null) {
+            context.setMetricsUrlAllowedPrefixes(metricsUrlAllowlistFactory.getAllowedPrefixes());
+        } else {
+            context.setMetricsUrlAllowedPrefixes(new ArrayList<>());
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();

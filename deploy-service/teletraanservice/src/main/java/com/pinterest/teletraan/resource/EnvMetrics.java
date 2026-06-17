@@ -35,6 +35,7 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +50,13 @@ public class EnvMetrics {
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
+    private List<String> metricsUrlAllowedPrefixes;
 
     public EnvMetrics(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
+        metricsUrlAllowedPrefixes = context.getMetricsUrlAllowedPrefixes();
     }
 
     @GET
@@ -91,6 +94,7 @@ public class EnvMetrics {
                     List<MetricsConfigBean> metrics,
             @Context SecurityContext sc)
             throws Exception {
+        validateMetricsUrls(metrics);
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateMetrics(environBean, metrics, userName);
@@ -108,5 +112,23 @@ public class EnvMetrics {
                 envName,
                 stageName,
                 userName);
+    }
+
+    private void validateMetricsUrls(List<MetricsConfigBean> metrics) {
+        if (metricsUrlAllowedPrefixes == null || metricsUrlAllowedPrefixes.isEmpty()) {
+            return;
+        }
+        for (MetricsConfigBean metric : metrics) {
+            String url = metric.getUrl();
+            boolean allowed =
+                    metricsUrlAllowedPrefixes.stream().anyMatch(prefix -> url.startsWith(prefix));
+            if (!allowed) {
+                throw new WebApplicationException(
+                        String.format(
+                                "Metrics URL '%s' is not allowed. URL must start with one of: %s",
+                                url, metricsUrlAllowedPrefixes),
+                        Response.Status.BAD_REQUEST);
+            }
+        }
     }
 }

@@ -22,6 +22,7 @@ import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.config.AwsFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
+import com.pinterest.teletraan.config.MetricsUrlAllowlistFactory;
 import com.pinterest.teletraan.config.CIPlatformFactory;
 import com.pinterest.teletraan.config.ChatFactory;
 import com.pinterest.teletraan.config.DataSourceFactory;
@@ -108,6 +109,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     private BuildAllowlistFactory buildAllowlistFactory;
 
     @Valid
+    @JsonProperty("metricsUrlAllowlist")
+    private MetricsUrlAllowlistFactory metricsUrlAllowlistFactory;
+
+    @Valid
     @JsonProperty("externalAlerts")
     private ExternalAlertsConfigFactory externalAlertsConfigs;
 
@@ -179,6 +184,14 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setBuildAllowlistFactory(BuildAllowlistFactory buildAllowlist) {
         this.buildAllowlistFactory = buildAllowlist;
+    }
+
+    public MetricsUrlAllowlistFactory getMetricsUrlAllowlistFactory() {
+        return metricsUrlAllowlistFactory;
+    }
+
+    public void setMetricsUrlAllowlistFactory(MetricsUrlAllowlistFactory metricsUrlAllowlistFactory) {
+        this.metricsUrlAllowlistFactory = metricsUrlAllowlistFactory;
     }
 
     public ChatFactory getChatFactory() {
