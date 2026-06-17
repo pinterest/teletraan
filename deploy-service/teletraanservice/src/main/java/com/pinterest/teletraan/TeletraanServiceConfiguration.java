@@ -22,7 +22,6 @@ import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.config.AwsFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
-import com.pinterest.teletraan.config.MetricsUrlAllowlistFactory;
 import com.pinterest.teletraan.config.CIPlatformFactory;
 import com.pinterest.teletraan.config.ChatFactory;
 import com.pinterest.teletraan.config.DataSourceFactory;
@@ -31,6 +30,7 @@ import com.pinterest.teletraan.config.DefaultEmailFactory;
 import com.pinterest.teletraan.config.EmailFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
+import com.pinterest.teletraan.config.MetricsUrlAllowlistFactory;
 import com.pinterest.teletraan.config.MicrometerMetricsFactory;
 import com.pinterest.teletraan.config.OpenAuthorizationFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -190,7 +190,8 @@ public class TeletraanServiceConfiguration extends Configuration {
         return metricsUrlAllowlistFactory;
     }
 
-    public void setMetricsUrlAllowlistFactory(MetricsUrlAllowlistFactory metricsUrlAllowlistFactory) {
+    public void setMetricsUrlAllowlistFactory(
+            MetricsUrlAllowlistFactory metricsUrlAllowlistFactory) {
         this.metricsUrlAllowlistFactory = metricsUrlAllowlistFactory;
     }
 
