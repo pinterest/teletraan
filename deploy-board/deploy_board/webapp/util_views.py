@@ -45,7 +45,11 @@ def _convert_opentsdb_data(dps):
 
 
 def _get_latest_metrics(url):
-    response = urllib.request.urlopen(url)
+    try:
+        response = urllib.request.urlopen(url)
+    except urllib.error.HTTPError:
+        log.warning("Failed to fetch metrics from url")
+        return 0
     data_str = response.read().decode("utf-8")
     if not data_str:
         return 0
