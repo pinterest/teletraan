@@ -87,6 +87,7 @@ public class ServiceContext {
     private WorkerJobDAO workerJobDAO;
 
     private Allowlist buildAllowlist;
+    private List<String> metricsUrlAllowedPrefixes;
 
     private String serviceStage;
     private MailManager mailManager;
@@ -129,6 +130,14 @@ public class ServiceContext {
 
     public void setBuildAllowlist(Allowlist buildAllowlist) {
         this.buildAllowlist = buildAllowlist;
+    }
+
+    public List<String> getMetricsUrlAllowedPrefixes() {
+        return metricsUrlAllowedPrefixes;
+    }
+
+    public void setMetricsUrlAllowedPrefixes(List<String> metricsUrlAllowedPrefixes) {
+        this.metricsUrlAllowedPrefixes = metricsUrlAllowedPrefixes;
     }
 
     public GroupRolesDAO getGroupRolesDAO() {

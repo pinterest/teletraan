@@ -45,7 +45,11 @@ def _convert_opentsdb_data(dps):
 
 
 def _get_latest_metrics(url):
-    response = urllib.request.urlopen(url)
+    try:
+        response = urllib.request.urlopen(url)
+    except urllib.error.HTTPError:
+        log.warning("Failed to fetch metrics from url")
+        return 0
     data_str = response.read().decode("utf-8")
     if not data_str:
         return 0
@@ -53,7 +57,7 @@ def _get_latest_metrics(url):
     try:
         data = json.loads(data_str)
     except Exception:
-        log.warning(f"Json decode error for metrics data {data_str}")
+        log.warning("Json decode error for metrics data from url")
         return 0
     # Return the first datapoint in the datapoints list
     if data:
@@ -64,7 +68,7 @@ def _get_latest_metrics(url):
                 if datapoint[1] is not None
             ]
         except Exception:
-            log.warning(f"No metrics data {data}")
+            log.warning("Metrics data does not match expected format")
             pass
 
         try:
@@ -72,7 +76,7 @@ def _get_latest_metrics(url):
             if len(data) > 0 and "dps" in data[0] and len(data[0]["dps"]) != 0:
                 return _convert_opentsdb_data(data[0]["dps"])
         except Exception:
-            log.warning(f"No TSDB metrics data {data}")
+            log.warning("Metrics data does not match TSDB format")
             pass
 
     return 0

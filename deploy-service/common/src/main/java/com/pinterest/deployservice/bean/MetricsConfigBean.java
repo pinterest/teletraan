@@ -16,11 +16,14 @@
 package com.pinterest.deployservice.bean;
 
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 public class MetricsConfigBean {
     private String title;
-    private String url;
+
+    @NotEmpty private String url;
+
     private List<MetricsSpecBean> specs;
 
     public String getTitle() {
