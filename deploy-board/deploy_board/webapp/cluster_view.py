@@ -333,15 +333,31 @@ class EnvCapacityAdvCreateView(View):
 class ClusterConfigurationView(View):
     def get(self, request, name, stage):
         current_cluster = get_current_cluster(request, name, stage)
+
+        # Handle missing cluster data gracefully
+        if current_cluster is None:
+            return HttpResponse(
+                json.dumps({"error": "Cluster configuration not found"}),
+                content_type="application/json",
+                status=404,
+            )
+
         accounts = accounts_helper.get_all_accounts(request)
         host_types = hosttypes_helper.get_by_arch(request, current_cluster["archName"])
         host_types_mapping = hosttypesmapping_helper.get_fulllist(request)
         current_image = baseimages_helper.get_by_id(
             request, current_cluster["baseImageId"]
         )
-        # TODO: remove baseImageName and access the prop from baseImage directly.
-        current_cluster["baseImageName"] = current_image["abstract_name"]
-        current_cluster["baseImage"] = current_image
+
+        # Handle missing image data gracefully
+        if current_image is None:
+            current_cluster["baseImageName"] = "Unknown"
+            current_cluster["baseImage"] = {}
+        else:
+            # TODO: remove baseImageName and access the prop from baseImage directly.
+            current_cluster["baseImageName"] = current_image["abstract_name"]
+            current_cluster["baseImage"] = current_image
+
         for host_type in host_types:
             host_type["mem"] = float(host_type["mem"]) / 1024
 
