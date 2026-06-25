@@ -280,6 +280,8 @@
                                 <argument>${source_dir}/${project.build.finalName}.pom</argument>
                                 <argument>--to_repo</argument>
                                 <argument>maven-private-prod-sox-local</argument>
+                                <argument>--usage</argument>
+                                <argument>buildkite_publish_sox</argument>
                             </arguments>
                         </configuration>
                     </execution>
