@@ -217,10 +217,23 @@ public class EnvCapacities {
         for (AuthZResource resource : resources) {
             if (!authorizer.authorize(
                     teletraanPrincipal, TeletraanPrincipalRole.Names.WRITE, resource, null)) {
+                // T025: log which specific resource denied the capacity-mutation so operators
+                // know exactly which acl.yaml entry is missing without reading the whole bean.
+                LOG.warn(
+                        "Capacity-mutation denied principal={} target_env={}/{} capacity_type={} capacities={} denied_resource_type=ENV_STAGE denied_resource_name={} required_role=WRITE",
+                        principal.getName(),
+                        targetEnvironBean.getEnv_name(),
+                        targetEnvironBean.getStage_name(),
+                        capacityType,
+                        capacities,
+                        resource.getName());
                 throw new ForbiddenException(
                         String.format(
-                                "Principal %s is not allowed to modify capacity owned by env %s",
-                                principal.getName(), resource.getName()));
+                                "Principal %s is not allowed to modify capacity owned by env %s. "
+                                        + "Denied resource=ENV_STAGE:%s; required_role=WRITE.",
+                                principal.getName(),
+                                resource.getName(),
+                                resource.getName()));
             }
         }
     }

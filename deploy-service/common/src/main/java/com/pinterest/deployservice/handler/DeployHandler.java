@@ -471,6 +471,27 @@ public class DeployHandler implements DeployHandlerInterface {
             throw new InvalidBuildException(buildBean.getBuild_name(), envBean.getBuild_name());
         }
 
+        // T037: BAD_BUILD auto-propagation warning. If the effective tag on this build is
+        // BAD_BUILD, the deploy will still proceed (Teletraan doesn't gate on this), but emit a
+        // WARN so oncalls can correlate post-hoc. Spinnaker only blocks explicit BAD_BUILD tags;
+        // auto-propagated ones from upstream envs sneak through silently today.
+        try {
+            TagBean buildTag = buildTagsManager.getEffectiveBuildTag(buildBean);
+            if (buildTag != null && buildTag.getValue() == TagValue.BAD_BUILD) {
+                LOG.warn(
+                        "Deploying a BAD_BUILD-tagged build env={}/{} build_id={} build_name={} scm_branch={} tag=BAD_BUILD tag_operator={} gate=none",
+                        envBean.getEnv_name(),
+                        envBean.getStage_name(),
+                        buildId,
+                        buildBean.getBuild_name(),
+                        buildBean.getScm_branch(),
+                        buildTag.getOperator());
+            }
+        } catch (Exception e) {
+            // Never fail the deploy on a tag-lookup error; just log at DEBUG.
+            LOG.debug("Failed to check BAD_BUILD tag for build {}", buildId, e);
+        }
+
         if (envBean.getStage_type() != EnvType.DEV
                 && buildAllowlist != null
                 && !buildAllowlist.trusted(buildBean.getArtifact_url())
@@ -498,6 +519,14 @@ public class DeployHandler implements DeployHandlerInterface {
         }
         // disallow sox deploy if the build artifact is private
         if (envBean.getIs_sox() && isPrivateBuild(buildBean)) {
+            // T022: log offending build/env so the SOX failure is searchable
+            LOG.warn(
+                    "SOX validation failed reason=private_build env={}/{} build_id={} artifact_url={} scm_branch={}",
+                    envBean.getEnv_name(),
+                    envBean.getStage_name(),
+                    buildBean.getBuild_id(),
+                    buildBean.getArtifact_url(),
+                    buildBean.getScm_branch());
             throw new WebApplicationException(
                     ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_STAGE, Response.Status.BAD_REQUEST);
         }
@@ -505,8 +534,21 @@ public class DeployHandler implements DeployHandlerInterface {
         if (envBean.getIs_sox()
                 && buildAllowlist != null
                 && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
+            // T022: name the offending repo (artifact_url) and build so the oncall can point to
+            // the allowlist entry to add without spelunking pinconf.
+            LOG.warn(
+                    "SOX validation failed reason=artifact_not_sox_compliant env={}/{} build_id={} build_name={} artifact_url={} remediation=add_repo_to_sox_allowlist",
+                    envBean.getEnv_name(),
+                    envBean.getStage_name(),
+                    buildBean.getBuild_id(),
+                    buildBean.getBuild_name(),
+                    buildBean.getArtifact_url());
             throw new WebApplicationException(
-                    ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE, Response.Status.BAD_REQUEST);
+                    String.format(
+                            "%s Offending artifact_url=%s",
+                            ERROR_STAGE_REQUIRES_SOX_BUILD_COMPLIANT_SOURCE,
+                            buildBean.getArtifact_url()),
+                    Response.Status.BAD_REQUEST);
         }
     }
 
