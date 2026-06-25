@@ -169,6 +169,20 @@ public class ApplyInfraWorker implements Runnable {
                 rodimusManager.createClusterWithEnvPublicIds(
                         clusterName, envName, stageName, newClusterInfoPublicIdsBean);
             } catch (Exception e) {
+                // T034 / T038: surface the Rodimus/AWS-origin error message rather than let it be
+                // swallowed as a generic worker-job failure. Common causes include
+                // cross-account AMI sharing ("Not authorized for images") and missing AMI
+                // registration in a new region.
+                LOG.error(
+                        "Cluster creation failed cluster={} env={}/{} region={} base_image={} operator={} error_message={}",
+                        clusterName,
+                        envName,
+                        stageName,
+                        newClusterInfoPublicIdsBean.getRegion(),
+                        newClusterInfoPublicIdsBean.getBaseImage(),
+                        operator,
+                        e.getMessage(),
+                        e);
                 environmentHandler.updateEnvironment(
                         operator, envName, stageName, originEnvironBean);
                 environmentHandler.deleteCapacityForHostOrGroup(
@@ -181,12 +195,44 @@ public class ApplyInfraWorker implements Runnable {
             }
         } else {
             LOG.info("Updating cluster: {}", clusterName);
-            rodimusManager.updateClusterWithPublicIds(clusterName, newClusterInfoPublicIdsBean);
+            try {
+                rodimusManager.updateClusterWithPublicIds(
+                        clusterName, newClusterInfoPublicIdsBean);
+            } catch (Exception e) {
+                // T034: surface Rodimus message on update failure (ARM AMI / AWS permission etc.)
+                LOG.error(
+                        "Cluster update failed cluster={} env={}/{} region={} base_image={} error_message={}",
+                        clusterName,
+                        envName,
+                        stageName,
+                        newClusterInfoPublicIdsBean.getRegion(),
+                        newClusterInfoPublicIdsBean.getBaseImage(),
+                        e.getMessage(),
+                        e);
+                throw e;
+            }
         }
 
         LOG.info("Updating cluster capacity for cluster: {}", clusterName);
-        rodimusManager.updateClusterCapacity(
-                clusterName, infraConfigBean.getMinCapacity(), infraConfigBean.getMaxCapacity());
+        try {
+            rodimusManager.updateClusterCapacity(
+                    clusterName,
+                    infraConfigBean.getMinCapacity(),
+                    infraConfigBean.getMaxCapacity());
+        } catch (Exception e) {
+            // T033: subnet IP exhaustion surfaces here as a Rodimus error; surface the message
+            // with a remediation hint so the user knows to visit the placements UI.
+            LOG.error(
+                    "Cluster capacity change failed cluster={} env={}/{} min={} max={} error_message={} remediation=check_subnet_capacity_at_/clouds/placements",
+                    clusterName,
+                    envName,
+                    stageName,
+                    infraConfigBean.getMinCapacity(),
+                    infraConfigBean.getMaxCapacity(),
+                    e.getMessage(),
+                    e);
+            throw e;
+        }
 
         // Manage Cluster AutoScaling Resources
         RodimusAutoScalingPolicies existingRodimusAutoScalingPolicies =
