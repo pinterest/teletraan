@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import errno
+import logging
 import os
 import tempfile
 import unittest
+from unittest import mock
 import tests
 
 from deployd.common.types import DeployStatus, BuildInfo, DeployStage, AgentStatus
@@ -88,6 +91,50 @@ class TestStatusFunction(tests.TestCase):
         env_status = EnvStatus(fn)
         envs = env_status.load_envs()
         self.assertEqual(envs, {})
+        os.remove(fn)
+
+    def test_dump_envs_disk_full_logs_error_with_disk_stats(self):
+        """T002: ENOSPC while dumping status must surface an ERROR log
+        carrying disk stats so oncalls don't chase a misleading
+        ImageNotFound downstream. Behavior (return False) is preserved.
+        """
+        fn = tempfile.mkstemp()[1]
+        env_status = EnvStatus(fn)
+
+        disk_full = IOError(errno.ENOSPC, "No space left on device")
+        with mock.patch(
+            "deployd.common.env_status.open",
+            side_effect=disk_full,
+            create=True,
+        ), self.assertLogs("deployd.common.env_status", level="ERROR") as cm:
+            result = env_status.dump_envs({})
+
+        self.assertFalse(result)
+        joined = "\n".join(cm.output)
+        self.assertIn("disk-full", joined)
+        self.assertIn("disk_free_bytes=", joined)
+        self.assertIn("errno=28", joined)
+        os.remove(fn)
+
+    def test_dump_envs_non_disk_full_stays_warning(self):
+        """A non-disk-full IOError must stay at WARN (behavior-preserving)."""
+        fn = tempfile.mkstemp()[1]
+        env_status = EnvStatus(fn)
+
+        permission_denied = IOError(errno.EACCES, "Permission denied")
+        with mock.patch(
+            "deployd.common.env_status.open",
+            side_effect=permission_denied,
+            create=True,
+        ), self.assertLogs("deployd.common.env_status", level="WARNING") as cm:
+            result = env_status.dump_envs({})
+
+        self.assertFalse(result)
+        # Must NOT have been escalated to ERROR
+        self.assertFalse(
+            any(record.levelno >= logging.ERROR for record in cm.records),
+            "non-disk-full IOError should stay at WARN",
+        )
         os.remove(fn)
 
 

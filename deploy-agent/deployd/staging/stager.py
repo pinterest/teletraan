@@ -15,6 +15,7 @@
 import argparse
 import os
 from pwd import getpwnam
+import re
 import sys
 import shutil
 import traceback
@@ -29,6 +30,43 @@ from deployd.common.stats import create_sc_increment
 from .transformer import Transformer
 
 log = logging.getLogger(__name__)
+
+# T036: TELETRAAN_* variable substitution only runs on files that live under
+# the `teletraan_template/` directory. Tokens in other locations are silently
+# left unsubstituted and show up much later as cryptic runtime failures.
+# _TELETRAAN_TOKEN_RE matches both ${TELETRAAN_NAME}, {$TELETRAAN_NAME}, and
+# bare $TELETRAAN_NAME usages so we can warn at deploy time.
+_TELETRAAN_TOKEN_RE = re.compile(r"\$\{?TELETRAAN_[A-Za-z0-9_\-]+")
+# Extensions we are willing to scan for tokens. Large binary files in the
+# build directory are not worth reading; keep the list to config/script-ish
+# files to stay cheap and avoid false positives in compiled assets.
+_TELETRAAN_SCAN_EXTENSIONS = (
+    "",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".py",
+    ".rb",
+    ".pl",
+    ".conf",
+    ".cfg",
+    ".ini",
+    ".properties",
+    ".yaml",
+    ".yml",
+    ".json",
+    ".env",
+    ".txt",
+    ".service",
+    ".xml",
+    ".tmpl",
+    ".template",
+)
+# Cap per-deploy to avoid walking extremely large build trees; the warning is
+# best-effort and only needs to catch the top offenders.
+_TELETRAAN_SCAN_MAX_FILES = 2000
+_TELETRAAN_SCAN_MAX_WARNINGS = 50
+_TELETRAAN_SCAN_MAX_FILE_BYTES = 1 * 1024 * 1024  # 1 MiB per file
 
 
 class Stager(object):
@@ -130,6 +168,86 @@ class Stager(object):
             template_dirname=self._template_dirname,
             script_dirname=self._script_dirname,
         )
+
+        # T036: warn (best-effort) when $TELETRAAN_* tokens appear in files
+        # that live outside the teletraan_template/ directory — those tokens
+        # are NOT substituted by the Transformer and will reach the runtime
+        # as literal strings.
+        try:
+            self._warn_on_unsubstituted_teletraan_tokens(template_dir)
+        except Exception:
+            log.debug(
+                "TELETRAAN_ token scan failed; continuing: %s",
+                traceback.format_exc(),
+            )
+
+    def _warn_on_unsubstituted_teletraan_tokens(self, template_dir: str) -> None:
+        """Walk the build target and warn if $TELETRAAN_* tokens appear
+        outside ``teletraan_template/``.
+
+        Only those tokens get substituted by the Transformer, so any
+        occurrence elsewhere is a silent no-op that users typically discover
+        at runtime via a cryptic symptom. Logging at deploy time gives a
+        much clearer breadcrumb (T036).
+        """
+        if not self._target or not os.path.isdir(self._target):
+            return
+
+        template_dir_abs = os.path.abspath(template_dir)
+        files_scanned = 0
+        warnings_emitted = 0
+        for root, dirs, files in os.walk(self._target, followlinks=False):
+            # Skip the template directory itself — tokens there are expected
+            # and will be substituted.
+            root_abs = os.path.abspath(root)
+            if (
+                root_abs == template_dir_abs
+                or root_abs.startswith(template_dir_abs + os.sep)
+            ):
+                dirs[:] = []
+                continue
+
+            for filename in files:
+                if files_scanned >= _TELETRAAN_SCAN_MAX_FILES:
+                    return
+                if warnings_emitted >= _TELETRAAN_SCAN_MAX_WARNINGS:
+                    log.warning(
+                        "TELETRAAN_ token scan: suppressing further warnings "
+                        "after %d hits (emit cap). Inspect files outside "
+                        "teletraan_template/ for remaining $TELETRAAN_* tokens.",
+                        warnings_emitted,
+                    )
+                    return
+                ext = os.path.splitext(filename)[1].lower()
+                if ext not in _TELETRAAN_SCAN_EXTENSIONS:
+                    continue
+                fpath = os.path.join(root, filename)
+                try:
+                    size = os.path.getsize(fpath)
+                except OSError:
+                    continue
+                if size == 0 or size > _TELETRAAN_SCAN_MAX_FILE_BYTES:
+                    continue
+                files_scanned += 1
+                try:
+                    with open(fpath, "r", errors="replace") as fh:
+                        content = fh.read()
+                except (OSError, UnicodeDecodeError):
+                    continue
+                matches = _TELETRAAN_TOKEN_RE.findall(content)
+                if not matches:
+                    continue
+                unique_tokens = sorted(set(matches))
+                log.warning(
+                    "Found unsubstituted TELETRAAN_ token(s) %s in %s — this "
+                    "file is OUTSIDE teletraan_template/ so variables were "
+                    "NOT substituted and will reach runtime as literals. "
+                    "Move the file under teletraan_template/ or export the "
+                    "value from a RESTARTING script. (T036)",
+                    unique_tokens[:5],
+                    fpath,
+                )
+                warnings_emitted += 1
 
 
 def main() -> int:

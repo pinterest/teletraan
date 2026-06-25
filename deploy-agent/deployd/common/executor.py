@@ -241,6 +241,13 @@ class Executor(object):
     def execute_command(self, script) -> DeployReport:
         try:
             deploy_step = os.getenv("DEPLOY_STEP")
+            # FIRST_DEPLOY is exported to the environment by
+            # Config.update_variables() when deploy_goal.firstDeploy is truthy.
+            # Detecting it here lets us attach a first-deploy hint to the
+            # 'teletraan directory cannot be found' message, which is the top
+            # source of confusion for POST_DOWNLOAD failures (T014).
+            first_deploy_env = os.getenv("FIRST_DEPLOY", "")
+            is_first_deploy = first_deploy_env.lower() in ("1", "true", "yes")
             if not os.path.exists(self._config.get_script_directory()):
                 """if the teletraan directory does not exist in the pre stage steps. It
                 means it's a newly added host (never deployed before). Show a warning message
@@ -250,6 +257,37 @@ class Executor(object):
                     "teletraan directory cannot be found "
                     "in the tar ball in step {}!".format(deploy_step)
                 )
+                # T014: POST_DOWNLOAD in particular never runs on a first
+                # deploy because there is no prior on-host state to post-
+                # process yet. Surface this explicitly so users don't chase a
+                # packaging bug on a fresh host.
+                if deploy_step == "POST_DOWNLOAD" and is_first_deploy:
+                    error_msg = (
+                        error_msg
+                        + " Note: this host has no prior deploys "
+                        "(FIRST_DEPLOY=true). POST_DOWNLOAD does NOT run on "
+                        "the first deploy to a fresh host — if critical "
+                        "logic lives there, move it to RESTARTING or "
+                        "PRE_RESTART."
+                    )
+                elif deploy_step == "POST_DOWNLOAD":
+                    error_msg = (
+                        error_msg
+                        + " Note: this is a POST_DOWNLOAD failure. "
+                        "POST_DOWNLOAD does NOT run on the first deploy to a "
+                        "fresh host; confirm this host has prior deploys. "
+                        "Also verify the 'teletraan/' directory is packaged "
+                        "in the build tarball (this is NOT an S3/IAM issue)."
+                    )
+                else:
+                    # T004-adjacent: make it explicit that a missing teletraan
+                    # directory is a packaging problem, not an S3/IAM one.
+                    error_msg = (
+                        error_msg
+                        + " This is a PACKAGING issue (teletraan/ missing "
+                        "from the build tarball), NOT an S3/IAM permission "
+                        "issue."
+                    )
                 if deploy_step in PRE_STAGE_STEPS:
                     log.warning(error_msg)
                     return DeployReport(status_code=AgentStatus.SUCCEEDED)
