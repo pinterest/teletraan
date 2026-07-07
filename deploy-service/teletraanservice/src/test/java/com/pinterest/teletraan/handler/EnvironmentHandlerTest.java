@@ -98,8 +98,7 @@ class EnvironmentHandlerTest {
             when(Utils.getEnvStage(any(), any(), any())).thenReturn(origin);
 
             // Should not throw
-            assertDoesNotThrow(
-                    () -> handler.updateEnvironment(null, "op", "env", "stage", update));
+            assertDoesNotThrow(() -> handler.updateEnvironment(null, "op", "env", "stage", update));
             verify(mockEnvironHandler).updateStage(any(), eq("op"));
             verify(mockConfigHistoryHandler)
                     .updateConfigHistory(eq("id1"), any(), eq(update), eq("op"));
