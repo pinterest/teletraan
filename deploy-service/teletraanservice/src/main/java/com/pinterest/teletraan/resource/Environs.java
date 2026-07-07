@@ -71,12 +71,14 @@ public class Environs {
     private EnvironHandler environHandler;
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
+    private com.pinterest.teletraan.handler.EnvironmentHandler environmentHandler;
 
     public Environs(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
+        environmentHandler = new com.pinterest.teletraan.handler.EnvironmentHandler(context);
     }
 
     @GET
@@ -175,6 +177,13 @@ public class Environs {
         } catch (IllegalArgumentException e) {
             throw new WebApplicationException("Environment bean validation failed", e);
         }
+
+        environmentHandler.validateSystemPriorityPermission(
+                sc.getUserPrincipal(),
+                environBean.getEnv_name(),
+                environBean.getStage_name(),
+                environBean.getSystem_priority());
+
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();
         List<EnvironBean> environBeans = environDAO.getByName(envName);

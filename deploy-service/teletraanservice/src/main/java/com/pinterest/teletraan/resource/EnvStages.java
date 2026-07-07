@@ -113,7 +113,8 @@ public class EnvStages {
                     EnvironBean environBean)
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
-        environmentHandler.updateEnvironment(operator, envName, stageName, environBean);
+        environmentHandler.updateEnvironment(
+                sc.getUserPrincipal(), operator, envName, stageName, environBean);
     }
 
     @PUT

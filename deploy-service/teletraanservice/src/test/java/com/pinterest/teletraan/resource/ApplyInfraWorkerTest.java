@@ -133,7 +133,8 @@ class ApplyInfraWorkerTest {
 
             verify(mockWorkerJobDAO)
                     .updateStatus(eq(job), eq(WorkerJobBean.Status.RUNNING), anyLong());
-            verify(mockEnvHandler).updateEnvironment(eq("op"), eq("env"), eq("stage"), any());
+            verify(mockEnvHandler)
+                    .updateEnvironment(isNull(), eq("op"), eq("env"), eq("stage"), any());
             verify(mockEnvHandler)
                     .createCapacityForHostOrGroup(
                             eq("op"),
@@ -179,7 +180,7 @@ class ApplyInfraWorkerTest {
         verify(mockWorkerJobDAO)
                 .updateStatus(eq(job), eq(WorkerJobBean.Status.COMPLETED), anyLong());
         verify(mockUtilDAO).releaseLock(startsWith("APPLY_INFRA-"), eq(mockConn));
-        verify(mockEnvHandler, never()).updateEnvironment(any(), any(), any(), any());
+        verify(mockEnvHandler, never()).updateEnvironment(any(), any(), any(), any(), any());
         verify(mockEnvHandler, never())
                 .createCapacityForHostOrGroup(any(), any(), any(), any(), any(), any());
     }

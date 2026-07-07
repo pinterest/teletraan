@@ -17,15 +17,22 @@ package com.pinterest.teletraan.handler;
 
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.resource.EnvCapacities.CapacityType;
 import com.pinterest.teletraan.resource.Utils;
+import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
+import java.security.Principal;
 import java.util.*;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
@@ -41,12 +48,16 @@ public class EnvironmentHandler {
     private final EnvironDAO environDAO;
     private final EnvironHandler environHandler;
     private final GroupDAO groupDAO;
+    private final AuthorizationFactory authorizationFactory;
+    private final TeletraanServiceContext context;
 
     public EnvironmentHandler(TeletraanServiceContext context) {
         configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         groupDAO = context.getGroupDAO();
+        authorizationFactory = context.getAuthorizationFactory();
+        this.context = context;
     }
 
     public void createCapacityForHostOrGroup(
@@ -71,7 +82,11 @@ public class EnvironmentHandler {
     }
 
     public void updateEnvironment(
-            String operator, String envName, String stageName, EnvironBean updateEnvironBean)
+            Principal principal,
+            String operator,
+            String envName,
+            String stageName,
+            EnvironBean updateEnvironBean)
             throws Exception {
         EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
         // treat null as false
@@ -83,6 +98,16 @@ public class EnvironmentHandler {
         } else if (!updateEnvironBean.getIs_sox().equals(originalIsSox)) {
             throw new WebApplicationException(
                     "Modification of isSox flag is not allowed!", Response.Status.FORBIDDEN);
+        }
+
+        Integer originalSystemPriority = originEnvironBean.getSystem_priority();
+        Integer updateSystemPriority = updateEnvironBean.getSystem_priority();
+        if (updateSystemPriority != null
+                && !Objects.equals(updateSystemPriority, originalSystemPriority)) {
+            validateSystemPriorityPermission(principal, envName, stageName, updateSystemPriority);
+        }
+        if (updateSystemPriority == null) {
+            updateEnvironBean.setSystem_priority(originalSystemPriority);
         }
 
         try {
@@ -184,5 +209,56 @@ public class EnvironmentHandler {
                 envName,
                 stageName,
                 operator);
+    }
+
+    /**
+     * Validates that the caller has ADMIN role for the given environment if systemPriority is being
+     * set. This prevents privilege escalation via sidecar environment creation.
+     *
+     * @param principal The calling user/service principal (null for background jobs)
+     * @param envName The environment name
+     * @param stageName The stage name
+     * @param systemPriority The systemPriority value being set (null is allowed)
+     * @throws ForbiddenException if systemPriority > 0 and user is not ADMIN
+     */
+    public void validateSystemPriorityPermission(
+            Principal principal, String envName, String stageName, Integer systemPriority) {
+        if (systemPriority == null || systemPriority <= 0) {
+            return;
+        }
+
+        if (principal == null) {
+            return;
+        }
+
+        if (!(principal instanceof TeletraanPrincipal)) {
+            throw new ForbiddenException(
+                    "Setting systemPriority requires Teletraan admin privileges");
+        }
+
+        TeletraanPrincipal teletraanPrincipal = (TeletraanPrincipal) principal;
+        TeletraanAuthorizer<TeletraanPrincipal> authorizer =
+                authorizationFactory.createSecondaryAuthorizer(
+                        context, teletraanPrincipal.getClass());
+
+        AuthZResource envResource = new AuthZResource(envName, stageName);
+        boolean isAdmin =
+                authorizer.authorize(
+                        teletraanPrincipal, TeletraanPrincipalRole.Names.ADMIN, envResource, null);
+
+        if (!isAdmin) {
+            throw new ForbiddenException(
+                    String.format(
+                            "Setting systemPriority requires ADMIN role on environment %s/%s. "
+                                    + "Only Teletraan admins can create or modify sidecar environments.",
+                            envName, stageName));
+        }
+
+        LOG.info(
+                "User {} with ADMIN role is setting systemPriority={} for {}/{}",
+                principal.getName(),
+                systemPriority,
+                envName,
+                stageName);
     }
 }

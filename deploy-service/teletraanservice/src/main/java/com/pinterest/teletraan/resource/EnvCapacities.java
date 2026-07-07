@@ -200,11 +200,6 @@ public class EnvCapacities {
             Principal principal,
             CapacityType capacityType,
             List<String> capacities) {
-        if (isSidecarEnvironment(targetEnvironBean)) {
-            // Allow sidecars to add capacity
-            return;
-        }
-
         if (!(principal instanceof TeletraanPrincipal)) {
             throw new UnsupportedOperationException("Only TeletraanPrincipal is allowed");
         }
@@ -212,6 +207,25 @@ public class EnvCapacities {
         TeletraanAuthorizer<TeletraanPrincipal> authorizer =
                 authorizationFactory.createSecondaryAuthorizer(
                         context, teletraanPrincipal.getClass());
+
+        if (isSidecarEnvironment(targetEnvironBean)) {
+            AuthZResource sidecarResource =
+                    new AuthZResource(
+                            targetEnvironBean.getEnv_name(), targetEnvironBean.getStage_name());
+            if (!authorizer.authorize(
+                    teletraanPrincipal,
+                    TeletraanPrincipalRole.Names.WRITE,
+                    sidecarResource,
+                    null)) {
+                throw new ForbiddenException(
+                        String.format(
+                                "Principal %s is not allowed to modify sidecar capacity for env %s/%s",
+                                principal.getName(),
+                                targetEnvironBean.getEnv_name(),
+                                targetEnvironBean.getStage_name()));
+            }
+            return;
+        }
 
         HashSet<AuthZResource> resources = getCapacityMainEnvironments(capacityType, capacities);
         for (AuthZResource resource : resources) {
