@@ -22,6 +22,7 @@ import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.common.EntitlementEnforcementProvider;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
@@ -72,6 +73,8 @@ public class Environs {
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
     private com.pinterest.teletraan.handler.EnvironmentHandler environmentHandler;
+    private EntitlementEnforcementProvider entitlementEnforcementProvider =
+            new EntitlementEnforcementProvider();
 
     public Environs(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
@@ -79,6 +82,11 @@ public class Environs {
         tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
         environmentHandler = new com.pinterest.teletraan.handler.EnvironmentHandler(context);
+    }
+
+    /** Visible for testing: override the entitlement enforcement gate (kill switch + onboarding). */
+    void setEntitlementEnforcementProvider(EntitlementEnforcementProvider provider) {
+        this.entitlementEnforcementProvider = provider;
     }
 
     @GET
@@ -95,6 +103,7 @@ public class Environs {
             throw new WebApplicationException(
                     String.format("Environment %s does not exist.", id), Response.Status.NOT_FOUND);
         }
+        entitlementEnforcementProvider.applyUseEntitlements(environBean);
         return environBean;
     }
 
@@ -138,25 +147,27 @@ public class Environs {
             @QueryParam("groupName") String groupName,
             @QueryParam("stageType") String stageType)
             throws Exception {
+        final List<EnvironBean> result;
         if (!StringUtils.isBlank(envName)) {
             final List<EnvironBean> envs = environDAO.getByName(envName);
             if (!StringUtils.isBlank(stageType)) {
-                return envs.stream()
-                        .filter(
-                                e ->
-                                        StringUtils.equalsIgnoreCase(
-                                                e.getStage_type().toString(), stageType))
-                        .collect(Collectors.toList());
+                result =
+                        envs.stream()
+                                .filter(
+                                        e ->
+                                                StringUtils.equalsIgnoreCase(
+                                                        e.getStage_type().toString(), stageType))
+                                .collect(Collectors.toList());
+            } else {
+                result = envs;
             }
-
-            return envs;
+        } else if (!StringUtils.isEmpty(groupName)) {
+            result = environDAO.getEnvsByGroups(Arrays.asList(groupName));
+        } else {
+            result = environDAO.getAllEnvs();
         }
-
-        if (!StringUtils.isEmpty(groupName)) {
-            return environDAO.getEnvsByGroups(Arrays.asList(groupName));
-        }
-
-        return environDAO.getAllEnvs();
+        entitlementEnforcementProvider.applyUseEntitlements(result);
+        return result;
     }
 
     @POST

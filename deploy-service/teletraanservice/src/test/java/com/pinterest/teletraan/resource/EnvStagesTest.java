@@ -16,22 +16,29 @@
 package com.pinterest.teletraan.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.common.EntitlementEnforcementProvider;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.fixture.EnvironBeanFixture;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
+import java.io.File;
 import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.Principal;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
 class EnvStagesTest {
@@ -78,6 +85,57 @@ class EnvStagesTest {
         public Class<? extends Annotation> annotationType() {
             return null;
         }
+    }
+
+    @TempDir File tempDir;
+
+    private EnvStages resourceWithGate(String flagJson, String onboardedJson) throws Exception {
+        File flags = new File(tempDir, "flags");
+        File onboarded = new File(tempDir, "onboarded");
+        Files.write(flags.toPath(), flagJson.getBytes(StandardCharsets.UTF_8));
+        Files.write(onboarded.toPath(), onboardedJson.getBytes(StandardCharsets.UTF_8));
+
+        TeletraanServiceContext context = new TeletraanServiceContext();
+        context.setEnvironDAO(environDAO);
+        EnvStages resource = new EnvStages(context);
+        resource.setEntitlementEnforcementProvider(
+                new EntitlementEnforcementProvider(
+                        flags.getAbsolutePath(), onboarded.getAbsolutePath()));
+        return resource;
+    }
+
+    @Test
+    void testGet_overridesUseEntitlementsFromGate() throws Exception {
+        EnvironBean bean = EnvironBeanFixture.createRandomEnvironBean();
+        bean.setEnv_name(ENV1);
+        bean.setStage_name(STAGE1);
+        // The static DB column says false, but the live gate should flip it on.
+        bean.setUse_entitlements(false);
+        when(environDAO.getByStage(ENV1, STAGE1)).thenReturn(bean);
+
+        EnvStages resource =
+                resourceWithGate(
+                        "{\"entitlement_enforcement\": 100}",
+                        "[\"" + ENV1 + "-" + STAGE1 + "\"]");
+
+        assertTrue(resource.get(ENV1, STAGE1).getUse_entitlements());
+    }
+
+    @Test
+    void testGet_killSwitchOffReenablesEditing() throws Exception {
+        EnvironBean bean = EnvironBeanFixture.createRandomEnvironBean();
+        bean.setEnv_name(ENV1);
+        bean.setStage_name(STAGE1);
+        // Column stale-true, but kill switch is off -> UI must re-enable editing.
+        bean.setUse_entitlements(true);
+        when(environDAO.getByStage(ENV1, STAGE1)).thenReturn(bean);
+
+        EnvStages resource =
+                resourceWithGate(
+                        "{\"entitlement_enforcement\": 0}",
+                        "[\"" + ENV1 + "-" + STAGE1 + "\"]");
+
+        assertFalse(resource.get(ENV1, STAGE1).getUse_entitlements());
     }
 
     @Test
