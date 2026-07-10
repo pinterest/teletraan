@@ -35,57 +35,59 @@ class EntitlementEnforcementProviderTest {
 
     @TempDir File tempDir;
 
-    /** Flag JSON keyed by the configured flag key, so the test tracks whatever key is in use. */
-    private static String flagJson(int value) {
-        return "{\"" + EntitlementEnforcementProvider.ENFORCE_FLAG_KEY + "\": " + value + "}";
+    /**
+     * Decider JSON keyed by the configured decider key, so the test tracks whatever key is in use.
+     */
+    private static String deciderJson(int value) {
+        return "{\"" + EntitlementEnforcementProvider.ENFORCE_DECIDER_KEY + "\": " + value + "}";
     }
 
-    private EntitlementEnforcementProvider providerWith(String flagJson, String onboardedJson)
+    private EntitlementEnforcementProvider providerWith(String deciderJson, String onboardedJson)
             throws Exception {
-        File flags = new File(tempDir, "flags");
+        File decider = new File(tempDir, "decider");
         File onboarded = new File(tempDir, "onboarded");
-        if (flagJson != null) {
-            Files.write(flags.toPath(), flagJson.getBytes(StandardCharsets.UTF_8));
+        if (deciderJson != null) {
+            Files.write(decider.toPath(), deciderJson.getBytes(StandardCharsets.UTF_8));
         }
         if (onboardedJson != null) {
             Files.write(onboarded.toPath(), onboardedJson.getBytes(StandardCharsets.UTF_8));
         }
         return new EntitlementEnforcementProvider(
-                flags.getAbsolutePath(), onboarded.getAbsolutePath());
+                decider.getAbsolutePath(), onboarded.getAbsolutePath());
     }
 
     @Test
     void enforcedWhenFlagActiveAndOnboarded() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith(flagJson(100), "[\"" + CLUSTER + "\"]");
+                providerWith(deciderJson(100), "[\"" + CLUSTER + "\"]");
         assertTrue(provider.isEnforced(CLUSTER));
     }
 
     @Test
     void notEnforcedWhenKillSwitchOff() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith(flagJson(0), "[\"" + CLUSTER + "\"]");
+                providerWith(deciderJson(0), "[\"" + CLUSTER + "\"]");
         assertFalse(provider.isEnforced(CLUSTER));
     }
 
     @Test
     void notEnforcedDuringPartialRollout() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith(flagJson(50), "[\"" + CLUSTER + "\"]");
+                providerWith(deciderJson(50), "[\"" + CLUSTER + "\"]");
         assertFalse(provider.isEnforced(CLUSTER));
     }
 
     @Test
     void notEnforcedWhenNotOnboarded() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith(flagJson(100), "[\"other-cluster\"]");
+                providerWith(deciderJson(100), "[\"other-cluster\"]");
         assertFalse(provider.isEnforced(CLUSTER));
     }
 
     @Test
-    void notEnforcedWhenFlagKeyMissing() throws Exception {
+    void notEnforcedWhenDeciderKeyMissing() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith("{\"some_other_flag\": 100}", "[\"" + CLUSTER + "\"]");
+                providerWith("{\"some_other_decider\": 100}", "[\"" + CLUSTER + "\"]");
         assertFalse(provider.isEnforced(CLUSTER));
     }
 
@@ -93,7 +95,7 @@ class EntitlementEnforcementProviderTest {
     void failsSafeWhenFilesMissing() {
         EntitlementEnforcementProvider provider =
                 new EntitlementEnforcementProvider(
-                        new File(tempDir, "nope-flags").getAbsolutePath(),
+                        new File(tempDir, "nope-decider").getAbsolutePath(),
                         new File(tempDir, "nope-onboarded").getAbsolutePath());
         assertFalse(provider.isEnforced(CLUSTER));
     }
@@ -107,7 +109,7 @@ class EntitlementEnforcementProviderTest {
     @Test
     void applyUseEntitlementsSingleOverridesBean() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith(flagJson(100), "[\"" + CLUSTER + "\"]");
+                providerWith(deciderJson(100), "[\"" + CLUSTER + "\"]");
 
         EnvironBean enforced = new EnvironBean();
         enforced.setEnv_name(ENV);
@@ -127,7 +129,7 @@ class EntitlementEnforcementProviderTest {
     @Test
     void applyUseEntitlementsBatchOverridesEachBean() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith(flagJson(100), "[\"" + CLUSTER + "\"]");
+                providerWith(deciderJson(100), "[\"" + CLUSTER + "\"]");
 
         EnvironBean onboarded = new EnvironBean();
         onboarded.setEnv_name(ENV);
@@ -147,7 +149,7 @@ class EntitlementEnforcementProviderTest {
     @Test
     void applyUseEntitlementsBatchClearsAllWhenKillSwitchOff() throws Exception {
         EntitlementEnforcementProvider provider =
-                providerWith(flagJson(0), "[\"" + CLUSTER + "\"]");
+                providerWith(deciderJson(0), "[\"" + CLUSTER + "\"]");
 
         EnvironBean bean = new EnvironBean();
         bean.setEnv_name(ENV);

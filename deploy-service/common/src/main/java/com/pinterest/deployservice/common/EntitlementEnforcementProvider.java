@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
  * stays in agreement with whatever system produces and consumes the entitlement decisions.
  *
  * <ul>
- *   <li><b>Layer 1 — kill switch.</b> A feature-flag map read from {@link #DEFAULT_FLAG_FILE} (a
- *       JSON object of string keys to integer values) must have {@link #ENFORCE_FLAG_KEY} at {@link
+ *   <li><b>Layer 1 — kill switch.</b> A decider map read from {@link #DEFAULT_DECIDER_FILE} (a JSON
+ *       object of string keys to integer values) must have {@link #ENFORCE_DECIDER_KEY} at {@link
  *       #ENFORCE_VALUE}. Any lower value (including a missing/unreadable file) disables it, so the
  *       UI re-enables manual capacity edits.
  *   <li><b>Layer 2 — onboarding allowlist.</b> The cluster id must appear in the allowlist read
@@ -46,12 +46,10 @@ import org.slf4j.LoggerFactory;
  *       are enforced, so a rollout can be staged cluster-by-cluster by editing the list.
  * </ul>
  *
- * <p>Both files are expected to be delivered to the host by the deployment's configuration-delivery
- * system; their paths and the flag key are overridable via the environment (the {@code
- * TELETRAAN_ENTITLEMENT_*} variables) or the constructor, so the public defaults stay generic.
- * Fail-safe: any missing/undelivered/corrupt input resolves to "not enforced" and never throws into
- * the request path. The files are re-read on each call so a flag flip or list change is picked up
- * without a redeploy.
+ * <p>Both files are delivered to the host by the managed-data framework and are re-read on each
+ * call so a decider flip or list change is picked up without a redeploy. Fail-safe: any
+ * missing/undelivered/corrupt input resolves to "not enforced" and never throws into the request
+ * path.
  */
 public class EntitlementEnforcementProvider {
 
@@ -59,35 +57,29 @@ public class EntitlementEnforcementProvider {
 
     static final int ENFORCE_VALUE = 100;
 
-    // Deployment-specific identifiers default to generic values and can be overridden via the
-    // environment, so a deployment points these at its own config-delivery paths and flag key
-    // without baking them into source.
-    static final String ENFORCE_FLAG_KEY =
-            envOrDefault("TELETRAAN_ENTITLEMENT_FLAG_KEY", "entitlement_enforcement");
-    static final String DEFAULT_FLAG_FILE =
-            envOrDefault("TELETRAAN_ENTITLEMENT_FLAG_FILE", "/var/config/entitlement_flags.json");
+    // Decider "entitlement_enforcement_teletraan" (Layer 1 kill switch), delivered by the
+    // managed-data framework to /var/config/config.manageddata.admin.decider as a JSON map of
+    // decider name -> integer value.
+    static final String ENFORCE_DECIDER_KEY = "entitlement_enforcement_teletraan";
+    static final String DEFAULT_DECIDER_FILE = "/var/config/config.manageddata.admin.decider";
+    // Managed-data list "entitlements/onboarded_teletraan" (domain=entitlements,
+    // key=onboarded_teletraan), delivered to /var/config/config.manageddata.<domain>.<key>
+    // as a JSON array of onboarded clusterIds.
     static final String DEFAULT_ONBOARDED_FILE =
-            envOrDefault(
-                    "TELETRAAN_ENTITLEMENT_ONBOARDED_FILE",
-                    "/var/config/entitlement_onboarded.json");
+            "/var/config/config.manageddata.entitlements.onboarded_teletraan";
 
-    private final String flagFilePath;
+    private final String deciderFilePath;
     private final String onboardedFilePath;
     private final ObjectMapper objectMapper;
 
     public EntitlementEnforcementProvider() {
-        this(DEFAULT_FLAG_FILE, DEFAULT_ONBOARDED_FILE);
+        this(DEFAULT_DECIDER_FILE, DEFAULT_ONBOARDED_FILE);
     }
 
-    public EntitlementEnforcementProvider(String flagFilePath, String onboardedFilePath) {
-        this.flagFilePath = flagFilePath;
+    public EntitlementEnforcementProvider(String deciderFilePath, String onboardedFilePath) {
+        this.deciderFilePath = deciderFilePath;
         this.onboardedFilePath = onboardedFilePath;
         this.objectMapper = new ObjectMapper();
-    }
-
-    private static String envOrDefault(String name, String fallback) {
-        String value = System.getenv(name);
-        return (value == null || value.isEmpty()) ? fallback : value;
     }
 
     /**
@@ -95,7 +87,7 @@ public class EntitlementEnforcementProvider {
      * Requires both layers: the kill-switch flag active and the cluster onboarded.
      */
     public boolean isEnforced(String clusterId) {
-        if (!isEnforcementFlagActive()) {
+        if (!isEnforcementDeciderActive()) {
             return false;
         }
         return onboardedClusters().contains(clusterId);
@@ -113,7 +105,7 @@ public class EntitlementEnforcementProvider {
     }
 
     /**
-     * Batch variant of {@link #applyUseEntitlements(EnvironBean)} that reads the flag map and
+     * Batch variant of {@link #applyUseEntitlements(EnvironBean)} that reads the decider map and
      * onboarding list once for the whole collection.
      */
     public void applyUseEntitlements(Collection<EnvironBean> envs) {
@@ -121,7 +113,7 @@ public class EntitlementEnforcementProvider {
             return;
         }
         Set<String> onboarded =
-                isEnforcementFlagActive() ? onboardedClusters() : Collections.emptySet();
+                isEnforcementDeciderActive() ? onboardedClusters() : Collections.emptySet();
         for (EnvironBean env : envs) {
             if (env != null) {
                 env.setUse_entitlements(onboarded.contains(clusterId(env)));
@@ -135,24 +127,24 @@ public class EntitlementEnforcementProvider {
     }
 
     /**
-     * Layer 1. True only when the kill-switch flag is at {@link #ENFORCE_VALUE}. A
+     * Layer 1. True only when the kill-switch decider is at {@link #ENFORCE_VALUE}. A
      * missing/unreadable value resolves to false.
      */
-    boolean isEnforcementFlagActive() {
-        Integer value = flagMap().getOrDefault(ENFORCE_FLAG_KEY, 0);
+    boolean isEnforcementDeciderActive() {
+        Integer value = deciderMap().getOrDefault(ENFORCE_DECIDER_KEY, 0);
         return value != null && value >= ENFORCE_VALUE;
     }
 
-    private Map<String, Integer> flagMap() {
-        File file = new File(flagFilePath);
+    private Map<String, Integer> deciderMap() {
+        File file = new File(deciderFilePath);
         if (!file.exists()) {
-            LOG.info("Entitlement flag file does not exist: {}", flagFilePath);
+            LOG.info("Entitlement decider file does not exist: {}", deciderFilePath);
             return Collections.emptyMap();
         }
         try (FileInputStream in = new FileInputStream(file)) {
             return objectMapper.readValue(in, new TypeReference<Map<String, Integer>>() {});
         } catch (IOException e) {
-            LOG.error("Failed to read entitlement flag map from file: {}", flagFilePath, e);
+            LOG.error("Failed to read entitlement decider map from file: {}", deciderFilePath, e);
             return Collections.emptyMap();
         }
     }

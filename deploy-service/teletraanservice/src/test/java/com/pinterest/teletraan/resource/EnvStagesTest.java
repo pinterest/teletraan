@@ -89,10 +89,10 @@ class EnvStagesTest {
 
     @TempDir File tempDir;
 
-    private EnvStages resourceWithGate(String flagJson, String onboardedJson) throws Exception {
-        File flags = new File(tempDir, "flags");
+    private EnvStages resourceWithGate(String deciderJson, String onboardedJson) throws Exception {
+        File decider = new File(tempDir, "decider");
         File onboarded = new File(tempDir, "onboarded");
-        Files.write(flags.toPath(), flagJson.getBytes(StandardCharsets.UTF_8));
+        Files.write(decider.toPath(), deciderJson.getBytes(StandardCharsets.UTF_8));
         Files.write(onboarded.toPath(), onboardedJson.getBytes(StandardCharsets.UTF_8));
 
         TeletraanServiceContext context = new TeletraanServiceContext();
@@ -100,7 +100,7 @@ class EnvStagesTest {
         EnvStages resource = new EnvStages(context);
         resource.setEntitlementEnforcementProvider(
                 new EntitlementEnforcementProvider(
-                        flags.getAbsolutePath(), onboarded.getAbsolutePath()));
+                        decider.getAbsolutePath(), onboarded.getAbsolutePath()));
         return resource;
     }
 
@@ -115,7 +115,8 @@ class EnvStagesTest {
 
         EnvStages resource =
                 resourceWithGate(
-                        "{\"entitlement_enforcement\": 100}", "[\"" + ENV1 + "-" + STAGE1 + "\"]");
+                        "{\"entitlement_enforcement_teletraan\": 100}",
+                        "[\"" + ENV1 + "-" + STAGE1 + "\"]");
 
         assertTrue(resource.get(ENV1, STAGE1).getUse_entitlements());
     }
@@ -131,7 +132,8 @@ class EnvStagesTest {
 
         EnvStages resource =
                 resourceWithGate(
-                        "{\"entitlement_enforcement\": 0}", "[\"" + ENV1 + "-" + STAGE1 + "\"]");
+                        "{\"entitlement_enforcement_teletraan\": 0}",
+                        "[\"" + ENV1 + "-" + STAGE1 + "\"]");
 
         assertFalse(resource.get(ENV1, STAGE1).getUse_entitlements());
     }
