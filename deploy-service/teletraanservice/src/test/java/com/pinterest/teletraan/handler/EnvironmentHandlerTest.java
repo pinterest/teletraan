@@ -98,7 +98,7 @@ class EnvironmentHandlerTest {
             when(Utils.getEnvStage(any(), any(), any())).thenReturn(origin);
 
             // Should not throw
-            assertDoesNotThrow(() -> handler.updateEnvironment("op", "env", "stage", update));
+            assertDoesNotThrow(() -> handler.updateEnvironment(null, "op", "env", "stage", update));
             verify(mockEnvironHandler).updateStage(any(), eq("op"));
             verify(mockConfigHistoryHandler)
                     .updateConfigHistory(eq("id1"), any(), eq(update), eq("op"));
@@ -126,7 +126,7 @@ class EnvironmentHandlerTest {
             WebApplicationException ex =
                     assertThrows(
                             WebApplicationException.class,
-                            () -> handler.updateEnvironment("op", "env", "stage", update));
+                            () -> handler.updateEnvironment(null, "op", "env", "stage", update));
             assertEquals(403, ex.getResponse().getStatus());
         }
     }
@@ -150,7 +150,7 @@ class EnvironmentHandlerTest {
             WebApplicationException ex =
                     assertThrows(
                             WebApplicationException.class,
-                            () -> handler.updateEnvironment("op", "env", "stage", update));
+                            () -> handler.updateEnvironment(null, "op", "env", "stage", update));
             assertEquals(400, ex.getResponse().getStatus());
         }
     }

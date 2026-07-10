@@ -85,6 +85,8 @@ class EnvCapacitiesTest {
         EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
         envBean.setSystem_priority(1);
 
+        when(authorizer.authorize(any(), any(), any(), any())).thenReturn(true);
+
         assertDoesNotThrow(() -> sut.authorize(envBean, principal, type, capacities));
     }
 

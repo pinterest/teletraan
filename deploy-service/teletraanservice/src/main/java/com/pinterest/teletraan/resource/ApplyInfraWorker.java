@@ -158,7 +158,7 @@ public class ApplyInfraWorker implements Runnable {
             try {
                 EnvironBean updateEnvironBean = originEnvironBean.withCluster_name(clusterName);
                 environmentHandler.updateEnvironment(
-                        operator, envName, stageName, updateEnvironBean);
+                        null, operator, envName, stageName, updateEnvironBean);
                 environmentHandler.createCapacityForHostOrGroup(
                         operator,
                         envName,
@@ -170,7 +170,7 @@ public class ApplyInfraWorker implements Runnable {
                         clusterName, envName, stageName, newClusterInfoPublicIdsBean);
             } catch (Exception e) {
                 environmentHandler.updateEnvironment(
-                        operator, envName, stageName, originEnvironBean);
+                        null, operator, envName, stageName, originEnvironBean);
                 environmentHandler.deleteCapacityForHostOrGroup(
                         operator,
                         envName,
