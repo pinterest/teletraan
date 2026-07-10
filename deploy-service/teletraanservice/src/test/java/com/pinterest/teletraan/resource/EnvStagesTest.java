@@ -115,8 +115,7 @@ class EnvStagesTest {
 
         EnvStages resource =
                 resourceWithGate(
-                        "{\"entitlement_enforcement\": 100}",
-                        "[\"" + ENV1 + "-" + STAGE1 + "\"]");
+                        "{\"entitlement_enforcement\": 100}", "[\"" + ENV1 + "-" + STAGE1 + "\"]");
 
         assertTrue(resource.get(ENV1, STAGE1).getUse_entitlements());
     }
@@ -132,8 +131,7 @@ class EnvStagesTest {
 
         EnvStages resource =
                 resourceWithGate(
-                        "{\"entitlement_enforcement\": 0}",
-                        "[\"" + ENV1 + "-" + STAGE1 + "\"]");
+                        "{\"entitlement_enforcement\": 0}", "[\"" + ENV1 + "-" + STAGE1 + "\"]");
 
         assertFalse(resource.get(ENV1, STAGE1).getUse_entitlements());
     }

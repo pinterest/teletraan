@@ -41,9 +41,9 @@ import org.slf4j.LoggerFactory;
  *       JSON object of string keys to integer values) must have {@link #ENFORCE_FLAG_KEY} at {@link
  *       #ENFORCE_VALUE}. Any lower value (including a missing/unreadable file) disables it, so the
  *       UI re-enables manual capacity edits.
- *   <li><b>Layer 2 — onboarding allowlist.</b> The cluster id must appear in the allowlist read from
- *       {@link #DEFAULT_ONBOARDED_FILE} (a JSON array of cluster ids). Only listed clusters are
- *       enforced, so a rollout can be staged cluster-by-cluster by editing the list.
+ *   <li><b>Layer 2 — onboarding allowlist.</b> The cluster id must appear in the allowlist read
+ *       from {@link #DEFAULT_ONBOARDED_FILE} (a JSON array of cluster ids). Only listed clusters
+ *       are enforced, so a rollout can be staged cluster-by-cluster by editing the list.
  * </ul>
  *
  * <p>Both files are expected to be delivered to the host by the deployment's configuration-delivery
@@ -55,8 +55,7 @@ import org.slf4j.LoggerFactory;
  */
 public class EntitlementEnforcementProvider {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(EntitlementEnforcementProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EntitlementEnforcementProvider.class);
 
     static final int ENFORCE_VALUE = 100;
 
@@ -166,7 +165,8 @@ public class EntitlementEnforcementProvider {
             return Collections.emptySet();
         }
         try (FileInputStream in = new FileInputStream(file)) {
-            List<String> clusters = objectMapper.readValue(in, new TypeReference<List<String>>() {});
+            List<String> clusters =
+                    objectMapper.readValue(in, new TypeReference<List<String>>() {});
             return new HashSet<>(clusters);
         } catch (IOException e) {
             LOG.error(

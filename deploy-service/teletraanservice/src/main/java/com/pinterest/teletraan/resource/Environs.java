@@ -84,7 +84,9 @@ public class Environs {
         environmentHandler = new com.pinterest.teletraan.handler.EnvironmentHandler(context);
     }
 
-    /** Visible for testing: override the entitlement enforcement gate (kill switch + onboarding). */
+    /**
+     * Visible for testing: override the entitlement enforcement gate (kill switch + onboarding).
+     */
     void setEntitlementEnforcementProvider(EntitlementEnforcementProvider provider) {
         this.entitlementEnforcementProvider = provider;
     }
