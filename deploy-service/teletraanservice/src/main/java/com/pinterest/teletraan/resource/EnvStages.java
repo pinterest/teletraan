@@ -21,6 +21,7 @@ import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.common.EntitlementEnforcementProvider;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvTagHandler;
@@ -73,6 +74,8 @@ public class EnvStages {
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
     private EnvironmentHandler environmentHandler;
+    private EntitlementEnforcementProvider entitlementEnforcementProvider =
+            new EntitlementEnforcementProvider();
 
     public EnvStages(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
@@ -80,6 +83,13 @@ public class EnvStages {
         configHistoryHandler = new ConfigHistoryHandler(context);
         tagHandler = new EnvTagHandler(context);
         environmentHandler = new EnvironmentHandler(context);
+    }
+
+    /**
+     * Visible for testing: override the entitlement enforcement gate (kill switch + onboarding).
+     */
+    void setEntitlementEnforcementProvider(EntitlementEnforcementProvider provider) {
+        this.entitlementEnforcementProvider = provider;
     }
 
     @GET
@@ -93,7 +103,11 @@ public class EnvStages {
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName")
                     String stageName)
             throws Exception {
-        return Utils.getEnvStage(environDAO, envName, stageName);
+        EnvironBean bean = Utils.getEnvStage(environDAO, envName, stageName);
+        // useEntitlements is derived from the live kill switch + rollout config, not the static
+        // DB column, so the capacity UI greys out (or re-enables) as the flag/list change.
+        entitlementEnforcementProvider.applyUseEntitlements(bean);
+        return bean;
     }
 
     @PUT
