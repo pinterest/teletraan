@@ -122,9 +122,9 @@
                     </label>
                     <div class="col-xs-4">
                         <div class="input-group">
-                        <input class="form-control" name="lifecycle_timeout" required="true"
-                               type="text" value="{{ config.lifecycleTimeout|default_if_none:'10' }}"/>
-                        <span class="input-group-addon">Minutes</span>
+                            <input class="form-control" name="lifecycle_timeout" required="true" min="0" max="120"
+                                type="number" value="{{ config.lifecycleTimeout|default_if_none:10 }}"/>
+                            <span class="input-group-addon">Minutes</span>
                         </div>
                     </div>
                 </div>
