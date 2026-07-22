@@ -45,8 +45,19 @@ class LocalDownloadHelper(DownloadHelper):
 
         error = self._download_files(local_full_fn)
         if error != Status.SUCCEEDED:
+            # The local_full_fn below is a HOST-LOCAL path (often under
+            # /mnt/builds/...). A failure here is a local fetch issue — it is
+            # NOT an S3 / IAM permission problem. If a subsequent deploy step
+            # surfaces 'ServicesetConfNotFound', that is a packaging/wildcard
+            # gap (missing config file inside the build tarball), not S3/IAM.
+            # See T004.
             log.error(
-                "Failed to download the local tar ball for {}".format(local_full_fn)
+                "Failed to download the local tar ball for %s (source_url=%s). "
+                "This is a LOCAL fetch failure, NOT an S3/IAM permission "
+                "issue. If a missing serviceset conf is reported later, verify "
+                "the expected config file is included in the build tarball.",
+                local_full_fn,
+                self._url,
             )
         return error
 
