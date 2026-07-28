@@ -159,4 +159,36 @@ class EntitlementEnforcementProviderTest {
         provider.applyUseEntitlements(Collections.singletonList(bean));
         assertFalse(bean.getUse_entitlements());
     }
+
+    /**
+     * Overwrites the onboarded file to empty after it has been cached; within the refresh window
+     * the provider must keep serving the cached (onboarded) result rather than re-reading the file.
+     */
+    @Test
+    void onboardedListIsCachedWithinRefreshWindow() throws Exception {
+        EntitlementEnforcementProvider provider =
+                providerWith(deciderJson(100), "[\"" + CLUSTER + "\"]");
+        assertTrue(provider.isEnforced(CLUSTER));
+
+        write("onboarded", "[]");
+        assertTrue(provider.isEnforced(CLUSTER));
+    }
+
+    /**
+     * Overwrites the decider file to off after it has been cached; within the refresh window the
+     * provider must keep serving the cached (enforced) result rather than re-reading the file.
+     */
+    @Test
+    void deciderIsCachedWithinRefreshWindow() throws Exception {
+        EntitlementEnforcementProvider provider =
+                providerWith(deciderJson(100), "[\"" + CLUSTER + "\"]");
+        assertTrue(provider.isEnforced(CLUSTER));
+
+        write("decider", deciderJson(0));
+        assertTrue(provider.isEnforced(CLUSTER));
+    }
+
+    private void write(String name, String content) throws Exception {
+        Files.write(new File(tempDir, name).toPath(), content.getBytes(StandardCharsets.UTF_8));
+    }
 }

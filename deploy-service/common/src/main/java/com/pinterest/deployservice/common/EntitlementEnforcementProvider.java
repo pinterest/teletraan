@@ -49,8 +49,10 @@ import org.slf4j.LoggerFactory;
  *       are enforced, so a rollout can be staged cluster-by-cluster by editing the list.
  * </ul>
  *
- * <p>Both files are delivered to the host by the managed-data framework and are re-read on each
- * call so a decider flip or list change is picked up without a redeploy. Fail-safe: any
+ * <p>Both files are delivered to the host by the managed-data framework. Their parsed results are
+ * cached and refreshed at most every {@link #CACHE_REFRESH_THRESHOLD_MINUTES} minutes (see {@link
+ * #deciderCache} / {@link #onboardedCache}) to avoid re-reading them on every call, so a decider
+ * flip or list change is picked up within that window without a redeploy. Fail-safe: any
  * missing/undelivered/corrupt input resolves to "not enforced" and never throws into the request
  * path.
  */

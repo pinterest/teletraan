@@ -74,8 +74,12 @@ public class EnvStages {
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
     private EnvironmentHandler environmentHandler;
-    private EntitlementEnforcementProvider entitlementEnforcementProvider =
+    // Shared so the provider's file-read caches survive across the per-request resource instances
+    // Jersey creates; a per-instance provider would rebuild an empty cache on every request.
+    private static final EntitlementEnforcementProvider DEFAULT_ENTITLEMENT_ENFORCEMENT_PROVIDER =
             new EntitlementEnforcementProvider();
+    private EntitlementEnforcementProvider entitlementEnforcementProvider =
+            DEFAULT_ENTITLEMENT_ENFORCEMENT_PROVIDER;
 
     public EnvStages(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
