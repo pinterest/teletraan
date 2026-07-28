@@ -17,6 +17,8 @@ package com.pinterest.deployservice.common;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.pinterest.deployservice.bean.EnvironBean;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +59,7 @@ public class EntitlementEnforcementProvider {
     private static final Logger LOG = LoggerFactory.getLogger(EntitlementEnforcementProvider.class);
 
     static final int ENFORCE_VALUE = 100;
+    static final int CACHE_REFRESH_THRESHOLD_MINUTES = 5;
 
     // Decider "entitlement_enforcement_teletraan" (Layer 1 kill switch), delivered by the
     // managed-data framework to /var/config/config.manageddata.admin.decider as a JSON map of
@@ -71,6 +75,8 @@ public class EntitlementEnforcementProvider {
     private final String deciderFilePath;
     private final String onboardedFilePath;
     private final ObjectMapper objectMapper;
+    private final LoadingCache<String, Boolean> deciderCache;
+    private final LoadingCache<String, Set<String>> onboardedCache;
 
     public EntitlementEnforcementProvider() {
         this(DEFAULT_DECIDER_FILE, DEFAULT_ONBOARDED_FILE);
@@ -80,6 +86,16 @@ public class EntitlementEnforcementProvider {
         this.deciderFilePath = deciderFilePath;
         this.onboardedFilePath = onboardedFilePath;
         this.objectMapper = new ObjectMapper();
+        this.deciderCache =
+                Caffeine.newBuilder()
+                        .refreshAfterWrite(CACHE_REFRESH_THRESHOLD_MINUTES, TimeUnit.MINUTES)
+                        .maximumSize(1)
+                        .build(this::isEnforcementDeciderActive);
+        this.onboardedCache =
+                Caffeine.newBuilder()
+                        .refreshAfterWrite(CACHE_REFRESH_THRESHOLD_MINUTES, TimeUnit.MINUTES)
+                        .maximumSize(1)
+                        .build(this::onboardedClusters);
     }
 
     /**
@@ -87,10 +103,10 @@ public class EntitlementEnforcementProvider {
      * Requires both layers: the kill-switch flag active and the cluster onboarded.
      */
     public boolean isEnforced(String clusterId) {
-        if (!isEnforcementDeciderActive()) {
+        if (!deciderCache.get(ENFORCE_DECIDER_KEY)) {
             return false;
         }
-        return onboardedClusters().contains(clusterId);
+        return onboardedCache.get(onboardedFilePath).contains(clusterId);
     }
 
     /**
@@ -113,7 +129,9 @@ public class EntitlementEnforcementProvider {
             return;
         }
         Set<String> onboarded =
-                isEnforcementDeciderActive() ? onboardedClusters() : Collections.emptySet();
+                deciderCache.get(ENFORCE_DECIDER_KEY)
+                        ? onboardedCache.get(onboardedFilePath)
+                        : Collections.emptySet();
         for (EnvironBean env : envs) {
             if (env != null) {
                 env.setUse_entitlements(onboarded.contains(clusterId(env)));
@@ -130,8 +148,8 @@ public class EntitlementEnforcementProvider {
      * Layer 1. True only when the kill-switch decider is at {@link #ENFORCE_VALUE}. A
      * missing/unreadable value resolves to false.
      */
-    boolean isEnforcementDeciderActive() {
-        Integer value = deciderMap().getOrDefault(ENFORCE_DECIDER_KEY, 0);
+    boolean isEnforcementDeciderActive(String deciderKey) {
+        Integer value = deciderMap().getOrDefault(deciderKey, 0);
         return value != null && value >= ENFORCE_VALUE;
     }
 
@@ -150,7 +168,7 @@ public class EntitlementEnforcementProvider {
     }
 
     /** Layer 2. The set of onboarded Teletraan clusterIds. Missing/unreadable -> empty set. */
-    Set<String> onboardedClusters() {
+    Set<String> onboardedClusters(String onboardedFilePath) {
         File file = new File(onboardedFilePath);
         if (!file.exists()) {
             LOG.info("Entitlement onboarding list does not exist: {}", onboardedFilePath);
