@@ -61,7 +61,7 @@ public class EntitlementEnforcementProvider {
     private static final Logger LOG = LoggerFactory.getLogger(EntitlementEnforcementProvider.class);
 
     static final int ENFORCE_VALUE = 100;
-    static final int CACHE_REFRESH_THRESHOLD_MINUTES = 5;
+    static final int CACHE_REFRESH_THRESHOLD_MINUTES = 1;
 
     // Decider "entitlement_enforcement_teletraan" (Layer 1 kill switch), delivered by the
     // managed-data framework to /var/config/config.manageddata.admin.decider as a JSON map of
