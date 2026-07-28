@@ -73,8 +73,12 @@ public class Environs {
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
     private com.pinterest.teletraan.handler.EnvironmentHandler environmentHandler;
-    private EntitlementEnforcementProvider entitlementEnforcementProvider =
+    // Shared so the provider's file-read caches survive across the per-request resource instances
+    // Jersey creates; a per-instance provider would rebuild an empty cache on every request.
+    private static final EntitlementEnforcementProvider DEFAULT_ENTITLEMENT_ENFORCEMENT_PROVIDER =
             new EntitlementEnforcementProvider();
+    private EntitlementEnforcementProvider entitlementEnforcementProvider =
+            DEFAULT_ENTITLEMENT_ENFORCEMENT_PROVIDER;
 
     public Environs(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
