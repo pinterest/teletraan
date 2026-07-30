@@ -21,6 +21,8 @@ import com.pinterest.deployservice.bean.PindeployBean;
 public interface PindeployDAO {
     PindeployBean get(String envId) throws Exception;
 
+    PindeployBean getByPipeline(String pipeline) throws Exception;
+
     void delete(String pipeline) throws Exception;
 
     void insertOrUpdate(PindeployBean pindeployBean) throws Exception;

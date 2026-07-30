@@ -21,7 +21,12 @@ import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.universal.security.TeletraanAuthorizer;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.swagger.annotations.*;
+import java.security.Principal;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.*;
@@ -42,10 +47,42 @@ public class Pindeploy {
     private static final Logger LOG = LoggerFactory.getLogger(Pindeploy.class);
     private PindeployDAO pindeployDAO;
     private EnvironDAO environDAO;
+    private AuthorizationFactory authorizationFactory;
+    private TeletraanServiceContext context;
 
     public Pindeploy(@Context TeletraanServiceContext context) throws Exception {
+        this.context = context;
         pindeployDAO = context.getPindeployDAO();
         environDAO = context.getEnvironDAO();
+        authorizationFactory = context.getAuthorizationFactory();
+    }
+
+    /**
+     * enable/disablePindeployPipeline carry no {@code @ResourceAuthZInfo} because their
+     * envName/stageName/pipeline identifiers arrive as query params, a location the resource
+     * extractor factory does not support (see TeletraanAuthZResourceExtractorFactory) -- adding
+     * the annotation would 500 at request time rather than authorize. This performs the same
+     * per-instance WRITE check the framework would have run, using the on-the-fly authorizer
+     * pattern already used by EnvironmentHandler.validateSystemPriorityPermission.
+     */
+    private void requireWriteOnEnvStage(SecurityContext sc, String envName, String stageName) {
+        Principal principal = sc.getUserPrincipal();
+        if (!(principal instanceof TeletraanPrincipal)) {
+            throw new ForbiddenException("Modifying pindeploy pipeline wiring requires an authenticated Teletraan principal");
+        }
+        TeletraanPrincipal teletraanPrincipal = (TeletraanPrincipal) principal;
+        TeletraanAuthorizer<TeletraanPrincipal> authorizer =
+                authorizationFactory.createSecondaryAuthorizer(context, teletraanPrincipal.getClass());
+        AuthZResource envResource = new AuthZResource(envName, stageName);
+        boolean isAuthorized =
+                authorizer.authorize(
+                        teletraanPrincipal, TeletraanPrincipalRole.Names.WRITE, envResource, null);
+        if (!isAuthorized) {
+            throw new ForbiddenException(
+                    String.format(
+                            "Modifying pindeploy pipeline wiring requires WRITE role on environment %s/%s",
+                            envName, stageName));
+        }
     }
 
     @GET
@@ -63,9 +100,17 @@ public class Pindeploy {
 
     @DELETE
     @Path("/disable")
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     public void disablePindeployPipeline(
             @Context SecurityContext sc, @NotEmpty @QueryParam("pipeline") String pipeline)
             throws Exception {
+        PindeployBean existing = pindeployDAO.getByPipeline(pipeline);
+        if (existing != null) {
+            EnvironBean owningEnv = environDAO.getById(existing.getEnv_id());
+            if (owningEnv != null) {
+                requireWriteOnEnvStage(sc, owningEnv.getEnv_name(), owningEnv.getStage_name());
+            }
+        }
         String operator = sc.getUserPrincipal().getName();
         pindeployDAO.delete(pipeline);
         LOG.info(
@@ -75,6 +120,7 @@ public class Pindeploy {
 
     @POST
     @Path("/enable")
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
     public void enablePindeployPipeline(
             @Context SecurityContext sc,
             @NotEmpty @QueryParam("envName") String envName,
@@ -82,6 +128,7 @@ public class Pindeploy {
             @NotEmpty @QueryParam("pipeline") String pipeline)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        requireWriteOnEnvStage(sc, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
         PindeployBean pindeployBean = new PindeployBean();
         pindeployBean.setEnv_id(envBean.getEnv_id());
