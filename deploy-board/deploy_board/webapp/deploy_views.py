@@ -24,6 +24,7 @@ from deploy_board.settings import (
     PINCOMPUTE_ONBOARDING_LINK,
     PINCOMPUTE_EXCEPTION_FORM_LINK,
     PINCOMPUTE_SLACK_LINK,
+    TIER3_ONBOARDING_DISABLED,
 )
 from django.middleware.csrf import get_token
 from .accounts import get_accounts_from_deploy
@@ -115,6 +116,7 @@ def get_landing_page(request):
             "pincompute_onboarding_link": PINCOMPUTE_ONBOARDING_LINK,
             "pincompute_exception_form_link": PINCOMPUTE_EXCEPTION_FORM_LINK,
             "pincompute_slack_link": PINCOMPUTE_SLACK_LINK,
+            "tier3_onboarding_disabled": TIER3_ONBOARDING_DISABLED,
         },
     )
 
