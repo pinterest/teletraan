@@ -294,6 +294,9 @@ class Config(object):
             "account_id_key", "ec2_metadata.identity-credentials.ec2.info"
         )
 
+    def get_facter_query_cache_ttl(self) -> int:
+        return self.get_intvar("facter_query_cache_ttl", 0)
+
     def _get_download_allow_list(self, key: str) -> List:
         allow_list_str = self.get_var(key, "[]")
         allow_list = []
