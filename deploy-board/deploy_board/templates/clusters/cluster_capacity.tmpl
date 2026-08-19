@@ -38,10 +38,34 @@
                 <div class="form-group" style="margin-bottom: 0;">
                     <div class="col-xs-8 col-xs-offset-4">
                         <div class="alert alert-info" style="margin-bottom: 0;">
-                            <strong>Capacity is read-only here.</strong>
-                            Click <strong>View Entitlement</strong> below
-                            <span class="glyphicon glyphicon-arrow-down"></span>
-                            to make capacity updates.
+                            <p style="margin-bottom: 8px;">
+                                <strong>Capacity is read-only here — managed by Entitlements.</strong>
+                            </p>
+                            <ul style="margin-bottom: 0; padding-left: 18px;">
+                                <li>
+                                    <strong>Mid-incident?</strong>
+                                    Click <strong>View Entitlement</strong> below
+                                    <span class="glyphicon glyphicon-arrow-down"></span>
+                                    and turn on <strong>Emergency Request</strong> — it bypasses the
+                                    budget and approval gates. Emergency requests are for incidents only.
+                                </li>
+                                <li>
+                                    <strong>Guide:</strong>
+                                    <a href="{{ entitlement_support.guide_url }}" target="_blank" rel="noopener">
+                                        Teletraan Entitlements Guide
+                                        <span class="glyphicon glyphicon-new-window"></span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <strong>Questions:</strong>
+                                    <strong>{{ entitlement_support.slack_channel }}</strong>
+                                    — tag <strong>{{ entitlement_support.slack_user_group }}</strong> (routes to the oncall)
+                                </li>
+                                <li>
+                                    <strong>Platform help (Teletraan):</strong>
+                                    <strong>{{ entitlement_support.platform_channel }}</strong>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>

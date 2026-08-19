@@ -458,3 +458,16 @@ if IS_PINTEREST:
 
     # Entitlements UI Links
     ENTITLEMENTS_UI_LINK = os.getenv("ENTITLEMENTS_UI_LINK")
+
+    # Entitlement support / escalation (mirrors the Capacity Management System
+    # pdocs guide + oncall runbook; keep in sync with pinconsole
+    # entitlementSupport.ts). The "ask" rail (channel + oncall handle) is
+    # constant across surfaces; tagging @entitlement-support in
+    # #entitlement-users routes directly to the oncall (it is not a user group).
+    # The platform "page" rail points at the Teletraan/CDP oncall via #teletraan.
+    ENTITLEMENT_SUPPORT = {
+        "guide_url": "https://pdocs.pinadmin.com/docs/capacity-management-system/user-guide/teletraan/index",
+        "slack_channel": "#entitlement-users",
+        "slack_user_group": "@entitlement-support",
+        "platform_channel": "#teletraan",
+    }
