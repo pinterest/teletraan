@@ -31,6 +31,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentCountBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.KnoxStatus;
@@ -50,6 +52,7 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -60,8 +63,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 
 public class PingHandlerTest {
+
+    private static final long TEST_TTL_MS = 15000L;
+
+    /**
+     * createRandomEnvironBean sets max_parallel=10 and max_parallel_pct=0, so against 100
+     * non-first-deploy agents the parallel threshold resolves to 10.
+     */
+    private static final long TEST_THRESHOLD = 10L;
 
     private AgentDAO agentDAO;
     private AgentCountDAO agentCountDAO;
@@ -112,6 +124,8 @@ public class PingHandlerTest {
         serviceContext.setHostTagDAO(hostTagDAO);
         serviceContext.setGroupDAO(groupDAO);
         serviceContext.setDeployConstraintDAO(deployConstraintDAO);
+        serviceContext.setAgentCountCacheTtl(TEST_TTL_MS);
+        serviceContext.setMaxParallelThreshold(5000L);
 
         pingHandler = new PingHandler(serviceContext);
     }
@@ -432,5 +446,160 @@ public class PingHandlerTest {
         assertEquals(1, PingHandler.calculateParallelThreshold(bean, 2, 1), 1);
         assertEquals(10, PingHandler.calculateParallelThreshold(bean, 2, 1), 10);
         assertEquals(10, PingHandler.calculateParallelThreshold(bean, 2, 1), 100);
+    }
+
+    private AgentBean waitingAgent(String envId) {
+        AgentBean bean = new AgentBean();
+        bean.setHost_id("host-1");
+        bean.setHost_name("hostname-1");
+        bean.setEnv_id(envId);
+        bean.setDeploy_id("deploy-1");
+        bean.setFirst_deploy(false);
+        return bean;
+    }
+
+    private AgentCountBean agentCount(String envId, long existing, long active, long lastRefresh) {
+        AgentCountBean bean = new AgentCountBean();
+        bean.setEnv_id(envId);
+        bean.setDeploy_id("deploy-1");
+        bean.setExisting_count(existing);
+        bean.setActive_count(active);
+        bean.setLast_refresh(lastRefresh);
+        return bean;
+    }
+
+    @Test
+    public void testCanDeploy_freshCountAtCapacity_rejectsWithoutLockOrRecount() throws Exception {
+        EnvironBean environ = createRandomEnvironBean();
+        String envId = environ.getEnv_id();
+        when(agentCountDAO.get(envId))
+                .thenReturn(agentCount(envId, 100L, TEST_THRESHOLD, System.currentTimeMillis()));
+
+        assertFalse(pingHandler.canDeploy(environ, "hostname-1", waitingAgent(envId)));
+
+        // The hot rejection path must not scan or contend for the lock.
+        verify(agentDAO, never()).countNonFirstDeployingAgent(anyString());
+        verify(agentDAO, never()).countDeployingAgent(anyString());
+        verify(utilDAO, never()).getLock(anyString());
+    }
+
+    @Test
+    public void testCanDeploy_staleCountLockUnavailable_skipsRecount() throws Exception {
+        EnvironBean environ = createRandomEnvironBean();
+        String envId = environ.getEnv_id();
+        when(agentCountDAO.get(envId))
+                .thenReturn(
+                        agentCount(envId, 100L, 3L, System.currentTimeMillis() - 10 * TEST_TTL_MS));
+        when(utilDAO.getLock(anyString())).thenReturn(null);
+
+        assertFalse(pingHandler.canDeploy(environ, "hostname-1", waitingAgent(envId)));
+
+        // Losing the single flight must defer, not fall back to recounting.
+        verify(agentDAO, never()).countNonFirstDeployingAgent(anyString());
+        verify(agentDAO, never()).countDeployingAgent(anyString());
+        verify(agentCountDAO, never()).insertOrUpdate(any(AgentCountBean.class));
+    }
+
+    @Test
+    public void testCanDeploy_staleCountAtCapacity_persistsRecount() throws Exception {
+        EnvironBean environ = createRandomEnvironBean();
+        String envId = environ.getEnv_id();
+        Connection connection = mock(Connection.class);
+        when(agentCountDAO.get(envId))
+                .thenReturn(
+                        agentCount(envId, 100L, 3L, System.currentTimeMillis() - 10 * TEST_TTL_MS));
+        when(utilDAO.getLock(anyString())).thenReturn(connection);
+        when(agentDAO.countNonFirstDeployingAgent(envId)).thenReturn(100L);
+        when(agentDAO.countDeployingAgent(envId)).thenReturn(TEST_THRESHOLD);
+
+        long before = System.currentTimeMillis();
+        assertFalse(pingHandler.canDeploy(environ, "hostname-1", waitingAgent(envId)));
+
+        // Rejected, but the recount is still persisted so the expired window is bounded by
+        // the ttl instead of lasting for the rest of the deploy.
+        ArgumentCaptor<AgentCountBean> captor = ArgumentCaptor.forClass(AgentCountBean.class);
+        verify(agentCountDAO).insertOrUpdate(captor.capture());
+        assertEquals(TEST_THRESHOLD, captor.getValue().getActive_count().longValue());
+        assertTrue(captor.getValue().getLast_refresh() >= before);
+        verify(agentDAO, never()).insertOrUpdate(any(AgentBean.class));
+        verify(utilDAO).releaseLock(anyString(), eq(connection));
+    }
+
+    @Test
+    public void testCanDeploy_staleCountBelowCapacity_admitsAndRefreshes() throws Exception {
+        EnvironBean environ = createRandomEnvironBean();
+        String envId = environ.getEnv_id();
+        Connection connection = mock(Connection.class);
+        when(agentCountDAO.get(envId))
+                .thenReturn(
+                        agentCount(envId, 100L, 9L, System.currentTimeMillis() - 10 * TEST_TTL_MS));
+        when(utilDAO.getLock(anyString())).thenReturn(connection);
+        when(agentDAO.countNonFirstDeployingAgent(envId)).thenReturn(100L);
+        when(agentDAO.countDeployingAgent(envId)).thenReturn(4L);
+
+        long before = System.currentTimeMillis();
+        assertTrue(pingHandler.canDeploy(environ, "hostname-1", waitingAgent(envId)));
+
+        // Exactly one recount happened, under the lock.
+        verify(agentDAO, times(1)).countNonFirstDeployingAgent(envId);
+        verify(agentDAO, times(1)).countDeployingAgent(envId);
+        ArgumentCaptor<AgentCountBean> captor = ArgumentCaptor.forClass(AgentCountBean.class);
+        verify(agentCountDAO).insertOrUpdate(captor.capture());
+        assertEquals(5L, captor.getValue().getActive_count().longValue());
+        assertTrue(captor.getValue().getLast_refresh() >= before);
+        verify(agentDAO).insertOrUpdate(any(AgentBean.class));
+        verify(utilDAO).releaseLock(anyString(), eq(connection));
+    }
+
+    @Test
+    public void testCanDeploy_freshCountBelowCapacity_admitsWithoutRecount() throws Exception {
+        EnvironBean environ = createRandomEnvironBean();
+        String envId = environ.getEnv_id();
+        long lastRefresh = System.currentTimeMillis();
+        when(agentCountDAO.get(envId)).thenReturn(agentCount(envId, 100L, 4L, lastRefresh));
+        when(utilDAO.getLock(anyString())).thenReturn(mock(Connection.class));
+
+        assertTrue(pingHandler.canDeploy(environ, "hostname-1", waitingAgent(envId)));
+
+        // A fresh count is trusted, so the seat is taken without any scan, and the ttl is
+        // not extended: active_count only self-corrects on the next recount.
+        verify(agentDAO, never()).countNonFirstDeployingAgent(anyString());
+        verify(agentDAO, never()).countDeployingAgent(anyString());
+        ArgumentCaptor<AgentCountBean> captor = ArgumentCaptor.forClass(AgentCountBean.class);
+        verify(agentCountDAO).insertOrUpdate(captor.capture());
+        assertEquals(5L, captor.getValue().getActive_count().longValue());
+        assertEquals(lastRefresh, captor.getValue().getLast_refresh().longValue());
+    }
+
+    @Test
+    public void testCanDeploy_missingCount_recountsUnderLock() throws Exception {
+        EnvironBean environ = createRandomEnvironBean();
+        String envId = environ.getEnv_id();
+        when(agentCountDAO.get(envId)).thenReturn(null);
+        when(utilDAO.getLock(anyString())).thenReturn(mock(Connection.class));
+        when(agentDAO.countNonFirstDeployingAgent(envId)).thenReturn(100L);
+        when(agentDAO.countDeployingAgent(envId)).thenReturn(0L);
+
+        assertTrue(pingHandler.canDeploy(environ, "hostname-1", waitingAgent(envId)));
+
+        ArgumentCaptor<AgentCountBean> captor = ArgumentCaptor.forClass(AgentCountBean.class);
+        verify(agentCountDAO).insertOrUpdate(captor.capture());
+        assertEquals(envId, captor.getValue().getEnv_id());
+        assertEquals(1L, captor.getValue().getActive_count().longValue());
+        assertEquals(100L, captor.getValue().getExisting_count().longValue());
+    }
+
+    @Test
+    public void testCanDeploy_firstDeployBypassesThreshold() throws Exception {
+        EnvironBean environ = createRandomEnvironBean();
+        String envId = environ.getEnv_id();
+        AgentBean agent = waitingAgent(envId);
+        agent.setFirst_deploy(true);
+
+        assertTrue(pingHandler.canDeploy(environ, "hostname-1", agent));
+
+        verify(agentDAO).insertOrUpdate(agent);
+        verify(agentCountDAO, never()).get(anyString());
+        verify(utilDAO, never()).getLock(anyString());
     }
 }

@@ -364,40 +364,28 @@ public class PingHandler {
             return true;
         }
 
-        // TODO use ecache to optimize
         // Make sure we do not exceed allowed number of concurrent active deploying agent
         String envId = envBean.getEnv_id();
-        AgentCountBean agentCountBean = agentCountDAO.get(envId);
-        long totalNonFirstDeployAgents =
-                (isAgentCountValid(envId, agentCountBean) == true)
-                        ? agentCountBean.getExisting_count()
-                        : agentDAO.countNonFirstDeployingAgent(envId);
-        long parallelThreshold =
-                PingHandler.calculateParallelThreshold(
-                        envBean, totalNonFirstDeployAgents, this.maxParallelThreshold);
 
-        try {
-            // Note: This count already excludes first deploy agents, includes agents in STOP state
-            long totalDeployingAgents =
-                    (isAgentCountValid(envId, agentCountBean) == true)
-                            ? agentCountBean.getActive_count()
-                            : agentDAO.countDeployingAgent(envId);
-            if (totalDeployingAgents >= parallelThreshold) {
+        /*
+         * Fast path: a fresh agent count that already reports the env at capacity lets us
+         * reject without taking the lock and without recounting. On large stages most hosts
+         * are queued behind the threshold, so this is the common case.
+         */
+        AgentCountBean cachedCount = agentCountDAO.get(envId);
+        if (isAgentCountValid(envId, cachedCount)) {
+            long cachedThreshold =
+                    PingHandler.calculateParallelThreshold(
+                            envBean, cachedCount.getExisting_count(), this.maxParallelThreshold);
+            if (cachedCount.getActive_count() >= cachedThreshold) {
                 LOG.debug(
                         "Env {}: active agents {}, parallel threshold {}. host {} will wait for deploy",
                         envId,
-                        totalDeployingAgents,
-                        parallelThreshold,
+                        cachedCount.getActive_count(),
+                        cachedThreshold,
                         host);
                 return false;
             }
-        } catch (Exception e) {
-            LOG.warn(
-                    "Env {}, host {}: Failed to check if can deploy or not, exception = {}",
-                    envId,
-                    host,
-                    e.toString());
-            return false;
         }
 
         // Make sure we also follow the schedule if specified
@@ -412,56 +400,85 @@ public class PingHandler {
             return false;
         }
 
-        // Looks like we can proceed with deploy, but let us double check with lock, and
-        // Update table to occupy one seat if condition still hold
+        /*
+         * Recounting is expensive: two COUNT(*) over every agent row of the env. Take the
+         * lock before recounting rather than after, so at most one ping per env pays for it
+         * while the cache is expired. Pings that lose the lock defer to their next cycle
+         * instead of duplicating the scans.
+         */
         String deployLockName = String.format("DEPLOY-%s", envId);
         Connection connection = utilDAO.getLock(deployLockName);
-        if (connection != null) {
-            LOG.info("Successfully get lock on {}", deployLockName);
-            try {
+        if (connection == null) {
+            LOG.debug(
+                    "Env {}: agent count is being refreshed by another host, host {} will wait for deploy.",
+                    envId,
+                    host);
+            return false;
+        }
+        LOG.info("Successfully get lock on {}", deployLockName);
+        try {
+            LOG.debug(
+                    "Got lock on behavor of host {} for env {}, verify active agents", host, envId);
+            AgentCountBean agentCountBean = agentCountDAO.get(envId);
+            boolean staleCount = !isAgentCountValid(envId, agentCountBean);
+            long totalNonFirstDeployAgents;
+            long totalActiveAgents;
+            if (staleCount) {
+                totalNonFirstDeployAgents = agentDAO.countNonFirstDeployingAgent(envId);
+                // Note: This count already excludes first deploy agents, includes agents in STOP
+                // state
+                totalActiveAgents = agentDAO.countDeployingAgent(envId);
+            } else {
+                totalNonFirstDeployAgents = agentCountBean.getExisting_count();
+                totalActiveAgents = agentCountBean.getActive_count();
+            }
+
+            long parallelThreshold =
+                    PingHandler.calculateParallelThreshold(
+                            envBean, totalNonFirstDeployAgents, this.maxParallelThreshold);
+
+            boolean canProceed = totalActiveAgents < parallelThreshold;
+            if (!canProceed) {
                 LOG.debug(
-                        "Got lock on behavor of host {} for env {}, verify active agents",
-                        host,
-                        envId);
-                long totalActiveAgents =
-                        (isAgentCountValid(envId, agentCountBean) == true)
-                                ? agentCountBean.getActive_count()
-                                : agentDAO.countDeployingAgent(envId);
-                if (totalActiveAgents >= parallelThreshold) {
-                    LOG.debug(
-                            "Env {}: active agents {}, parallel threshold {}. host {} will wait for deploy",
-                            envId,
-                            totalActiveAgents,
-                            parallelThreshold,
-                            host);
-                    return false;
-                }
+                        "Env {}: active agents {}, parallel threshold {}. host {} will wait for deploy",
+                        envId,
+                        totalActiveAgents,
+                        parallelThreshold,
+                        host);
+            } else if (!canDeploywithSchedule(envBean)) {
                 // Make sure again we also follow the schedule if specified
-                if (!canDeploywithSchedule(envBean)) {
-                    LOG.debug("Env {}: schedule does not allow host {} to proceed.", envId, host);
-                    return false;
-                }
-
+                LOG.debug("Env {}: schedule does not allow host {} to proceed.", envId, host);
+                canProceed = false;
+            } else if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
                 // Make sure we also follow the deploy constraint if specified
-                if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
-                    LOG.debug(
-                            "Env {}: deploy constraint does not allow host {} to proceed.",
-                            envId,
-                            host);
-                    return false;
-                }
+                LOG.debug(
+                        "Env {}: deploy constraint does not allow host {} to proceed.",
+                        envId,
+                        host);
+                canProceed = false;
+            }
 
+            /*
+             * Persist a recount even when this host is not admitted. Otherwise nothing writes
+             * the cache while the env sits at capacity, and the expired window lasts for the
+             * rest of the deploy instead of a single ttl.
+             */
+            if (staleCount || canProceed) {
                 if (agentCountBean == null) {
                     agentCountBean = new AgentCountBean();
                     agentCountBean.setEnv_id(envId);
                 }
                 agentCountBean.setExisting_count(totalNonFirstDeployAgents);
-                agentCountBean.setActive_count(totalActiveAgents + 1);
+                agentCountBean.setActive_count(
+                        canProceed ? totalActiveAgents + 1 : totalActiveAgents);
                 agentCountBean.setDeploy_id(agentBean.getDeploy_id());
-                // we invalidate cache after ttl.
-                if (isAgentCountValid(envId, agentCountBean) == false) {
-                    long now = System.currentTimeMillis();
-                    agentCountBean.setLast_refresh(now);
+                /*
+                 * active_count is only ever incremented, so it drifts above the real value
+                 * until the ttl forces a recount. Extend the ttl on a recount only, otherwise
+                 * a continuously busy env would never resync.
+                 */
+                if (staleCount) {
+                    agentCountBean.setLast_refresh(System.currentTimeMillis());
                 }
                 /* Typically, should update agentCount and agent in transaction,
                  * however, treating agentCount as cache w/ ttl and
@@ -475,30 +492,28 @@ public class PingHandler {
                         agentCountBean.getLast_refresh(),
                         agentCountCacheTtl);
                 agentCountDAO.insertOrUpdate(agentCountBean);
-                agentDAO.insertOrUpdate(agentBean);
-                LOG.debug(
-                        "There are currently only {} agent actively deploying for env {}, update and proceed on host {}.",
-                        totalActiveAgents,
-                        envId,
-                        host);
-                return true;
-            } catch (Exception e) {
-                LOG.warn(
-                        "Env {} host {}: Failed to check if can deploy or not, exception = {}",
-                        envId,
-                        host,
-                        e.toString());
-                return false;
-            } finally {
-                utilDAO.releaseLock(deployLockName, connection);
-                LOG.info("Successfully released lock on {}", deployLockName);
             }
-        } else {
-            LOG.warn(
-                    "Failed to grab PARALLEL_LOCK for env = {}, host = {}, return false.",
+
+            if (!canProceed) {
+                return false;
+            }
+            agentDAO.insertOrUpdate(agentBean);
+            LOG.debug(
+                    "There are currently only {} agent actively deploying for env {}, update and proceed on host {}.",
+                    totalActiveAgents,
                     envId,
                     host);
+            return true;
+        } catch (Exception e) {
+            LOG.warn(
+                    "Env {} host {}: Failed to check if can deploy or not, exception = {}",
+                    envId,
+                    host,
+                    e.toString());
             return false;
+        } finally {
+            utilDAO.releaseLock(deployLockName, connection);
+            LOG.info("Successfully released lock on {}", deployLockName);
         }
     }
 
