@@ -161,7 +161,7 @@ var alert = new Vue({
 
 <div id="mainPanel">
     {% if is_pinterest %}
-        {% include "clusters/cluster_capacity.tmpl" with is_managed_resource=is_managed_resource entitlements_ui_link=entitlements_ui_link useEntitlements=env.useEntitlements envName=env.envName stageName=env.stageName %}
+        {% include "clusters/cluster_capacity.tmpl" with is_managed_resource=is_managed_resource entitlements_ui_link=entitlements_ui_link useEntitlements=env.useEntitlements envName=env.envName stageName=env.stageName entitlement_support=entitlement_support %}
     {% endif %}
     {% include "configs/capacity.tmpl" %}
 </div>
