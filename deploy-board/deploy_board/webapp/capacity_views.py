@@ -33,6 +33,7 @@ from deploy_board.settings import (
     IS_PINTEREST,
     CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
     ENTITLEMENTS_UI_LINK,
+    ENTITLEMENT_SUPPORT,
 )
 
 
@@ -134,6 +135,7 @@ class EnvCapacityConfigView(View):
             "conflicting_deploy_service_wiki_url": CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
             "is_managed_resource": is_managed_resource,
             "entitlements_ui_link": ENTITLEMENTS_UI_LINK,
+            "entitlement_support": ENTITLEMENT_SUPPORT,
         }
         data["info"] = json.dumps(data)
         return render(request, "configs/capacity.html", data)
