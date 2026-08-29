@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import errno
 import json
 import logging
 import lockfile
 import os
+import shutil
 import traceback
 
 from deployd import IS_PINTEREST
@@ -23,6 +25,22 @@ from deployd.common.types import DeployStatus
 from deployd.common.utils import touch
 
 log = logging.getLogger(__name__)
+
+# Errnos that indicate the host is out of disk space or quota. When we hit one
+# of these while writing the status file, surface disk stats at ERROR so the
+# oncall does not chase the downstream misleading ImageNotFound / retry
+# failure modes (see T002: 'Failed to dump status to the disk' is the strongest
+# on-host signal that disk is full).
+_DISK_FULL_ERRNOS = frozenset(
+    filter(
+        None,
+        (
+            getattr(errno, "ENOSPC", None),
+            getattr(errno, "EDQUOT", None),
+            getattr(errno, "EFBIG", None),
+        ),
+    )
+)
 
 
 class EnvStatus(object):
@@ -95,8 +113,50 @@ class EnvStatus(object):
                 self._touch_or_rm_host_type_file(envs, "canary")
             return True
         except IOError as e:
-            log.warning("Could not write to {}. Reason: {}".format(self._status_fn, e))
+            self._log_dump_failure(e)
             return False
         except Exception:
             log.error(traceback.format_exc())
             return False
+
+    def _log_dump_failure(self, exc) -> None:
+        """Emit a diagnostic log line for a failed status dump.
+
+        When the failure is disk-full (ENOSPC / EDQUOT), escalate to ERROR and
+        attach free/used/total bytes for the mount containing the status file.
+        This is the canonical on-host signal for host disk exhaustion, which
+        otherwise surfaces downstream as a misleading Docker 'ImageNotFound'.
+        """
+        errno_value = getattr(exc, "errno", None)
+        try:
+            probe_path = os.path.dirname(self._status_fn) or self._status_fn
+            usage = shutil.disk_usage(probe_path)
+            disk_info = (
+                " probe_path=%s disk_total_bytes=%d disk_used_bytes=%d "
+                "disk_free_bytes=%d"
+            ) % (probe_path, usage.total, usage.used, usage.free)
+        except Exception as probe_exc:  # disk_usage best-effort
+            disk_info = " probe_path=%s disk_probe_failed=%s" % (
+                self._status_fn,
+                probe_exc,
+            )
+
+        if errno_value in _DISK_FULL_ERRNOS:
+            log.error(
+                "Failed to dump status to the disk (disk-full): status_fn=%s "
+                "errno=%s reason=%s%s. Subsequent deploys on this host will "
+                "likely surface as misleading Docker ImageNotFound errors until "
+                "disk is reclaimed.",
+                self._status_fn,
+                errno_value,
+                exc,
+                disk_info,
+            )
+        else:
+            log.warning(
+                "Could not write to %s. Reason: %s errno=%s%s",
+                self._status_fn,
+                exc,
+                errno_value,
+                disk_info,
+            )
