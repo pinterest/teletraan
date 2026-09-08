@@ -282,6 +282,10 @@ def create_simple_stage(
 
 def get_cluster_name(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
+    # get_env_by_stage returns None when the env/stage does not exist. Callers already
+    # handle a missing cluster name, so don't blow up on the lookup.
+    if env is None:
+        return None
     return env.get("clusterName")
 
 

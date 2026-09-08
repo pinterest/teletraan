@@ -214,11 +214,22 @@ def get_env_capacity(request, env_name, stage_name, capacity_type=None):
     params = []
     if capacity_type:
         params.append(("capacityType", capacity_type))
-    return deployclient.get(
+    capacity = deployclient.get(
         "/envs/%s/%s/capacity" % (env_name, stage_name),
         request.teletraan_user_id.token,
         params=params,
     )
+    # The backend returns 404 when the env/stage does not exist, which the deploy
+    # client turns into None. Callers treat the result as a list, so normalize it.
+    if capacity is None:
+        log.info(
+            "No %s capacity found for env %s/%s",
+            capacity_type or "GROUP",
+            env_name,
+            stage_name,
+        )
+        return []
+    return capacity
 
 
 def update_env_capacity(request, env_name, stage_name, capacity_type=None, data=None):

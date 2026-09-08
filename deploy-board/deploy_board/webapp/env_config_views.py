@@ -17,7 +17,7 @@
 
 import json
 from deploy_board.settings import IS_PINTEREST, STAGE_TYPE_INFO_LINK
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -31,6 +31,8 @@ class EnvConfigView(View):
         is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
         if is_ajax:
             env = environs_helper.get_env_by_stage(request, name, stage)
+            if env is None:
+                raise Http404("Environment %s/%s does not exist." % (name, stage))
             environs_helper.set_active_max_parallel(env)
             html = render_to_string(
                 "configs/env_config.tmpl",
@@ -45,6 +47,8 @@ class EnvConfigView(View):
 
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = get_all_stages(envs, stage)
+        if env is None:
+            raise Http404("Environment %s/%s does not exist." % (name, stage))
 
         # get capacity to decide if we need to show the remove stage button
         show_remove = True

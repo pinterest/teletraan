@@ -435,10 +435,12 @@ class EnvLandingView(View):
     def get(self, request, name, stage=None):
         envs = environs_helper.get_all_env_stages(request, name)
 
-        if len(envs) == 0:
+        if not envs:
             return redirect("/")
 
         stages, env = common.get_all_stages(envs, stage)
+        if env is None:
+            return redirect("/")
         env_promote = environs_helper.get_env_promotes_config(
             request, name, env["stageName"]
         )
