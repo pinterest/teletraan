@@ -13,7 +13,12 @@
 # limitations under the License.
 
 
-from deploy_board.settings import IS_PINTEREST, PHOBOS_URL
+from deploy_board.settings import (
+    IS_PINTEREST,
+    PHOBOS_URL,
+    ENTITLEMENTS_UI_LINK,
+    ENTITLEMENT_SUPPORT,
+)
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -407,6 +412,8 @@ def get_asg_config(request, group_name):
             )
     except Exception as e:
         log.warning("Failed to get placements: {}".format(e))
+    envs = environs_helper.get_all_envs_by_group(request, group_name)
+    entitlement_env = next((env for env in envs if env.get("useEntitlements")), None)
     content = render_to_string(
         "groups/asg_config.tmpl",
         {
@@ -418,6 +425,11 @@ def get_asg_config(request, group_name):
             "csrf_token": get_token(request),
             "pas_config": pas_config,
             "placements": json.dumps(placements),
+            "useEntitlements": entitlement_env is not None,
+            "envName": entitlement_env.get("envName") if entitlement_env else None,
+            "stageName": entitlement_env.get("stageName") if entitlement_env else None,
+            "entitlements_ui_link": ENTITLEMENTS_UI_LINK,
+            "entitlement_support": ENTITLEMENT_SUPPORT,
         },
     )
     return HttpResponse(json.dumps(content), content_type="application/json")

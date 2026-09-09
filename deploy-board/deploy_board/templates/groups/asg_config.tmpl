@@ -18,7 +18,16 @@
                 Auto Scaling Group
                 {% endif %}
             </a>
+            {% if useEntitlements %}
+            <span class="label label-default" style="margin-left: 8px; vertical-align: middle;">CAPACITY READ-ONLY</span>
+            {% endif %}
         </h4>
+        {% if useEntitlements %}
+        <div class="pull-right text-muted" style="padding-top: 3px;">
+            <span class="glyphicon glyphicon-lock"></span>
+            Capacity managed by Entitlements
+        </div>
+        {% endif %}
     </div>
 </div>
 <div id="autoscalingConfigId" class="collapse in panel-body">
@@ -27,13 +36,56 @@
             <input type="hidden" name="asgStatus" value="{{ asg.status }}">
             <input type="hidden" name="groupName" value="{{ group_name }}">
             <fieldset id="envConfigFieldSetId">
-                <asg-capacity-config
-                    original-min-size="{{ asg.minSize }}" original-max-size="{{ asg.maxSize }}" current-size="{{ group_size }}"
-                    label-bootstrap-class="col-xs-2" input-bootstrap-class="col-xs-4"
-                    label-title="Capacity (Current size is {{ group_size }})"
-                    label-text="Minimun and maximum number of hosts in one autoscaling group"
-                    :remaining-capacity="remainingCapacity" :placements="placements">
-                </asg-capacity-config>
+                {% if useEntitlements %}
+                <input type="hidden" name="minSize" value="{{ asg.minSize }}">
+                <input type="hidden" name="maxSize" value="{{ asg.maxSize }}">
+                {% endif %}
+                <fieldset id="asgCapacityFieldSetId" {% if useEntitlements %}disabled
+                        title="Click View Entitlement to make capacity updates"{% endif %}>
+                    <asg-capacity-config
+                        original-min-size="{{ asg.minSize }}" original-max-size="{{ asg.maxSize }}" current-size="{{ group_size }}"
+                        label-bootstrap-class="col-xs-2" input-bootstrap-class="col-xs-4"
+                        label-title="Capacity (Current size is {{ group_size }})"
+                        label-text="Minimun and maximum number of hosts in one autoscaling group"
+                        :remaining-capacity="remainingCapacity" :placements="placements">
+                    </asg-capacity-config>
+                </fieldset>
+                {% if useEntitlements %}
+                <div class="form-group">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <div class="alert alert-info" style="margin-bottom: 0;">
+                            <p style="margin-bottom: 8px;">
+                                <strong>Capacity is read-only here — managed by Entitlements.</strong>
+                            </p>
+                            <ul style="margin-bottom: 0; padding-left: 18px;">
+                                <li>
+                                    <strong>Mid-incident?</strong>
+                                    Click <strong>View Entitlement</strong> below
+                                    <span class="glyphicon glyphicon-arrow-down"></span>
+                                    and turn on <strong>Emergency Request</strong> — it bypasses the
+                                    budget and approval gates. Emergency requests are for incidents only.
+                                </li>
+                                <li>
+                                    <strong>Guide:</strong>
+                                    <a href="{{ entitlement_support.guide_url }}" target="_blank" rel="noopener">
+                                        Teletraan Entitlements Guide
+                                        <span class="glyphicon glyphicon-new-window"></span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <strong>Questions:</strong>
+                                    <strong>{{ entitlement_support.slack_channel }}</strong>
+                                    — tag <strong>{{ entitlement_support.slack_user_group }}</strong> (routes to the oncall)
+                                </li>
+                                <li>
+                                    <strong>Platform help (Teletraan):</strong>
+                                    <strong>{{ entitlement_support.platform_channel }}</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="form-group">
                     <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
@@ -60,7 +112,20 @@
 
 
 <div class="panel-footer clearfix">
+    {% if useEntitlements %}
+    <div class="pull-left text-muted" style="padding-top: 7px;">
+        <span class="glyphicon glyphicon-refresh"></span>
+        All capacity updates go through Entitlements, which auto-syncs to Teletraan.
+    </div>
+    {% endif %}
     <div class="pull-right">
+        {% if useEntitlements %}
+        <a href="{{ entitlements_ui_link }}?openForm=request&platform=teletraan&service={{ envName }}-{{ stageName }}&budgetingEntity=all" target="_blank" class="btn btn-primary"
+                title="Update capacity in the Entitlements UI">
+            <span class="glyphicon glyphicon-new-window"></span>
+            View Entitlement
+        </a>
+        {% endif %}
         <button id="resetEnvConfigBtnId" class="btn btn-default" data-loading-text="Reloading...">
             <span class="glyphicon glyphicon-refresh"></span> Reload
         </button>
