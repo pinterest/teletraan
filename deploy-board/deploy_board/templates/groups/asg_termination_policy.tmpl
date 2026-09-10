@@ -1,0 +1,17 @@
+<div class="form-group">
+    <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
+            data-toggle="tooltip" title="termination policy">
+        Termination Policy
+    </label>
+    <div class="col-xs-4">
+        <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
+        {% for policy in terminationPolicies %}
+            {% if policy == asg.terminationPolicy %}
+                <option value="{{policy}}" selected>{{policy}}</option>
+            {% else %}
+                <option value="{{policy}}">{{policy}}</option>
+            {% endif %}
+        {% endfor %}
+        </select>
+    </div>
+</div>

@@ -18,7 +18,16 @@
                 Auto Scaling Group
                 {% endif %}
             </a>
+            {% if useEntitlements %}
+            <span class="label label-default" style="margin-left: 8px; vertical-align: middle;">READ-ONLY</span>
+            {% endif %}
         </h4>
+        {% if useEntitlements %}
+        <div class="pull-right text-muted" style="padding-top: 3px;">
+            <span class="glyphicon glyphicon-lock"></span>
+            Managed by Entitlements
+        </div>
+        {% endif %}
     </div>
 </div>
 <div id="autoscalingConfigId" class="collapse in panel-body">
@@ -26,7 +35,8 @@
         <form id="autoscalingGroupConfigFormId" class="form-horizontal" role="form">
             <input type="hidden" name="asgStatus" value="{{ asg.status }}">
             <input type="hidden" name="groupName" value="{{ group_name }}">
-            <fieldset id="envConfigFieldSetId">
+            <fieldset id="envConfigFieldSetId" {% if useEntitlements %}disabled
+                    title="Click View Entitlement to make capacity updates"{% endif %}>
                 <asg-capacity-config
                     original-min-size="{{ asg.minSize }}" original-max-size="{{ asg.maxSize }}" current-size="{{ group_size }}"
                     label-bootstrap-class="col-xs-2" input-bootstrap-class="col-xs-4"
@@ -34,25 +44,46 @@
                     label-text="Minimun and maximum number of hosts in one autoscaling group"
                     :remaining-capacity="remainingCapacity" :placements="placements">
                 </asg-capacity-config>
-
-                <div class="form-group">
-                    <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
-                            data-toggle="tooltip" title="termination policy">
-                        Termination Policy
-                    </label>
-                    <div class="col-xs-4">
-                        <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
-                        {% for policy in terminationPolicies %}
-                            {% if policy == asg.terminationPolicy %}
-                                <option value="{{policy}}" selected>{{policy}}</option>
-                            {% else %}
-                                <option value="{{policy}}">{{policy}}</option>
-                            {% endif %}
-                        {% endfor %}
-                        </select>
+                {% if not useEntitlements %}
+                {% include "groups/asg_termination_policy.tmpl" %}
+                {% endif %}
+            </fieldset>
+            {% if useEntitlements %}
+            <div class="form-group" style="margin-bottom: 0;">
+                <div class="col-xs-8 col-xs-offset-2">
+                    <div class="alert alert-info" style="margin-bottom: 0;">
+                        <p style="margin-bottom: 8px;">
+                            <strong>Capacity is read-only here — managed by Entitlements.</strong>
+                        </p>
+                        <ul style="margin-bottom: 0; padding-left: 18px;">
+                            <li>
+                                <strong>Mid-incident?</strong>
+                                Click <strong>View Entitlement</strong> below
+                                <span class="glyphicon glyphicon-arrow-down"></span>
+                                and turn on <strong>Emergency Request</strong> — it bypasses the
+                                budget and approval gates. Emergency requests are for incidents only.
+                            </li>
+                            <li>
+                                <strong>Guide:</strong>
+                                <a href="{{ entitlement_support.guide_url }}" target="_blank" rel="noopener">
+                                    Teletraan Entitlements Guide
+                                    <span class="glyphicon glyphicon-new-window"></span>
+                                </a>
+                            </li>
+                            <li>
+                                <strong>Questions:</strong>
+                                <strong>{{ entitlement_support.slack_channel }}</strong>
+                                — tag <strong>{{ entitlement_support.slack_user_group }}</strong> (routes to the oncall)
+                            </li>
+                            <li>
+                                <strong>Platform help (Teletraan):</strong>
+                                <strong>{{ entitlement_support.platform_channel }}</strong>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-            </fieldset>
+            </div>
+            {% endif %}
         {% csrf_token %}
         </form>
     </div>
@@ -60,6 +91,19 @@
 
 
 <div class="panel-footer clearfix">
+    {% if useEntitlements %}
+    <div class="pull-left text-muted" style="padding-top: 7px;">
+        <span class="glyphicon glyphicon-refresh"></span>
+        All capacity updates go through Entitlements, which auto-syncs to Teletraan.
+    </div>
+    <div class="pull-right">
+        <a href="{{ entitlements_ui_link }}?openForm=request&platform=teletraan&service={{ envName }}-{{ stageName }}&budgetingEntity=all" target="_blank" class="btn btn-primary"
+                title="Update capacity in the Entitlements UI">
+            <span class="glyphicon glyphicon-new-window"></span>
+            View Entitlement
+        </a>
+    </div>
+    {% else %}
     <div class="pull-right">
         <button id="resetEnvConfigBtnId" class="btn btn-default" data-loading-text="Reloading...">
             <span class="glyphicon glyphicon-refresh"></span> Reload
@@ -68,7 +112,38 @@
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
     </div>
+    {% endif %}
 </div>
+
+{% if useEntitlements %}
+<div id="terminationPolicyPid" class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title="Termination Policy" panel_body_id="terminationPolicyConfigId" direction="down" %}
+    <div id="terminationPolicyConfigId" class="collapse in panel-body">
+        <div class="container-fluid">
+            <form id="terminationPolicyFormId" class="form-horizontal" role="form">
+                <input type="hidden" name="asgStatus" value="{{ asg.status }}">
+                <input type="hidden" name="groupName" value="{{ group_name }}">
+                <input type="hidden" name="minSize" value="{{ asg.minSize }}">
+                <input type="hidden" name="maxSize" value="{{ asg.maxSize }}">
+                <fieldset>
+                    {% include "groups/asg_termination_policy.tmpl" %}
+                </fieldset>
+            {% csrf_token %}
+            </form>
+        </div>
+    </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button id="resetEnvConfigBtnId" class="btn btn-default" data-loading-text="Reloading...">
+                <span class="glyphicon glyphicon-refresh"></span> Reload
+            </button>
+            <button id="saveEnvConfigBtnId" class="btn btn-primary" data-loading-text="Saving...">
+                <span class="glyphicon glyphicon-floppy-save"></span> Save
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <div id="suspendedProcessesPid"></div>
 <div id="scheduledActionsPid"></div>
@@ -81,6 +156,12 @@ $(function() {
         $('#pasConfigPid').html(response);
     });
 });
+
+{% if useEntitlements %}
+var configFormId = '#terminationPolicyFormId';
+{% else %}
+var configFormId = '#autoscalingGroupConfigFormId';
+{% endif %}
 
 var asgConfigVue = new Vue({
     el: '#autoscalingConfigId',
@@ -151,17 +232,17 @@ $(function () {
         $("#spotInstanceConfigDiv").addClass("hidden");
     }
 
-    $('#autoscalingGroupConfigFormId input').keyup(function() {
+    $(configFormId + ' input').keyup(function() {
         $('#saveEnvConfigBtnId').removeAttr('disabled');
         $('#resetEnvConfigBtnId').removeAttr('disabled');
     });
 
-    $('#autoscalingGroupConfigFormId select').change(function() {
+    $(configFormId + ' select').change(function() {
         $('#saveEnvConfigBtnId').removeAttr('disabled');
         $('#resetEnvConfigBtnId').removeAttr('disabled');
     });
 
-    $('#autoscalingGroupConfigFormId input').change(function() {
+    $(configFormId + ' input').change(function() {
         $('#saveEnvConfigBtnId').removeAttr('disabled');
         $('#resetEnvConfigBtnId').removeAttr('disabled');
     });
@@ -179,7 +260,7 @@ $(function () {
         $.ajax({
             type: 'POST',
             url: '/groups/{{ group_name }}/autoscaling/update_config/',
-            data: $("#autoscalingGroupConfigFormId").serialize(),
+            data: $(configFormId).serialize(),
             dataType: 'json',
             beforeSend: function () {
                 btn.button('loading');
