@@ -380,17 +380,33 @@ public class CommonHandler {
             }
             newDeployBean.setState(DeployState.SUCCEEDING);
             if (!DeployState.SUCCEEDING.equals(oldState)) {
+                // T013: include from/to/reason + agent counts on every state transition so
+                // oncalls can tell a legitimate recovery from a polling race.
                 LOG.info(
-                        "Set deploy {} as SUCCEEDING since {} agents are succeeded.",
+                        "Deploy state transition deploy_id={} env_id={} from={} to=SUCCEEDING reason=ACCEPT_THRESHOLD_MET agents_total={} agents_succeeded={} agents_stuck={} success_th={}",
                         deployId,
-                        succeeded);
+                        envId,
+                        oldState,
+                        total,
+                        succeeded,
+                        stucked,
+                        sucThreshold);
             }
             return;
         }
 
         if (stucked * 10000 > (10000 - sucThreshold) * total) {
             newDeployBean.setState(DeployState.FAILING);
-            LOG.info("Set deploy {} as FAILING since {} agents are stuck.", deployId, stucked);
+            // T013: structured transition log — explicit reason enum + agent counts
+            LOG.info(
+                    "Deploy state transition deploy_id={} env_id={} from={} to=FAILING reason=STUCK_AGENT_THRESHOLD agents_total={} agents_succeeded={} agents_stuck={} success_th={}",
+                    deployId,
+                    envId,
+                    oldState,
+                    total,
+                    succeeded,
+                    stucked,
+                    sucThreshold);
             return;
         }
 
@@ -403,9 +419,15 @@ public class CommonHandler {
             if (oldState == DeployState.SUCCEEDING) {
                 // This is the case when deploy has been in SUCCEEDING for a while without updates
                 // And a new machine being provisioned, in this case, we set status back to RUNNING
+                // T013: structured transition log — SUCCEEDING→RUNNING due to new hosts joining
                 LOG.info(
-                        "Set deploy {} back to RUNNING most likely there are new hosts joining in.",
-                        deployId);
+                        "Deploy state transition deploy_id={} env_id={} from=SUCCEEDING to=RUNNING reason=NEW_HOSTS_JOINING agents_total={} agents_succeeded={} agents_stuck={} duration_s={}",
+                        deployId,
+                        envId,
+                        total,
+                        succeeded,
+                        stucked,
+                        duration);
                 newDeployBean.setState(DeployState.RUNNING);
                 return;
             } else {
@@ -416,10 +438,17 @@ public class CommonHandler {
                     }
                 }
                 newDeployBean.setState(DeployState.FAILING);
+                // T013: structured transition log — FAILING due to stuck timeout
                 LOG.info(
-                        "Set deploy {} as FAILING since {} seconds past without complete the deploy.",
+                        "Deploy state transition deploy_id={} env_id={} from={} to=FAILING reason=DEPLOY_STUCK_TIMEOUT agents_total={} agents_succeeded={} agents_stuck={} duration_s={} stuck_th_s={}",
                         deployId,
-                        duration);
+                        envId,
+                        oldState,
+                        total,
+                        succeeded,
+                        stucked,
+                        duration,
+                        stuckTh);
 
                 // TODO, temp hack do NOT set lastUpdate for deploy stuck case, otherwise the
                 // next round transition will convert FAILING to RUNNING since new lastUpdate
@@ -432,7 +461,16 @@ public class CommonHandler {
 
         // At this point, always set to RUNNING
         if (oldState != DeployState.RUNNING) {
-            LOG.info("Set deploy {} from {} to RUNNING.", deployId, oldState);
+            // T013: cover the FAILING→RUNNING (recovery) path explicitly with counts; this is
+            // the state-flip that teletraan-5063 highlighted as having no reason field.
+            LOG.info(
+                    "Deploy state transition deploy_id={} env_id={} from={} to=RUNNING reason=PROGRESS_OBSERVED agents_total={} agents_succeeded={} agents_stuck={}",
+                    deployId,
+                    envId,
+                    oldState,
+                    total,
+                    succeeded,
+                    stucked);
         } else {
             LOG.debug("Deploy {} is still RUNNING...", deployId);
         }
