@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.commons.pastis.PastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
+import com.twitter.finagle.http.Status;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,10 +73,29 @@ public class BasePastisAuthorizer extends BaseAuthorizer<TeletraanPrincipal> {
         try {
             String pastisPayload = new ObjectMapper().writeValueAsString(payload);
             boolean authorized = pastis.authorize(pastisPayload);
+            if (!authorized) {
+                evictNonDefinitiveResults();
+            }
             log.debug("Authorized: {}", authorized);
             return authorized;
         } catch (Exception ex) {
             return handleAuthorizationException(ex);
+        }
+    }
+
+    /**
+     * PastisAuthorizer caches every response for 10 minutes, including timeouts and other errors,
+     * which it treats as denials. Only keep definitive allow/deny results so a transient Pastis
+     * sidecar failure is not served as a cached denial.
+     */
+    private void evictNonDefinitiveResults() {
+        boolean evicted =
+                pastis.cache
+                        .asMap()
+                        .values()
+                        .removeIf(s -> !Status.Ok().equals(s) && !Status.Forbidden().equals(s));
+        if (evicted) {
+            log.warn("Evicted non-definitive Pastis results from the authorization cache");
         }
     }
 
