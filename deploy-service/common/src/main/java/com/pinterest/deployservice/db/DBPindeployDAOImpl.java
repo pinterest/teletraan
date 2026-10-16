@@ -26,6 +26,8 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 /* count table cache to store # of actively deploying agents and # of existing agents */
 public class DBPindeployDAOImpl implements PindeployDAO {
     private static final String GET_PINDEPLOY = "SELECT * FROM pindeploy WHERE env_id=?";
+    private static final String GET_PINDEPLOY_BY_PIPELINE =
+            "SELECT * FROM pindeploy WHERE pipeline=?";
     private static final String DELETE_PINDEPLOY = "DELETE FROM pindeploy WHERE pipeline=?";
     private static final String INSERT_OR_UPDATE_PINDEPLOY =
             "INSERT INTO pindeploy SET %s ON DUPLICATE KEY UPDATE pipeline=?, is_pindeploy=?";
@@ -40,6 +42,12 @@ public class DBPindeployDAOImpl implements PindeployDAO {
     public PindeployBean get(String envId) throws Exception {
         ResultSetHandler<PindeployBean> h = new BeanHandler<PindeployBean>(PindeployBean.class);
         return new QueryRunner(dataSource).query(GET_PINDEPLOY, h, envId);
+    }
+
+    @Override
+    public PindeployBean getByPipeline(String pipeline) throws Exception {
+        ResultSetHandler<PindeployBean> h = new BeanHandler<PindeployBean>(PindeployBean.class);
+        return new QueryRunner(dataSource).query(GET_PINDEPLOY_BY_PIPELINE, h, pipeline);
     }
 
     @Override
