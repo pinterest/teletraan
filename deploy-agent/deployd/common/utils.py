@@ -300,12 +300,102 @@ def redeploy_check_without_container_status(commit, service, redeploy):
         )
 
 
+_DOCKER_DAEMON_ERROR_MARKERS = (
+    "Cannot connect to the Docker daemon",
+    "ConnectionRefusedError",
+    "connection refused",
+    "UnixHTTPConnectionPool",
+    "Read timed out",
+    "read timeout",
+    "dial unix /var/run/docker.sock",
+)
+
+
+def _log_docker_daemon_hint(context: str, detail: Optional[str] = None) -> None:
+    """Emit an operator-actionable hint when docker commands fail to talk to the daemon.
+
+    T030: `docker` subprocess calls that fail with ConnectionRefusedError /
+    UnixHTTPConnectionPool read-timeout symptoms are almost always a
+    dockerd crash or a systemd rate-limit on docker.service restart.
+    Probe `systemctl status docker` best-effort and surface the suggested
+    remediation directly, so the oncall doesn't have to SSH and rediscover it.
+    """
+    systemd_status = "probe_skipped"
+    systemd_detail = ""
+    try:
+        probe = subprocess.run(
+            ["systemctl", "is-active", "docker"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=5,
+        )
+        systemd_status = (probe.stdout or b"").decode(errors="replace").strip() or (
+            "rc=%d" % probe.returncode
+        )
+    except Exception as probe_exc:
+        systemd_status = "probe_failed=%s" % probe_exc
+
+    try:
+        journal = subprocess.run(
+            [
+                "systemctl",
+                "status",
+                "--no-pager",
+                "-n",
+                "20",
+                "docker",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=5,
+        )
+        systemd_detail = (journal.stdout or b"").decode(errors="replace").strip()
+    except Exception:
+        systemd_detail = ""
+
+    log.error(
+        "Docker daemon appears unreachable during %s%s. systemctl_is_active=%s. "
+        "Remediation: 'sudo systemctl reset-failed docker && sudo systemctl "
+        "restart docker'. If systemd reports 'Start request repeated too "
+        "quickly', the docker.service unit is rate-limited and reset-failed is "
+        "required before restart.",
+        context,
+        " (detail=%s)" % detail if detail else "",
+        systemd_status,
+    )
+    if systemd_detail:
+        # Keep the journal excerpt at DEBUG to avoid log bloat on every failure;
+        # the ERROR above already contains the actionable remediation.
+        log.debug("systemctl status docker excerpt:\n%s", systemd_detail)
+
+
+def _looks_like_docker_daemon_failure(text: str) -> bool:
+    if not text:
+        return False
+    return any(marker in text for marker in _DOCKER_DAEMON_ERROR_MARKERS)
+
+
 def get_container_health_info(commit, service, redeploy) -> Optional[str]:
     try:
         log.info(f"Get health info for service {service} with commit {commit}")
         result = []
         cmd = ["docker", "ps", "--format", "{{.Image}};{{.Names}};{{.Labels}}"]
-        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+        try:
+            proc = subprocess.run(
+                cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            output = proc.stdout
+        except subprocess.CalledProcessError as docker_err:
+            # T030: when 'docker ps' itself fails with daemon-unreachable
+            # signatures, surface the remediation hint before the generic
+            # failure log below.
+            stderr = (docker_err.stderr or b"").decode(errors="replace")
+            if _looks_like_docker_daemon_failure(stderr):
+                _log_docker_daemon_hint(
+                    "get_container_health_info (docker ps)",
+                    detail=stderr.strip(),
+                )
+            raise
         if output:
             lines = output.decode().strip().splitlines()
             for line in lines:
@@ -371,11 +461,30 @@ def get_telefig_version() -> Optional[str]:
         return None
     try:
         cmd = ["configure-serviceset", "-v"]
-        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+        proc = subprocess.run(
+            cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        output = proc.stdout
         if output:
             return output.decode().strip()
         else:
             return None
+    except subprocess.CalledProcessError as sub_err:
+        # T030: configure-serviceset shells out to docker. When the docker
+        # daemon is down or rate-limited, the stderr will contain one of the
+        # daemon-unreachable markers — surface the same remediation hint.
+        stderr = (sub_err.stderr or b"").decode(errors="replace")
+        if _looks_like_docker_daemon_failure(stderr):
+            _log_docker_daemon_hint(
+                "get_telefig_version (configure-serviceset -v)",
+                detail=stderr.strip(),
+            )
+        log.error(
+            "Error when fetching teletraan configure manager version: rc=%d stderr=%s",
+            sub_err.returncode,
+            stderr.strip(),
+        )
+        return None
     except Exception:
         log.error("Error when fetching teletraan configure manager version")
         return None
