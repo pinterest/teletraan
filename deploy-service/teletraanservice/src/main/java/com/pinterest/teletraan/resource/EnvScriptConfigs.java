@@ -93,6 +93,9 @@ public class EnvScriptConfigs {
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String operator = sc.getUserPrincipal().getName();
+        // T006: pre-persist validation — reject invisible/zero-width/bidi unicode
+        Utils.rejectDisallowedUnicode(
+                configs, operator, String.format("script_configs:%s/%s", envName, stageName));
         environHandler.updateScriptConfigs(envBean, configs, operator);
         configHistoryHandler.updateConfigHistory(
                 envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, configs, operator);
