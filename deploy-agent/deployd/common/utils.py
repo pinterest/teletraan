@@ -19,6 +19,8 @@ import logging
 import os
 import signal
 import sys
+import functools
+import time
 import traceback
 import subprocess
 from typing import Optional, Union
@@ -213,26 +215,46 @@ def check_first_puppet_run_success(config) -> bool:
     return puppet_failures == 0
 
 
-def get_info_from_facter(keys, no_cache=False) -> Optional[dict]:
+def _run_facter_subprocess(keys, no_cache: bool) -> Optional[dict]:
+    cmd = ["facter", "-jp"]
+    if no_cache:
+        cmd.append("--no-cache")
+    cmd.extend(keys)
+    output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+    if output:
+        return json.loads(output)
+    log.warn("Got empty output from facter by keys {}".format(keys))
+    return None
+
+
+@functools.lru_cache(maxsize=8)
+def _facter_query_cached(keys: frozenset, _time_bucket: int) -> Optional[dict]:
+    """Cached facter call. _time_bucket encodes the TTL window — when it increments
+    (every cache_ttl seconds), lru_cache treats it as a new key and re-queries facter."""
+    create_sc_increment("deployd.stats.internal.facter_calls_sum", 1)
+    log.info(f"Fetching {keys} keys from facter (cache bucket {_time_bucket})")
+    time_facter = TimeElapsed()
+    result = _run_facter_subprocess(keys, no_cache=False)
+    create_sc_timing(
+        "deployd.stats.internal.time_elapsed_facter_calls_sec", time_facter.get()
+    )
+    return result
+
+
+def get_info_from_facter(keys, no_cache=False, cache_ttl: int = 0) -> Optional[dict]:
     try:
+        if not no_cache and cache_ttl > 0:
+            time_bucket = int(time.monotonic() / cache_ttl)
+            return _facter_query_cached(frozenset(keys), time_bucket)
+        # Uncached path (no_cache=True or cache_ttl=0)
         time_facter = TimeElapsed()
-        # increment stats - facter calls
         create_sc_increment("deployd.stats.internal.facter_calls_sum", 1)
         log.info(f"Fetching {keys} keys from facter")
-        cmd = ["facter", "-jp"]
-        if no_cache:
-            cmd.append("--no-cache")
-        cmd.extend(keys)
-        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
-        # timing stats - facter run time
+        result = _run_facter_subprocess(keys, no_cache=no_cache)
         create_sc_timing(
             "deployd.stats.internal.time_elapsed_facter_calls_sec", time_facter.get()
         )
-        if output:
-            return json.loads(output)
-        else:
-            log.warn("Got empty output from facter by keys {}".format(keys))
-            return None
+        return result
     except Exception:
         log.exception("Failed to get info from facter by keys {}".format(keys))
         return None
