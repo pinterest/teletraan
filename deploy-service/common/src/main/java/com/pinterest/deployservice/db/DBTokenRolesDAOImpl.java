@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.SetClause;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
@@ -34,8 +35,8 @@ public class DBTokenRolesDAOImpl implements TokenRolesDAO {
     private static final String DELETE_TEMPLATE =
             "DELETE FROM tokens_and_roles WHERE script_name=? AND resource_id=? AND resource_type=?";
 
-    private static final String UPDATE_TEMPLATE =
-            "UPDATE tokens_and_roles SET %s WHERE script_name=? AND resource_id=? AND resource_type=?";
+    private static final String UPDATE_ROLE =
+            "UPDATE tokens_and_roles SET role=? WHERE script_name=? AND resource_id=? AND resource_type=?";
 
     /**
      * Defense in depth (BUG-285640): the read paths that feed HTTP responses must never load the
@@ -80,18 +81,19 @@ public class DBTokenRolesDAOImpl implements TokenRolesDAO {
     }
 
     @Override
-    public void update(
-            TokenRolesBean bean,
-            String userName,
+    public void updateRole(
+            String scriptName,
             String resourceId,
-            AuthZResource.Type resourceType)
+            AuthZResource.Type resourceType,
+            TeletraanPrincipalRole role)
             throws Exception {
-        SetClause setClause = bean.genSetClause();
-        String clause = String.format(UPDATE_TEMPLATE, setClause.getClause());
-        setClause.addValue(userName);
-        setClause.addValue(resourceId);
-        setClause.addValue(resourceType.toString());
-        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+        new QueryRunner(dataSource)
+                .update(
+                        UPDATE_ROLE,
+                        role.toString(),
+                        scriptName,
+                        resourceId,
+                        resourceType.toString());
     }
 
     @Override

@@ -43,8 +43,8 @@ public class EnvTokenRoles extends TokenRoles {
 
     // BUG-285640: All endpoints (read AND mutate) require MANAGE_SCRIPT_TOKEN. Script-token
     // metadata
-    // (script name, role, expiry) is sensitive, and the bearer secret itself can be re-issued via
-    // create/update/delete; both surfaces must be restricted to admin/envOwner principals only.
+    // (script name, role, expiry) is sensitive, and the bearer secret is issued on create;
+    // both surfaces must be restricted to admin/envOwner principals only.
     // MANAGE_SCRIPT_TOKEN is granted by exactly two Pastis roles (admin, envOwner); legacyOperator,
     // envMember, deployer, and reader do not receive it.
     @GET
@@ -82,9 +82,10 @@ public class EnvTokenRoles extends TokenRoles {
     @PUT
     @Path("/{scriptName : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
-            value = "Update an envrionment's script token",
+            value = "Update an environment's script token role",
             notes =
-                    "Update a specific environment script token given environment and script names.")
+                    "Updates only the role of the token identified by environment and script names."
+                            + " Other body fields are ignored; identity, scope, bearer token and expiry are unchanged.")
     @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(
@@ -92,7 +93,8 @@ public class EnvTokenRoles extends TokenRoles {
                     String envName,
             @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")
                     String scriptName,
-            TokenRolesBean bean)
+            @ApiParam(value = "Token role; other fields are ignored.", required = true)
+                    TokenRolesBean bean)
             throws Exception {
         super.update(bean, scriptName, envName, RESOURCE_TYPE);
     }

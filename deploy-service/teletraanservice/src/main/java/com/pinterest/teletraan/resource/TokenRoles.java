@@ -25,6 +25,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,12 +56,17 @@ public abstract class TokenRoles {
             String resourceId,
             AuthZResource.Type resourceType)
             throws Exception {
-        tokenRolesDAO.update(bean, scriptName, resourceId, resourceType);
+        if (bean == null || bean.getRole() == null) {
+            throw new BadRequestException("A script token role is required");
+        }
+        // The URL identifies the authorized token. Never allow body fields to move it to a
+        // different resource (in particular SYSTEM), replace its bearer secret, or extend expiry.
+        tokenRolesDAO.updateRole(scriptName, resourceId, resourceType, bean.getRole());
         LOG.info(
-                "Successfully updated script {} permission for resource {} with {}",
+                "Successfully updated script {} permission for resource {} to role {}",
                 scriptName,
                 resourceId,
-                bean);
+                bean.getRole());
     }
 
     public Response create(
