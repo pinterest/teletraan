@@ -67,6 +67,10 @@ public class EntitlementEnforcementProvider {
     // managed-data framework to /var/config/config.manageddata.admin.decider as a JSON map of
     // decider name -> integer value.
     static final String ENFORCE_DECIDER_KEY = "entitlement_enforcement_teletraan";
+    // Decider "entitlement_instance_type_teletraan": when active (on top of the two layers), the
+    // Rodimus entitlement worker applies instance type changes, so manual host type edits are
+    // locked. Must match the decider read by Rodimus' EntitlementEnforcementProvider.
+    static final String INSTANCE_TYPE_DECIDER_KEY = "entitlement_instance_type_teletraan";
     static final String DEFAULT_DECIDER_FILE = "/var/config/config.manageddata.admin.decider";
     // Managed-data list "entitlements/onboarded_teletraan" (domain=entitlements,
     // key=onboarded_teletraan), delivered to /var/config/config.manageddata.<domain>.<key>
@@ -91,7 +95,7 @@ public class EntitlementEnforcementProvider {
         this.deciderCache =
                 Caffeine.newBuilder()
                         .refreshAfterWrite(CACHE_REFRESH_THRESHOLD_MINUTES, TimeUnit.MINUTES)
-                        .maximumSize(1)
+                        .maximumSize(2)
                         .build(this::isEnforcementDeciderActive);
         this.onboardedCache =
                 Caffeine.newBuilder()
@@ -112,14 +116,26 @@ public class EntitlementEnforcementProvider {
     }
 
     /**
-     * Override {@code env.useEntitlements} with the live gate value so the UI reflects the current
-     * kill switch + rollout config rather than the static DB column. No-op for {@code null}.
+     * Whether the instance type of {@code clusterId} is governed by entitlements: the cluster is
+     * {@link #isEnforced enforced} and the {@link #INSTANCE_TYPE_DECIDER_KEY} decider is active.
+     */
+    public boolean isInstanceTypeEnforced(String clusterId) {
+        return isEnforced(clusterId) && deciderCache.get(INSTANCE_TYPE_DECIDER_KEY);
+    }
+
+    /**
+     * Override {@code env.useEntitlements} and {@code env.useEntitlementsInstanceType} with the
+     * live gate values so the UI reflects the current deciders + rollout config rather than the
+     * static DB column. No-op for {@code null}.
      */
     public void applyUseEntitlements(EnvironBean env) {
         if (env == null) {
             return;
         }
-        env.setUse_entitlements(isEnforced(clusterId(env)));
+        boolean enforced = isEnforced(clusterId(env));
+        env.setUse_entitlements(enforced);
+        env.setUse_entitlements_instance_type(
+                enforced && deciderCache.get(INSTANCE_TYPE_DECIDER_KEY));
     }
 
     /**
@@ -134,9 +150,12 @@ public class EntitlementEnforcementProvider {
                 deciderCache.get(ENFORCE_DECIDER_KEY)
                         ? onboardedCache.get(onboardedFilePath)
                         : Collections.emptySet();
+        boolean instanceTypeActive = deciderCache.get(INSTANCE_TYPE_DECIDER_KEY);
         for (EnvironBean env : envs) {
             if (env != null) {
-                env.setUse_entitlements(onboarded.contains(clusterId(env)));
+                boolean enforced = onboarded.contains(clusterId(env));
+                env.setUse_entitlements(enforced);
+                env.setUse_entitlements_instance_type(enforced && instanceTypeActive);
             }
         }
     }

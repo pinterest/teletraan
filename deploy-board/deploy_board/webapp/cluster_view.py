@@ -464,7 +464,7 @@ class ClusterConfigurationView(View):
             log.info("Update Cluster Configuration with {0}".format(cluster_info))
             current_cluster = get_current_cluster(request, name, stage, env=env)
             log.info("getting current Cluster Configuration is {}", current_cluster)
-            if env.get("useEntitlements") and host_type_changed(
+            if env.get("useEntitlementsInstanceType") and host_type_changed(
                 current_cluster, cluster_info
             ):
                 log.error(
