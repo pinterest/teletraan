@@ -21,6 +21,8 @@ import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.PindeployDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.*;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotEmpty;
@@ -63,6 +65,9 @@ public class Pindeploy {
 
     @DELETE
     @Path("/disable")
+    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    // Disabling a pipeline removes mappings across environments, so authorize system-wide.
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void disablePindeployPipeline(
             @Context SecurityContext sc, @NotEmpty @QueryParam("pipeline") String pipeline)
             throws Exception {
@@ -75,6 +80,10 @@ public class Pindeploy {
 
     @POST
     @Path("/enable")
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.ENV_STAGE,
+            idLocation = ResourceAuthZInfo.Location.QUERY)
     public void enablePindeployPipeline(
             @Context SecurityContext sc,
             @NotEmpty @QueryParam("envName") String envName,

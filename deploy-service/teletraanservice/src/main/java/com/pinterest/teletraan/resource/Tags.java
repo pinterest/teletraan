@@ -24,6 +24,8 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.handler.BuildTagHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -143,6 +145,8 @@ public class Tags {
     }
 
     @POST
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.TAG, idLocation = ResourceAuthZInfo.Location.BODY)
     @ApiOperation(
             value = "Create a tag",
             notes = "Create a tag on an object",
@@ -176,6 +180,8 @@ public class Tags {
     }
 
     @DELETE
+    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.TAG, idLocation = ResourceAuthZInfo.Location.PATH)
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(value = "Delete a tag", notes = "Deletes a build given a tag id")
     public void delete(
