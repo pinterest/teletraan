@@ -413,7 +413,16 @@ def get_asg_config(request, group_name):
     except Exception as e:
         log.warning("Failed to get placements: {}".format(e))
     envs = environs_helper.get_all_envs_by_group(request, group_name)
-    entitlement_env = next((env for env in envs if env.get("useEntitlements")), None)
+    # Entitlements onboard a cluster by name, so only the stage owning this group
+    # counts; other stages merely deploy onto its hosts.
+    entitlement_env = next(
+        (
+            env
+            for env in envs
+            if env.get("clusterName") == group_name and env.get("useEntitlements")
+        ),
+        None,
+    )
     content = render_to_string(
         "groups/asg_config.tmpl",
         {
