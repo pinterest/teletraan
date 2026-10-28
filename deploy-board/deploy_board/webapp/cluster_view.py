@@ -50,6 +50,8 @@ if IS_PINTEREST:
         PUPPET_HIERA_PATHS,
         CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
         IMAGE_PROVIDER_NAME_URL,
+        ENTITLEMENTS_UI_LINK,
+        ENTITLEMENT_SUPPORT,
     )
 
 import collections
@@ -449,6 +451,8 @@ class ClusterConfigurationView(View):
                 "conflicting_deploy_service_wiki_url": CONFLICTING_DEPLOY_SERVICE_WIKI_URL,
                 "disable_backup_instance_types": TELETRAAN_DISABLE_BACKUP_INSTANCE_TYPES,
                 "is_managed_resource": is_managed_resource,
+                "entitlements_ui_link": ENTITLEMENTS_UI_LINK,
+                "entitlement_support": ENTITLEMENT_SUPPORT,
             },
         )
 
@@ -460,6 +464,19 @@ class ClusterConfigurationView(View):
             log.info("Update Cluster Configuration with {0}".format(cluster_info))
             current_cluster = get_current_cluster(request, name, stage, env=env)
             log.info("getting current Cluster Configuration is {}", current_cluster)
+            if env.get("useEntitlementsInstanceType") and host_type_changed(
+                current_cluster, cluster_info
+            ):
+                log.error(
+                    "Rejected host type change for entitlement-managed cluster %s"
+                    % cluster_name
+                )
+                return HttpResponse(
+                    "Host type is managed by Entitlements for this cluster. "
+                    "Request host type changes in the Entitlements UI.",
+                    status=400,
+                    content_type="application/json",
+                )
             if "configs" in current_cluster and "configs" in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
                     if (
@@ -1975,6 +1992,12 @@ def get_cluster_name(request, name, stage, env=None):
             env = environs_helper.get_env_by_stage(request, name, stage)
         cluster_name = env.get("clusterName")
     return cluster_name
+
+
+def host_type_changed(current_cluster, cluster_info):
+    return cluster_info.get("hostType") != current_cluster.get("hostType") or bool(
+        cluster_info.get("enableMultipleHostTypes")
+    ) != bool(current_cluster.get("enableMultipleHostTypes"))
 
 
 def get_current_cluster(request, name, stage, env=None):
