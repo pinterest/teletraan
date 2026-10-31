@@ -70,7 +70,7 @@ from .helpers import (
     hosts_helper,
 )
 from .templatetags import utils
-from .helpers.exceptions import TeletraanException
+from .helpers.exceptions import NotFoundException, TeletraanException
 import math
 from dateutil.parser import parse
 import calendar
@@ -226,6 +226,8 @@ def check_logging_status(request, name, stage):
 
 def update_deploy_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
+    if env is None:
+        raise NotFoundException("Environment %s/%s does not exist." % (name, stage))
     progress = deploys_helper.update_progress(request, name, stage)
     showMode = _fetch_param_with_cookie(
         request, "showMode", MODE_COOKIE_NAME, "complete"
@@ -1496,10 +1498,13 @@ def get_pipeline_url_from_build_info(build):
 
 def get_builds(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
+    if env is None:
+        raise NotFoundException("Environment %s/%s does not exist." % (name, stage))
     env_promote = environs_helper.get_env_promotes_config(request, name, stage)
     show_lock = False
     if (
-        env_promote["type"] == "AUTO"
+        env_promote
+        and env_promote["type"] == "AUTO"
         and env_promote["predStage"]
         and env_promote["predStage"] == environs_helper.BUILD_STAGE
     ):
@@ -2092,6 +2097,8 @@ def get_pred_deploys(request, name, stage):
     index = int(request.GET.get("page_index", "1"))
     size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
     env = environs_helper.get_env_by_stage(request, name, stage)
+    if env is None:
+        raise NotFoundException("Environment %s/%s does not exist." % (name, stage))
     env_promote = environs_helper.get_env_promotes_config(request, name, stage)
 
     show_lock = False
