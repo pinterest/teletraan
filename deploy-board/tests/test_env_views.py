@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for env_views. Run from deploy-board/:
+"""Unit tests for env_views. Not run by CI. Run from deploy-board/:
 
 python -m unittest discover -s tests
+
+Needs Python 3 and Django 2.2+ (tested with Django 4.2) plus the other
+packages in requirements.txt. The Django 1.11 pin there doesn't import on
+Python 3.
 """
 
 import collections
@@ -120,6 +124,42 @@ class GetBuildsTest(AjaxNotFoundMixin, unittest.TestCase):
         env_views.get_builds(self.request, "foo", "prod")
 
         self.assertFalse(self.rendered_context()["show_lock"])
+
+
+class GetPredDeploysTest(AjaxNotFoundMixin, unittest.TestCase):
+    def setUp(self):
+        self.request = ajax_get("/env/foo/prod/pred_deploys/?page_index=1&page_size=5")
+        patcher = mock.patch.multiple(
+            env_views,
+            environs_helper=mock.DEFAULT,
+            deploys_helper=mock.DEFAULT,
+            builds_helper=mock.DEFAULT,
+            render_to_string=mock.DEFAULT,
+        )
+        self.mocks = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.environs_helper = self.mocks["environs_helper"]
+        self.mocks["render_to_string"].return_value = "html"
+
+    def test_deleted_stage_returns_404(self):
+        self.environs_helper.get_env_by_stage.return_value = None
+
+        self.assertAjaxNotFound(env_views.get_pred_deploys, self.request)
+        self.environs_helper.get_env_promotes_config.assert_not_called()
+
+    def test_auto_promote_from_build_shows_lock(self):
+        self.environs_helper.get_env_by_stage.return_value = ENV
+        self.environs_helper.get_env_promotes_config.return_value = {
+            "type": "AUTO",
+            "predStage": "BUILD",
+        }
+
+        response = env_views.get_pred_deploys(self.request, "foo", "prod")
+
+        self.assertEqual(response.status_code, 200)
+        context = self.mocks["render_to_string"].call_args[0][1]
+        self.assertTrue(context["show_lock"])
+        self.assertEqual(context["deploy_wrappers"], [])
 
 
 class UpdateDeployProgressTest(AjaxNotFoundMixin, unittest.TestCase):

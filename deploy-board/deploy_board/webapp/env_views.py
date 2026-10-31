@@ -2097,6 +2097,8 @@ def get_pred_deploys(request, name, stage):
     index = int(request.GET.get("page_index", "1"))
     size = int(request.GET.get("page_size", DEFAULT_PAGE_SIZE))
     env = environs_helper.get_env_by_stage(request, name, stage)
+    if env is None:
+        raise NotFoundException("Environment %s/%s does not exist." % (name, stage))
     env_promote = environs_helper.get_env_promotes_config(request, name, stage)
 
     show_lock = False
