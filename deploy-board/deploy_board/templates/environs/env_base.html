@@ -45,7 +45,12 @@
             if(new Date().getTime() - nb_startTime > 3600000) {
                 clearInterval(nb_interval);
             }
-            $('#recentBuildsId').load('/env/{{ env.envName }}/{{ env.stageName }}/builds/?page_index=1&page_size=5');
+            $('#recentBuildsId').load('/env/{{ env.envName }}/{{ env.stageName }}/builds/?page_index=1&page_size=5', function(response, status, xhr) {
+                // Stop polling once the stage is deleted
+                if (xhr.status === 404) {
+                    clearInterval(nb_interval);
+                }
+            });
         }, 30000);
     });
 </script>
