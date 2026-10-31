@@ -229,10 +229,6 @@ def update_deploy_progress(request, name, stage):
     if env is None:
         raise NotFoundException("Environment %s/%s does not exist." % (name, stage))
     progress = deploys_helper.update_progress(request, name, stage)
-    if progress is None:
-        raise NotFoundException(
-            "Environment %s/%s has no current deploy." % (name, stage)
-        )
     showMode = _fetch_param_with_cookie(
         request, "showMode", MODE_COOKIE_NAME, "complete"
     )

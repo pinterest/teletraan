@@ -526,7 +526,7 @@
           clearInterval(interval);
         }
         $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}', function(response, status, xhr) {
-          // Stop polling once the stage is deleted or has no current deploy
+          // Stop polling once the stage is deleted
           if (xhr.status === 404) {
             clearInterval(interval);
           }
