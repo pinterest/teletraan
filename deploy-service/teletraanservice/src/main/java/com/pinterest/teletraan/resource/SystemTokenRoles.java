@@ -79,15 +79,17 @@ public class SystemTokenRoles extends TokenRoles {
     @PUT
     @Path("/{scriptName : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
-            value = "Update a system script token",
+            value = "Update a system script token role",
             notes =
-                    "Updates a TokenRoles object by given script name and replacement TokenRoles object")
+                    "Updates only the role of the token identified by script name."
+                            + " Other body fields are ignored; identity, scope, bearer token and expiry are unchanged.")
     @RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void update(
             @ApiParam(value = "Script name.", required = true) @PathParam("scriptName")
                     String scriptName,
-            @ApiParam(value = "TokenRolesBean object.", required = true) TokenRolesBean bean)
+            @ApiParam(value = "Token role; other fields are ignored.", required = true)
+                    TokenRolesBean bean)
             throws Exception {
         super.update(bean, scriptName, RESOURCE_ID, RESOURCE_TYPE);
     }

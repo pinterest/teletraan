@@ -38,10 +38,11 @@ public class TokenRolesBean implements Updatable {
      * The bearer secret used to authenticate {@code Authorization: token <value>} requests.
      *
      * <p>This field is intentionally write-only as far as Jackson is concerned: it may be
-     * deserialized from inbound JSON (used internally by {@code TokenRoles.create()} and updates),
-     * but is never serialized into HTTP responses. The raw token is disclosed exactly once, by
-     * {@link com.pinterest.deployservice.bean.CreatedTokenRolesResponse}, in the 201 Created
-     * response from the token-creation endpoint. GET endpoints redact it. See BUG-285640.
+     * deserialized from inbound JSON, but token creation generates its own secret and role updates
+     * ignore this field. It is never serialized into HTTP responses. The raw token is disclosed
+     * exactly once, by {@link com.pinterest.deployservice.bean.CreatedTokenRolesResponse}, in the
+     * 201 Created response from the token-creation endpoint. GET endpoints redact it. See
+     * BUG-285640.
      */
     @JsonProperty(value = "token", access = JsonProperty.Access.WRITE_ONLY)
     private String token;

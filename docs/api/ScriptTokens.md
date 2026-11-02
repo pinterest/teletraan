@@ -110,14 +110,18 @@ Returns a TokenRoles object given a script and environment name.
 
 
 <a name="update_12"></a>
-#### Update an envrionment's script token
+#### Update an environment's script token role
 ```
 PUT /v1/envs/{envName}/token_roles/{scriptName}
 ```
 
 
 ##### Description
-Update a specific environment script token given environment and script names.
+Updates only the role of the token identified by environment and script names.
+Send a body such as `{"role":"OPERATOR"}` or `{"role":"ADMIN"}`. ADMIN remains scoped
+to this environment. The role is required; other body fields are ignored. The token's
+name, resource, type, bearer secret and expiry are unchanged. To replace the bearer
+secret or renew expiry, delete the token and create a new one.
 
 
 ##### Parameters
@@ -126,7 +130,7 @@ Update a specific environment script token given environment and script names.
 |---|---|---|---|
 |**Path**|**envName**  <br>*required*|Environment name.|string|
 |**Path**|**scriptName**  <br>*required*|Script name.|string|
-|**Body**|**body**  <br>*optional*||[TokenRolesBean](#tokenrolesbean)|
+|**Body**|**body**  <br>*required*|Token role; other fields are ignored.|[TokenRolesBean](#tokenrolesbean)|
 
 
 ##### Responses
@@ -281,14 +285,17 @@ Returns a TokenRoles object for given script name
 
 
 <a name="update_17"></a>
-#### Update a system script token
+#### Update a system script token role
 ```
 PUT /v1/system/token_roles/{scriptName}
 ```
 
 
 ##### Description
-Updates a TokenRoles object by given script name and replacement TokenRoles object
+Updates only the role of the token identified by script name. Send a body such as
+`{"role":"OPERATOR"}`. The role is required; other body fields are ignored. The token's
+name, resource, type, bearer secret and expiry are unchanged. To replace the bearer
+secret or renew expiry, delete the token and create a new one.
 
 
 ##### Parameters
@@ -296,7 +303,7 @@ Updates a TokenRoles object by given script name and replacement TokenRoles obje
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**scriptName**  <br>*required*|Script name.|string|
-|**Body**|**body**  <br>*required*|TokenRolesBean object.|[TokenRolesBean](#tokenrolesbean)|
+|**Body**|**body**  <br>*required*|Token role; other fields are ignored.|[TokenRolesBean](#tokenrolesbean)|
 
 
 ##### Responses

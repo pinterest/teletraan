@@ -76,8 +76,8 @@ public class TokenRolesBeanTest {
 
         TokenRolesBean bean = MAPPER.readValue(inbound, TokenRolesBean.class);
 
-        // Deserialization remains symmetric so existing service-internal code paths
-        // (e.g. PUT update flows) keep working; only the serialization side is redacted.
+        // The shared bean can still deserialize token values. HTTP create/update handlers must
+        // ignore client-supplied secrets; serialization remains redacted independently.
         assertEquals("ci-runner", bean.getScript_name());
         assertEquals("inbound-secret", bean.getToken());
         assertEquals(TeletraanPrincipalRole.OPERATOR, bean.getRole());

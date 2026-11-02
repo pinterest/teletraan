@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.dao;
 
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import java.util.List;
@@ -25,11 +26,12 @@ public interface TokenRolesDAO {
     void delete(String scriptName, String resourceId, AuthZResource.Type resourceType)
             throws Exception;
 
-    void update(
-            TokenRolesBean bean,
+    /** Updates only the role, preserving the token's identity, scope, secret and expiry. */
+    void updateRole(
             String scriptName,
             String resourceId,
-            AuthZResource.Type resourceType)
+            AuthZResource.Type resourceType,
+            TeletraanPrincipalRole role)
             throws Exception;
 
     TokenRolesBean getByToken(String token) throws Exception;
