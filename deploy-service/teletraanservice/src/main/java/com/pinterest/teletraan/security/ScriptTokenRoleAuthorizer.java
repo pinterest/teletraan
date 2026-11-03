@@ -40,6 +40,10 @@ public class ScriptTokenRoleAuthorizer
             String role,
             AuthZResource requestedResource,
             @Nullable ContainerRequestContext context) {
+        // This action is granted by Pastis, not by the legacy numeric token roles.
+        if (TeletraanPrincipalRole.Names.MANAGE_PINDEPLOY.equals(role)) {
+            return false;
+        }
         if (!principal
                 .getRole()
                 .isEqualOrSuperior(TeletraanPrincipalRole.valueOf(role).getRole())) {
@@ -60,11 +64,16 @@ public class ScriptTokenRoleAuthorizer
                 && !(TeletraanPrincipalRole.ADMIN.getRole().equals(principal.getRole())
                         || AuthZResource.Type.SYSTEM.equals(principal.getResource().getType()))) {
             return false;
-        } else if (AuthZResource.Type.BUILD.equals(requestedResource.getType())
-                && principal
-                        .getRole()
-                        .isEqualOrSuperior(TeletraanPrincipalRole.PUBLISHER.getRole())) {
-            return true;
+        } else if (AuthZResource.Type.BUILD.equals(requestedResource.getType())) {
+            // Publishing is permitted across scopes, but build mutations require their own grant.
+            if (TeletraanPrincipalRole.Names.PUBLISHER.equals(role)) {
+                return true;
+            }
+            // Token grants identify the build by type and name, without its artifact attributes.
+            if (AuthZResource.Type.BUILD.equals(principal.getResource().getType())
+                    && requestedResource.getName().equals(principal.getResource().getName())) {
+                return true;
+            }
         }
 
         if (requestedResource.equals(principal.getResource())

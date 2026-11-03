@@ -69,6 +69,8 @@ class MutationAuthorizationTest {
     private static final String ENV_TOKEN = "env-token";
     private static final String ENV_STAGE_TOKEN = "env-stage-token";
     private static final String SYSTEM_TOKEN = "system-token";
+    private static final String BUILD_TOKEN = "build-token";
+    private static final String OTHER_BUILD_TOKEN = "other-build-token";
     private static final String ENV_ID = "environment-id";
     private static final String OTHER_ENV_ID = "other-environment-id";
     private static final String OTHER_STAGE_ID = "other-stage-id";
@@ -132,6 +134,20 @@ class MutationAuthorizationTest {
                                     AuthZResource.ALL,
                                     AuthZResource.Type.SYSTEM,
                                     SYSTEM_TOKEN));
+            when(tokenRolesDAO.getByToken(BUILD_TOKEN))
+                    .thenReturn(
+                            token(
+                                    TeletraanPrincipalRole.OPERATOR,
+                                    BUILD_NAME,
+                                    AuthZResource.Type.BUILD,
+                                    BUILD_TOKEN));
+            when(tokenRolesDAO.getByToken(OTHER_BUILD_TOKEN))
+                    .thenReturn(
+                            token(
+                                    TeletraanPrincipalRole.OPERATOR,
+                                    "other-build",
+                                    AuthZResource.Type.BUILD,
+                                    OTHER_BUILD_TOKEN));
             EnvironBean environment = environment(ENV_ID, ENV_NAME);
             when(environDAO.getById(ENV_ID)).thenReturn(environment);
             when(environDAO.getByStage(ENV_NAME, STAGE_NAME)).thenReturn(environment);
@@ -143,6 +159,11 @@ class MutationAuthorizationTest {
             otherStage.setStage_name("staging");
             when(environDAO.getById(OTHER_STAGE_ID)).thenReturn(otherStage);
             when(environDAO.getByStage(ENV_NAME, "staging")).thenReturn(otherStage);
+            EnvironBean missingEnvName = environment("missing-env-name-id", " ");
+            when(environDAO.getById("missing-env-name-id")).thenReturn(missingEnvName);
+            EnvironBean missingStageName = environment("missing-stage-name-id", ENV_NAME);
+            missingStageName.setStage_name(null);
+            when(environDAO.getById("missing-stage-name-id")).thenReturn(missingStageName);
             BUILD.setBuild_id(BUILD_ID);
             BUILD.setBuild_name(BUILD_NAME);
             BUILD.setArtifact_url("s3://bucket/build.tar.gz");
@@ -214,6 +235,11 @@ class MutationAuthorizationTest {
         malformedTag.setId("malformed-build-tag");
         malformedTag.setMeta_info("invalid historical metadata");
         STORED_TAGS.put(malformedTag.getId(), malformedTag);
+        for (String targetId : new String[] {"missing-env-name-id", "missing-stage-name-id"}) {
+            TagBean malformedEnvironmentTag = tag(TagTargetType.ENVIRONMENT, targetId);
+            malformedEnvironmentTag.setId(targetId + "-tag");
+            STORED_TAGS.put(malformedEnvironmentTag.getId(), malformedEnvironmentTag);
+        }
         clearInvocations(TAG_DAO, PINDEPLOY_DAO);
     }
 
@@ -260,7 +286,13 @@ class MutationAuthorizationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"orphan-env-tag", "malformed-build-tag"})
+    @ValueSource(
+            strings = {
+                "orphan-env-tag",
+                "malformed-build-tag",
+                "missing-env-name-id-tag",
+                "missing-stage-name-id-tag"
+            })
     void systemOperatorCanCleanUpTagsWithoutResolvableTargets(String tagId) throws Exception {
         try (Response response = request(EXT.target("/v1/tags/" + tagId), SYSTEM_TOKEN).delete()) {
             assertEquals(204, response.getStatus());
@@ -275,7 +307,13 @@ class MutationAuthorizationTest {
         "orphan-env-tag,env-stage-token",
         "malformed-build-tag,read-token",
         "malformed-build-tag,env-token",
-        "malformed-build-tag,env-stage-token"
+        "malformed-build-tag,env-stage-token",
+        "missing-env-name-id-tag,read-token",
+        "missing-env-name-id-tag,env-token",
+        "missing-env-name-id-tag,env-stage-token",
+        "missing-stage-name-id-tag,read-token",
+        "missing-stage-name-id-tag,env-token",
+        "missing-stage-name-id-tag,env-stage-token"
     })
     void unresolvedTargetsDoNotBypassSystemAuthorization(String tagId, String token)
             throws Exception {
@@ -406,6 +444,45 @@ class MutationAuthorizationTest {
             assertEquals(201, response.getStatus());
         }
         verify(TAG_DAO).insert(any(TagBean.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {ENV_TOKEN, ENV_STAGE_TOKEN, OTHER_BUILD_TOKEN})
+    void tokenWithoutBuildScopeCannotCreateBuildTag(String token) throws Exception {
+        try (Response response =
+                request(EXT.target("/v1/tags"), token)
+                        .post(Entity.json(tag(TagTargetType.BUILD, BUILD_ID)))) {
+            assertEquals(403, response.getStatus());
+        }
+        verifyNoMutations();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {ENV_TOKEN, ENV_STAGE_TOKEN, OTHER_BUILD_TOKEN})
+    void tokenWithoutBuildScopeCannotDeleteBuildTag(String token) throws Exception {
+        try (Response response = request(EXT.target("/v1/tags/BUILD"), token).delete()) {
+            assertEquals(403, response.getStatus());
+        }
+        verifyNoMutations();
+    }
+
+    @Test
+    void buildOperatorCanCreateOwnBuildTag() throws Exception {
+        try (Response response =
+                request(EXT.target("/v1/tags"), BUILD_TOKEN)
+                        .post(Entity.json(tag(TagTargetType.BUILD, BUILD_ID)))) {
+            assertEquals(201, response.getStatus());
+            assertEquals(BUILD_NAME, response.readEntity(TagBean.class).getTarget_id());
+        }
+        verify(TAG_DAO).insert(any(TagBean.class));
+    }
+
+    @Test
+    void buildOperatorCanDeleteOwnBuildTag() throws Exception {
+        try (Response response = request(EXT.target("/v1/tags/BUILD"), BUILD_TOKEN).delete()) {
+            assertEquals(204, response.getStatus());
+        }
+        verify(TAG_DAO).delete("BUILD");
     }
 
     @Test

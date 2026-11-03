@@ -116,6 +116,9 @@ class TagResourceResolver {
         }
         if (StringUtils.isBlank(environment.getEnv_name())
                 || StringUtils.isBlank(environment.getStage_name())) {
+            if (stored) {
+                return AuthZResource.SYSTEM_RESOURCE;
+            }
             throw new ExtractionException("Invalid tagged environment");
         }
         return new AuthZResource(environment.getEnv_name(), environment.getStage_name());

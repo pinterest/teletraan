@@ -31,6 +31,9 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class TagResourceResolverTest {
     private BuildDAO buildDAO;
@@ -160,6 +163,26 @@ class TagResourceResolverTest {
 
         assertEquals(AuthZResource.SYSTEM_RESOURCE, resolver.resolve(tag, true));
         assertThrows(NotFoundException.class, () -> resolver.resolve(tag, false));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void invalidEnvironmentScopeRequiresSystemPermissionForDeletionOnly(String invalidName)
+            throws Exception {
+        EnvironBean env = new EnvironBean();
+        env.setEnv_name(invalidName);
+        env.setStage_name("prod");
+        when(environDAO.getById("env-id")).thenReturn(env);
+        TagBean tag = tag(TagTargetType.ENVIRONMENT, "env-id");
+
+        assertEquals(AuthZResource.SYSTEM_RESOURCE, resolver.resolve(tag, true));
+        assertThrows(ExtractionException.class, () -> resolver.resolve(tag, false));
+
+        env.setEnv_name("test-env");
+        env.setStage_name(invalidName);
+        assertEquals(AuthZResource.SYSTEM_RESOURCE, resolver.resolve(tag, true));
+        assertThrows(ExtractionException.class, () -> resolver.resolve(tag, false));
     }
 
     @Test

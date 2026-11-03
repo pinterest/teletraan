@@ -16,7 +16,9 @@
 """Some common functions"""
 
 import logging
+from django.contrib import messages
 from .helpers import environs_helper, deploys_helper, builds_helper, tags_helper
+from .helpers.exceptions import NotAuthorizedException
 
 DEFAULT_BUILD_SIZE = 30
 DEFAULT_COMMITS_SIZE = 30
@@ -149,6 +151,7 @@ def restart(request, name, stage):
 def rollback_to(request, name, stage, deploy_id):
     query_dict = request.POST
     desc = query_dict.get("description", None)
+    result = deploys_helper.rollback(request, name, stage, deploy_id, description=desc)
     mark_build_as_bad = (
         True if query_dict.get("mark_build_as_bad", "on") == "on" else False
     )
@@ -158,15 +161,29 @@ def rollback_to(request, name, stage, deploy_id):
             "targetId": buildId,
             "targetType": "Build",
             "value": tags_helper.TagValue.BAD_BUILD,
-            "comments": "deploy rollback, mark build as bad." + desc,
+            "comments": "deploy rollback, mark build as bad." + (desc or ""),
         }
         logger.info(
             "env {} stage {} rollback, mark buildId {} as {}".format(
                 name, stage, buildId, tag
             )
         )
-        builds_helper.set_build_tag(request, tag)
-    return deploys_helper.rollback(request, name, stage, deploy_id, description=desc)
+        try:
+            builds_helper.set_build_tag(request, tag)
+        except NotAuthorizedException:
+            logger.warning(
+                "Rollback started for %s/%s, but permission to tag build %s was denied",
+                name,
+                stage,
+                buildId,
+            )
+            messages.warning(
+                request,
+                "Rollback started, but the previous build was not marked as bad "
+                "because you do not have permission to modify its build tags. "
+                "Ask a build owner or administrator to mark it as bad.",
+            )
+    return result
 
 
 def promote(request, name, stage):

@@ -65,7 +65,10 @@ public class Pindeploy {
 
     @DELETE
     @Path("/disable")
-    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @RolesAllowed({
+        TeletraanPrincipalRole.Names.DELETE,
+        TeletraanPrincipalRole.Names.MANAGE_PINDEPLOY
+    })
     // Disabling a pipeline removes mappings across environments, so authorize system-wide.
     @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void disablePindeployPipeline(
@@ -80,7 +83,10 @@ public class Pindeploy {
 
     @POST
     @Path("/enable")
-    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @RolesAllowed({
+        TeletraanPrincipalRole.Names.WRITE,
+        TeletraanPrincipalRole.Names.MANAGE_PINDEPLOY
+    })
     @ResourceAuthZInfo(
             type = AuthZResource.Type.ENV_STAGE,
             idLocation = ResourceAuthZInfo.Location.QUERY)

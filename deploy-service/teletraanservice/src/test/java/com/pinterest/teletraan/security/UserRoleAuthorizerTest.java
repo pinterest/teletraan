@@ -141,6 +141,20 @@ class UserRoleAuthorizerTest {
 
     @ParameterizedTest
     @MethodSource("resourceProvider")
+    void legacyUserRolesDoNotGrantPastisOnlyPindeployAction(AuthZResource requestedResource) {
+        for (UserPrincipal principal : new UserPrincipal[] {sysAdmin, sysReader, envAdmin}) {
+            assertFalse(
+                    authorizer.authorize(
+                            principal,
+                            TeletraanPrincipalRole.Names.MANAGE_PINDEPLOY,
+                            requestedResource,
+                            null));
+        }
+        Mockito.verifyNoInteractions(userRolesDAO, groupRolesDAO, environDAO);
+    }
+
+    @ParameterizedTest
+    @MethodSource("resourceProvider")
     void testSystemUserOnResources_viaGroup(AuthZResource requestedResource) throws Exception {
         GroupRolesBean sysAdminBean =
                 createGroupRolesBean(TeletraanPrincipalRole.ADMIN, adminGroupName);
