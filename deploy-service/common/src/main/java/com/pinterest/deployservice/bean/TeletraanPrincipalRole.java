@@ -65,6 +65,10 @@ public enum TeletraanPrincipalRole implements RoleEnum<ValueBasedRole> {
 
         public static final String MANAGE_SCRIPT_TOKEN = "MANAGE_SCRIPT_TOKEN";
 
+        // Policy-only action for PinDeploy mapping management. This is deliberately not a
+        // numeric script-token role, which would also grant unrelated WRITE/DELETE actions.
+        public static final String MANAGE_PINDEPLOY = "MANAGE_PINDEPLOY";
+
         public static final String UPDATE_EXTERNAL_ID = "UPDATE_EXTERNAL_ID";
     }
 

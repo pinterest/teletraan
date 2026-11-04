@@ -44,6 +44,7 @@ definitions:
       - USE
       - UPDATE_EXTERNAL_ID
       - MANAGE_SCRIPT_TOKEN
+      - MANAGE_PINDEPLOY
   role:
     type: object
     description: |

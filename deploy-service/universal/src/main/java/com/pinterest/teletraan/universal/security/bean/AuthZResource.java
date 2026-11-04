@@ -125,6 +125,8 @@ public class AuthZResource {
         INSTANCE_TYPE_MAPPING,
         /** For SOX, Sarbanes-Oxley Act, related resources */
         SOX_PROPERTY,
+        /** For tags; extractors resolve the target to a build, environment-stage, or system. */
+        TAG,
         /* For anything else */
         UNSPECIFIED,
     }

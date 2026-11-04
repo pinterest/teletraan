@@ -27,6 +27,8 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
             new EnvStageBodyExtractor();
     private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR =
             new EnvStagePathExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_QUERY_EXTRACTOR =
+            new EnvStageQueryExtractor();
     private static final AuthZResourceExtractor SOX_PROPERTY_PATH_EXTRACTOR =
             new SoxPropertyPathExtractor();
     private static final AuthZResourceExtractor HOTFIX_BODY_EXTRACTOR = new HotfixBodyExtractor();
@@ -36,12 +38,16 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
     private final AuthZResourceExtractor deployPathExtractor;
     private final AuthZResourceExtractor hostPathExtractor;
     private final AuthZResourceExtractor hotfixPathExtractor;
+    private final AuthZResourceExtractor tagBodyExtractor;
+    private final AuthZResourceExtractor tagPathExtractor;
 
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
         buildPathExtractor = new BuildPathExtractor(serviceContext);
         deployPathExtractor = new DeployPathExtractor(serviceContext);
         hotfixPathExtractor = new HotfixPathExtractor(serviceContext);
         hostPathExtractor = new HostPathExtractor(serviceContext);
+        tagBodyExtractor = new TagBodyExtractor(serviceContext);
+        tagPathExtractor = new TagPathExtractor(serviceContext);
     }
 
     @Override
@@ -65,6 +71,8 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                         return SOX_PROPERTY_PATH_EXTRACTOR;
                     case DEPLOY_SCHEDULE:
                         return DEPLOY_SCHEDULE_PATH_EXTRACTOR;
+                    case TAG:
+                        return tagPathExtractor;
                     default:
                         throw new UnsupportedResourceInfoException(authZInfo);
                 }
@@ -76,6 +84,15 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                         return ENV_STAGE_BODY_EXTRACTOR;
                     case HOTFIX:
                         return HOTFIX_BODY_EXTRACTOR;
+                    case TAG:
+                        return tagBodyExtractor;
+                    default:
+                        throw new UnsupportedResourceInfoException(authZInfo);
+                }
+            case QUERY:
+                switch (authZInfo.type()) {
+                    case ENV_STAGE:
+                        return ENV_STAGE_QUERY_EXTRACTOR;
                     default:
                         throw new UnsupportedResourceInfoException(authZInfo);
                 }

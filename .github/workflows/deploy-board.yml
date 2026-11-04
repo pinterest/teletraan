@@ -1,0 +1,33 @@
+name: Deploy Board CI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'deploy-board/**'
+      - '.github/workflows/deploy-board.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'deploy-board/**'
+      - '.github/workflows/deploy-board.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deploy-board
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: pip
+          cache-dependency-path: deploy-board/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run dashboard tests
+        run: python -m django test --settings=deploy_board.webapp.test_settings

@@ -57,6 +57,10 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             String role,
             AuthZResource requestedResource,
             @Nullable ContainerRequestContext context) {
+        // This action is granted by Pastis, not by the legacy database roles.
+        if (TeletraanPrincipalRole.Names.MANAGE_PINDEPLOY.equals(role)) {
+            return false;
+        }
         try {
             TeletraanPrincipalRole requiredRole = TeletraanPrincipalRole.valueOf(role);
             AuthZResource convertedRequestedResource = requestedResource;

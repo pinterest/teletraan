@@ -24,8 +24,11 @@ import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 public class ScriptTokenRoleAuthorizerTest {
     private ServiceContext context;
@@ -237,6 +240,53 @@ public class ScriptTokenRoleAuthorizerTest {
         checkPositive(sysAdmin, build, TeletraanPrincipalRole.PUBLISHER);
         checkPositive(sysOperator, build, TeletraanPrincipalRole.PUBLISHER);
         checkNegative(sysReader, build, TeletraanPrincipalRole.PUBLISHER);
+    }
+
+    @ParameterizedTest
+    @EnumSource(
+            value = TeletraanPrincipalRole.class,
+            names = {"WRITE", "DELETE"})
+    void buildMutationsRequireBuildOrSystemScope(TeletraanPrincipalRole action) throws Exception {
+        AuthZResource build =
+                new AuthZResource(
+                        "envX",
+                        AuthZResource.Type.BUILD,
+                        Collections.singletonMap(
+                                AuthZResource.AttributeKeys.BUILD_ARTIFACT_URL.name(),
+                                "s3://bucket/build.tar.gz"));
+        TokenRolesBean buildOperator = new TokenRolesBean();
+        buildOperator.setResource_id("envX");
+        buildOperator.setResource_type(AuthZResource.Type.BUILD);
+        buildOperator.setRole(TeletraanPrincipalRole.OPERATOR);
+
+        checkPositive(buildOperator, build, action);
+        checkPositive(sysAdmin, build, action);
+        checkPositive(sysOperator, build, action);
+        checkNegative(sysReader, build, action);
+        checkNegative(publisher, build, action);
+        checkNegative(envAdmin, build, action);
+        checkNegative(envOperator, build, action);
+
+        buildOperator.setResource_id("other-build");
+        checkNegative(buildOperator, build, action);
+        buildOperator.setResource_id("envX");
+        buildOperator.setRole(TeletraanPrincipalRole.PUBLISHER);
+        checkNegative(buildOperator, build, action);
+    }
+
+    @ParameterizedTest
+    @EnumSource(TeletraanPrincipalRole.class)
+    void legacyTokenRolesDoNotGrantPastisOnlyPindeployAction(TeletraanPrincipalRole tokenRole) {
+        ScriptTokenPrincipal<ValueBasedRole> principal =
+                new ScriptTokenPrincipal<>(
+                        "testPrincipal", tokenRole.getRole(), AuthZResource.SYSTEM_RESOURCE);
+
+        assertFalse(
+                authorizer.authorize(
+                        principal,
+                        TeletraanPrincipalRole.Names.MANAGE_PINDEPLOY,
+                        AuthZResource.SYSTEM_RESOURCE,
+                        null));
     }
 
     @Test
