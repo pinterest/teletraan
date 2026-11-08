@@ -93,6 +93,9 @@ public class EnvAgentConfigs {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         String userName = sc.getUserPrincipal().getName();
         Utils.trimMapValues(configs);
+        // T006: pre-persist validation — reject invisible/zero-width/bidi unicode
+        Utils.rejectDisallowedUnicode(
+                configs, userName, String.format("agent_configs:%s/%s", envName, stageName));
         environHandler.updateAdvancedConfigs(envBean, configs, userName);
         configHistoryHandler.updateConfigHistory(
                 envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, configs, userName);
