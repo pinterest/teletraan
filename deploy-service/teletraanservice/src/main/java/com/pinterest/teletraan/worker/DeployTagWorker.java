@@ -197,11 +197,11 @@ public class DeployTagWorker implements Runnable {
                                 job,
                                 ExceptionUtils.getRootCauseMessage(e),
                                 ExceptionUtils.getStackTrace(e));
-                        job.setState(TagSyncState.ERROR);
+                        job.setState(TagSyncState.INIT);
                         LOG.error(
                                 "job {} deploy constraint transitions to error state due to exceptions",
                                 job);
-                        LOG.info("updated job state to {}", TagSyncState.ERROR);
+                        LOG.info("updated job state to {} to retry on next run", TagSyncState.INIT);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
 
                         errorBudgetFailure.increment();
