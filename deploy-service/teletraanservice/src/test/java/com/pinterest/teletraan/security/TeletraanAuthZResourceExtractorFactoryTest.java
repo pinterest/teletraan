@@ -151,6 +151,16 @@ class TeletraanAuthZResourceExtractorFactoryTest {
     }
 
     @Test
+    void create_shouldReturnScmRepositoryExtractorsForPathAndQuery() {
+        when(authZInfo.type()).thenReturn(AuthZResource.Type.SCM_REPOSITORY);
+        when(authZInfo.idLocation()).thenReturn(ResourceAuthZInfo.Location.PATH);
+        assertTrue(extractorFactory.create(authZInfo) instanceof ScmRepositoryExtractor);
+
+        when(authZInfo.idLocation()).thenReturn(ResourceAuthZInfo.Location.QUERY);
+        assertTrue(extractorFactory.create(authZInfo) instanceof ScmRepositoryExtractor);
+    }
+
+    @Test
     void create_shouldThrowExceptionForUnsupportedLocation() {
         when(authZInfo.idLocation()).thenReturn(ResourceAuthZInfo.Location.NA);
 
@@ -168,6 +178,10 @@ class TeletraanAuthZResourceExtractorFactoryTest {
         when(authZInfo.idLocation()).thenReturn(ResourceAuthZInfo.Location.PATH);
         when(authZInfo.type()).thenReturn(AuthZResource.Type.SYSTEM);
 
+        assertThrows(
+                UnsupportedResourceInfoException.class, () -> extractorFactory.create(authZInfo));
+
+        when(authZInfo.idLocation()).thenReturn(ResourceAuthZInfo.Location.QUERY);
         assertThrows(
                 UnsupportedResourceInfoException.class, () -> extractorFactory.create(authZInfo));
     }

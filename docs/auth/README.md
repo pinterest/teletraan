@@ -67,3 +67,51 @@ input:
     type: ENV_STAGE
     name: teletraan-prod
 ```
+
+## Commit repository permissions
+
+Both commit endpoints require `READ` on an `SCM_REPOSITORY` resource. Its
+name is `<configured-scm-name>/<repository>`. An omitted or empty query
+`scm` uses the configured default. SCM lookups honor the configured map's
+case-insensitive matching and use the configured spelling in permission names.
+GitHub owner and repository names are lowercase in authorization identities;
+for example, `Github/pinterest/teletraan` when the configured key is `Github`.
+Distinct configured aliases remain separate resources, including aliases for
+different GitHub hosts. Reserved characters in unusual SCM keys are percent-encoded
+in the permission name so a slash in a key cannot overlap another repository's scope.
+
+Repository grants are independent of build and environment grants. In role
+authorization mode, a system-wide `READ` or `PUBLISHER` grant does not grant
+repository access. An explicit repository grant or a system `ADMIN` grant
+does. For policy-based authorization, grant repository access explicitly with
+a role that includes `READ`, using the same structure as the
+[ACL example](examples/acl_example.yaml):
+
+```yaml
+resourceACLs:
+  "SCM_REPOSITORY:Github/pinterest/teletraan":
+    resourceName: Github/pinterest/teletraan
+    resourceType: SCM_REPOSITORY
+    groups:
+      - groupName: teletraan-developers
+        role: reader
+```
+
+Use a group and role defined by your deployment. Repository token administration
+requires `MANAGE_SCRIPT_TOKEN` on that same resource; a `READ` grant does not
+permit token creation or inspection. See [repository script tokens](scm-repository-tokens.md)
+for the supported provisioning and rotation API. Script-token authorization uses
+the token's exact stored scope; adding its name to a policy ACL does not expand it.
+
+Repository permission names are limited to 175 characters, including the SCM
+prefix and separators. This accommodates GitHub's maximum owner and repository
+name lengths with ordinary SCM aliases while preserving older MySQL index limits.
+Use a shorter configured alias if its full resource name would exceed the limit.
+An oversized name or malformed GitHub repository returns HTTP 400 before any
+GitHub request. Valid Git references remain safely encoded as request parameters
+or a single URL segment.
+
+Follow the [rollout guide](roll-out-repository-authorization.md) for the database
+migration, policy grants and automation-token transition. Requests without a
+matching grant return HTTP 403, including comparison, pagination and hotfix views
+that use these endpoints.

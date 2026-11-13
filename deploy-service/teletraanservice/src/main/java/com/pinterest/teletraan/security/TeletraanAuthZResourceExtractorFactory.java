@@ -40,6 +40,8 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
     private final AuthZResourceExtractor hotfixPathExtractor;
     private final AuthZResourceExtractor tagBodyExtractor;
     private final AuthZResourceExtractor tagPathExtractor;
+    private final AuthZResourceExtractor scmRepositoryPathExtractor;
+    private final AuthZResourceExtractor scmRepositoryQueryExtractor;
 
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
         buildPathExtractor = new BuildPathExtractor(serviceContext);
@@ -48,6 +50,10 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
         hostPathExtractor = new HostPathExtractor(serviceContext);
         tagBodyExtractor = new TagBodyExtractor(serviceContext);
         tagPathExtractor = new TagPathExtractor(serviceContext);
+        scmRepositoryPathExtractor =
+                new ScmRepositoryExtractor(serviceContext, ResourceAuthZInfo.Location.PATH);
+        scmRepositoryQueryExtractor =
+                new ScmRepositoryExtractor(serviceContext, ResourceAuthZInfo.Location.QUERY);
     }
 
     @Override
@@ -73,6 +79,8 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                         return DEPLOY_SCHEDULE_PATH_EXTRACTOR;
                     case TAG:
                         return tagPathExtractor;
+                    case SCM_REPOSITORY:
+                        return scmRepositoryPathExtractor;
                     default:
                         throw new UnsupportedResourceInfoException(authZInfo);
                 }
@@ -91,6 +99,8 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                 }
             case QUERY:
                 switch (authZInfo.type()) {
+                    case SCM_REPOSITORY:
+                        return scmRepositoryQueryExtractor;
                     case ENV_STAGE:
                         return ENV_STAGE_QUERY_EXTRACTOR;
                     default:

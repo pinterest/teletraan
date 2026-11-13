@@ -51,6 +51,13 @@ public class ScriptTokenRoleAuthorizer
             return false;
         }
 
+        if (AuthZResource.Type.SCM_REPOSITORY.equals(requestedResource.getType())) {
+            // Global readers/operators must not inherit the SCM credential's repository access.
+            return requestedResource.equals(principal.getResource())
+                    || (AuthZResource.SYSTEM_RESOURCE.equals(principal.getResource())
+                            && TeletraanPrincipalRole.ADMIN.getRole().equals(principal.getRole()));
+        }
+
         if (AuthZResource.Type.UNSPECIFIED.equals(requestedResource.getType())) {
             // Always allow unspecified resources as they are READ operations
             return true;

@@ -86,6 +86,7 @@ definitions:
           - IAM_ROLE
           - DEPLOY
           - BUILD
+          - SCM_REPOSITORY
           - HOTFIX
           - HOST
           - PROVISION_PREFIX

@@ -80,6 +80,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.jersey().register(EnvPromotes.class);
         environment.jersey().register(EnvScriptConfigs.class);
         environment.jersey().register(EnvTokenRoles.class);
+        environment.jersey().register(ScmRepositoryTokenRoles.class);
         environment.jersey().register(EnvUserRoles.class);
         environment.jersey().register(EnvWebHooks.class);
         environment.jersey().register(EnvHosts.class);

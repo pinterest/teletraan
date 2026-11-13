@@ -111,6 +111,8 @@ public class AuthZResource {
         IAM_ROLE,
         /** For build related resources. */
         BUILD,
+        /** For source repositories accessed using Teletraan's SCM credentials. */
+        SCM_REPOSITORY,
         /** For deploy related resources. */
         DEPLOY,
         /** For hotfix related resources. */

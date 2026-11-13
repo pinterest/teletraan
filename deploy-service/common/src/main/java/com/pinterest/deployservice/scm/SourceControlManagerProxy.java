@@ -15,16 +15,22 @@
  */
 package com.pinterest.deployservice.scm;
 
+import com.google.common.net.PercentEscaper;
 import com.pinterest.deployservice.bean.CommitBean;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import javax.ws.rs.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SourceControlManagerProxy {
     private static final Logger LOG = LoggerFactory.getLogger(SourceControlManagerProxy.class);
+    private static final PercentEscaper SCM_KEY_ESCAPER = new PercentEscaper("-._~", false);
+    // Repository grants share the legacy role table's indexed resource_id column.
+    private static final int MAX_REPOSITORY_RESOURCE_NAME_LENGTH = 175;
     private List<String> validSCMs;
 
     Map<String, SourceControlManager> managers;
@@ -37,14 +43,14 @@ public class SourceControlManagerProxy {
         validSCMs = new ArrayList<String>(this.managers.keySet());
     }
 
-    private SourceControlManager getSourceControlManager(String scmType) throws Exception {
+    private SourceControlManager getSourceControlManager(String scmType) {
         if (StringUtils.isEmpty(scmType)) {
             scmType = defaultScmTypeName;
         }
         SourceControlManager manager = this.managers.get(scmType);
         if (manager == null) {
             LOG.error("Unsupported SCM type: {}", scmType);
-            throw new Exception("Unsupported SCM type: " + scmType);
+            throw new BadRequestException("Unsupported SCM type: " + scmType);
         }
         return manager;
     }
@@ -59,6 +65,40 @@ public class SourceControlManagerProxy {
 
     public String getDefaultTypeName() {
         return defaultScmTypeName;
+    }
+
+    public String canonicalizeRepository(String scmType, String repo) {
+        SourceControlManager manager = getSourceControlManager(scmType);
+        return manager instanceof GithubManager ? GithubManager.canonicalizeRepository(repo) : repo;
+    }
+
+    /**
+     * Returns the configured repository identity for authorization. Escaping the SCM key keeps
+     * separator characters and literal percent escapes distinct from repository names.
+     */
+    public String getRepositoryResourceName(String scmType, String repo) {
+        if (StringUtils.isEmpty(repo)) {
+            throw new BadRequestException("A repository is required");
+        }
+        String configuredScm = StringUtils.isEmpty(scmType) ? defaultScmTypeName : scmType;
+        getSourceControlManager(configuredScm);
+        if (managers instanceof SortedMap) {
+            // Honor the manager map's comparator, including production's case-insensitive lookup.
+            configuredScm =
+                    ((SortedMap<String, SourceControlManager>) managers)
+                            .tailMap(configuredScm)
+                            .firstKey();
+        }
+        String resourceName =
+                SCM_KEY_ESCAPER.escape(configuredScm)
+                        + "/"
+                        + canonicalizeRepository(configuredScm, repo);
+        if (resourceName.codePointCount(0, resourceName.length())
+                > MAX_REPOSITORY_RESOURCE_NAME_LENGTH) {
+            throw new BadRequestException(
+                    "SCM repository resource name must not exceed 175 characters");
+        }
+        return resourceName;
     }
 
     public String getCommitLinkTemplate(String scmType) throws Exception {

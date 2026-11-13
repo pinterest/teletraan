@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS config_history (
 
 CREATE TABLE IF NOT EXISTS users_and_roles (
     user_name     VARCHAR(64)     NOT NULL,
-    resource_id   VARCHAR(64)     NOT NULL,
+    resource_id   VARCHAR(175)     NOT NULL,
     resource_type VARCHAR(16)     NOT NULL,
     role          VARCHAR(22)     NOT NULL,
     PRIMARY KEY (resource_id, resource_type, user_name)
@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS users_and_roles (
 
 CREATE TABLE IF NOT EXISTS tokens_and_roles (
     script_name   VARCHAR(64)   NOT NULL,
-    resource_id   VARCHAR(64)   NOT NULL,
+    resource_id   VARCHAR(175)   NOT NULL,
     resource_type VARCHAR(16)   NOT NULL,
     token         VARCHAR(22)   NOT NULL,
     role          VARCHAR(22)   NOT NULL,
@@ -276,7 +276,7 @@ CREATE INDEX tokens_and_roles_token_idx ON tokens_and_roles (token);
 
 CREATE TABLE IF NOT EXISTS groups_and_roles (
   group_name    VARCHAR(64)     NOT NULL,
-  resource_id   VARCHAR(64)     NOT NULL,
+  resource_id   VARCHAR(175)     NOT NULL,
   resource_type VARCHAR(16)     NOT NULL,
   role          VARCHAR(22)     NOT NULL,
   PRIMARY KEY (resource_id, resource_type, group_name)

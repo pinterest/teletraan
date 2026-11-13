@@ -20,6 +20,8 @@ import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.*;
@@ -50,11 +52,14 @@ public class Commits {
     @GET
     @Timed
     @Counted
-    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-_/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
+    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-._/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get commit infos",
             notes = "Returns a commit object given a repo and commit sha",
             response = CommitBean.class)
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.SCM_REPOSITORY,
+            idLocation = ResourceAuthZInfo.Location.PATH)
     public CommitBean getCommit(
             @ApiParam(value = "Commit's scm type, either github or phabricator") @PathParam("scm")
                     String scm,
@@ -78,6 +83,9 @@ public class Commits {
     @GET
     @Timed
     @Counted
+    @ResourceAuthZInfo(
+            type = AuthZResource.Type.SCM_REPOSITORY,
+            idLocation = ResourceAuthZInfo.Location.QUERY)
     public List<CommitBean> getCommits(
             @QueryParam("scm") Optional<String> scm,
             @QueryParam("repo") String repo,

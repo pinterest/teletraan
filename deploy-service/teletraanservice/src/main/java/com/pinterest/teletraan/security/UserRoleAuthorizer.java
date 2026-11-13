@@ -63,6 +63,10 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
         }
         try {
             TeletraanPrincipalRole requiredRole = TeletraanPrincipalRole.valueOf(role);
+            TeletraanPrincipalRole systemRequiredRole =
+                    AuthZResource.Type.SCM_REPOSITORY.equals(requestedResource.getType())
+                            ? TeletraanPrincipalRole.ADMIN
+                            : requiredRole;
             AuthZResource convertedRequestedResource = requestedResource;
             if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())) {
                 // Convert to ENV for backward compatibility
@@ -106,7 +110,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                         groupRolesDAO.getByResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM);
                 for (GroupRolesBean group : systemGroupBeans) {
                     if (groupsSet.contains(group.getGroup_name())
-                            && group.getRole().isEqualOrSuperior(requiredRole)) {
+                            && group.getRole().isEqualOrSuperior(systemRequiredRole)) {
                         return true;
                     }
                 }
@@ -116,7 +120,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             UserRolesBean systemBean =
                     userRolesDAO.getByNameAndResource(
                             principal.getName(), AuthZResource.ALL, AuthZResource.Type.SYSTEM);
-            if (systemBean != null && systemBean.getRole().isEqualOrSuperior(requiredRole)) {
+            if (systemBean != null && systemBean.getRole().isEqualOrSuperior(systemRequiredRole)) {
                 return true;
             }
 

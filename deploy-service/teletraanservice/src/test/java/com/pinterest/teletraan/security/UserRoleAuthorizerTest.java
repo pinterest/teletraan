@@ -243,6 +243,64 @@ class UserRoleAuthorizerTest {
         checkPositive(envReader, buildResource, TeletraanPrincipalRole.PUBLISHER);
     }
 
+    @Test
+    void testRepositoryRequiresExplicitUserGrantOrSystemAdmin() throws Exception {
+        AuthZResource repository =
+                new AuthZResource("GitHub/pinterest/teletraan", AuthZResource.Type.SCM_REPOSITORY);
+        checkPositive(sysAdmin, repository, TeletraanPrincipalRole.READ);
+        checkNegative(sysReader, repository, TeletraanPrincipalRole.READ);
+        checkNegative(sysOperator, repository, TeletraanPrincipalRole.READ);
+        checkNegative(envAdmin, repository, TeletraanPrincipalRole.READ);
+        checkNegative(envReader, repository, TeletraanPrincipalRole.READ);
+
+        UserPrincipal repositoryReader = new UserPrincipal("repoReader", null);
+        when(userRolesDAO.getByNameAndResource(
+                        repositoryReader.getName(), repository.getName(), repository.getType()))
+                .thenReturn(
+                        createUserRolesBean(
+                                TeletraanPrincipalRole.READER, repositoryReader.getName()));
+        checkPositive(repositoryReader, repository, TeletraanPrincipalRole.READ);
+        checkNegative(repositoryReader, repository, TeletraanPrincipalRole.WRITE);
+        checkNegative(
+                repositoryReader,
+                new AuthZResource("GitHub/private/secret", AuthZResource.Type.SCM_REPOSITORY),
+                TeletraanPrincipalRole.READ);
+    }
+
+    @Test
+    void testRepositoryRequiresExplicitGroupGrantOrSystemAdminGroup() throws Exception {
+        AuthZResource repository =
+                new AuthZResource("GitHub/pinterest/teletraan", AuthZResource.Type.SCM_REPOSITORY);
+        for (TeletraanPrincipalRole role :
+                Arrays.asList(
+                        TeletraanPrincipalRole.READER,
+                        TeletraanPrincipalRole.OPERATOR,
+                        TeletraanPrincipalRole.ADMIN)) {
+            when(groupRolesDAO.getByResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                    .thenReturn(
+                            Collections.singletonList(createGroupRolesBean(role, readerGroupName)));
+            if (role == TeletraanPrincipalRole.ADMIN) {
+                checkPositive(sysReaderByGroup, repository, TeletraanPrincipalRole.READ);
+            } else {
+                checkNegative(sysReaderByGroup, repository, TeletraanPrincipalRole.READ);
+            }
+        }
+
+        when(groupRolesDAO.getByResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(Collections.emptyList());
+        when(groupRolesDAO.getByResource(repository.getName(), repository.getType()))
+                .thenReturn(
+                        Collections.singletonList(
+                                createGroupRolesBean(
+                                        TeletraanPrincipalRole.READER, readerGroupName)));
+        checkPositive(sysReaderByGroup, repository, TeletraanPrincipalRole.READ);
+        checkNegative(sysReaderByGroup, repository, TeletraanPrincipalRole.WRITE);
+        checkNegative(
+                sysReaderByGroup,
+                new AuthZResource("GitHub/private/secret", AuthZResource.Type.SCM_REPOSITORY),
+                TeletraanPrincipalRole.READ);
+    }
+
     private void checkAllRequiredRoles(
             UserPrincipal principal,
             TeletraanPrincipalRole legacyRole,

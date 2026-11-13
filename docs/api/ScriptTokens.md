@@ -359,3 +359,23 @@ Deletes a system wide TokenRoles object by specified script name
 
 
 <a name="system-group-roles_resource"></a>
+
+
+## Repository-scoped script tokens
+
+Repository token endpoints require `MANAGE_SCRIPT_TOKEN` on the requested
+`SCM_REPOSITORY` resource. All use `scm` and `repo` query parameters; an omitted
+or empty `scm` selects the configured default.
+
+| Method | Path | Behavior |
+| --- | --- | --- |
+| `GET` | `/v1/scm_repositories/token_roles` | List repository token metadata without bearer secrets |
+| `GET` | `/v1/scm_repositories/token_roles/{scriptName}` | Read one token's metadata without its bearer secret |
+| `POST` | `/v1/scm_repositories/token_roles` | Create a repository `READ` token; body accepts the script `name` |
+| `DELETE` | `/v1/scm_repositories/token_roles/{scriptName}` | Revoke the named token in that exact repository |
+
+Creation returns HTTP 201 with the bearer secret exactly once. The server assigns
+the repository scope, `READ` role, random secret and 180-day expiry. There is no
+update endpoint. See [repository script tokens](../auth/scm-repository-tokens.md)
+for request examples and rotation, and the [rollout guide](../auth/roll-out-repository-authorization.md)
+for database and policy prerequisites.
