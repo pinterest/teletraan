@@ -244,7 +244,7 @@ public class GithubManager extends BaseManager {
         return CommitBeans;
     }
 
-    private HttpUrl.Builder commitsUrl(String repo) {
+    public static void validateRepository(String repo) {
         String[] repository = repo == null ? new String[0] : repo.split("/", -1);
         if (repository.length != 2
                 || !OWNER.matcher(repository[0]).matches()
@@ -252,6 +252,11 @@ public class GithubManager extends BaseManager {
                 || isDotSegment(repository[1])) {
             throw new BadRequestException("GitHub repository must be an owner/repository name");
         }
+    }
+
+    private HttpUrl.Builder commitsUrl(String repo) {
+        validateRepository(repo);
+        String[] repository = repo.split("/", -1);
         return HttpUrl.parse(apiPrefix)
                 .newBuilder()
                 .addPathSegment("repos")
