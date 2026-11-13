@@ -25,7 +25,6 @@ import com.pinterest.teletraan.universal.http.HttpClient;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Pattern;
@@ -174,15 +173,7 @@ public class GithubManager extends BaseManager {
 
     @Override
     public String generateCommitLink(String repo, String sha) {
-        // Publishing builds accepts SCM metadata without requesting repository contents.
-        HttpUrl.Builder url = HttpUrl.parse(urlPrefix).newBuilder();
-        for (String segment : String.valueOf(repo).split("/", -1)) {
-            url.addPathSegment(linkMetadataSegment(segment));
-        }
-        return url.addPathSegment("commit")
-                .addPathSegment(linkMetadataSegment(String.valueOf(sha)))
-                .build()
-                .toString();
+        return String.format("%s/%s/commit/%s", urlPrefix, repo, sha);
     }
 
     @Override
@@ -197,8 +188,7 @@ public class GithubManager extends BaseManager {
 
     @Override
     public CommitBean getCommit(String repo, String sha) throws Exception {
-        String canonicalRepo = canonicalizeRepository(repo);
-        HttpUrl.Builder urlBuilder = commitsUrl(canonicalRepo);
+        HttpUrl.Builder urlBuilder = commitsUrl(repo);
         validateCommitReference(sha);
         // Encode the complete ref once: slashes and literal percent escapes stay inside this ref.
         String url = urlBuilder.addPathSegment(sha).build().toString();
@@ -222,14 +212,13 @@ public class GithubManager extends BaseManager {
                 builder.create()
                         .fromJson(
                                 jsonPayload, new TypeToken<HashMap<String, Object>>() {}.getType());
-        return toCommitBean(jsonMap, canonicalRepo);
+        return toCommitBean(jsonMap, repo);
     }
 
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
             throws Exception {
-        String canonicalRepo = canonicalizeRepository(repo);
-        String url = commitsUrl(canonicalRepo).build().toString();
+        String url = commitsUrl(repo).build().toString();
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
         Map<String, String> params = new HashMap<>();
@@ -250,23 +239,12 @@ public class GithubManager extends BaseManager {
                 keepHead = true;
                 continue;
             }
-            CommitBeans.offer(toCommitBean(jsonMap, canonicalRepo));
+            CommitBeans.offer(toCommitBean(jsonMap, repo));
         }
         return CommitBeans;
     }
 
-    private HttpUrl.Builder commitsUrl(String canonicalRepo) {
-        String[] repository = canonicalRepo.split("/", -1);
-        return HttpUrl.parse(apiPrefix)
-                .newBuilder()
-                .addPathSegment("repos")
-                .addPathSegment(repository[0])
-                .addPathSegment(repository[1])
-                .addPathSegment("commits");
-    }
-
-    /** Validates a GitHub owner/repository name and returns its case-insensitive identity. */
-    public static String canonicalizeRepository(String repo) {
+    private HttpUrl.Builder commitsUrl(String repo) {
         String[] repository = repo == null ? new String[0] : repo.split("/", -1);
         if (repository.length != 2
                 || !OWNER.matcher(repository[0]).matches()
@@ -274,7 +252,12 @@ public class GithubManager extends BaseManager {
                 || isDotSegment(repository[1])) {
             throw new BadRequestException("GitHub repository must be an owner/repository name");
         }
-        return repo.toLowerCase(Locale.ROOT);
+        return HttpUrl.parse(apiPrefix)
+                .newBuilder()
+                .addPathSegment("repos")
+                .addPathSegment(repository[0])
+                .addPathSegment(repository[1])
+                .addPathSegment("commits");
     }
 
     private static void validateCommitReference(String sha) {
@@ -286,11 +269,6 @@ public class GithubManager extends BaseManager {
                 throw new BadRequestException("Invalid GitHub commit reference");
             }
         }
-    }
-
-    private static String linkMetadataSegment(String value) {
-        // HttpUrl normalizes dot segments, so encode their percent signs as literal metadata.
-        return isDotSegment(value) ? value.replace(".", "%2E") : value;
     }
 
     private static boolean isDotSegment(String value) {

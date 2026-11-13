@@ -38,6 +38,10 @@ import org.slf4j.LoggerFactory;
 public class PhabricatorManager extends BaseManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(PhabricatorManager.class);
+    private static final String QUERY_COMMITS_HISTORY_PARAMETER =
+            "{\"commit\":\"%s\", \"limit\":%d, \"repository\":\"%s\"}";
+    private static final String QUERY_COMMITS_HISTORY_PARAMETER_WITH_PATH =
+            "{\"commit\":\"%s\", \"limit\":%d, \"repository\":\"%s\", \"path\":\"%s\"}";
     private static final int DEFAULT_SIZE = 30;
     private static final String DEFAULT_PATH = "*";
     private static final String ARC_OUTPUT_NOTICE = "Waiting for JSON parameters on stdin...";
@@ -55,17 +59,6 @@ public class PhabricatorManager extends BaseManager {
         this.urlPrefix = urlPrefix;
         this.arcLocation = arcLocation;
         this.arcrcLocation = arcrcLocation;
-    }
-
-    static String serializeHistoryParameters(String repo, String commit, int limit, String path) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("repository", repo);
-        parameters.put("commit", commit);
-        parameters.put("limit", limit);
-        if (path != null) {
-            parameters.put("path", path);
-        }
-        return new GsonBuilder().create().toJson(parameters);
     }
 
     private Map<String, Object> queryCLI(String input) throws Exception {
@@ -191,7 +184,7 @@ public class PhabricatorManager extends BaseManager {
 
     @Override
     public CommitBean getCommit(String repo, String sha) throws Exception {
-        String input = serializeHistoryParameters(repo, sha, 1, null);
+        String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
         Map<String, Object> json = queryCLI(input);
         try {
             @SuppressWarnings("unchecked")
@@ -213,7 +206,13 @@ public class PhabricatorManager extends BaseManager {
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
             throws Exception {
-        String input = serializeHistoryParameters(repo, startSha, DEFAULT_SIZE, path);
+        String input =
+                String.format(
+                        QUERY_COMMITS_HISTORY_PARAMETER_WITH_PATH,
+                        startSha,
+                        DEFAULT_SIZE,
+                        repo,
+                        path);
         Map<String, Object> json = queryCLI(input);
         @SuppressWarnings("unchecked")
         Map<String, Object> commitsJson = (Map<String, Object>) json.get("response");

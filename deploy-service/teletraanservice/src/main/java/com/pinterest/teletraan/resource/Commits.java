@@ -31,7 +31,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-@RolesAllowed(TeletraanPrincipalRole.Names.READ)
+// Commit reads use a service-wide SCM credential. Restrict them to existing system
+// administrators until repository-specific authorization is available.
+@RolesAllowed(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN)
 @Path("/v1/commits")
 @Api(tags = "Commits")
 @SwaggerDefinition(
@@ -52,14 +54,12 @@ public class Commits {
     @GET
     @Timed
     @Counted
-    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-._/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
+    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-_/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get commit infos",
             notes = "Returns a commit object given a repo and commit sha",
             response = CommitBean.class)
-    @ResourceAuthZInfo(
-            type = AuthZResource.Type.SCM_REPOSITORY,
-            idLocation = ResourceAuthZInfo.Location.PATH)
     public CommitBean getCommit(
             @ApiParam(value = "Commit's scm type, either github or phabricator") @PathParam("scm")
                     String scm,
@@ -83,9 +83,7 @@ public class Commits {
     @GET
     @Timed
     @Counted
-    @ResourceAuthZInfo(
-            type = AuthZResource.Type.SCM_REPOSITORY,
-            idLocation = ResourceAuthZInfo.Location.QUERY)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public List<CommitBean> getCommits(
             @QueryParam("scm") Optional<String> scm,
             @QueryParam("repo") String repo,

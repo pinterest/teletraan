@@ -23,7 +23,6 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
 import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
 import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
-import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
@@ -36,7 +35,6 @@ import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 import java.net.MalformedURLException;
 import java.util.Arrays;
-import java.util.Optional;
 import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.container.ContainerRequestFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -116,8 +114,18 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     @SuppressWarnings({"unchecked"})
     AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthFilter(
             TeletraanServiceContext context) {
+        Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthenticator =
+                new ScriptTokenAuthenticator<>(
+                        new TeletraanScriptTokenProvider(context, checkTokenExpiry));
+        if (StringUtils.isNotBlank(getTokenCacheSpec())) {
+            scriptTokenAuthenticator =
+                    new CachingAuthenticator<>(
+                            SharedMetricRegistries.getDefault(),
+                            scriptTokenAuthenticator,
+                            Caffeine.from(getTokenCacheSpec()));
+        }
         return new OAuthCredentialAuthFilter.Builder<ScriptTokenPrincipal<ValueBasedRole>>()
-                .setAuthenticator(createScriptTokenAuthenticator(context))
+                .setAuthenticator(scriptTokenAuthenticator)
                 .setAuthorizer(
                         (Authorizer<ScriptTokenPrincipal<ValueBasedRole>>)
                                 (Authorizer<?>)
@@ -126,32 +134,6 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 .setPrefix("token")
                 .setUnauthorizedHandler(new JSONUnauthorizedHandler())
                 .buildAuthFilter();
-    }
-
-    Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> createScriptTokenAuthenticator(
-            TeletraanServiceContext context) {
-        Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> uncached =
-                new ScriptTokenAuthenticator<>(
-                        new TeletraanScriptTokenProvider(context, checkTokenExpiry));
-        if (StringUtils.isBlank(getTokenCacheSpec())) {
-            return uncached;
-        }
-        Authenticator<String, ScriptTokenPrincipal<ValueBasedRole>> cached =
-                new CachingAuthenticator<>(
-                        SharedMetricRegistries.getDefault(),
-                        uncached,
-                        Caffeine.from(getTokenCacheSpec()));
-        return credentials -> {
-            Optional<ScriptTokenPrincipal<ValueBasedRole>> principal =
-                    cached.authenticate(credentials);
-            if (principal.isPresent()
-                    && AuthZResource.Type.SCM_REPOSITORY.equals(
-                            principal.get().getResource().getType())) {
-                // Repository expiry and revocation take effect even while a cache entry is warm.
-                return uncached.authenticate(credentials);
-            }
-            return principal;
-        };
     }
 
     // TODO: CDP-7837 remove this after all the clients are updated to use the new token scheme

@@ -226,30 +226,6 @@ public class ScriptTokenRoleAuthorizerTest {
     }
 
     @Test
-    void testRepositoryRequiresExactScopeOrSystemAdmin() throws Exception {
-        AuthZResource repository =
-                new AuthZResource("GitHub/pinterest/teletraan", AuthZResource.Type.SCM_REPOSITORY);
-        TokenRolesBean repositoryReader = new TokenRolesBean();
-        repositoryReader.setResource_id(repository.getName());
-        repositoryReader.setResource_type(AuthZResource.Type.SCM_REPOSITORY);
-        repositoryReader.setRole(TeletraanPrincipalRole.READER);
-
-        checkPositive(repositoryReader, repository, TeletraanPrincipalRole.READ);
-        checkNegative(
-                repositoryReader,
-                new AuthZResource("GitHub/private/secret", AuthZResource.Type.SCM_REPOSITORY),
-                TeletraanPrincipalRole.READ);
-        checkNegative(repositoryReader, repository, TeletraanPrincipalRole.WRITE);
-        checkPositive(sysAdmin, repository, TeletraanPrincipalRole.READ);
-        checkNegative(sysReader, repository, TeletraanPrincipalRole.READ);
-        checkNegative(sysOperator, repository, TeletraanPrincipalRole.READ);
-        checkNegative(envAdmin, repository, TeletraanPrincipalRole.READ);
-        checkNegative(envReader, repository, TeletraanPrincipalRole.READ);
-        checkNegative(publisher, repository, TeletraanPrincipalRole.READ);
-        checkNegative(pinger, repository, TeletraanPrincipalRole.READ);
-    }
-
-    @Test
     public void testPublish() throws Exception {
         AuthZResource build = new AuthZResource("build", AuthZResource.Type.BUILD);
         checkPositive(publisher, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRole.PUBLISHER);

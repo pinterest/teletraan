@@ -1,10 +1,16 @@
 ### Commits
 Commit info APIs
 
-Both endpoints require `READ` permission on the requested
-`SCM_REPOSITORY` resource. See [commit repository permissions](../auth/README.md#commit-repository-permissions)
-for resource names and deployment requirements. Requests without permission
-return HTTP 403. Malformed GitHub repository names return HTTP 400.
+Both endpoints temporarily require `MANAGE_SCRIPT_TOKEN` on `SYSTEM:*`, the
+existing system-administrator permission. This contains access to Teletraan's
+service-wide SCM credential while repository-specific authorization is deferred.
+Baseline readers, publishers, operators and environment administrators receive
+HTTP 403, including comparison, pagination and hotfix views using these endpoints.
+Existing authorized system administrators continue using their current credentials.
+Malformed GitHub repository names return HTTP 400 after authorization.
+
+Deploy the service update directly; this workaround requires no database migration,
+new repository grants, token provisioning, or changes to the GitHub App credential.
 
 
 <a name="getcommits"></a>
@@ -16,7 +22,7 @@ return HTTP 403. Malformed GitHub repository names return HTTP 400.
 |---|---|---|
 |**Query**|**endSha**  <br>*optional*|string|
 |**Query**|**path**  <br>*optional*|string|
-|**Query**|**repo**  <br>*required*|string|
+|**Query**|**repo**  <br>*optional*|string|
 |**Query**|**scm**  <br>*optional*|string|
 |**Query**|**size**  <br>*optional*|integer (int32)|
 |**Query**|**startSha**  <br>*optional*|string|

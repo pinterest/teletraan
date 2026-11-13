@@ -20,26 +20,31 @@ import static org.mockito.Mockito.*;
 
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
+import com.pinterest.deployservice.bean.TokenRolesBean;
+import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.scm.GithubManager;
-import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
-import com.pinterest.teletraan.security.TeletraanAuthZResourceExtractorFactory;
+import com.pinterest.teletraan.config.RoleAuthorizationFactory;
+import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
+import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
+import com.pinterest.teletraan.universal.security.BaseAuthorizer;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfoFeature;
+import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import io.dropwizard.auth.AuthDynamicFeature;
+import io.dropwizard.auth.Authorizer;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,30 +56,43 @@ import org.junit.jupiter.params.provider.ValueSource;
 @ExtendWith(DropwizardExtensionsSupport.class)
 class CommitsAuthorizationTest {
     private static final GithubManager MANAGER = mock(GithubManager.class);
-    private static final ResourceExtension EXT = createExtension();
+    private static final TokenRolesDAO TOKEN_DAO = mock(TokenRolesDAO.class);
+    private static final AtomicReference<String> POLICY_ACTION = new AtomicReference<>();
+    private static final AtomicReference<AuthZResource> POLICY_RESOURCE = new AtomicReference<>();
+    private static final ResourceExtension EXT = createExtension(false);
+    private static final ResourceExtension POLICY_EXT = createExtension(true);
 
-    private static ResourceExtension createExtension() {
+    @SuppressWarnings("unchecked")
+    private static ResourceExtension createExtension(boolean recordPolicy) {
         TeletraanServiceContext context = new TeletraanServiceContext();
-        Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        managers.put("GitHub", MANAGER);
-        managers.put("GitHub-Mirror", MANAGER);
-        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers, "github"));
-        TeletraanAuthZResourceExtractorFactory extractorFactory =
-                new TeletraanAuthZResourceExtractorFactory(context);
-        Map<String, ScriptTokenPrincipal<ValueBasedRole>> principals = new HashMap<>();
-        principals.put(
-                "reader", principal(TeletraanPrincipalRole.READ, AuthZResource.SYSTEM_RESOURCE));
-        principals.put(
-                "publisher",
-                principal(TeletraanPrincipalRole.PUBLISHER, AuthZResource.SYSTEM_RESOURCE));
-        principals.put(
-                "admin", principal(TeletraanPrincipalRole.ADMIN, AuthZResource.SYSTEM_RESOURCE));
-        principals.put(
-                "repo-reader",
-                principal(
-                        TeletraanPrincipalRole.READ,
-                        new AuthZResource(
-                                "GitHub/acme/allowed", AuthZResource.Type.SCM_REPOSITORY)));
+        context.setTokenRolesDAO(TOKEN_DAO);
+        context.setSourceControlManagerProxy(
+                new SourceControlManagerProxy(
+                        Collections.singletonMap("Github", MANAGER), "Github"));
+        context.setAuthZResourceExtractorFactory(mock(AuthZResourceExtractor.Factory.class));
+        Authorizer<ScriptTokenPrincipal<ValueBasedRole>> authorizer;
+        if (recordPolicy) {
+            authorizer =
+                    new BaseAuthorizer<ScriptTokenPrincipal<ValueBasedRole>>(
+                            context.getAuthZResourceExtractorFactory()) {
+                        @Override
+                        public boolean authorize(
+                                ScriptTokenPrincipal<ValueBasedRole> principal,
+                                String action,
+                                AuthZResource resource,
+                                ContainerRequestContext request) {
+                            POLICY_ACTION.set(action);
+                            POLICY_RESOURCE.set(resource);
+                            return true;
+                        }
+                    };
+        } else {
+            authorizer =
+                    (Authorizer<ScriptTokenPrincipal<ValueBasedRole>>)
+                            (Authorizer<?>)
+                                    new RoleAuthorizationFactory()
+                                            .create(context, ScriptTokenPrincipal.class);
+        }
         try {
             return ResourceExtension.builder()
                     .addProvider(
@@ -82,11 +100,10 @@ class CommitsAuthorizationTest {
                                     new OAuthCredentialAuthFilter.Builder<
                                                     ScriptTokenPrincipal<ValueBasedRole>>()
                                             .setAuthenticator(
-                                                    token ->
-                                                            Optional.ofNullable(
-                                                                    principals.get(token)))
-                                            .setAuthorizer(
-                                                    new ScriptTokenRoleAuthorizer(extractorFactory))
+                                                    new ScriptTokenAuthenticator<>(
+                                                            new TeletraanScriptTokenProvider(
+                                                                    context, false)))
+                                            .setAuthorizer(authorizer)
                                             .setPrefix("token")
                                             .buildAuthFilter()))
                     .addProvider(RolesAllowedDynamicFeature.class)
@@ -98,24 +115,49 @@ class CommitsAuthorizationTest {
         }
     }
 
-    private static ScriptTokenPrincipal<ValueBasedRole> principal(
-            TeletraanPrincipalRole role, AuthZResource resource) {
-        return new ScriptTokenPrincipal<>("test", role.getRole(), resource);
-    }
-
     @BeforeEach
-    void resetManager() throws Exception {
-        reset(MANAGER);
+    void resetFixtures() throws Exception {
+        reset(MANAGER, TOKEN_DAO);
+        POLICY_ACTION.set(null);
+        POLICY_RESOURCE.set(null);
         when(MANAGER.getCommit(anyString(), anyString())).thenReturn(new CommitBean());
         when(MANAGER.getCommits(anyString(), any(), any(), anyInt(), anyString()))
                 .thenReturn(Collections.emptyList());
+        Map<String, TokenRolesBean> tokens = new HashMap<>();
+        tokens.put("read", token(TeletraanPrincipalRole.READ, AuthZResource.Type.SYSTEM, "*"));
+        tokens.put("reader", token(TeletraanPrincipalRole.READER, AuthZResource.Type.SYSTEM, "*"));
+        tokens.put(
+                "publisher",
+                token(TeletraanPrincipalRole.PUBLISHER, AuthZResource.Type.SYSTEM, "*"));
+        tokens.put(
+                "operator", token(TeletraanPrincipalRole.OPERATOR, AuthZResource.Type.SYSTEM, "*"));
+        tokens.put(
+                "env-admin",
+                token(TeletraanPrincipalRole.ADMIN, AuthZResource.Type.ENV, "owned-env"));
+        tokens.put(
+                "system-admin",
+                token(TeletraanPrincipalRole.ADMIN, AuthZResource.Type.SYSTEM, "*"));
+        when(TOKEN_DAO.getByToken(anyString()))
+                .thenAnswer(invocation -> tokens.get(invocation.getArgument(0)));
     }
 
-    private WebTarget commits(String repo) {
-        return EXT.target("/v1/commits")
-                // Jersey preserves existing percent escapes; send the literal test value.
-                .queryParam("repo", repo.replace("%", "%25"))
-                .queryParam("startSha", "deadbeef");
+    private static TokenRolesBean token(
+            TeletraanPrincipalRole role, AuthZResource.Type type, String resourceId) {
+        TokenRolesBean bean = new TokenRolesBean();
+        bean.setScript_name("test");
+        bean.setRole(role);
+        bean.setResource_type(type);
+        bean.setResource_id(resourceId);
+        return bean;
+    }
+
+    private WebTarget target(ResourceExtension extension, boolean single) {
+        return single
+                ? extension.target("/v1/commits/Github/acme/repo/deadbeef")
+                : extension
+                        .target("/v1/commits")
+                        .queryParam("repo", "acme/repo")
+                        .queryParam("startSha", "deadbeef");
     }
 
     private void assertStatus(WebTarget target, String token, int status) {
@@ -125,91 +167,40 @@ class CommitsAuthorizationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"reader", "publisher"})
-    void baselineSystemRolesCannotReadAnyRepository(String token) {
-        assertStatus(commits("acme/allowed"), token, 403);
-        assertStatus(commits("victim-private-org/secret-repo"), token, 403);
-        assertStatus(EXT.target("/v1/commits/github/acme/allowed/deadbeef"), token, 403);
+    @ValueSource(strings = {"read", "reader", "publisher", "operator", "env-admin"})
+    void nonSystemAdministratorsCannotReadCommits(String token) {
+        assertStatus(target(EXT, false), token, 403);
+        assertStatus(target(EXT, true), token, 403);
         verifyNoInteractions(MANAGER);
     }
 
     @Test
-    void repositoryGrantAllowsListAndSingleCommit() throws Exception {
-        assertStatus(commits("acme/allowed"), "repo-reader", 200);
-        assertStatus(EXT.target("/v1/commits/github/acme/allowed/deadbeef"), "repo-reader", 200);
-        verify(MANAGER).getCommits("acme/allowed", "deadbeef", null, 100, "");
-        verify(MANAGER).getCommit("acme/allowed", "deadbeef");
-    }
-
-    @Test
-    void repositoryGrantCannotReadAnotherRepository() {
-        assertStatus(commits("victim-private-org/secret-repo"), "repo-reader", 403);
-        assertStatus(
-                EXT.target("/v1/commits/github/victim-private-org/secret-repo/deadbeef"),
-                "repo-reader",
-                403);
+    void anonymousAndUnknownTokensCannotReadCommits() {
+        for (boolean single : new boolean[] {false, true}) {
+            try (Response response = target(EXT, single).request().get()) {
+                assertEquals(401, response.getStatus());
+            }
+            assertStatus(target(EXT, single), "unknown", 401);
+        }
         verifyNoInteractions(MANAGER);
     }
 
     @Test
-    void repositoryIdentityUsesDefaultScmAndIgnoresGithubCase() {
-        assertStatus(commits("ACME/ALLOWED"), "repo-reader", 200);
-        assertStatus(commits("acme/allowed").queryParam("scm", ""), "repo-reader", 200);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"github", "GITHUB", "gItHuB"})
-    void configuredScmPermissionAcceptsCallerCasingForBothEndpoints(String scm) throws Exception {
-        assertStatus(commits("acme/allowed").queryParam("scm", scm), "repo-reader", 200);
-        assertStatus(
-                EXT.target("/v1/commits/" + scm + "/acme/allowed/deadbeef"), "repo-reader", 200);
-        verify(MANAGER).getCommits("acme/allowed", "deadbeef", null, 100, "");
-        verify(MANAGER).getCommit("acme/allowed", "deadbeef");
+    void systemAdministratorsCanReadBothCommitRoutes() throws Exception {
+        assertStatus(target(EXT, false), "system-admin", 200);
+        assertStatus(target(EXT, true), "system-admin", 200);
+        verify(MANAGER).getCommits("acme/repo", "deadbeef", null, 100, "");
+        verify(MANAGER).getCommit("acme/repo", "deadbeef");
     }
 
     @Test
-    void distinctConfiguredAliasRequiresItsOwnPermissionEvenWithTheSameManager() {
-        assertStatus(
-                commits("acme/allowed").queryParam("scm", "gItHuB-mIrRoR"), "repo-reader", 403);
-        assertStatus(
-                EXT.target("/v1/commits/GITHUB-MIRROR/acme/allowed/deadbeef"), "repo-reader", 403);
-        verifyNoInteractions(MANAGER);
-    }
-
-    @Test
-    void systemAdministratorCanReadRepositoryWithDots() {
-        assertStatus(commits("acme/repo.name"), "admin", 200);
-        assertStatus(EXT.target("/v1/commits/github/acme/repo.name/deadbeef"), "admin", 200);
-    }
-
-    @ParameterizedTest
-    @ValueSource(
-            strings = {
-                "victim/x/../../other",
-                "x/../../orgs/VICTIMORG/repos",
-                "acme/allowed?per_page=100",
-                "acme/allowed#fragment",
-                "acme%2Fallowed",
-                "acme/..",
-                "acme/allowed/extra",
-                ""
-            })
-    void malformedRepositoryIsRejectedBeforeScmCall(String repo) {
-        assertStatus(commits(repo), "admin", 400);
-        verifyNoInteractions(MANAGER);
-    }
-
-    @Test
-    void missingOrAmbiguousRepositoryIsRejected() {
-        assertStatus(EXT.target("/v1/commits"), "admin", 400);
-        assertStatus(commits("acme/allowed").queryParam("repo", "acme/other"), "admin", 400);
-        assertStatus(commits("acme/allowed").queryParam("scm", "github", "other"), "admin", 400);
-        verifyNoInteractions(MANAGER);
-    }
-
-    @Test
-    void unauthenticatedRequestCannotReadRepository() {
-        assertStatus(commits("acme/allowed"), "unknown", 401);
-        verifyNoInteractions(MANAGER);
+    void bothRoutesRequestTheExistingSystemAdministrationPolicy() {
+        for (boolean single : new boolean[] {false, true}) {
+            POLICY_ACTION.set(null);
+            POLICY_RESOURCE.set(null);
+            assertStatus(target(POLICY_EXT, single), "system-admin", 200);
+            assertEquals(TeletraanPrincipalRole.Names.MANAGE_SCRIPT_TOKEN, POLICY_ACTION.get());
+            assertEquals(AuthZResource.SYSTEM_RESOURCE, POLICY_RESOURCE.get());
+        }
     }
 }

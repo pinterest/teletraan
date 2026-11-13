@@ -33,7 +33,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class TeletraanScriptTokenProviderTest {
@@ -91,39 +90,5 @@ class TeletraanScriptTokenProviderTest {
         tokenRolesBean.setExpire_date(Instant.now().minusSeconds(1).toEpochMilli());
         Optional<?> principal = sut.getPrincipal(GOOD_TOKEN);
         assertFalse(principal.isPresent());
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void repositoryTokensAlwaysRequireAnUnexpiredDate(boolean checkTokenExpiry) {
-        sut = new TeletraanScriptTokenProvider(context, checkTokenExpiry);
-        tokenRolesBean.setResource_type(AuthZResource.Type.SCM_REPOSITORY);
-        tokenRolesBean.setResource_id("Github/acme/repo");
-        tokenRolesBean.setRole(TeletraanPrincipalRole.READ);
-
-        assertEquals(
-                AuthZResource.Type.SCM_REPOSITORY,
-                sut.getPrincipal(GOOD_TOKEN).get().getResource().getType());
-        tokenRolesBean.setExpire_date(Instant.now().minusSeconds(1).toEpochMilli());
-        assertFalse(sut.getPrincipal(GOOD_TOKEN).isPresent());
-        tokenRolesBean.setExpire_date(null);
-        assertFalse(sut.getPrincipal(GOOD_TOKEN).isPresent());
-    }
-
-    @ParameterizedTest
-    @EnumSource(
-            value = AuthZResource.Type.class,
-            names = {"ENV", "SYSTEM"})
-    void legacyTokenExpiryOptOutIsPreserved(AuthZResource.Type resourceType) {
-        tokenRolesBean.setResource_type(resourceType);
-        tokenRolesBean.setExpire_date(Instant.now().minusSeconds(1).toEpochMilli());
-        assertEquals(tokenRolesBean.getScript_name(), sut.getPrincipal(GOOD_TOKEN).get().getName());
-        tokenRolesBean.setExpire_date(null);
-        assertEquals(tokenRolesBean.getScript_name(), sut.getPrincipal(GOOD_TOKEN).get().getName());
-
-        sut = new TeletraanScriptTokenProvider(context, true);
-        assertFalse(sut.getPrincipal(GOOD_TOKEN).isPresent());
-        tokenRolesBean.setExpire_date(Instant.now().minusSeconds(1).toEpochMilli());
-        assertFalse(sut.getPrincipal(GOOD_TOKEN).isPresent());
     }
 }

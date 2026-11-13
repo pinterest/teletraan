@@ -42,7 +42,7 @@ public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBa
         try {
             TokenRolesBean tokenRolesBean = context.getTokenRolesDAO().getByToken(token);
 
-            if (tokenRolesBean != null && isTokenValid(tokenRolesBean)) {
+            if (tokenRolesBean != null && isTokenValid(tokenRolesBean.getExpire_date())) {
                 return Optional.of(
                         new ScriptTokenPrincipal<ValueBasedRole>(
                                 tokenRolesBean.getScript_name(),
@@ -57,11 +57,8 @@ public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBa
         return Optional.empty();
     }
 
-    private boolean isTokenValid(TokenRolesBean token) {
-        boolean requireExpiry =
-                checkTokenExpiry
-                        || AuthZResource.Type.SCM_REPOSITORY.equals(token.getResource_type());
-        Long expiry = token.getExpire_date();
-        return !requireExpiry || expiry != null && Instant.now().toEpochMilli() < expiry;
+    private boolean isTokenValid(Long expire_date) {
+        return !checkTokenExpiry
+                || expire_date != null && Instant.now().toEpochMilli() < expire_date;
     }
 }

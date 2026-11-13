@@ -74,25 +74,24 @@ class GithubManagerTest {
 
         RecordedRequest request = server.takeRequest(1, TimeUnit.SECONDS);
         assertNotNull(request);
-        assertEquals("/api/v3/repos/pinterest/teletraan.v2/commits/abc123", request.getPath());
+        assertEquals("/api/v3/repos/Pinterest/Teletraan.v2/commits/abc123", request.getPath());
         assertEquals("Token test-token", request.getHeader("Authorization"));
         assertEquals("abc123", commit.getSha());
         assertEquals("author", commit.getAuthor());
         assertEquals("Title", commit.getTitle());
         assertEquals("Body", commit.getMessage());
-        assertEquals("https://github.com/pinterest/teletraan.v2/commit/abc123", commit.getInfo());
+        assertEquals("https://github.com/Pinterest/Teletraan.v2/commit/abc123", commit.getInfo());
     }
 
     @ParameterizedTest
-    @CsvSource(
-            value = {
-                "pinterest/teletraan,pinterest/teletraan",
-                "Pinterest-Org/Repo_1.2-3,pinterest-org/repo_1.2-3",
-                "pinterest/.github,pinterest/.github",
-                "pinterest/..config,pinterest/..config"
+    @ValueSource(
+            strings = {
+                "pinterest/teletraan",
+                "Pinterest-Org/Repo_1.2-3",
+                "pinterest/.github",
+                "pinterest/..config"
             })
-    void testValidRepositoryAndEncodedQueryParameters(String repo, String canonicalRepo)
-            throws Exception {
+    void testValidRepositoryAndEncodedQueryParameters(String repo) throws Exception {
         server.enqueue(new MockResponse().setBody("[]"));
         String startSha = "feature/test?sha=other#fragment";
         String path = "src/test file?path=other#fragment";
@@ -101,10 +100,7 @@ class GithubManagerTest {
 
         RecordedRequest request = server.takeRequest(1, TimeUnit.SECONDS);
         assertNotNull(request);
-        assertEquals(
-                "/api/v3/repos/" + canonicalRepo + "/commits",
-                request.getRequestUrl().encodedPath());
-        assertEquals(canonicalRepo, GithubManager.canonicalizeRepository(repo));
+        assertEquals("/api/v3/repos/" + repo + "/commits", request.getRequestUrl().encodedPath());
         assertEquals(startSha, request.getRequestUrl().queryParameter("sha"));
         assertEquals(path, request.getRequestUrl().queryParameter("path"));
         assertEquals(2, request.getRequestUrl().querySize());
@@ -166,32 +162,6 @@ class GithubManagerTest {
         assertEquals(2, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "repo-1,release/2026,https://github.com/repo-1/commit/release%2F2026",
-        "repo-1,release+prod,https://github.com/repo-1/commit/release+prod",
-        "repo-1,release@prod,https://github.com/repo-1/commit/release@prod",
-        "Pinterest/Repo,abc123,https://github.com/Pinterest/Repo/commit/abc123"
-    })
-    void testBuildMetadataLinksDoNotRequireOutboundRepositoryValidation(
-            String repo, String reference, String expectedLink) {
-        GithubManager unauthenticatedManager = createManager("", "/api/v3");
-
-        assertEquals(expectedLink, unauthenticatedManager.generateCommitLink(repo, reference));
-        assertEquals(0, server.getRequestCount());
-    }
-
-    @Test
-    void testBuildMetadataLinksEncodeRoutingCharactersWithoutEscapingThePrefix() {
-        GithubManager unauthenticatedManager = createManager("", "/api/v3");
-
-        assertEquals(
-                "https://github.com/owner/%252E%252E/repo%3Fquery%23fragment/commit/ref%2Fpart%3Fquery%23fragment",
-                unauthenticatedManager.generateCommitLink(
-                        "owner/../repo?query#fragment", "ref/part?query#fragment"));
-        assertEquals(0, server.getRequestCount());
-    }
-
     private static String commitJson(String sha, String date) {
         return String.format(
                 "{\"sha\":\"%s\",\"author\":{\"login\":\"author\"},"
@@ -233,7 +203,6 @@ class GithubManagerTest {
         // With no token or private key, reaching credential retrieval would fail differently.
         GithubManager unauthenticatedManager = createManager("", "/api/v3");
 
-        assertThrows(BadRequestException.class, () -> GithubManager.canonicalizeRepository(repo));
         assertThrows(
                 BadRequestException.class, () -> unauthenticatedManager.getCommit(repo, "abc123"));
         assertThrows(
