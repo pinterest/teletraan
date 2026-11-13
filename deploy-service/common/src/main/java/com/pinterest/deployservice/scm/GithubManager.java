@@ -27,8 +27,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.regex.Pattern;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -44,6 +47,10 @@ public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
     private static final String UNKNOWN_LOGIN = "UNKNOWN";
     private static final long TOKEN_TTL_MILLIS = 600000; // token expires after 10 minutes
+    private static final Pattern OWNER =
+            Pattern.compile("[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?");
+    private static final Pattern REPOSITORY = Pattern.compile("[A-Za-z0-9_.-]+");
+    private static final Pattern UNSAFE_COMMIT_REFERENCE = Pattern.compile("[\\p{Cntrl} \\\\]");
     private final String apiPrefix;
     private final String urlPrefix;
     private final String githubAppId;
@@ -181,7 +188,10 @@ public class GithubManager extends BaseManager {
 
     @Override
     public CommitBean getCommit(String repo, String sha) throws Exception {
-        String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
+        HttpUrl.Builder urlBuilder = commitsUrl(repo);
+        validateCommitReference(sha);
+        // Encode the complete ref once: slashes and literal percent escapes stay inside this ref.
+        String url = urlBuilder.addPathSegment(sha).build().toString();
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
         String jsonPayload;
@@ -208,7 +218,7 @@ public class GithubManager extends BaseManager {
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
             throws Exception {
-        String url = String.format("%s/repos/%s/commits", apiPrefix, repo);
+        String url = commitsUrl(repo).build().toString();
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
         Map<String, String> params = new HashMap<>();
@@ -232,5 +242,41 @@ public class GithubManager extends BaseManager {
             CommitBeans.offer(toCommitBean(jsonMap, repo));
         }
         return CommitBeans;
+    }
+
+    public static void validateRepository(String repo) {
+        String[] repository = repo == null ? new String[0] : repo.split("/", -1);
+        if (repository.length != 2
+                || !OWNER.matcher(repository[0]).matches()
+                || !REPOSITORY.matcher(repository[1]).matches()
+                || isDotSegment(repository[1])) {
+            throw new BadRequestException("GitHub repository must be an owner/repository name");
+        }
+    }
+
+    private HttpUrl.Builder commitsUrl(String repo) {
+        validateRepository(repo);
+        String[] repository = repo.split("/", -1);
+        return HttpUrl.parse(apiPrefix)
+                .newBuilder()
+                .addPathSegment("repos")
+                .addPathSegment(repository[0])
+                .addPathSegment(repository[1])
+                .addPathSegment("commits");
+    }
+
+    private static void validateCommitReference(String sha) {
+        if (sha == null || sha.isEmpty() || UNSAFE_COMMIT_REFERENCE.matcher(sha).find()) {
+            throw new BadRequestException("Invalid GitHub commit reference");
+        }
+        for (String segment : sha.split("/", -1)) {
+            if (segment.isEmpty() || isDotSegment(segment)) {
+                throw new BadRequestException("Invalid GitHub commit reference");
+            }
+        }
+    }
+
+    private static boolean isDotSegment(String value) {
+        return ".".equals(value) || "..".equals(value);
     }
 }

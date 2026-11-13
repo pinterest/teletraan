@@ -18,6 +18,8 @@ package com.pinterest.teletraan.resource;
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
+import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.scm.GithubManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import io.micrometer.core.annotation.Counted;
@@ -28,6 +30,8 @@ import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 @RolesAllowed(TeletraanPrincipalRole.Names.READ)
 @Path("/v1/commits")
@@ -42,26 +46,31 @@ public class Commits {
     private static final String DEFAULT_PATH = "";
     private static final int DEFAULT_SIZE = 100;
     private final SourceControlManagerProxy sourceControlManagerProxy;
+    private final BuildDAO buildDAO;
 
     public Commits(@Context TeletraanServiceContext context) throws Exception {
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
+        buildDAO = context.getBuildDAO();
     }
 
     @GET
     @Timed
     @Counted
-    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-_/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
+    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-._/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get commit infos",
             notes = "Returns a commit object given a repo and commit sha",
             response = CommitBean.class)
     public CommitBean getCommit(
+            @Context UriInfo uriInfo,
             @ApiParam(value = "Commit's scm type, either github or phabricator") @PathParam("scm")
                     String scm,
             @ApiParam(value = "Commit's repo", required = true) @PathParam("repo") String repo,
             @ApiParam(value = "Commit SHA", required = true) @PathParam("sha") String sha)
             throws Exception {
+        requireSingleRepositoryParameters(uriInfo.getPathParameters());
         repo = repo.replace("%2F", "/");
+        scm = requireRepositoryBuild(scm, repo);
         return sourceControlManagerProxy.getCommit(scm, repo, sha);
     }
 
@@ -79,6 +88,7 @@ public class Commits {
     @Timed
     @Counted
     public List<CommitBean> getCommits(
+            @Context UriInfo uriInfo,
             @QueryParam("scm") Optional<String> scm,
             @QueryParam("repo") String repo,
             @QueryParam("startSha") String startSha,
@@ -86,7 +96,38 @@ public class Commits {
             @QueryParam("size") Optional<Integer> size,
             @QueryParam("path") Optional<String> path)
             throws Exception {
+        requireSingleRepositoryParameters(uriInfo.getQueryParameters());
+        String resolvedScm = requireRepositoryBuild(scm.or(""), repo);
         return sourceControlManagerProxy.getCommits(
-                scm.or(""), repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
+                resolvedScm, repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
+    }
+
+    private String requireRepositoryBuild(String scm, String repo) throws Exception {
+        String resolvedScm = sourceControlManagerProxy.resolveScmTypeName(scm);
+        if (repo == null || repo.isEmpty()) {
+            throw new BadRequestException("A repository is required");
+        }
+        boolean github = sourceControlManagerProxy.isGithub(resolvedScm);
+        if (github) {
+            GithubManager.validateRepository(repo);
+        }
+        // Published builds define which repositories may use the service's SCM credential.
+        if (!buildDAO.hasBuildForRepository(
+                resolvedScm,
+                repo,
+                sourceControlManagerProxy.isScmTypeCaseInsensitive(resolvedScm),
+                github)) {
+            throw new ForbiddenException("Repository has no published builds in this SCM");
+        }
+        return resolvedScm;
+    }
+
+    private static void requireSingleRepositoryParameters(
+            MultivaluedMap<String, String> parameters) {
+        for (String name : new String[] {"scm", "repo"}) {
+            if (parameters.containsKey(name) && parameters.get(name).size() != 1) {
+                throw new BadRequestException("Expected a single " + name + " parameter");
+            }
+        }
     }
 }
