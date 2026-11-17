@@ -43,8 +43,8 @@ Vue.component('cell-select', {
 Vue.component('arch-select', {
     template: '<div>\
   <label-select label="Arch" title="Arch" \
-  v-bind:value="value" v-bind:selectoptions="arches" v-on:input="updateArchValue"></label-select></div>',
-    props: ['arches', 'value'],
+  v-bind:value="value" v-bind:selectoptions="arches" v-bind:disabled="disabled" v-on:input="updateArchValue"></label-select></div>',
+    props: ['arches', 'value', 'disabled'],
     methods: {
         updateValue: function (value) {
             this.$emit('input', value);
@@ -532,7 +532,7 @@ Vue.component("hosttype-select", {
     template: '<div class="form-group">\
     <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">{{label}}</label>\
     <div class="col-xs-6"><div v-bind:class="groupStyle">\
-    <select v-bind:class="selectClass" v-on:change="updateValue($event.target.value)" required="true">\
+    <select v-bind:class="selectClass" v-bind:disabled="disabled" v-on:change="updateValue($event.target.value)" required="true">\
     <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected" v-bind:disabled="option.isDisabled">{{option.text}}</option></select>\
     <span v-if="showhelp" class="input-group-btn">\
       <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" title="click to see more information" v-on:click="helpClick">\
@@ -545,10 +545,10 @@ Vue.component("hosttype-select", {
         <input type="checkbox" id="checkbox" title="You should only enable this feature with capacity-eng approval. Your enable/disable operation on this feature triggers a notification to capacity-eng." v-bind:checked="enablemultiplehosttypes" v-on:click="enabletypeschange($event.target.checked)">\
         <label for="checkbox" title="You should only enable this feature with capacity-eng approval. Your enable/disable operation on this feature triggers a notification to capacity-eng.">Enable Backup instance types</label>\
     </div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes'],
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired', 'enablemultiplehosttypes', 'disablebackupinstancetypes', 'disabled'],
     computed: {
         isVisible: function () {
-            return this.disablebackupinstancetypes === "False"
+            return this.disablebackupinstancetypes === "False" && !this.disabled
         }
     },
     data: function () {

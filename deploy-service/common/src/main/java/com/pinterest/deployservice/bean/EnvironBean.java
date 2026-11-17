@@ -170,6 +170,10 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
     @JsonProperty("useEntitlements")
     private Boolean use_entitlements;
 
+    // Derived from the entitlement gate on read; not a DB column.
+    @JsonProperty("useEntitlementsInstanceType")
+    private Boolean use_entitlements_instance_type;
+
     public void validate() throws IllegalArgumentException {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         String envRegEx = "^[A-Za-z0-9_\\-]*$";
@@ -516,6 +520,14 @@ public class EnvironBean extends BaseBean implements Updatable, Serializable {
 
     public void setUse_entitlements(Boolean use_entitlements) {
         this.use_entitlements = use_entitlements;
+    }
+
+    public Boolean getUse_entitlements_instance_type() {
+        return use_entitlements_instance_type;
+    }
+
+    public void setUse_entitlements_instance_type(Boolean use_entitlements_instance_type) {
+        this.use_entitlements_instance_type = use_entitlements_instance_type;
     }
 
     public Boolean getAllow_private_build() {

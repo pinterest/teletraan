@@ -42,6 +42,18 @@ class EntitlementEnforcementProviderTest {
         return "{\"" + EntitlementEnforcementProvider.ENFORCE_DECIDER_KEY + "\": " + value + "}";
     }
 
+    private static String deciderJson(int enforceValue, int instanceTypeValue) {
+        return "{\""
+                + EntitlementEnforcementProvider.ENFORCE_DECIDER_KEY
+                + "\": "
+                + enforceValue
+                + ", \""
+                + EntitlementEnforcementProvider.INSTANCE_TYPE_DECIDER_KEY
+                + "\": "
+                + instanceTypeValue
+                + "}";
+    }
+
     private EntitlementEnforcementProvider providerWith(String deciderJson, String onboardedJson)
             throws Exception {
         File decider = new File(tempDir, "decider");
@@ -158,6 +170,71 @@ class EntitlementEnforcementProviderTest {
 
         provider.applyUseEntitlements(Collections.singletonList(bean));
         assertFalse(bean.getUse_entitlements());
+    }
+
+    @Test
+    void instanceTypeEnforcedWhenBothDecidersActiveAndOnboarded() throws Exception {
+        EntitlementEnforcementProvider provider =
+                providerWith(deciderJson(100, 100), "[\"" + CLUSTER + "\"]");
+        assertTrue(provider.isInstanceTypeEnforced(CLUSTER));
+    }
+
+    @Test
+    void instanceTypeNotEnforcedWhenInstanceTypeDeciderOffOrMissing() throws Exception {
+        assertFalse(
+                providerWith(deciderJson(100, 50), "[\"" + CLUSTER + "\"]")
+                        .isInstanceTypeEnforced(CLUSTER));
+        assertFalse(
+                providerWith(deciderJson(100), "[\"" + CLUSTER + "\"]")
+                        .isInstanceTypeEnforced(CLUSTER));
+    }
+
+    @Test
+    void instanceTypeNotEnforcedWithoutCapacityEnforcement() throws Exception {
+        assertFalse(
+                providerWith(deciderJson(0, 100), "[\"" + CLUSTER + "\"]")
+                        .isInstanceTypeEnforced(CLUSTER));
+        assertFalse(
+                providerWith(deciderJson(100, 100), "[\"other-cluster\"]")
+                        .isInstanceTypeEnforced(CLUSTER));
+    }
+
+    @Test
+    void applyUseEntitlementsSetsInstanceTypeFlag() throws Exception {
+        EntitlementEnforcementProvider provider =
+                providerWith(deciderJson(100, 100), "[\"" + CLUSTER + "\"]");
+
+        EnvironBean onboarded = new EnvironBean();
+        onboarded.setEnv_name(ENV);
+        onboarded.setStage_name(STAGE_ONBOARDED);
+        provider.applyUseEntitlements(onboarded);
+        assertTrue(onboarded.getUse_entitlements_instance_type());
+
+        EnvironBean other = new EnvironBean();
+        other.setEnv_name(ENV);
+        other.setStage_name(STAGE_OTHER);
+        provider.applyUseEntitlements(Collections.singletonList(other));
+        assertFalse(other.getUse_entitlements_instance_type());
+    }
+
+    @Test
+    void applyUseEntitlementsLeavesInstanceTypeOffWhenDeciderOff() throws Exception {
+        EntitlementEnforcementProvider provider =
+                providerWith(deciderJson(100, 0), "[\"" + CLUSTER + "\"]");
+
+        EnvironBean single = new EnvironBean();
+        single.setEnv_name(ENV);
+        single.setStage_name(STAGE_ONBOARDED);
+        provider.applyUseEntitlements(single);
+        assertTrue(single.getUse_entitlements());
+        assertFalse(single.getUse_entitlements_instance_type());
+
+        EnvironBean batch = new EnvironBean();
+        batch.setEnv_name(ENV);
+        batch.setStage_name(STAGE_ONBOARDED);
+        provider.applyUseEntitlements(Arrays.asList(batch));
+        assertTrue(batch.getUse_entitlements());
+        assertFalse(batch.getUse_entitlements_instance_type());
     }
 
     /**
