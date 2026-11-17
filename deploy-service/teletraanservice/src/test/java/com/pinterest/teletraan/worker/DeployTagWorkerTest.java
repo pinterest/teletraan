@@ -50,15 +50,20 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
+import javax.ws.rs.ServerErrorException;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class DeployTagWorkerTest {
 
@@ -215,8 +220,16 @@ public class DeployTagWorkerTest {
                         argThat(c -> TagSyncState.FINISHED == c.getState()));
     }
 
-    @Test
-    public void testNetworkExceptionHandled() throws Exception {
+    static Stream<Exception> transientExceptions() {
+        return Stream.of(
+                new ConnectException("testConnectException"),
+                new SocketTimeoutException("testSocketTimeoutException"),
+                new ServerErrorException("testServerErrorException", 503));
+    }
+
+    @ParameterizedTest
+    @MethodSource("transientExceptions")
+    public void testTransientExceptionHandled(Exception transientException) throws Exception {
         // Set up mock data
         DeployConstraintBean deployConstraint = createDeployConstraintBean();
         List<DeployConstraintBean> deployConstraints = new ArrayList<>();
@@ -246,8 +259,7 @@ public class DeployTagWorkerTest {
 
         List<String> hostTagsToFetch = new ArrayList<>();
         hostTagsToFetch.add(host.getHost_id());
-        when(rodimusManager.getEc2Tags(eq(hostTagsToFetch)))
-                .thenThrow(new ConnectException("testConnectException"));
+        when(rodimusManager.getEc2Tags(eq(hostTagsToFetch))).thenThrow(transientException);
 
         // Run the worker
         deployTagWorker.run();

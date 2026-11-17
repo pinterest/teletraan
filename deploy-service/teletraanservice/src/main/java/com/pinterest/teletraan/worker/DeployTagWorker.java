@@ -23,11 +23,12 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Timer;
-import java.net.ConnectException;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.ws.rs.ServerErrorException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -183,7 +184,7 @@ public class DeployTagWorker implements Runnable {
                     LOG.info("DB lock operation is successful: get lock {}", lockName);
                     try {
                         processEachEnvironConstraint(job);
-                    } catch (ConnectException | SQLException e) {
+                    } catch (IOException | SQLException | ServerErrorException e) {
                         LOG.error(
                                 "failed to process job due to handled exception: {} Error {} stack {}",
                                 job,
