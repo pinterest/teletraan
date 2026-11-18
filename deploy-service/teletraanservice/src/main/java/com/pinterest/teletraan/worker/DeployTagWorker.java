@@ -23,11 +23,13 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Timer;
-import java.net.ConnectException;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -183,27 +185,26 @@ public class DeployTagWorker implements Runnable {
                     LOG.info("DB lock operation is successful: get lock {}", lockName);
                     try {
                         processEachEnvironConstraint(job);
-                    } catch (ConnectException | SQLException e) {
-                        LOG.error(
-                                "failed to process job due to handled exception: {} Error {} stack {}",
-                                job,
-                                ExceptionUtils.getRootCauseMessage(e),
-                                ExceptionUtils.getStackTrace(e));
-
-                        errorBudgetFailure.increment();
                     } catch (Exception e) {
-                        LOG.error(
-                                "failed to process job due to all other exceptions: {} Error {} stack {}",
-                                job,
-                                ExceptionUtils.getRootCauseMessage(e),
-                                ExceptionUtils.getStackTrace(e));
-                        job.setState(TagSyncState.ERROR);
-                        LOG.error(
-                                "job {} deploy constraint transitions to error state due to exceptions",
-                                job);
-                        LOG.info("updated job state to {}", TagSyncState.ERROR);
-                        deployConstraintDAO.updateById(job.getConstraint_id(), job);
-
+                        if (isTransient(e)) {
+                            LOG.error(
+                                    "failed to process job due to handled exception: {} Error {} stack {}",
+                                    job,
+                                    ExceptionUtils.getRootCauseMessage(e),
+                                    ExceptionUtils.getStackTrace(e));
+                        } else {
+                            LOG.error(
+                                    "failed to process job due to all other exceptions: {} Error {} stack {}",
+                                    job,
+                                    ExceptionUtils.getRootCauseMessage(e),
+                                    ExceptionUtils.getStackTrace(e));
+                            job.setState(TagSyncState.ERROR);
+                            LOG.error(
+                                    "job {} deploy constraint transitions to error state due to exceptions",
+                                    job);
+                            LOG.info("updated job state to {}", TagSyncState.ERROR);
+                            deployConstraintDAO.updateById(job.getConstraint_id(), job);
+                        }
                         errorBudgetFailure.increment();
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
@@ -216,6 +217,14 @@ public class DeployTagWorker implements Runnable {
         } else {
             errorBudgetSuccess.increment();
         }
+    }
+
+    private static boolean isTransient(Exception e) {
+        return e instanceof IOException
+                || e instanceof SQLException
+                || e instanceof ServerErrorException
+                || (e instanceof ClientErrorException
+                        && ((ClientErrorException) e).getResponse().getStatus() == 429);
     }
 
     @Override
