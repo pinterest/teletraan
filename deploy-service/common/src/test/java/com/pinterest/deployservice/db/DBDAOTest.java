@@ -87,6 +87,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -363,6 +364,80 @@ public class DBDAOTest {
         buildDAO.delete("b-22");
         buildDAO.delete("b-3");
         assertEquals(buildDAO.getById("b-1"), null);
+    }
+
+    @Test
+    public void testBuildRepositoryLookupUsesConfiguredCaseRules() throws Exception {
+        insertRepositoryBuild("repository-build", "GitHub", "Owner/Repo");
+
+        assertTrue(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo", false, false));
+        assertFalse(buildDAO.hasBuildForRepository("github", "Owner/Repo", false, false));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "owner/repo", false, false));
+        assertTrue(buildDAO.hasBuildForRepository("github", "Owner/Repo", true, false));
+        assertFalse(buildDAO.hasBuildForRepository("github", "owner/repo", true, false));
+        assertTrue(buildDAO.hasBuildForRepository("GitHub", "owner/repo", false, true));
+        assertFalse(buildDAO.hasBuildForRepository("github", "Owner/Repo", false, true));
+        assertTrue(buildDAO.hasBuildForRepository("github", "owner/repo", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub-Mirror", "Owner/Repo", true, true));
+
+        // An exact-case manager map can assign case-distinct aliases to different SCM hosts.
+        insertRepositoryBuild("other-host-build", "github", "Private/Other");
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Private/Other", false, true));
+        assertTrue(buildDAO.hasBuildForRepository("github", "private/other", false, true));
+    }
+
+    @Test
+    public void testBuildRepositoryLookupDoesNotFoldOtherCharactersOrMatchPatterns()
+            throws Exception {
+        insertRepositoryBuild("literal-build", "GitHub", "Owner/Repo_Name");
+        insertRepositoryBuild("percent-build", "Phabricator", "Repo%Literal");
+        String longRepo = "owner/" + StringUtils.repeat('r', 58);
+        insertRepositoryBuild("long-repository-build", "GitHub", longRepo);
+
+        assertTrue(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo_Name", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/RepoXName", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/%", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo", true, true));
+        assertTrue(buildDAO.hasBuildForRepository("Phabricator", "Repo%Literal", true, false));
+        assertFalse(buildDAO.hasBuildForRepository("Phabricator", "repo%literal", true, false));
+        assertFalse(buildDAO.hasBuildForRepository("Phabricator", "RepoXLiteral", true, false));
+        assertFalse(buildDAO.hasBuildForRepository("Git%", "Owner/Repo_Name", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("Git_ub", "Owner/Repo_Name", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("Githúb", "Owner/Repo_Name", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/Répo_Name", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub ", "Owner/Repo_Name", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo_Name ", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "' OR 1=1 --", true, true));
+        assertEquals(64, longRepo.length());
+        assertTrue(buildDAO.hasBuildForRepository("GitHub", longRepo, true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", longRepo + "x", true, true));
+    }
+
+    @Test
+    public void testBuildRepositoryLookupRequiresARetainedMatchingBuild() throws Exception {
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo", true, true));
+        insertRepositoryBuild("unattributed-build", null, "Owner/Repo");
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo", true, true));
+        insertRepositoryBuild("first-retained-build", "GitHub", "Owner/Repo");
+        insertRepositoryBuild("second-retained-build", "GitHub", "Owner/Repo");
+
+        assertFalse(buildDAO.hasBuildForRepository(null, "Owner/Repo", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("", "Owner/Repo", true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", null, true, true));
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "", true, true));
+        assertTrue(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo", true, true));
+        buildDAO.delete("first-retained-build");
+        assertTrue(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo", true, true));
+        buildDAO.delete("second-retained-build");
+        assertFalse(buildDAO.hasBuildForRepository("GitHub", "Owner/Repo", true, true));
+    }
+
+    private void insertRepositoryBuild(String id, String scm, String repo) throws Exception {
+        BuildBean build =
+                genDefaultBuildInfoBean(id, "repository-builds", "abc123", "artifact", 1000L);
+        build.setScm(scm);
+        build.setScm_repo(repo);
+        buildDAO.insert(build);
     }
 
     @Test

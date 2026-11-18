@@ -27,6 +27,14 @@ public interface BuildDAO {
 
     BuildBean getById(String buildId) throws Exception;
 
+    /**
+     * Returns whether a retained build names this complete SCM alias and repository. Case matching
+     * follows the selected SCM configuration rather than the database's default collation.
+     */
+    boolean hasBuildForRepository(
+            String scm, String repo, boolean caseInsensitiveScm, boolean caseInsensitiveRepository)
+            throws Exception;
+
     // commit in short version
     List<BuildBean> getByCommit7(String scmCommit7, String buildName, int pageIndex, int pageSize)
             throws Exception;

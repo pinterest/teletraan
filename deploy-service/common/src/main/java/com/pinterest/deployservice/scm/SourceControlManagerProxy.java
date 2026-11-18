@@ -17,8 +17,12 @@ package com.pinterest.deployservice.scm;
 
 import com.pinterest.deployservice.bean.CommitBean;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.SortedMap;
+import javax.ws.rs.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +63,39 @@ public class SourceControlManagerProxy {
 
     public String getDefaultTypeName() {
         return defaultScmTypeName;
+    }
+
+    /** Resolves the default and caller casing to the actual configured SCM key. */
+    @SuppressWarnings("unchecked")
+    public String resolveScmTypeName(String scmType) {
+        String resolved = StringUtils.isEmpty(scmType) ? defaultScmTypeName : scmType;
+        if (managers.get(resolved) == null) {
+            throw new BadRequestException("Unsupported SCM type: " + resolved);
+        }
+        if (managers instanceof SortedMap) {
+            return ((SortedMap<String, SourceControlManager>) managers)
+                    .tailMap(resolved)
+                    .firstKey();
+        }
+        return resolved;
+    }
+
+    /** Whether build metadata may use different casing for this configured SCM key. */
+    @SuppressWarnings("unchecked")
+    public boolean isScmTypeCaseInsensitive(String scmType) {
+        if (!(managers instanceof SortedMap)) {
+            return false;
+        }
+        Comparator<? super String> comparator =
+                ((SortedMap<String, SourceControlManager>) managers).comparator();
+        return comparator != null
+                && comparator.compare(
+                                scmType.toLowerCase(Locale.ROOT), scmType.toUpperCase(Locale.ROOT))
+                        == 0;
+    }
+
+    public boolean isGithub(String scmType) throws Exception {
+        return getSourceControlManager(scmType) instanceof GithubManager;
     }
 
     public String getCommitLinkTemplate(String scmType) throws Exception {

@@ -37,6 +37,20 @@ public class DBBuildDAOImpl implements BuildDAO {
     private static final String INSERT_BUILD_TEMPLATE = "INSERT INTO builds SET %s";
     private static final String DELETE_BUILD = "DELETE FROM builds WHERE build_id=?";
     private static final String GET_BUILD_BY_ID = "SELECT * FROM builds WHERE build_id=?";
+    private static final String[][] HAS_BUILD_FOR_REPOSITORY = {
+        {
+            "SELECT 1 FROM builds WHERE CAST(scm AS BINARY)=CAST(? AS BINARY) "
+                    + "AND CAST(scm_repo AS BINARY)=CAST(? AS BINARY) LIMIT 1",
+            "SELECT 1 FROM builds WHERE CAST(scm AS BINARY)=CAST(? AS BINARY) "
+                    + "AND CAST(LOWER(scm_repo) AS BINARY)=CAST(LOWER(?) AS BINARY) LIMIT 1"
+        },
+        {
+            "SELECT 1 FROM builds WHERE CAST(LOWER(scm) AS BINARY)=CAST(LOWER(?) AS BINARY) "
+                    + "AND CAST(scm_repo AS BINARY)=CAST(? AS BINARY) LIMIT 1",
+            "SELECT 1 FROM builds WHERE CAST(LOWER(scm) AS BINARY)=CAST(LOWER(?) AS BINARY) "
+                    + "AND CAST(LOWER(scm_repo) AS BINARY)=CAST(LOWER(?) AS BINARY) LIMIT 1"
+        }
+    };
     private static final String GET_BUILDS_BY_COMMIT_7 =
             "SELECT * FROM builds WHERE scm_commit_7=? ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_BUILDS_BY_COMMIT_7_AND_NAME =
@@ -117,6 +131,21 @@ public class DBBuildDAOImpl implements BuildDAO {
     public BuildBean getById(String buildId) throws Exception {
         ResultSetHandler<BuildBean> h = new BeanHandler<>(BuildBean.class);
         return new QueryRunner(dataSource).query(GET_BUILD_BY_ID, h, buildId);
+    }
+
+    @Override
+    public boolean hasBuildForRepository(
+            String scm, String repo, boolean caseInsensitiveScm, boolean caseInsensitiveRepository)
+            throws Exception {
+        if (StringUtils.isEmpty(scm) || StringUtils.isEmpty(repo)) {
+            return false;
+        }
+        // Binary comparison preserves accents, trailing spaces, and complete identities even
+        // when the table's collation treats those values as equivalent. No prefix or LIKE match.
+        String query =
+                HAS_BUILD_FOR_REPOSITORY[caseInsensitiveScm ? 1 : 0][
+                        caseInsensitiveRepository ? 1 : 0];
+        return new QueryRunner(dataSource).query(query, result -> result.next(), scm, repo);
     }
 
     @Override
