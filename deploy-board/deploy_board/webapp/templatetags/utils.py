@@ -318,6 +318,11 @@ def get_pincompute_exception_form_link():
     return common.get_pincompute_exception_form_link()
 
 
+@register.simple_tag
+def is_stateless_exception_approved(env_name):
+    return common.is_stateless_exception_approved(env_name)
+
+
 @register.simple_tag(takes_context=True)
 def get_deploy_constraint_types(context):
     return environs_helper.DEPLOY_CONSTRAINT_TYPES

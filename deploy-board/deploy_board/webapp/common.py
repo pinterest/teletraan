@@ -302,12 +302,26 @@ def get_pincompute_exception_form_link():
     return getattr(settings, "PINCOMPUTE_EXCEPTION_FORM_LINK", None)
 
 
-def validate_stateful_status(request):
-    if not get_pincompute_exception_form_link():
+def is_stateless_exception_approved(env_name):
+    return env_name in settings.STATELESS_STAGE_EXCEPTION_ENVS
+
+
+def validate_stateful_status(request, env_name):
+    exception_form_link = get_pincompute_exception_form_link()
+    if not exception_form_link:
         return
-    if request.POST.get("statefulStatus") not in ("STATEFUL", "STATELESS"):
+    stateful_status = request.POST.get("statefulStatus")
+    if stateful_status not in ("STATEFUL", "STATELESS"):
         raise IllegalArgumentException(
             "Please select whether the new stage is Stateful or Stateless."
+        )
+    if stateful_status == "STATELESS" and not is_stateless_exception_approved(env_name):
+        raise IllegalArgumentException(
+            "New stateless stages require an approved PinCompute exception. Please "
+            "submit the exception form at {}. Once approved, environment {} will be "
+            "allowed and you can retry creating the stage.".format(
+                exception_form_link, env_name
+            )
         )
 
 

@@ -1,5 +1,6 @@
 {% load utils %}
 {% get_pincompute_exception_form_link as exception_form_link %}
+{% if envName %}{% is_stateless_exception_approved envName as exception_approved %}{% endif %}
 {% if exception_form_link %}
 <div class="form-group">
     <label class="col-md-2 control-label">Stateful Status</label>
@@ -14,11 +15,17 @@
             STATELESS - hosts can be rotated without data loss or other effects.
             STATEFUL - hosts cannot be rotated automatically without data loss or other effects (i.e. loss of information in the ram, storage, etc.).
         </span>
-        <div class="alert alert-warning stateless-exception-warning" hidden="true">
-            New stateless services should launch in PinCompute. Please submit the
-            <a href="{{ exception_form_link }}" target="_blank">PinCompute exception form</a>
-            for this stage.
+        {% if exception_approved %}
+        <div class="alert alert-info stateless-exception-warning" hidden="true">
+            Environment {{ envName }} has an approved PinCompute exception for stateless stages.
         </div>
+        {% else %}
+        <div class="alert alert-danger stateless-exception-warning" hidden="true"{% if envName %} data-block-submit="true"{% endif %}>
+            New stateless services must launch in PinCompute. Creating a stateless stage requires an approved
+            <a href="{{ exception_form_link }}" target="_blank">PinCompute exception</a>.
+            Once approved, the environment is added to the allowlist and you can retry creating the stage.
+        </div>
+        {% endif %}
     </div>
 </div>
 <script>
@@ -26,7 +33,9 @@
         $('input[name="statefulStatus"]').change(function () {
             var $form = $(this).closest('form');
             var isStateless = $form.find('input[name="statefulStatus"]:checked').val() == 'STATELESS';
-            $form.find('.stateless-exception-warning').prop('hidden', !isStateless);
+            var $warning = $form.find('.stateless-exception-warning');
+            $warning.prop('hidden', !isStateless);
+            $form.find('button[type="submit"]').prop('disabled', isStateless && $warning.is('[data-block-submit]'));
         });
     });
 </script>
