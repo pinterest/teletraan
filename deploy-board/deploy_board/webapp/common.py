@@ -16,9 +16,10 @@
 """Some common functions"""
 
 import logging
+from django.conf import settings
 from django.contrib import messages
 from .helpers import environs_helper, deploys_helper, builds_helper, tags_helper
-from .helpers.exceptions import NotAuthorizedException
+from .helpers.exceptions import IllegalArgumentException, NotAuthorizedException
 
 DEFAULT_BUILD_SIZE = 30
 DEFAULT_COMMITS_SIZE = 30
@@ -295,6 +296,19 @@ def create_simple_stage(
     data["stageType"] = stage_type
     data["projectName"] = project_name
     return environs_helper.create_env(request, data)
+
+
+def get_pincompute_exception_form_link():
+    return getattr(settings, "PINCOMPUTE_EXCEPTION_FORM_LINK", None)
+
+
+def validate_stateful_status(request):
+    if not get_pincompute_exception_form_link():
+        return
+    if request.POST.get("statefulStatus") not in ("STATEFUL", "STATELESS"):
+        raise IllegalArgumentException(
+            "Please select whether the new stage is Stateful or Stateless."
+        )
 
 
 def get_cluster_name(request, name, stage):

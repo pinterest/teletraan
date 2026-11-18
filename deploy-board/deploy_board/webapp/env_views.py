@@ -1303,6 +1303,7 @@ def post_create_env(request):
     clone_stage_name = data.get("clone_stage_name")
     description = data.get("description")
     external_id = None
+    common.validate_stateful_status(request)
 
     if clone_env_name and clone_stage_name:
         try:
@@ -1383,6 +1384,7 @@ def post_add_stage(request, name):
     stage_type = data.get("stageType")
     from_stage = data.get("from_stage")
     description = data.get("description")
+    common.validate_stateful_status(request)
 
     all_envs_stages = environs_helper.get_all_env_stages(request, name)
     stages, _ = common.get_all_stages(all_envs_stages, None)

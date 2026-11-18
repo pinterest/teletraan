@@ -30,6 +30,7 @@ from deploy_board.webapp.agent_report import (
     UNKNOWN_HOSTS_CODE,
     PROVISION_HOST_CODE,
 )
+from deploy_board.webapp import common
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
 from deploy_board.webapp.helpers.tags_helper import TagValue
@@ -310,6 +311,11 @@ def get_override_policies(context):
 @register.simple_tag(takes_context=True)
 def get_stage_types(context):
     return environs_helper.STAGE_TYPES
+
+
+@register.simple_tag
+def get_pincompute_exception_form_link():
+    return common.get_pincompute_exception_form_link()
 
 
 @register.simple_tag(takes_context=True)

@@ -1,0 +1,33 @@
+{% load utils %}
+{% get_pincompute_exception_form_link as exception_form_link %}
+{% if exception_form_link %}
+<div class="form-group">
+    <label class="col-md-2 control-label">Stateful Status</label>
+    <div class="col-md-10">
+        <label class="radio-inline">
+            <input type="radio" name="statefulStatus" value="STATEFUL" required="required"> Stateful
+        </label>
+        <label class="radio-inline">
+            <input type="radio" name="statefulStatus" value="STATELESS" required="required"> Stateless
+        </label>
+        <span class="help-block">
+            STATELESS - hosts can be rotated without data loss or other effects.
+            STATEFUL - hosts cannot be rotated automatically without data loss or other effects (i.e. loss of information in the ram, storage, etc.).
+        </span>
+        <div class="alert alert-warning stateless-exception-warning" hidden="true">
+            New stateless services should launch in PinCompute. Please submit the
+            <a href="{{ exception_form_link }}" target="_blank">PinCompute exception form</a>
+            for this stage.
+        </div>
+    </div>
+</div>
+<script>
+    $(function() {
+        $('input[name="statefulStatus"]').change(function () {
+            var $form = $(this).closest('form');
+            var isStateless = $form.find('input[name="statefulStatus"]:checked').val() == 'STATELESS';
+            $form.find('.stateless-exception-warning').prop('hidden', !isStateless);
+        });
+    });
+</script>
+{% endif %}
