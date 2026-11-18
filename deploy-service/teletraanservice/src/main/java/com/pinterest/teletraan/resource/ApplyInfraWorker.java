@@ -146,15 +146,20 @@ public class ApplyInfraWorker implements Runnable {
         String stageName = infraConfigBean.getStageName();
         String clusterName = infraConfigBean.getClusterName();
 
+        EnvironmentHandler.validateClusterName(clusterName);
         ClusterInfoPublicIdsBean newClusterInfoPublicIdsBean =
                 ClusterInfoPublicIdsBean.fromInfraConfigBean(infraConfigBean);
         ClusterInfoPublicIdsBean existingClusterInfoPublicIdsBean =
                 rodimusManager.getClusterInfoPublicIdsBean(clusterName);
+        EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
+        // EnvInfras authorizes only the env in the request path; clusterName comes from the request
+        // body. Check it against that env here, at execution time, before changing anything.
+        environmentHandler.validateInfraCluster(
+                originEnvironBean, clusterName, existingClusterInfoPublicIdsBean != null);
         if (existingClusterInfoPublicIdsBean == null) {
             LOG.info(
                     "Creating cluster and supporting teletraan records for cluster: {}",
                     clusterName);
-            EnvironBean originEnvironBean = Utils.getEnvStage(environDAO, envName, stageName);
             try {
                 EnvironBean updateEnvironBean = originEnvironBean.withCluster_name(clusterName);
                 environmentHandler.updateEnvironment(

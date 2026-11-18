@@ -39,6 +39,7 @@ import io.micrometer.core.instrument.Counter;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.Optional;
+import javax.ws.rs.ForbiddenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -69,6 +70,10 @@ class ApplyInfraWorkerTest {
         when(mockContext.getRodimusManager()).thenReturn(mockRodimusManager);
         when(mockContext.getUtilDAO()).thenReturn(mockUtilDAO);
         when(mockContext.getWorkerJobDAO()).thenReturn(mockWorkerJobDAO);
+        try {
+            when(mockEnvironDAO.getByStage("env", "stage")).thenReturn(new EnvironBean());
+        } catch (Exception ignored) {
+        }
 
         // Patch the counter creation with dummy counters
         mockSuccessCounter = mock(Counter.class);
@@ -133,6 +138,7 @@ class ApplyInfraWorkerTest {
 
             verify(mockWorkerJobDAO)
                     .updateStatus(eq(job), eq(WorkerJobBean.Status.RUNNING), anyLong());
+            verify(mockEnvHandler).validateInfraCluster(origEnv, "CLUSTER-NEW", false);
             verify(mockEnvHandler)
                     .updateEnvironment(isNull(), eq("op"), eq("env"), eq("stage"), any());
             verify(mockEnvHandler)
@@ -175,6 +181,7 @@ class ApplyInfraWorkerTest {
 
         worker.run();
 
+        verify(mockEnvHandler).validateInfraCluster(any(), eq("CLUSTER-EXIST"), eq(true));
         verify(mockRodimusManager).updateClusterWithPublicIds(eq("CLUSTER-EXIST"), any());
         verify(mockWorkerJobDAO).updateStatus(eq(job), eq(WorkerJobBean.Status.RUNNING), anyLong());
         verify(mockWorkerJobDAO)
@@ -291,6 +298,54 @@ class ApplyInfraWorkerTest {
         // Verify scheduled actions deleted & posted
         verify(mockRodimusManager).deleteClusterScheduledAction(eq(clusterName), eq("actionId"));
         verify(mockRodimusManager).postClusterScheduledActions(eq(clusterName), any());
+    }
+
+    @Test
+    void testRunInternal_ownershipRejected_noChanges() throws Exception {
+        WorkerJobBean job =
+                makeJobBean(
+                        "4",
+                        WorkerJobBean.Status.INITIALIZED,
+                        makeInfraConfigJson("OTHER-ENVS-CLUSTER", "env", "stage", "op"));
+        when(mockWorkerJobDAO.getOldestByJobTypeStatus(any(), any(), anyInt()))
+                .thenReturn(Collections.singletonList(job));
+        when(mockUtilDAO.getLock(any())).thenReturn(mock(Connection.class));
+        when(mockWorkerJobDAO.getById("4")).thenReturn(job);
+        when(mockRodimusManager.getClusterInfoPublicIdsBean("OTHER-ENVS-CLUSTER"))
+                .thenReturn(mock(ClusterInfoPublicIdsBean.class));
+        doThrow(new ForbiddenException("not owned"))
+                .when(mockEnvHandler)
+                .validateInfraCluster(any(), eq("OTHER-ENVS-CLUSTER"), anyBoolean());
+
+        worker.run();
+
+        verify(mockWorkerJobDAO).updateStatus(eq(job), eq(WorkerJobBean.Status.FAILED), anyLong());
+        verify(mockRodimusManager, never()).updateClusterWithPublicIds(any(), any());
+        verify(mockRodimusManager, never())
+                .createClusterWithEnvPublicIds(any(), any(), any(), any());
+        verify(mockRodimusManager, never()).updateClusterCapacity(any(), any(), any());
+        verify(mockRodimusManager, never()).postClusterScalingPolicies(any(), any());
+        verify(mockEnvHandler, never()).updateEnvironment(any(), any(), any(), any(), any());
+        verify(mockEnvHandler, never())
+                .createCapacityForHostOrGroup(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void testRunInternal_invalidClusterName_noRodimusCalls() throws Exception {
+        WorkerJobBean job =
+                makeJobBean(
+                        "5",
+                        WorkerJobBean.Status.INITIALIZED,
+                        makeInfraConfigJson("victim/../other", "env", "stage", "op"));
+        when(mockWorkerJobDAO.getOldestByJobTypeStatus(any(), any(), anyInt()))
+                .thenReturn(Collections.singletonList(job));
+        when(mockUtilDAO.getLock(any())).thenReturn(mock(Connection.class));
+        when(mockWorkerJobDAO.getById("5")).thenReturn(job);
+
+        worker.run();
+
+        verify(mockWorkerJobDAO).updateStatus(eq(job), eq(WorkerJobBean.Status.FAILED), anyLong());
+        verifyNoInteractions(mockRodimusManager);
     }
 
     // Helper for WorkerJobBean
