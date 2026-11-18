@@ -56,6 +56,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.jupiter.api.AfterEach;
@@ -224,7 +225,8 @@ public class DeployTagWorkerTest {
         return Stream.of(
                 new ConnectException("testConnectException"),
                 new SocketTimeoutException("testSocketTimeoutException"),
-                new ServerErrorException("testServerErrorException", 503));
+                new ServerErrorException("testServerErrorException", 503),
+                new ClientErrorException("testTooManyRequestsException", 429));
     }
 
     @ParameterizedTest
@@ -283,8 +285,15 @@ public class DeployTagWorkerTest {
                 .deleteAllByEnvIdAndHostIds(eq(environ.getEnv_id()), eq(expectedExtraHostId));
     }
 
-    @Test
-    public void testUnexpectedException() throws Exception {
+    static Stream<Exception> unexpectedExceptions() {
+        return Stream.of(
+                new Exception("unexpectedException"),
+                new ClientErrorException("testNotFoundException", 404));
+    }
+
+    @ParameterizedTest
+    @MethodSource("unexpectedExceptions")
+    public void testUnexpectedException(Exception unexpectedException) throws Exception {
         // Set up mock data
         DeployConstraintBean deployConstraint = createDeployConstraintBean();
         List<DeployConstraintBean> deployConstraints = new ArrayList<>();
@@ -314,8 +323,7 @@ public class DeployTagWorkerTest {
 
         List<String> hostTagsToFetch = new ArrayList<>();
         hostTagsToFetch.add(host.getHost_id());
-        when(rodimusManager.getEc2Tags(eq(hostTagsToFetch)))
-                .thenThrow(new Exception("unexpectedException"));
+        when(rodimusManager.getEc2Tags(eq(hostTagsToFetch))).thenThrow(unexpectedException);
 
         // Run the worker
         deployTagWorker.run();
