@@ -3,6 +3,11 @@
 <a name="create_5"></a>
 #### POST /v1/hotfixs
 
+##### Description
+
+Creates a hotfix from `baseDeployId`. The base deploy must belong to `envName`, the environment used for authorization; otherwise the request is rejected with 403 (404 if the deploy does not exist). `repo` and `jobName` are derived from the base deploy's build.
+
+
 ##### Parameters
 
 |Type|Name|Schema|
@@ -85,6 +90,11 @@
 
 <a name="update_15"></a>
 #### PUT /v1/hotfixs/{id}
+
+##### Description
+
+Records the CI job number (`jobNum`) for a hotfix. Only `jobNum` is updated; other body fields are ignored. Returns 400 if `jobNum` is missing.
+
 
 ##### Parameters
 

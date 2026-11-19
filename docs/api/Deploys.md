@@ -115,6 +115,8 @@ PUT /v1/deploys/{id}
 ##### Description
 Update deploy given a deploy id and a deploy object. Current only acceptanceStatus and description are allowed to change.
 
+Only `acceptanceStatus` and `description` are updated; other body fields are ignored. Returns 400 if neither is present.
+
 
 ##### Parameters
 

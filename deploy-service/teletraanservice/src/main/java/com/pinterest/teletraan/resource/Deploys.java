@@ -39,6 +39,7 @@ import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -147,8 +148,17 @@ public class Deploys {
                     DeployBean deployBean)
             throws Exception {
         String userName = sc.getUserPrincipal().getName();
-        deployHandler.update(id, deployBean);
-        LOG.info("{} successfully updated deploy {} with {}", userName, id, deployBean);
+        if (deployBean == null
+                || (deployBean.getAcc_status() == null && deployBean.getDescription() == null)) {
+            throw new BadRequestException("acceptanceStatus or description is required");
+        }
+        // Only the documented fields may change. Hotfixes take their repo and CI job from a
+        // deploy's env and build, so callers must not be able to rewrite those here.
+        DeployBean update = new DeployBean();
+        update.setAcc_status(deployBean.getAcc_status());
+        update.setDescription(deployBean.getDescription());
+        deployHandler.update(id, update);
+        LOG.info("{} successfully updated deploy {} with {}", userName, id, update);
     }
 
     private void delete(
