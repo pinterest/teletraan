@@ -201,6 +201,15 @@ public class Environs {
                 environBean.getStage_name(),
                 environBean.getSystem_priority());
 
+        if (StringUtils.isNotEmpty(environBean.getCluster_name())) {
+            // Check against a bean that only names the new stage: the request's id is
+            // caller-supplied and is replaced when the stage is created.
+            EnvironBean newEnvironBean = new EnvironBean();
+            newEnvironBean.setEnv_name(environBean.getEnv_name());
+            newEnvironBean.setStage_name(environBean.getStage_name());
+            environmentHandler.validateClusterClaim(newEnvironBean, environBean.getCluster_name());
+        }
+
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();
         List<EnvironBean> environBeans = environDAO.getByName(envName);

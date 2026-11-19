@@ -21,6 +21,7 @@ import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -32,6 +33,7 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import java.security.Principal;
 import java.util.*;
+import java.util.regex.Pattern;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -43,11 +45,14 @@ import org.slf4j.LoggerFactory;
 public class EnvironmentHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvironmentHandler.class);
+    // Rodimus cluster paths accept [a-zA-Z0-9\-_]+; environs.cluster_name is VARCHAR(128).
+    private static final Pattern CLUSTER_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9\\-_]{1,128}");
 
     private final ConfigHistoryHandler configHistoryHandler;
     private final EnvironDAO environDAO;
     private final EnvironHandler environHandler;
     private final GroupDAO groupDAO;
+    private final HostDAO hostDAO;
     private final AuthorizationFactory authorizationFactory;
     private final TeletraanServiceContext context;
 
@@ -56,6 +61,7 @@ public class EnvironmentHandler {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         groupDAO = context.getGroupDAO();
+        hostDAO = context.getHostDAO();
         authorizationFactory = context.getAuthorizationFactory();
         this.context = context;
     }
@@ -108,6 +114,13 @@ public class EnvironmentHandler {
         }
         if (updateSystemPriority == null) {
             updateEnvironBean.setSystem_priority(originalSystemPriority);
+        }
+
+        String updateClusterName = updateEnvironBean.getCluster_name();
+        if (StringUtils.isNotEmpty(updateClusterName)
+                && !StringUtils.equalsIgnoreCase(
+                        updateClusterName, originEnvironBean.getCluster_name())) {
+            validateClusterClaim(originEnvironBean, updateClusterName);
         }
 
         try {
@@ -260,5 +273,97 @@ public class EnvironmentHandler {
                 systemPriority,
                 envName,
                 stageName);
+    }
+
+    /**
+     * Rejects cluster names that Rodimus cannot address. Cluster names are interpolated into
+     * Rodimus URLs, so anything outside the Rodimus path pattern is refused.
+     */
+    public static void validateClusterName(String clusterName) {
+        if (clusterName == null || !CLUSTER_NAME_PATTERN.matcher(clusterName).matches()) {
+            throw new WebApplicationException(
+                    "clusterName must be 1-128 letters, digits, '-' or '_'",
+                    Response.Status.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Validates that an infrastructure apply for {@code environBean} may act on {@code clusterName}
+     * (BUG-319978).
+     *
+     * <p>An existing Rodimus cluster may be changed only through the environment it is bound to. A
+     * cluster that does not exist yet may be created only if the environment may claim its name;
+     * see {@link #validateClusterClaim}.
+     *
+     * @param clusterExists whether Rodimus already has a cluster named {@code clusterName}
+     * @throws WebApplicationException 400 if the name is invalid
+     * @throws ForbiddenException if the environment may not act on the cluster
+     */
+    public void validateInfraCluster(
+            EnvironBean environBean, String clusterName, boolean clusterExists) throws Exception {
+        validateClusterName(clusterName);
+        if (clusterExists
+                && !StringUtils.equalsIgnoreCase(environBean.getCluster_name(), clusterName)) {
+            throw new ForbiddenException(
+                    String.format(
+                            "Cluster %s is not bound to env %s/%s",
+                            clusterName, environBean.getEnv_name(), environBean.getStage_name()));
+        }
+        validateClusterClaim(environBean, clusterName);
+    }
+
+    /**
+     * Validates that {@code environBean} may bind {@code clusterName} as its cluster (BUG-319978).
+     *
+     * <p>Binding makes the environment the cluster's owner: capacity checks, main-environment
+     * lookups and Rodimus resolve the cluster's hosts to it. The name must not be bound to another
+     * environment. If this environment is not yet bound to it, no other non-sidecar environment may
+     * deploy to the group, and no hosts may report the group unless this environment already
+     * deploys to it.
+     *
+     * @param environBean the environment claiming the cluster; its env_id is null if it does not
+     *     exist yet
+     * @throws WebApplicationException 400 if the name is invalid
+     * @throws ForbiddenException if the cluster belongs to, or is in use by, something else
+     */
+    public void validateClusterClaim(EnvironBean environBean, String clusterName) throws Exception {
+        validateClusterName(clusterName);
+        EnvironBean owner = environDAO.getByCluster(clusterName);
+        if (owner != null && !isSameEnvironment(environBean, owner)) {
+            throw new ForbiddenException(
+                    String.format(
+                            "Cluster %s is bound to env %s/%s",
+                            clusterName, owner.getEnv_name(), owner.getStage_name()));
+        }
+        if (StringUtils.equalsIgnoreCase(environBean.getCluster_name(), clusterName)) {
+            return;
+        }
+
+        boolean deploysToGroup = false;
+        for (EnvironBean groupEnv :
+                environDAO.getEnvsByGroups(Collections.singletonList(clusterName))) {
+            if (isSameEnvironment(environBean, groupEnv)) {
+                deploysToGroup = true;
+            } else if (!isSidecarEnvironment(groupEnv)) {
+                throw new ForbiddenException(
+                        String.format(
+                                "Group %s is already capacity of env %s/%s",
+                                clusterName, groupEnv.getEnv_name(), groupEnv.getStage_name()));
+            }
+        }
+        if (!deploysToGroup && hostDAO.getGroupSize(clusterName) > 0) {
+            throw new ForbiddenException(
+                    String.format(
+                            "Group %s already has hosts that env %s/%s does not deploy to",
+                            clusterName, environBean.getEnv_name(), environBean.getStage_name()));
+        }
+    }
+
+    private static boolean isSameEnvironment(EnvironBean a, EnvironBean b) {
+        return a.getEnv_id() != null && a.getEnv_id().equals(b.getEnv_id());
+    }
+
+    private static boolean isSidecarEnvironment(EnvironBean environBean) {
+        return environBean.getSystem_priority() != null && environBean.getSystem_priority() > 0;
     }
 }
