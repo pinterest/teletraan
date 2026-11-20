@@ -20,6 +20,7 @@ import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
@@ -46,11 +47,13 @@ public class Hotfixs {
     private static final int DEFAULT_SIZE = 30;
     private DeployDAO deployDAO;
     private BuildDAO buildDAO;
+    private EnvironDAO environDAO;
     private HotfixDAO hotfixDAO;
 
     public Hotfixs(@Context TeletraanServiceContext context) {
         deployDAO = context.getDeployDAO();
         buildDAO = context.getBuildDAO();
+        environDAO = context.getEnvironDAO();
         hotfixDAO = context.getHotfixDAO();
     }
 
@@ -83,8 +86,15 @@ public class Hotfixs {
     @RolesAllowed(TeletraanPrincipalRole.Names.PUBLISHER)
     @ResourceAuthZInfo(type = AuthZResource.Type.HOTFIX, idLocation = Location.PATH)
     public void update(@PathParam("id") String id, HotfixBean hotfixBean) throws Exception {
-        hotfixDAO.update(id, hotfixBean);
-        LOG.info("Successfully updated hotfix {} with {}.", id, hotfixBean);
+        if (hotfixBean == null || hotfixBean.getJob_num() == null) {
+            throw new BadRequestException("jobNum is required");
+        }
+        // Authorization is checked against the stored hotfix's env. Only the CI job number may
+        // change; the env, base deploy, repo and job name stay as create() derived them.
+        HotfixBean update = new HotfixBean();
+        update.setJob_num(hotfixBean.getJob_num());
+        hotfixDAO.update(id, update);
+        LOG.info("Successfully updated hotfix {} jobNum to {}.", id, update.getJob_num());
     }
 
     private String generateJobName(String repo) {
@@ -107,6 +117,18 @@ public class Hotfixs {
         hotfixBean.setState(HotfixState.INITIAL);
 
         DeployBean deploy = deployDAO.getById(hotfixBean.getBase_deploy());
+        if (deploy == null) {
+            throw new NotFoundException(
+                    String.format("Deploy %s does not exist.", hotfixBean.getBase_deploy()));
+        }
+        // Authorization is checked against envName, so the base deploy must belong to that env.
+        EnvironBean environ = environDAO.getById(deploy.getEnv_id());
+        if (environ == null || !hotfixBean.getEnv_name().equals(environ.getEnv_name())) {
+            throw new ForbiddenException(
+                    String.format(
+                            "Deploy %s does not belong to environment %s.",
+                            hotfixBean.getBase_deploy(), hotfixBean.getEnv_name()));
+        }
         BuildBean build = buildDAO.getById(deploy.getBuild_id());
         hotfixBean.setRepo(build.getScm_repo());
         hotfixBean.setJob_name(generateJobName(build.getScm_repo()));
