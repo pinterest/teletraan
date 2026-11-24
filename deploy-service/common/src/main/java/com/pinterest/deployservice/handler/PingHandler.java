@@ -1138,7 +1138,8 @@ public class PingHandler {
         }
 
         if (uninstallCandidates.isEmpty()) {
-            LOG.debug("Return NOOP for host {} ping, no install or uninstall candidates.", hostName);
+            LOG.debug(
+                    "Return NOOP for host {} ping, no install or uninstall candidates.", hostName);
             return new PingResult()
                     .withResponseBean(NOOP)
                     .withUnInstallCandidates(uninstallCandidates);
