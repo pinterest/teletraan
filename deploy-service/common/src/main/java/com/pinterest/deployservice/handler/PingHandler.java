@@ -928,7 +928,7 @@ public class PingHandler {
             String suffix = "-" + String.join("-", shards);
             for (String group : reported) {
                 String shardedGroup = group + suffix;
-                LOG.info(
+                LOG.debug(
                         "Updating host {} with sharded group {}",
                         pingRequest.getHostName(),
                         shardedGroup);
@@ -1138,7 +1138,7 @@ public class PingHandler {
         }
 
         if (uninstallCandidates.isEmpty()) {
-            LOG.info("Return NOOP for host {} ping, no install or uninstall candidates.", hostName);
+            LOG.debug("Return NOOP for host {} ping, no install or uninstall candidates.", hostName);
             return new PingResult()
                     .withResponseBean(NOOP)
                     .withUnInstallCandidates(uninstallCandidates);

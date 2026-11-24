@@ -66,11 +66,11 @@ public class Pings {
             @ApiParam(value = "Ping request object", required = true) @Valid
                     PingRequestBean requestBean)
             throws Exception {
-        LOG.info("Receive ping request " + requestBean);
+        LOG.debug("Receive ping request {}", requestBean);
         boolean rate_limited =
                 Boolean.parseBoolean(headers.getRequestHeaders().getFirst("x-envoy-low-watermark"));
         PingResult result = pingHandler.ping(requestBean, rate_limited);
-        LOG.info("Send ping response " + result.getResponseBean());
+        LOG.debug("Send ping response {}", result.getResponseBean());
         return result.getResponseBean();
     }
 }
