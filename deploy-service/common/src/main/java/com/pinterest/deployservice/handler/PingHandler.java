@@ -185,6 +185,19 @@ public class PingHandler {
         Set<String> recordedGroups = new HashSet<String>(hostDAO.getGroupNamesByHost(hostName));
         String recordedAccountId = hostDAO.getAccountIdByHost(hostName);
 
+        // T018: when a host was previously recorded under a group that's not in the newly-reported
+        // set AND no incoming group matches any recorded group, this is the signature of
+        // cross-env group collision (see teletraan-5063). Emit WARN so the mismatch is searchable.
+        if (!recordedGroups.isEmpty() && Collections.disjoint(recordedGroups, groups)) {
+            LOG.warn(
+                    "Host registered under unexpected groups host_name={} host_id={} recorded_groups={} reported_groups={} account_id={}",
+                    hostName,
+                    hostId,
+                    recordedGroups,
+                    groups,
+                    accountId);
+        }
+
         Set<String> groupsToAdd = new HashSet<String>();
         // Insert if not recorded
         for (String group : groups) {
